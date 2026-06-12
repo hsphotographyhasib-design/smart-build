@@ -40,6 +40,8 @@ model User {
   approvedPurchaseRequests PurchaseRequest[] @relation("PRApprover")
   assignedTasks        ProjectTask[] @relation("TaskAssignee")
   salesInvoices        SalesInvoice[]
+  createdBudgets      Budget[] @relation("BudgetCreator")
+  approvedBudgets      Budget[] @relation("BudgetApprover")
 }
 
 model Session {
@@ -119,6 +121,7 @@ model Project {
   primeContract PrimeContract?
   comments     ProjectComment[]
   teamMembers  ProjectTeamMember[]
+  projectBudget        Budget?
 
   @@index([status])
   @@index([clientId])
@@ -1105,5 +1108,144 @@ model ProjectComment {
   @@index([projectId])
   @@index([entityType])
   @@index([entityId])
+  @@index([createdAt])
+}
+
+// ============ COST MANAGEMENT & BUDGET CONTROL ============
+
+model CostCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  level       Int       @default(1)  // 1=Division, 2=Category, 3=Subcategory, 4=Line Item
+  parentId    String?
+  description String?
+  unitType    String?   // ls (lump sum), ea, sqm, sqft, m, rmt, kg, cum, etc.
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent      CostCode?           @relation("CostCodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    CostCode[]         @relation("CostCodeHierarchy")
+  budgetItems BudgetLineItem[]
+
+  @@index([parentId])
+  @@index([level])
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model Budget {
+  id                String   @id @default(cuid())
+  projectId         String   @unique
+  originalValue     Float    @default(0)
+  revisedValue      Float    @default(0)
+  approvedChanges   Float    @default(0)
+  pendingChanges    Float    @default(0)
+  retentionPercent  Float    @default(10)
+  retentionReleased Float    @default(0)
+  status            String   @default("draft") // draft, approved, locked, closed
+  createdById       String
+  approvedById      String?
+  approvedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy          User              @relation("BudgetCreator", fields: [createdById], references: [id])
+  approvedBy         User?             @relation("BudgetApprover", fields: [approvedById], references: [id])
+  lineItems         BudgetLineItem[]
+  changeOrders      BudgetChangeOrder[]
+  snapshots         BudgetSnapshot[]
+
+  @@index([projectId])
+  @@index([status])
+}
+
+model BudgetLineItem {
+  id              String   @id @default(cuid())
+  budgetId        String
+  costCodeId      String
+  originalBudget  Float    @default(0)
+  revisedBudget   Float    @default(0)
+  committedCost   Float    @default(0)
+  actualCost      Float    @default(0)
+  forecastToComplete Float  @default(0)
+  estimatedAtCompletion Float @default(0)
+  percentComplete Float    @default(0)
+  earnedRevenue   Float    @default(0)
+  billedRevenue   Float    @default(0)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  budget          Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  costCode        CostCode @relation(fields: [costCodeId], references: [id])
+
+  @@index([budgetId])
+  @@index([costCodeId])
+}
+
+model BudgetChangeOrder {
+  id              String   @id @default(cuid())
+  budgetId        String
+  bcoNo           String
+  title           String
+  description     String?
+  reason          String?
+  originalBudget  Float    @default(0)
+  changeAmount    Float    @default(0)
+  newBudget       Float    @default(0)
+  status          String   @default("draft") // draft, submitted, reviewed, approved, rejected, applied
+  submittedById   String
+  reviewedById    String?
+  approvedById    String?
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  appliedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  budget          Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  lineItemUpdates BudgetLineItemUpdate[]
+
+  @@index([budgetId])
+  @@index([status])
+}
+
+model BudgetLineItemUpdate {
+  id                    String   @id @default(cuid())
+  budgetChangeOrderId   String
+  budgetLineItemId      String
+  previousAmount        Float    @default(0)
+  newAmount             Float    @default(0)
+  changeAmount          Float    @default(0)
+
+  budgetChangeOrder     BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
+
+  @@index([budgetChangeOrderId])
+  @@index([budgetLineItemId])
+}
+
+model BudgetSnapshot {
+  id              String   @id @default(cuid())
+  budgetId        String
+  name            String
+  snapshotType    String   // original, monthly, current, custom
+  totalBudget     Float    @default(0)
+  totalActual     Float    @default(0)
+  totalCommitted  Float    @default(0)
+  totalForecast   Float    @default(0)
+  totalEarned     Float    @default(0)
+  totalBilled     Float    @default(0)
+  snapshotData    String   // JSON - stores line item snapshot
+  createdById     String
+  createdAt       DateTime @default(now())
+
+  budget          Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@index([snapshotType])
   @@index([createdAt])
 }
