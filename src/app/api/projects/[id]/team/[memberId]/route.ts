@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await db.projectTeamMember.findFirst({ where: { id: memberId, projectId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
-    const anyJSON.parse(JSON.stringify(713)) = {}
+    const data: any = {}
     if (body.name !== undefined) data.name = body.name
     if (body.role !== undefined) data.role = body.role
     if (body.company !== undefined) data.company = body.company
@@ -22,8 +22,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.isActive !== undefined) data.isActive = body.isActive
 
     const item = await db.projectTeamMember.update({ where: { id: memberId }, data })
-    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'ProjectTeamMember', entityId: memberId, oldValues: existing, newValues: item, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'ProjectTeamMember', entityId: memberId, details: `Updated team member ${memberId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -39,8 +39,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
     await db.projectTeamMember.delete({ where: { id: memberId } })
-    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'ProjectTeamMember', entityId: memberId, oldValues: existing, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'ProjectTeamMember', entityId: memberId, details: `Deleted team member ${memberId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

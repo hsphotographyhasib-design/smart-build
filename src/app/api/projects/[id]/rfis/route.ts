@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     })
 
     await createAuditLog({ userId: user.id, action: 'CREATE', entity: 'RFI', entityId: rfi.id })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) }, { status: 201 })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(rfi)) }, { status: 201 })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

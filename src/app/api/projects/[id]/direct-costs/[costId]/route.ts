@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const item = await db.directCost.findFirst({ where: { id: costId, projectId } })
     if (!item) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await db.directCost.findFirst({ where: { id: costId, projectId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
-    const anyJSON.parse(JSON.stringify(1404)) = {}
+    const data: any = {}
     if (body.category !== undefined) data.category = body.category
     if (body.description !== undefined) data.description = body.description
     if (body.amount !== undefined) data.amount = body.amount
@@ -38,8 +38,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const item = await db.directCost.update({ where: { id: costId }, data })
-    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'DirectCost', entityId: costId, oldValues: existing, newValues: item, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'DirectCost', entityId: costId, details: `Updated direct cost ${costId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -55,8 +55,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
     await db.directCost.delete({ where: { id: costId } })
-    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'DirectCost', entityId: costId, oldValues: existing, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'DirectCost', entityId: costId, details: `Deleted direct cost ${costId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({
       success: true,
-      data: JSON.parse(JSON.stringify()),
+      data: JSON.parse(JSON.stringify(items)),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     })
   } catch (error: any) {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ipAddress: request.headers.get('x-forwarded-for') || undefined,
     })
 
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) }, { status: 201 })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) }, { status: 201 })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

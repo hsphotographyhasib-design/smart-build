@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const contract = await db.primeContract.findUnique({ where: { projectId } })
     if (!contract) return NextResponse.json({ success: false, error: 'Prime contract not found' }, { status: 404 })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(contract)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
-    await createAuditLog({ userId: user.id, action: 'CREATE', entity: 'PrimeContract', entityId: contract.id, newValues: contract, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) }, { status: 201 })
+    await createAuditLog({ userId: user.id, action: 'CREATE', entity: 'PrimeContract', entityId: contract.id, details: `Created prime contract for project ${projectId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(contract)) }, { status: 201 })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await db.primeContract.findUnique({ where: { projectId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Prime contract not found' }, { status: 404 })
 
-    const anyJSON.parse(JSON.stringify(3058)) = {}
+    const data: any = {}
     if (body.contractNo !== undefined) data.contractNo = body.contractNo
     if (body.client !== undefined) data.client = body.client
     if (body.originalValue !== undefined) data.originalValue = body.originalValue
@@ -77,8 +77,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null
 
     const contract = await db.primeContract.update({ where: { projectId }, data })
-    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'PrimeContract', entityId: existing.id, oldValues: existing, newValues: contract, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'PrimeContract', entityId: existing.id, details: `Updated prime contract for project ${projectId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(contract)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

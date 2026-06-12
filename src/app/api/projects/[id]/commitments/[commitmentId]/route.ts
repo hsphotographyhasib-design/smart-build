@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const item = await db.projectCommitment.findFirst({ where: { id: commitmentId, projectId } })
     if (!item) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await db.projectCommitment.findFirst({ where: { id: commitmentId, projectId } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
-    const anyJSON.parse(JSON.stringify(1454)) = {}
+    const data: any = {}
     if (body.type !== undefined) data.type = body.type
     if (body.vendor !== undefined) data.vendor = body.vendor
     if (body.description !== undefined) data.description = body.description
@@ -38,8 +38,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null
 
     const item = await db.projectCommitment.update({ where: { id: commitmentId }, data })
-    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'ProjectCommitment', entityId: commitmentId, oldValues: existing, newValues: item, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'UPDATE', entity: 'ProjectCommitment', entityId: commitmentId, details: `Updated commitment ${commitmentId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
@@ -55,8 +55,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
     await db.projectCommitment.delete({ where: { id: commitmentId } })
-    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'ProjectCommitment', entityId: commitmentId, oldValues: existing, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    await createAuditLog({ userId: user.id, action: 'DELETE', entity: 'ProjectCommitment', entityId: commitmentId, details: `Deleted commitment ${commitmentId}`, ipAddress: request.headers.get('x-forwarded-for') || undefined })
+    return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

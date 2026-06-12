@@ -21,7 +21,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     })
 
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(event)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

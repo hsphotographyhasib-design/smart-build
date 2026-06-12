@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     })
 
     await createAuditLog({ userId: user.id, action: 'APPROVE', entity: 'ChangeEvent', entityId: eventId, oldValues: existing, newValues: item, ipAddress: request.headers.get('x-forwarded-for') || undefined })
-    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify()) })
+    return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(item)) })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
