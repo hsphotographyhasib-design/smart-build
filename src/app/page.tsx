@@ -43,6 +43,7 @@ import { CrewManagement } from '@/components/resources/crew-management'
 import { ResourceRequests } from '@/components/resources/resource-requests'
 import { ResourceProductivity } from '@/components/resources/resource-productivity'
 import { ResourceForecasting } from '@/components/resources/resource-forecasting'
+import { LandingPage } from '@/components/landing/landing-page'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -64,6 +65,7 @@ function PageContent() {
   const { currentPage, pageParams } = useAppStore()
 
   switch (currentPage) {
+    case 'landing': return <LandingPage />
     case 'dashboard': return <DashboardPage />
     case 'projects': return <ProjectsPage />
     case 'project-detail': return <ProjectDetailPage projectId={pageParams.id} />
@@ -112,7 +114,7 @@ function PageContent() {
 }
 
 export default function HomePage() {
-  const { token, isAuthenticated, setUser, setToken, logout } = useAppStore()
+  const { token, isAuthenticated, setUser, setToken, logout, currentPage, navigate: nav } = useAppStore()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -126,10 +128,19 @@ export default function HomePage() {
           logout()
         }
       }
+      // Set initial page for unauthenticated users
+      if (!useAppStore.getState().isAuthenticated && useAppStore.getState().currentPage === 'dashboard') {
+        nav('landing')
+      }
       setLoading(false)
     }
     init()
-  }, [token, setUser, setToken, logout])
+  }, [token, setUser, setToken, logout, nav])
+
+  // If authenticated and on landing page, redirect to dashboard
+  if (isAuthenticated && currentPage === 'landing') {
+    nav('dashboard')
+  }
 
   if (loading) {
     return (
@@ -145,7 +156,11 @@ export default function HomePage() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />
+    return (
+      <React.Suspense fallback={<PageLoader />}>
+        <PageContent />
+      </React.Suspense>
+    )
   }
 
   return (

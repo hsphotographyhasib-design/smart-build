@@ -506,3 +506,25 @@ Stage Summary:
 - Frontend: 10 components (dashboard, planning, labour, equipment, vehicles, tools, crews, requests, productivity, forecasting)
 - All routes lint clean, dev server running with 200 on /
 - Sidebar updated with new "Resource Management" section containing 10 nav items
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Build SmartBuild Marketing Website & Landing Page
+
+Work Log:
+- Installed framer-motion, react-countup, swiper packages
+- Created 18 landing page component files under src/components/landing/
+- Fixed lint errors: missing TrendingUp import in features.tsx, duplicate className in trust.tsx, setState-in-useEffect in resource-planning.tsx
+- Created landing-page.tsx wrapper assembling all 17 sections
+- Added 'landing' AppPage type to Zustand store
+- Updated page.tsx to show landing page for unauthenticated users
+- Added landing → dashboard redirect for authenticated users
+- Verified GET / returns 200 with no compilation errors
+
+Stage Summary:
+- 18 files created: navbar, hero, trust, features, resource-management, cost-control, mobile-app, why-smartbuild, roi-calculator, statistics, testimonials, product-showcase, integrations, security, faq, cta, footer, landing-page
+- All framer-motion animations: fade-in, slide-up, stagger, scroll-triggered, count-up
+- Mobile responsive design throughout
+- Premium SaaS design with blue primary, orange accent, glass effects
+- No external images - all visuals created with CSS/Lucide icons

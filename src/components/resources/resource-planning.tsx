@@ -168,29 +168,27 @@ function AssignmentFormDialog({
 }) {
   const [form, setForm] = useState(emptyForm)
   const [resources, setResources] = useState<Array<{ id: string; name: string }>>([])
-
-  const initialForm = editData ? {
-    projectId: editData.projectId || '',
-    resourceType: editData.resourceType || '',
-    resourceId: editData.resourceId || '',
-    role: editData.role || '',
-    shift: editData.shift || '',
-    location: editData.location || '',
-    startDate: editData.startDate ? format(parseISO(editData.startDate), 'yyyy-MM-dd') : '',
-    endDate: editData.endDate ? format(parseISO(editData.endDate), 'yyyy-MM-dd') : '',
-    dailyCost: editData.dailyCost?.toString() || '',
-    hourlyCost: editData.hourlyCost?.toString() || '',
-    notes: editData.notes || '',
-  } : emptyForm
-
-  // Reset form when dialog opens with new data
-  const openRef = useRef(false)
-  if (open && !openRef.current) {
-    openRef.current = true
-    setForm(initialForm)
+  const [prevOpen, setPrevOpen] = useState(false)
+  
+  // Detect dialog open transition to reset form
+  if (open && !prevOpen) {
+    setPrevOpen(true)
+    setForm(editData ? {
+      projectId: editData.projectId || '',
+      resourceType: editData.resourceType || '',
+      resourceId: editData.resourceId || '',
+      role: editData.role || '',
+      shift: editData.shift || '',
+      location: editData.location || '',
+      startDate: editData.startDate ? format(parseISO(editData.startDate), 'yyyy-MM-dd') : '',
+      endDate: editData.endDate ? format(parseISO(editData.endDate), 'yyyy-MM-dd') : '',
+      dailyCost: editData.dailyCost?.toString() || '',
+      hourlyCost: editData.hourlyCost?.toString() || '',
+      notes: editData.notes || '',
+    } : emptyForm)
   }
-  if (!open) {
-    openRef.current = false
+  if (!open && prevOpen) {
+    setPrevOpen(false)
   }
 
   const handleResourceTypeChange = (type: string) => {

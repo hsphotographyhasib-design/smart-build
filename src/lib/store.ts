@@ -48,6 +48,7 @@ export type AppPage =
   | 'resource-requests'
   | 'resource-productivity'
   | 'resource-forecasting'
+  | 'landing'
 
 interface AppState {
   // Auth
@@ -156,6 +157,7 @@ export const useAppStore = create<AppState>((set) => ({
       'resource-requests': 'Resource Requests',
       'resource-productivity': 'Productivity Tracking',
       'resource-forecasting': 'Resource Forecasting',
+      'landing': 'Welcome',
     }
     set({ 
       currentPage: page, 
