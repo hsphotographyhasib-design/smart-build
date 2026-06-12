@@ -38,6 +38,16 @@ export type AppPage =
   | 'audit-log'
   | 'settings'
   | 'users'
+  | 'resource-dashboard'
+  | 'resource-planning'
+  | 'labour-resources'
+  | 'equipment-resources'
+  | 'vehicle-resources'
+  | 'tool-resources'
+  | 'crew-management'
+  | 'resource-requests'
+  | 'resource-productivity'
+  | 'resource-forecasting'
 
 interface AppState {
   // Auth
@@ -136,6 +146,16 @@ export const useAppStore = create<AppState>((set) => ({
       'audit-log': 'Audit Log',
       'settings': 'Settings',
       'users': 'User Management',
+      'resource-dashboard': 'Resource Dashboard',
+      'resource-planning': 'Resource Planning',
+      'labour-resources': 'Labour Resources',
+      'equipment-resources': 'Equipment Resources',
+      'vehicle-resources': 'Vehicle Resources',
+      'tool-resources': 'Tool Resources',
+      'crew-management': 'Crew Management',
+      'resource-requests': 'Resource Requests',
+      'resource-productivity': 'Productivity Tracking',
+      'resource-forecasting': 'Resource Forecasting',
     }
     set({ 
       currentPage: page, 

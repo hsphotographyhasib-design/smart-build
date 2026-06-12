@@ -6,7 +6,8 @@ import {
   ShoppingCart, Package, Users, UserCheck, Clock, DollarSign,
   ClipboardList, Wrench, Truck, CalendarRange, Store,
   Bell, ShieldCheck, UserCog, BarChart3, ScrollText, FileSpreadsheet,
-  ChevronLeft, ChevronRight, HardHat, Settings, LogOut
+  ChevronLeft, ChevronRight, HardHat, Settings, LogOut,
+  Activity, Gauge, Hammer, Car, Ruler, UsersRound, ClipboardCheck, TrendingUp, LineChart
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
@@ -72,6 +73,21 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Sub Contractors', page: 'subcontractors', icon: Truck },
       { label: 'Assets', page: 'assets', icon: Wrench },
+    ],
+  },
+  {
+    title: 'Resource Management',
+    items: [
+      { label: 'Resource Dashboard', page: 'resource-dashboard', icon: Activity },
+      { label: 'Resource Planning', page: 'resource-planning', icon: Gauge },
+      { label: 'Labour Resources', page: 'labour-resources', icon: HardHat },
+      { label: 'Equipment', page: 'equipment-resources', icon: Hammer },
+      { label: 'Vehicles', page: 'vehicle-resources', icon: Car },
+      { label: 'Tools', page: 'tool-resources', icon: Ruler },
+      { label: 'Crew Management', page: 'crew-management', icon: UsersRound },
+      { label: 'Resource Requests', page: 'resource-requests', icon: ClipboardCheck },
+      { label: 'Productivity', page: 'resource-productivity', icon: TrendingUp },
+      { label: 'Forecasting', page: 'resource-forecasting', icon: LineChart },
     ],
   },
   {

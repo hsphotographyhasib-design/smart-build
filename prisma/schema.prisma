@@ -122,6 +122,9 @@ model Project {
   comments     ProjectComment[]
   teamMembers  ProjectTeamMember[]
   projectBudget        Budget?
+  resourceAssignments   ResourceAssignment[]
+  resourceRequests      ResourceRequest[]
+  productivityLogs      ProductivityLog[]
 
   @@index([status])
   @@index([clientId])
@@ -1248,4 +1251,148 @@ model BudgetSnapshot {
   @@index([budgetId])
   @@index([snapshotType])
   @@index([createdAt])
+}
+
+// ============ RESOURCE MANAGEMENT ============
+
+model ResourceAssignment {
+  id            String    @id @default(cuid())
+  projectId     String
+  resourceType  String    // labour, employee, equipment, vehicle, tool, subcontractor
+  resourceId    String
+  resourceName  String
+  role          String?
+  shift         String    @default("day") // day, night, split
+  location      String?
+  startDate     DateTime
+  endDate       DateTime?
+  status        String    @default("active") // active, completed, transferred, cancelled
+  dailyCost     Float     @default(0)
+  hourlyCost    Float     @default(0)
+  notes         String?
+  createdById   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([resourceType, resourceId])
+  @@index([status])
+  @@index([startDate])
+  @@map("resource_assignments")
+}
+
+model ResourceRequest {
+  id                     String    @id @default(cuid())
+  projectId              String
+  requestNo              String
+  resourceType           String
+  resourceName           String?
+  quantity               Int       @default(1)
+  trade                  String?
+  requiredSkills         String?   // JSON
+  startDate              DateTime?
+  endDate                DateTime?
+  shift                  String    @default("day")
+  priority               String    @default("medium") // low, medium, high, critical
+  reason                 String?
+  status                 String    @default("pending") // pending, supervisor_approved, pm_approved, assigned, rejected, cancelled
+  requestedById          String
+  supervisorApprovedById String?
+  supervisorApprovedAt    DateTime?
+  pmApprovedById         String?
+  pmApprovedAt           DateTime?
+  notes                  String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@map("resource_requests")
+}
+
+model Crew {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // electrical, hvac, mechanical, civil, finishing, maintenance, general
+  leaderName  String?
+  leaderId    String?
+  leaderType  String?   // labour, employee
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members CrewMember[]
+  @@map("crews")
+}
+
+model CrewMember {
+  id          String   @id @default(cuid())
+  crewId      String
+  workerType  String   // labour, employee
+  workerId    String
+  workerName  String
+  role        String   @default("member") // leader, member, specialist
+  joinDate    DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+
+  @@unique([crewId, workerType, workerId])
+  @@map("crew_members")
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String?  // trade, certification, software, safety
+  description String?
+  createdAt   DateTime @default(now())
+
+  workers WorkerSkill[]
+  @@map("skills")
+}
+
+model WorkerSkill {
+  id          String    @id @default(cuid())
+  skillId     String
+  workerType  String    // labour, employee
+  workerId    String
+  proficiency String    @default("intermediate") // beginner, intermediate, advanced, expert
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([skillId, workerType, workerId])
+  @@map("worker_skills")
+}
+
+model ProductivityLog {
+  id            String    @id @default(cuid())
+  projectId     String
+  date          DateTime
+  resourceType  String    // labour, employee, crew
+  resourceId    String?
+  crewId        String?
+  resourceName  String?
+  task          String?
+  outputUnit    String?
+  outputQty     Float     @default(0)
+  hoursWorked   Float     @default(0)
+  cost          Float     @default(0)
+  quality       String?   // excellent, good, average, poor
+  notes         String?
+  createdById   String
+  createdAt     DateTime  @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, date])
+  @@index([resourceType])
+  @@map("productivity_logs")
 }

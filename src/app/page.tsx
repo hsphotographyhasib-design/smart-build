@@ -33,6 +33,16 @@ import { NotificationsPage } from '@/components/notifications/notifications-page
 import { AuditLogPage } from '@/components/common/audit-log-page'
 import { UsersPage } from '@/components/common/users-page'
 import { SettingsPage } from '@/components/common/settings-page'
+import { ResourceDashboard } from '@/components/resources/resource-dashboard'
+import { ResourcePlanning } from '@/components/resources/resource-planning'
+import { LabourResources } from '@/components/resources/labour-resources'
+import { EquipmentResources } from '@/components/resources/equipment-resources'
+import { VehicleResources } from '@/components/resources/vehicle-resources'
+import { ToolResources } from '@/components/resources/tool-resources'
+import { CrewManagement } from '@/components/resources/crew-management'
+import { ResourceRequests } from '@/components/resources/resource-requests'
+import { ResourceProductivity } from '@/components/resources/resource-productivity'
+import { ResourceForecasting } from '@/components/resources/resource-forecasting'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -87,6 +97,16 @@ function PageContent() {
     case 'audit-log': return <AuditLogPage />
     case 'users': return <UsersPage />
     case 'settings': return <SettingsPage />
+    case 'resource-dashboard': return <ResourceDashboard />
+    case 'resource-planning': return <ResourcePlanning />
+    case 'labour-resources': return <LabourResources />
+    case 'equipment-resources': return <EquipmentResources />
+    case 'vehicle-resources': return <VehicleResources />
+    case 'tool-resources': return <ToolResources />
+    case 'crew-management': return <CrewManagement />
+    case 'resource-requests': return <ResourceRequests />
+    case 'resource-productivity': return <ResourceProductivity />
+    case 'resource-forecasting': return <ResourceForecasting />
     default: return <DashboardPage />
   }
 }
