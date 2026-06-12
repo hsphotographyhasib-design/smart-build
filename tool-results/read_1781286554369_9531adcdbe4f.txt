@@ -1,0 +1,531 @@
+     1→# SMARTBUILD Worklog
+     2→
+     3→## Task 3 - Authentication System & Seed Data (2025-06-12)
+     4→
+     5→### What was built:
+     6→- Complete auth system with login, register, logout, me, and user management endpoints
+     7→- Session-based auth with UUID tokens stored in database (7-day expiry)
+     8→- In-memory rate limiting (20 req/min per IP)
+     9→- Comprehensive seed script with realistic construction ERP data
+    10→- Dashboard statistics API with real-time computed metrics
+    11→- Notification CRUD API
+    12→
+    13→### Key decisions:
+    14→- Session-based auth (not JWT) for easy revocation
+    15→- bcryptjs for password hashing (10 salt rounds)
+    16→- Rate limiter is in-memory with auto-cleanup every 5 min
+    17→- All API routes use `{ success, data, error }` response format
+    18→- Seed script cleans all existing data before reseeding
+    19→
+    20→### Files created/modified:
+    21→- `src/lib/auth.ts` - Auth utilities
+    22→- `src/lib/seed.ts` - Seed script (~600 lines)
+    23→- `src/app/api/auth/login/route.ts`
+    24→- `src/app/api/auth/register/route.ts`
+    25→- `src/app/api/auth/logout/route.ts`
+    26→- `src/app/api/auth/me/route.ts`
+    27→- `src/app/api/auth/users/route.ts`
+    28→- `src/app/api/dashboard/stats/route.ts`
+    29→- `src/app/api/dashboard/notifications/route.ts`
+    30→- `package.json` - Added seed script
+    31→
+    32→### Verified:
+    33→- Login API returns token and user data ✓
+    34→- Dashboard stats computes real data from DB ✓
+    35→- User listing with pagination ✓
+    36→- ESLint passes ✓
+    37→
+    38→## Task 2-a - Login Page Component (2025-06-12)
+    39→
+    40→### What was built:
+    41→- Professional construction-themed login page with amber/orange color scheme
+    42→- Split-layout card design: left brand panel + right login form
+    43→- Client-side form validation using react-hook-form + zod
+    44→- Password visibility toggle, loading state, and error handling
+    45→- Providers wrapper (QueryClientProvider + Sonner Toaster)
+    46→- AI-generated construction hard hat favicon
+    47→- Updated root layout with Providers and SMARTBUILD metadata
+    48→
+    49→### Key decisions:
+    50→- Amber/orange gradient brand panel (not blue/indigo) for construction theme
+    51→- Subtle cross-pattern SVG overlay on background for texture
+    52→- Zod schema validates email format and minimum password length
+    53→- On success: stores token + user in Zustand, navigates to 'dashboard'
+    54→- On failure: shows toast error via sonner
+    55→- Sonner Toaster configured with `richColors` and `closeButton` in providers
+    56→- Removed old `@/components/ui/toaster` (radix-based) in favor of sonner
+    57→
+    58→### Files created/modified:
+    59→- `src/components/auth/providers.tsx` - QueryClientProvider + Sonner Toaster wrapper
+    60→- `src/components/auth/login-page.tsx` - Full login page component (~180 lines)
+    61→- `src/app/layout.tsx` - Updated with Providers, SMARTBUILD metadata, favicon.png
+    62→- `src/app/page.tsx` - Renders LoginPage component
+    63→- `public/favicon.png` - AI-generated construction hard hat icon
+    64→
+    65→### Verified:
+    66→- ESLint passes clean ✓
+    67→- Dev server compiles successfully (GET / 200) ✓
+    68→
+    69→## Task 4-a - Dashboard Page Component (2025-06-12)
+    70→
+    71→### What was built:
+    72→- Comprehensive enterprise dashboard with 4 distinct sections: KPI cards, charts, tables, and alerts/activities
+    73→- 6 KPI cards in responsive grid (2 cols mobile → 6 cols desktop) with colored icon badges
+    74→- Revenue vs Expenses bar chart using Recharts (6-month view, amber/red bars, INR currency formatting)
+    75→- Project Progress section with horizontal progress bars (color-coded by completion %)
+    76→- Recent Payments table with payment number, amount, method, date, status badge
+    77→- Upcoming Tasks table with task name, project, due date, priority, and status badges
+    78→- Stock Alerts section with severity-based coloring (critical/high/low) based on stock ratio
+    79→- Recent Activities timeline with avatar initials, connecting lines, and relative timestamps
+    80→
+    81→### Key decisions:
+    82→- Transformed API chart data from separate arrays (`months[]`, `revenue[]`, `expenses[]`) into Recharts-compatible object array using `useMemo`
+    83→- Used actual API field names (`labourOnSiteToday`, `pendingPurchaseRequests`, `pendingApprovals`) rather than task description's simplified names
+    84→- Replaced blue color with teal for "Labour On Site" KPI card (no blue/indigo in color scheme)
+    85→- Currency formatted with `toLocaleString('en-IN')` and ₹ prefix throughout
+    86→- Chart Y-axis uses abbreviated Indian number format (₹1.0L, ₹500K)
+    87→- Full skeleton loading states for each section (KPI grid skeleton, chart skeleton, table skeleton, timeline skeleton)
+    88→- Error state with AlertTriangle icon and error message display
+    89→- Empty states with muted icons and descriptive text for every section
+    90→- `refetchInterval: 30000` for auto-refresh every 30 seconds
+    91→- All tables use `max-h-96 overflow-y-auto` with `custom-scrollbar` class
+    92→- Used `cn()` for all conditional class composition
+    93→
+    94→### Color scheme (warm construction theme, no blue/indigo):
+    95→- Active Projects: amber-600
+    96→- Revenue: emerald-600
+    97→- Outstanding Invoices: red-600
+    98→- Labour On Site: teal-600 (warm-leaning)
+    99→- Pending Requests: orange-600
+   100→- Pending Approvals: violet-600
+   101→
+   102→### Files created/modified:
+   103→- `src/components/dashboard/dashboard-page.tsx` - Full dashboard page component (~460 lines)
+   104→
+   105→### Verified:
+   106→- ESLint passes clean ✓
+   107→- Dev server compiles successfully (no dashboard-related errors) ✓
+   108→
+   109→## Task 6 - Procurement, Labour & HR Page Components (2025-06-12)
+   110→
+   111→### What was built:
+   112→Six complete, production-ready page components with consistent patterns:
+   113→
+   114→1. **Inventory Page** (`src/components/procurement/inventory-page.tsx`)
+   115→   - Stock alerts banner at top (red for out-of-stock, amber for low stock) with material badges
+   116→   - Full material table: Name, Code, Unit, Category, Current/Min Stock, Unit Price, Status, Actions
+   117→   - Stock status badges: red "Out of Stock", amber "Low Stock", emerald "In Stock"
+   118→   - Create/Edit material dialog with all fields (name, code, unit, category, stock, price)
+   119→   - Stock Adjustment dialog: type (in/out/adjustment), quantity, notes → POST /api/materials/{id}/adjust-stock
+   120→   - Delete with AlertDialog confirmation
+   121→   - Category filter dropdown (dynamically built from loaded data)
+   122→
+   123→2. **Labour Groups Page** (`src/components/labour/labour-groups-page.tsx`)
+   124→   - Expandable group cards in responsive grid (1→2→3 cols)
+   125→   - Each card shows: group name, member count, default daily rate
+   126→   - Click to expand and see members table: Name, Phone, Daily Rate, Status, Actions
+   127→   - Add Group dialog: name, default rate
+   128→   - Add Member dialog: name, phone, aadhaar, daily rate → POST /api/labour-groups/{id}/members
+   129→   - Toggle active/inactive per member → PUT /api/labour/{id} {isActive}
+   130→   - Delete member and delete group with confirmations
+   131→
+   132→3. **Attendance Page** (`src/components/labour/attendance-page.tsx`)
+   133→   - Date picker (defaults to today), project selector, status filter
+   134→   - 4 summary cards: Present (emerald), Absent (red), Half Day (amber), Overtime (orange)
+   135→   - Table: Labour Name, Group, Project, Date, Status, Hours, OT
+   136→   - Mark Attendance dialog: select project → select group → per-member status dropdown (Present/Absent/Half Day/Overtime)
+   137→   - Quick select buttons: "All Present", "All Absent", "All Half Day"
+   138→   - POST /api/attendance with records array
+   139→
+   140→4. **Payroll Page** (`src/components/labour/payroll-page.tsx`)
+   141→   - Period selector (month dropdown + year input), project filter, status filter
+   142→   - Table: Labour Name, Group, Days Worked, OT Hours, Basic, OT Pay, Deductions, Net Pay, Status, Actions
+   143→   - Summary totals row at bottom of table (bold, muted background)
+   144→   - Generate Payroll dialog: project, month, year → POST /api/payroll/generate
+   145→   - Mark as Paid button → POST /api/payroll/{id}/pay (with confirmation dialog)
+   146→   - Warning note about regeneration in generate dialog
+   147→
+   148→5. **Employees Page** (`src/components/hr/employees-page.tsx`)
+   149→   - Search by name, code, email, phone; department filter; status filter
+   150→   - Table: Emp Code, Name, Email, Phone, Department, Designation, Join Date, Salary, Status, Actions
+   151→   - Department dropdown with 10 construction-relevant departments
+   152→   - Create/Edit dialog: all fields including date picker for join date
+   153→   - Delete with AlertDialog confirmation
+   154→
+   155→6. **Leave Management Page** (`src/components/hr/leave-page.tsx`)
+   156→   - Tabs: "Leave Requests" and "Loans"
+   157→   - Leave Requests tab: status filter (pending/approved/rejected), search
+   158→     - Table: Employee, Type, Start, End, Days, Reason, Status, Actions
+   159→     - Approve/Reject buttons on pending requests → POST /api/leave-requests/{id}/approve|reject
+   160→     - Apply Leave dialog: employee, type (7 leave types), date range with auto-day calculation, reason
+   161→   - Loans tab: status filter, search
+   162→     - Table: Employee, Amount, Interest%, Tenure, EMI, Start Date, Status
+   163→     - Create Loan dialog: employee, amount, interest, tenure, EMI, start date
+   164→
+   165→### Patterns applied consistently across all 6 pages:
+   166→- `'use client'` directive, standard import pattern
+   167→- Loading Skeleton (TableSkeleton or CardsSkeleton)
+   168→- Error Card with red border
+   169→- Empty Card with muted Lucide icon and descriptive text
+   170→- Search/filter bar
+   171→- Data Table with `max-h-[600px] overflow-y-auto custom-scrollbar`
+   172→- Create Dialog with form validation
+   173→- INR currency formatting via `Intl.NumberFormat('en-IN', ...)`
+   174→- Status badges: amber for pending, emerald for active/approved/paid/present, red for rejected/absent, orange for overtime
+   175→- `cn()` for conditional classes, `toast` from sonner for notifications
+   176→- Amber/warm theme buttons (`bg-amber-600 hover:bg-amber-700 text-white`)
+   177→- Table rows: `hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors`
+   178→- Responsive: hidden columns on smaller breakpoints
+   179→
+   180→### Files created:
+   181→- `src/components/procurement/inventory-page.tsx` (~280 lines)
+   182→- `src/components/labour/labour-groups-page.tsx` (~310 lines)
+   183→- `src/components/labour/attendance-page.tsx` (~310 lines)
+   184→- `src/components/labour/payroll-page.tsx` (~310 lines)
+   185→- `src/components/hr/employees-page.tsx` (~270 lines)
+   186→- `src/components/hr/leave-page.tsx` (~440 lines)
+   187→
+   188→### Verified:
+   189→- All 6 new files pass ESLint with zero errors/warnings ✓
+   190→- Pre-existing lint errors in other files (project-detail-page.tsx, scheduling-page.tsx) not introduced by this task ✓
+   191→- Dev server has no new compilation errors from these files ✓
+   192→
+   193→## Task 8 - Project Detail, Scheduling & Finance Page Components (2025-06-12)
+   194→
+   195→### What was built:
+   196→Seven complete, production-ready page components for project detail, scheduling, and finance modules:
+   197→
+   198→1. **Project Detail Page** (`src/components/projects/project-detail-page.tsx` — ~1090 lines)
+   199→   - Props: `{ projectId?: string; activeTab?: string }`
+   200→   - Empty state when no projectId with "Go to Projects" button
+   201→   - 5 tabs: Overview, Tasks, Finance, Documents, Daily Notes (with item counts in tab labels)
+   202→   - Overview tab: 4 stat cards (Budget, Tasks Done, Members, Days Left), progress bar with task breakdown, project info card with all details
+   203→   - Tasks tab: full task table + Add Task dialog (title, description, status, priority, start/end dates)
+   204→   - Finance tab: 4 summary cards (Budget, Invoiced, Paid, Outstanding) + invoices table + payments table
+   205→   - Documents tab: document table with type badge + Add Document dialog (name, type select)
+   206→   - Daily Notes tab: notes table with weather icons + Add Daily Note dialog (date, weather, workDone, issues, labourCount)
+   207→   - Back button navigates to 'projects', breadcrumbs set via `setBreadcrumbs()`
+   208→   - Full loading, error, and empty states per tab
+   209→
+   210→2. **Scheduling Page** (`src/components/scheduling/scheduling-page.tsx` — ~310 lines)
+   211→   - Fetches all tasks from GET /api/scheduling
+   212→   - Project selector dropdown, status filter, priority filter, search
+   213→   - Tasks grouped by project into separate Card tables with project header
+   214→   - Each group shows task count badge
+   215→   - Table: Task, Status, Priority, Start, End, Progress (mini bar), Assignee
+   216→   - Add Task dialog with project selection
+   217→   - Colored status/priority badges and mini progress bars
+   218→
+   219→3. **Invoices Page** (`src/components/finance/invoices-page.tsx` — ~568 lines)
+   220→   - Fetches from GET /api/invoices with status and search filters
+   221→   - Table: Invoice No, Project, Issue Date, Due Date, Total, Paid, Status, Actions (edit/delete)
+   222→   - Create/Edit Invoice dialog with:
+   223→     - Project select, Client ID, dates
+   224→     - **Line items sub-form**: description, qty, unit (8 unit types), unit price — with Add/Remove item rows
+   225→     - Auto-calculated totals panel: Subtotal, Tax %, Discount %, Total (computed via `useMemo`)
+   226→     - Notes field
+   227→   - Delete with AlertDialog confirmation
+   228→   - Status badges: draft=secondary, submitted=sky, approved=emerald, paid=emerald, overdue=red, cancelled=muted
+   229→
+   230→4. **Payments Page** (`src/components/finance/payments-page.tsx` — ~310 lines)
+   231→   - Fetches from GET /api/payments with status, method, and search filters
+   232→   - Table: Payment No, Project, Invoice, Amount (emerald), Method, Date, Status, Actions
+   233→   - Create dialog: project select, invoice select (fetches project invoices), amount, method (8 payment methods), reference, date, notes
+   234→   - Invoice dropdown shows outstanding amount per invoice
+   235→   - Delete with AlertDialog confirmation
+   236→
+   237→5. **BOQ Page** (`src/components/finance/boq-page.tsx` — ~260 lines)
+   238→   - Project selector at top (fetches all projects)
+   239→   - Fetches from GET /api/boq/{projectId} when project selected
+   240→   - Table: Item No, Description, Unit, Quantity, Rate, Amount, Actions
+   241→   - Bold total row at bottom
+   242→   - Add Item dialog: itemNo, description, unit (9 unit types including Lump Sum), quantity, unitRate
+   243→   - Live amount preview in dialog
+   244→   - Delete item with confirmation dialog
+   245→   - Empty state when no project selected
+   246→
+   247→6. **Daybook Page** (`src/components/finance/daybook-page.tsx` — ~300 lines)
+   248→   - Fetches from GET /api/daybook with search, category, and date filters
+   249→   - 3 summary cards: Total Income (emerald), Total Expense (red), Net Balance (amber, color-coded)
+   250→   - Table: Date, Description, Category, Type (Income/Expense badge), Amount (color-coded +-/−), Status
+   251→   - Net totals row at bottom
+   252→   - 13 expense/income categories
+   253→   - Create dialog: date, type (income/expense), description, category, amount, notes
+   254→
+   255→7. **Cashflow Page** (`src/components/finance/cashflow-page.tsx` — ~320 lines)
+   256→   - Period selector: month dropdown (12 months) + year dropdown (3 years)
+   257→   - 4 summary cards: Opening Balance, Total Inflows (emerald), Total Outflows (red), Closing Balance (amber, color-coded)
+   258→   - Monthly trend BarChart via Recharts (emerald inflows vs red outflows bars, abbreviated INR Y-axis)
+   259→   - Custom chart tooltip with colored dots
+   260→   - Two side-by-side tables: Inflows (payments received) and Outflows (expenses)
+   261→   - Empty state per table when no data for period
+   262→
+   263→### Patterns applied consistently:
+   264→- `'use client'` directive, standard import pattern from `@/lib/store` and shadcn/ui
+   265→- Loading skeletons (TableSkeleton, SummarySkeleton, ChartSkeleton, OverviewSkeleton)
+   266→- Error Card with red border and AlertTriangle icon
+   267→- Empty Card with muted Lucide icon and descriptive message
+   268→- Search/filter bar on all list pages
+   269→- Data tables with `max-h-96 overflow-y-auto` and ScrollArea
+   270→- Create dialogs with form validation and amber-themed submit buttons
+   271→- INR currency formatting via `Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 })`
+   272→- Status badge colors per spec: draft=secondary, submitted=sky, review=amber, approved=emerald, rejected=red, paid=emerald, overdue=red, cancelled=muted, active=emerald, on_hold=amber, planning=sky, completed=teal, pending=amber
+   273→- `cn()` for all conditional classes, `toast` from sonner for success/error
+   274→- Responsive: columns hidden on smaller breakpoints, mobile-first toolbar layout
+   275→
+   276→### Files created:
+   277→- `src/components/projects/project-detail-page.tsx`
+   278→- `src/components/scheduling/scheduling-page.tsx`
+   279→- `src/components/finance/invoices-page.tsx`
+   280→- `src/components/finance/payments-page.tsx`
+   281→- `src/components/finance/boq-page.tsx`
+   282→- `src/components/finance/daybook-page.tsx`
+   283→- `src/components/finance/cashflow-page.tsx`
+   284→
+   285→### Verified:
+   286→- ESLint passes clean (zero errors, zero warnings) ✓
+   287→- All 7 files compile without issues ✓
+   288→- Pre-existing dev server error (missing reports-page component) unrelated to this task ✓
+   289→
+   290→## Task 5 - Page Components & API Routes (2025-06-12)
+   291→
+   292→### What was built:
+   293→- 11 page components for remaining SMARTBUILD modules
+   294→- 16 API routes with full CRUD operations
+   295→- Fixed pre-existing import name mismatches in page.tsx (BOQPage→BoqPage, DayBookPage→DaybookPage)
+   296→
+   297→### Page Components (11 files):
+   298→1. `src/components/subcontractors/subcontractors-page.tsx` - Sub-contractor CRUD with search, view/edit/delete dialogs, amber theme
+   299→2. `src/components/subcontractors/work-orders-page.tsx` - Work orders with filters (status/sub-contractor/project), create dialog with select dropdowns, status badges
+   300→3. `src/components/assets/assets-page.tsx` - Asset management with type/status filters, create/edit/view/delete, status-colored badges
+   301→4. `src/components/sales/product-catalog-page.tsx` - Product catalog with category/search/active filters, inline edit, stock alert badges
+   302→5. `src/components/sales/customers-page.tsx` - Customer CRUD with search, view/edit/delete dialogs
+   303→6. `src/components/sales/sales-invoices-page.tsx` - Sales invoices with line items, dynamic total calculation, status filters
+   304→7. `src/components/reports/reports-page.tsx` - Report type selector, date range picker, 7 report types with dynamic table rendering
+   305→8. `src/components/notifications/notifications-page.tsx` - Notification list with mark-all-read, delete, read-on-click, emoji type icons
+   306→9. `src/components/common/audit-log-page.tsx` - Read-only audit log with entity/action/date filters, pagination, JSON truncation
+   307→10. `src/components/common/users-page.tsx` - User management with create/edit role/status, deactivate, role-colored badges
+   308→11. `src/components/common/settings-page.tsx` - Company info, user profile, password change, theme toggle
+   309→
+   310→### API Routes (16 files):
+   311→12. `src/app/api/subcontractors/route.ts` - GET (list) + POST (create)
+   312→13. `src/app/api/subcontractors/[id]/route.ts` - GET + PUT + DELETE
+   313→14. `src/app/api/work-orders/route.ts` - GET (include subContractor, project) + POST (auto-generate order number)
+   314→15. `src/app/api/work-orders/[id]/route.ts` - GET + PUT + DELETE
+   315→16. `src/app/api/assets/route.ts` - GET (type/status filters) + POST
+   316→17. `src/app/api/assets/[id]/route.ts` - GET (include issues, maintenance) + PUT + DELETE
+   317→18. `src/app/api/products/route.ts` - GET (include category, search) + POST
+   318→19. `src/app/api/products/[id]/route.ts` - GET + PUT + DELETE
+   319→20. `src/app/api/product-categories/route.ts` - GET + POST (for category selector)
+   320→21. `src/app/api/customers/route.ts` - GET (search) + POST
+   321→22. `src/app/api/customers/[id]/route.ts` - GET + PUT + DELETE
+   322→23. `src/app/api/sales-invoices/route.ts` - GET (include customer) + POST (auto-generate invoice number, calculate totals)
+   323→24. `src/app/api/sales-invoices/[id]/route.ts` - GET + PUT + DELETE
+   324→25. `src/app/api/cashflow/route.ts` - GET (compute from payments + expenses by month/year)
+   325→26. `src/app/api/audit-log/route.ts` - GET (entity/action/date filters, pagination)
+   326→27. `src/app/api/reports/route.ts` - GET (7 report types: project-pl, income-expense, labour, attendance, material, supplier, asset)
+   327→+ `src/app/api/dashboard/notifications/mark-all-read/route.ts` - POST (mark all as read)
+   328→
+   329→### Key decisions:
+   330→- All page components follow existing suppliers-page pattern (search, skeleton, empty state, create/edit/view/delete dialogs)
+   331→- Work orders auto-generate order numbers (WO-0001, WO-0002...)
+   332→- Sales invoices auto-generate invoice numbers (SI-0001, SI-0002...) and calculate subtotal/tax/total from line items
+   333→- Reports API handles 7 different report types with type-specific data structures
+   334→- Generic table renderer for reports with smart column formatting (currency, percentage, date detection)
+   335→- Audit log is read-only with JSON truncation for old/new values columns
+   336→- All API routes use consistent pattern: verifyAuth → query → auditLog → response
+   337→- INR currency formatting throughout with `Intl.NumberFormat('en-IN')`
+   338→- Amber theme, no blue/indigo colors
+   339→- Status badges: consistent color mapping (emerald=active/available, amber=partial/issued, red=maintenance/overdue, slate=disposed/closed)
+   340→
+   341→### Fixes:
+   342→- Fixed pre-existing page.tsx import mismatches: `BOQPage` → `BoqPage`, `DayBookPage` → `DaybookPage`
+   343→
+   344→### Verified:
+   345→- ESLint passes clean ✓
+   346→- Dev server returns HTTP 200 ✓
+   347→- All 27 files created successfully ✓
+   348→---
+   349→Task ID: 4 - Full Module Build & Verification (2025-06-13)
+   350→
+   351→### What was built:
+   352→- **Project Detail page**: 5-tab view (Overview, Tasks, Finance, Documents, Daily Notes) with full CRUD
+   353→- **Scheduling page**: All tasks grouped by project with filters
+   354→- **Finance module**: Invoices, Payments, BOQ, Day Book, Cashflow (6 pages + 8 API routes)
+   355→- **Procurement module**: Purchase Requests, Purchase Orders, Suppliers, Inventory (4 pages + 10 API routes)
+   356→- **Labour module**: Labour Groups (expandable cards), Attendance, Payroll (3 pages + 6 API routes)
+   357→- **HR module**: Employees, Leave Management (2 pages + 7 API routes)
+   358→- **Operations module**: Sub Contractors, Work Orders, Asset Management (3 pages + 6 API routes)
+   359→- **Sales module**: Product Catalog, Customers, Sales Invoices (3 pages + 8 API routes)
+   360→- **System module**: Reports, Notifications, Audit Log, Users, Settings (5 pages + 3 API routes)
+   361→- **Missing APIs**: cashflow, subcontractors, work-orders, assets, products, product-categories, customers, sales-invoices, audit-log, reports
+   362→
+   363→### Key decisions:
+   364→- 24 page components built with consistent pattern: loading skeletons, error/empty states, search/filter, CRUD dialogs
+   365→- Amber/warm construction color theme throughout (NO blue/indigo)
+   366→- INR currency formatting with toLocaleString('en-IN')
+   367→- All data read from real database via Prisma
+   368→
+   369→### Fix applied:
+   370→- Users page: API response was nested `{ data: { users: [...] } }` but component expected flat array. Fixed with proper destructuring.
+   371→
+   372→### Browser Verification:
+   373→- ✅ Login page renders with SMARTBUILD branding
+   374→- ✅ Dashboard loads with real KPI data, charts, tables
+   375→- ✅ Projects page shows 3 real projects with status filters
+   376→- ✅ Project detail page with 5 working tabs
+   377→- ✅ Purchase Requests with real data and status filters
+   378→- ✅ Labour Groups with expandable cards showing 6 groups
+   379→- ✅ Invoices page with real invoice data
+   380→- ✅ Users page with 6 users across all roles
+   381→- ✅ Assets, Settings, Reports, Notifications pages all render
+   382→- ✅ ESLint: 0 errors
+   383→- ✅ Dev server: Running clean on port 3000
+   384→
+   385→### Total artifacts: 32 custom components + 50+ API routes
+   386→
+   387→---
+   388→Task ID: 4 - Comprehensive Project Workspace (13-Tab Detail Page) (2025-06-13)
+   389→
+   390→### What was built:
+   391→Complete overhaul of `src/components/projects/project-detail-page.tsx` from 5-tab (~1090 lines) to a full 13-tab project workspace (~1948 lines).
+   392→
+   393→**13 Tabs Implemented:**
+   394→1. **Overview** — KPI cards (Budget, Progress, Team Size, Open Items, Pending RFIs, Commitments), budget health bar with spent/committed/remaining breakdown, recent activity timeline from project comments, days remaining indicator
+   395→2. **Tasks** — Full task table with status/priority badges, assignee, dates, create dialog with all fields, search
+   396→3. **Timeline** — Horizontal timeline with milestone dots (color-coded by status: completed=emerald, overdue=red, pending=amber), scrollable milestone cards
+   397→4. **Open Items** — Filterable table (status + category dropdowns), resolve/close workflow buttons, create dialog with 7 categories, auto-generated item numbers
+   398→5. **RFIs** — Filterable table, full workflow (Draft→Submit→Review→Answer→Close), detail dialog with comment thread and add-comment form, status-colored badges
+   399→6. **Change Events** — Table with impact type badges (cost/schedule/scope/quality), potential cost and schedule impact, approve/reject workflow, create dialog
+   400→7. **Change Orders** — Table with cost adjustment (color-coded +/-), adjusted budget, approve button, create dialog
+   401→8. **Team** — Card grid layout with avatar initials, role badges, company/phone/email info, add member dialog with 9 role types
+   402→9. **Commitments** — Summary cards (Total Value, Committed, Remaining), table with type/vendor/value, create dialog with 4 commitment types
+   403→10. **Direct Costs** — Dynamic category summary cards, table with category/description/amount, create dialog with 9 cost categories
+   404→11. **Documents** — Table with type-colored badges, file size formatting, upload dialog with 5 document types
+   405→12. **Daily Notes** — Table with weather icons (sun/cloud/rain/snow/wind), work done, issues, labour count, create dialog
+   406→13. **Insights** — Budget health progress bar, Open Items pie chart (Recharts), RFI status pie chart, Direct Costs by category bar chart, Change Events summary cards
+   407→
+   408→**13 New API Routes:**
+   409→- `GET/POST /api/projects/{id}/rfis` — RFI CRUD with auto-number generation
+   410→- `PUT /api/projects/{id}/rfis/{rfiId}` — RFI status workflow
+   411→- `POST /api/projects/{id}/rfis/{rfiId}/comments` — RFI comment creation
+   412→- `GET/POST /api/projects/{id}/change-events` — Change event CRUD
+   413→- `PUT /api/projects/{id}/change-events/{eventId}` — Change event status workflow
+   414→- `GET/POST /api/projects/{id}/change-orders` — Change order CRUD
+   415→- `PUT /api/projects/{id}/change-orders/{coId}` — Change order approve
+   416→- `GET/POST /api/projects/{id}/team` — Team member CRUD
+   417→- `GET/POST /api/projects/{id}/commitments` — Commitment CRUD
+   418→- `GET/POST /api/projects/{id}/direct-costs` — Direct cost CRUD
+   419→- `PUT /api/projects/{id}/open-items/{itemId}` — Open item resolve/close
+   420→- `GET /api/projects/{id}/insights` — Computed analytics (budget, open items, RFIs, costs by category, change events)
+   421→- `GET /api/projects/{id}/comments` — Recent project comments for activity feed
+   422→
+   423→### Key decisions:
+   424→- Each tab is a separate function component for maintainability
+   425→- Every tab has: loading skeleton, error card, empty card with icon + action button, data display, create dialog
+   426→- Amber/warm theme throughout — tab triggers use `data-[state=active]:bg-amber-600`
+   427→- Status color maps match spec exactly (open=amber, pending=amber-50, in_review=orange, resolved=emerald, closed=slate)
+   428→- RFI workflow: draft→submitted→under_review→answered→closed with contextual action buttons per status
+   429→- Insights tab uses Recharts PieChart (donut style with innerRadius) and BarChart with INR formatting
+   430→- Budget health bar changes color at 70% (amber) and 90% (red) thresholds
+   431→- Fixed lint errors: replaced `useEffect` + `setState` with synchronous render-time state sync; added missing `FolderKanban` import
+   432→- Recharts wrapped in `ResponsiveContainer` for responsive sizing
+   433→
+   434→### Files created/modified:
+   435→- `src/components/projects/project-detail-page.tsx` — Overwritten (1948 lines, was ~1090)
+   436→- `src/app/api/projects/[id]/rfis/route.ts` — NEW
+   437→- `src/app/api/projects/[id]/rfis/[rfiId]/route.ts` — NEW
+   438→- `src/app/api/projects/[id]/rfis/[rfiId]/comments/route.ts` — NEW
+   439→- `src/app/api/projects/[id]/change-events/route.ts` — NEW
+   440→- `src/app/api/projects/[id]/change-events/[eventId]/route.ts` — NEW
+   441→- `src/app/api/projects/[id]/change-orders/route.ts` — NEW
+   442→- `src/app/api/projects/[id]/change-orders/[coId]/route.ts` — NEW
+   443→- `src/app/api/projects/[id]/team/route.ts` — NEW
+   444→- `src/app/api/projects/[id]/commitments/route.ts` — NEW
+   445→- `src/app/api/projects/[id]/direct-costs/route.ts` — NEW
+   446→- `src/app/api/projects/[id]/open-items/[itemId]/route.ts` — NEW
+   447→- `src/app/api/projects/[id]/insights/route.ts` — NEW
+   448→- `src/app/api/projects/[id]/comments/route.ts` — NEW
+   449→
+   450→### Verified:
+   451→- ESLint: 0 errors, 0 warnings ✓
+   452→- Dev server: Compiles clean ✓
+   453→- File size: 1948 lines (well above 1000 minimum) ✓
+   454→
+   455→---
+   456→## Task 3 - Collaboration Module APIs (2025-06-13)
+   457→
+   458→### What was built:
+   459→20 API route files for the SMARTBUILD ERP Collaboration Module, covering all project-level collaboration features:
+   460→
+   461→1. **Open Items** (`open-items/[itemId]/route.ts`) — GET single, PUT (update with auto-resolve), DELETE
+   462→2. **RFIs** (`rfis/route.ts`) — GET list (filters: status, category, priority, search), POST (auto-generates RFI-XXX)
+   463→3. **RFI Single** (`rfis/[rfiId]/route.ts`) — GET, PUT (status transitions: draft→submitted→under_review→answered→closed), DELETE
+   464→4. **RFI Comments** (`rfis/[rfiId]/comments/route.ts`) — GET list, POST add comment
+   465→5. **Change Events** (`change-events/route.ts`) — GET list (filters: status, category, impactType, search), POST (auto-generates CE-XXX)
+   466→6. **Change Event Single** (`change-events/[eventId]/route.ts`) — GET, PUT, DELETE
+   467→7. **Change Event Approve** (`change-events/[eventId]/approve/route.ts`) — POST sets status='approved', approvedById
+   468→8. **Change Event Reject** (`change-events/[eventId]/reject/route.ts`) — POST sets status='rejected'
+   469→9. **Change Orders** (`change-orders/route.ts`) — GET (with changeEvent include), POST (auto-generates CO-XXX)
+   470→10. **Change Order Single** (`change-orders/[coId]/route.ts`) — GET, PUT, DELETE
+   471→11. **Change Order Approve** (`change-orders/[coId]/approve/route.ts`) — POST sets status='approved', approvedById
+   472→12. **Commitments** (`commitments/route.ts`) — GET (filters: status, type, search), POST
+   473→13. **Commitment Single** (`commitments/[commitmentId]/route.ts`) — GET, PUT, DELETE
+   474→14. **Direct Costs** (`direct-costs/route.ts`) — GET (filters: status, category, search), POST
+   475→15. **Direct Cost Single** (`direct-costs/[costId]/route.ts`) — GET, PUT (auto-sets approvedById on approve), DELETE
+   476→16. **Prime Contract** (`prime-contract/route.ts`) — GET (404 if not found), POST (409 if exists), PUT
+   477→17. **Team** (`team/route.ts`) — GET (filters: role, isActive), POST
+   478→18. **Team Member** (`team/[memberId]/route.ts`) — PUT, DELETE
+   479→19. **Project Comments** (`comments/route.ts`) — GET (filters: entityType, entityId), POST (with JSON mentions)
+   480→20. **Insights** (`insights/route.ts`) — GET computes aggregates in parallel (open items, RFIs, commitments, direct costs, change events/orders, prime contract, milestones, project info)
+   481→
+   482→### Verified:
+   483→- ESLint: 0 errors, 0 warnings ✓
+   484→- Dev server compiles successfully ✓
+   485→
+   486→---
+   487→Task ID: 1
+   488→Agent: Main Agent
+   489→Task: Build SmartBuild Resource Management Module
+   490→
+   491→Work Log:
+   492→- Analyzed existing project structure: 35 Prisma models, SPA-style Next.js 16 app with Zustand routing
+   493→- Added 7 new Prisma models: ResourceAssignment, ResourceRequest, Crew, CrewMember, Skill, WorkerSkill, ProductivityLog
+   494→- Added relations to Project model for resourceAssignments, resourceRequests, productivityLogs
+   495→- Pushed schema to database with db:push
+   496→- Created 14 API route files under /api/resources/
+   497→- Created 10 frontend component files under /components/resources/
+   498→- Fixed 5 lint errors (setState in useEffect pattern for React 19 strict mode)
+   499→- Integrated 10 new pages into sidebar navigation with icons
+   500→- Added 10 new AppPage types and page labels to Zustand store
+   501→- Added routing cases in page.tsx
+   502→- Created resource-productivity.tsx (was missing from agent output)
+   503→
+   504→Stage Summary:
+   505→- API: 14 routes created (dashboard stats, assignments CRUD, requests CRUD with approve/reject, crews CRUD, skills CRUD, worker-skills, productivity CRUD)
+   506→- Frontend: 10 components (dashboard, planning, labour, equipment, vehicles, tools, crews, requests, productivity, forecasting)
+   507→- All routes lint clean, dev server running with 200 on /
+   508→- Sidebar updated with new "Resource Management" section containing 10 nav items
+   509→
+   510→---
+   511→Task ID: 2
+   512→Agent: Main Agent
+   513→Task: Build SmartBuild Marketing Website & Landing Page
+   514→
+   515→Work Log:
+   516→- Installed framer-motion, react-countup, swiper packages
+   517→- Created 18 landing page component files under src/components/landing/
+   518→- Fixed lint errors: missing TrendingUp import in features.tsx, duplicate className in trust.tsx, setState-in-useEffect in resource-planning.tsx
+   519→- Created landing-page.tsx wrapper assembling all 17 sections
+   520→- Added 'landing' AppPage type to Zustand store
+   521→- Updated page.tsx to show landing page for unauthenticated users
+   522→- Added landing → dashboard redirect for authenticated users
+   523→- Verified GET / returns 200 with no compilation errors
+   524→
+   525→Stage Summary:
+   526→- 18 files created: navbar, hero, trust, features, resource-management, cost-control, mobile-app, why-smartbuild, roi-calculator, statistics, testimonials, product-showcase, integrations, security, faq, cta, footer, landing-page
+   527→- All framer-motion animations: fade-in, slide-up, stagger, scroll-triggered, count-up
+   528→- Mobile responsive design throughout
+   529→- Premium SaaS design with blue primary, orange accent, glass effects
+   530→- No external images - all visuals created with CSS/Lucide icons
+   531→

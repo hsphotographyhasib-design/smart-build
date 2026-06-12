@@ -48,6 +48,27 @@ export type AppPage =
   | 'resource-requests'
   | 'resource-productivity'
   | 'resource-forecasting'
+  | 'cost-control-dashboard'
+  | 'budget-management'
+  | 'cost-codes'
+  | 'budget-change-orders'
+  | 'cost-forecasting'
+  | 'collaboration-dashboard'
+  | 'collaboration-rfis'
+  | 'collaboration-submittals'
+  | 'collaboration-discussions'
+  | 'collaboration-approvals'
+  | 'collaboration-announcements'
+  | 'client-dashboard'
+  | 'client-progress'
+  | 'client-invoices'
+  | 'client-documents'
+  | 'client-complaints'
+  | 'ai-dashboard'
+  | 'ai-insights'
+  | 'ai-forecast'
+  | 'project-analytics'
+  | 'advanced-reports'
   | 'landing'
 
 interface AppState {
@@ -157,6 +178,27 @@ export const useAppStore = create<AppState>((set) => ({
       'resource-requests': 'Resource Requests',
       'resource-productivity': 'Productivity Tracking',
       'resource-forecasting': 'Resource Forecasting',
+      'cost-control-dashboard': 'Cost Control',
+      'budget-management': 'Budget Management',
+      'cost-codes': 'Cost Codes',
+      'budget-change-orders': 'Change Orders',
+      'cost-forecasting': 'Cost Forecasting',
+      'collaboration-dashboard': 'Collaboration Hub',
+      'collaboration-rfis': 'RFI Management',
+      'collaboration-submittals': 'Submittals',
+      'collaboration-discussions': 'Discussions',
+      'collaboration-approvals': 'Approvals Center',
+      'collaboration-announcements': 'Announcements',
+      'client-dashboard': 'Client Portal',
+      'client-progress': 'Project Progress',
+      'client-invoices': 'Client Invoices',
+      'client-documents': 'Client Documents',
+      'client-complaints': 'Complaints',
+      'ai-dashboard': 'AI Analytics',
+      'ai-insights': 'AI Insights',
+      'ai-forecast': 'AI Forecasting',
+      'project-analytics': 'Project Analytics',
+      'advanced-reports': 'Advanced Reports',
       'landing': 'Welcome',
     }
     set({ 

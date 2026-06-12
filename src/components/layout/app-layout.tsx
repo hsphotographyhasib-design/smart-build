@@ -7,7 +7,9 @@ import {
   ClipboardList, Wrench, Truck, CalendarRange, Store,
   Bell, ShieldCheck, UserCog, BarChart3, ScrollText, FileSpreadsheet,
   ChevronLeft, ChevronRight, HardHat, Settings, LogOut,
-  Activity, Gauge, Hammer, Car, Ruler, UsersRound, ClipboardCheck, TrendingUp, LineChart
+  Activity, Gauge, Hammer, Car, Ruler, UsersRound, ClipboardCheck, TrendingUp, LineChart,
+  Wallet, Tags, GitBranch, Target, Megaphone, MessageSquare,
+  Brain, Sparkles, FileBarChart, Eye, AlertTriangle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
@@ -88,6 +90,47 @@ const navSections: { title: string; items: NavItem[] }[] = [
       { label: 'Resource Requests', page: 'resource-requests', icon: ClipboardCheck },
       { label: 'Productivity', page: 'resource-productivity', icon: TrendingUp },
       { label: 'Forecasting', page: 'resource-forecasting', icon: LineChart },
+    ],
+  },
+  {
+    title: 'Cost Control',
+    items: [
+      { label: 'Cost Dashboard', page: 'cost-control-dashboard', icon: Wallet },
+      { label: 'Budgets', page: 'budget-management', icon: FileSpreadsheet },
+      { label: 'Cost Codes', page: 'cost-codes', icon: Tags },
+      { label: 'Change Orders', page: 'budget-change-orders', icon: GitBranch },
+      { label: 'Cost Forecasting', page: 'cost-forecasting', icon: Target },
+    ],
+  },
+  {
+    title: 'Collaboration',
+    items: [
+      { label: 'Collab Hub', page: 'collaboration-dashboard', icon: MessageSquare },
+      { label: 'RFI Management', page: 'collaboration-rfis', icon: ClipboardList },
+      { label: 'Submittals', page: 'collaboration-submittals', icon: FileText },
+      { label: 'Discussions', page: 'collaboration-discussions', icon: MessageSquare },
+      { label: 'Approvals', page: 'collaboration-approvals', icon: ClipboardCheck },
+      { label: 'Announcements', page: 'collaboration-announcements', icon: Megaphone },
+    ],
+  },
+  {
+    title: 'Client Portal',
+    items: [
+      { label: 'Portal Dashboard', page: 'client-dashboard', icon: Users },
+      { label: 'Progress', page: 'client-progress', icon: TrendingUp },
+      { label: 'Invoices', page: 'client-invoices', icon: Receipt },
+      { label: 'Documents', page: 'client-documents', icon: FileText },
+      { label: 'Complaints', page: 'client-complaints', icon: MessageSquare },
+    ],
+  },
+  {
+    title: 'AI & Analytics',
+    items: [
+      { label: 'AI Dashboard', page: 'ai-dashboard', icon: Brain },
+      { label: 'AI Insights', page: 'ai-insights', icon: Sparkles },
+      { label: 'AI Forecasting', page: 'ai-forecast', icon: LineChart },
+      { label: 'Project Analytics', page: 'project-analytics', icon: Eye },
+      { label: 'Advanced Reports', page: 'advanced-reports', icon: FileBarChart },
     ],
   },
   {

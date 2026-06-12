@@ -43,6 +43,27 @@ import { CrewManagement } from '@/components/resources/crew-management'
 import { ResourceRequests } from '@/components/resources/resource-requests'
 import { ResourceProductivity } from '@/components/resources/resource-productivity'
 import { ResourceForecasting } from '@/components/resources/resource-forecasting'
+import { CostControlDashboard } from '@/components/cost-control/cost-control-dashboard'
+import { BudgetManagement } from '@/components/cost-control/budget-management'
+import { CostCodes } from '@/components/cost-control/cost-codes'
+import { BudgetChangeOrders } from '@/components/cost-control/budget-change-orders'
+import { CostForecasting } from '@/components/cost-control/cost-forecasting'
+import { CollaborationDashboard } from '@/components/collaboration/collaboration-dashboard'
+import { RFIManagement } from '@/components/collaboration/rfi-management'
+import { SubmittalsPage } from '@/components/collaboration/submittals'
+import { DiscussionsPage } from '@/components/collaboration/discussions'
+import { ApprovalsPage } from '@/components/collaboration/approvals'
+import { AnnouncementsPage } from '@/components/collaboration/announcements'
+import { ClientDashboard } from '@/components/client-portal/client-dashboard'
+import { ClientProgress } from '@/components/client-portal/client-progress'
+import { ClientInvoices } from '@/components/client-portal/client-invoices'
+import { ClientDocuments } from '@/components/client-portal/client-documents'
+import { ClientComplaints } from '@/components/client-portal/client-complaints'
+import { AIDashboard } from '@/components/ai/ai-dashboard'
+import { AIInsights } from '@/components/ai/ai-insights'
+import { AIForecast } from '@/components/ai/ai-forecast'
+import { ProjectAnalytics } from '@/components/ai/project-analytics'
+import { AdvancedReports } from '@/components/ai/advanced-reports'
 import { LandingPage } from '@/components/landing/landing-page'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -109,6 +130,27 @@ function PageContent() {
     case 'resource-requests': return <ResourceRequests />
     case 'resource-productivity': return <ResourceProductivity />
     case 'resource-forecasting': return <ResourceForecasting />
+    case 'cost-control-dashboard': return <CostControlDashboard />
+    case 'budget-management': return <BudgetManagement />
+    case 'cost-codes': return <CostCodes />
+    case 'budget-change-orders': return <BudgetChangeOrders />
+    case 'cost-forecasting': return <CostForecasting />
+    case 'collaboration-dashboard': return <CollaborationDashboard />
+    case 'collaboration-rfis': return <RFIManagement />
+    case 'collaboration-submittals': return <SubmittalsPage />
+    case 'collaboration-discussions': return <DiscussionsPage />
+    case 'collaboration-approvals': return <ApprovalsPage />
+    case 'collaboration-announcements': return <AnnouncementsPage />
+    case 'client-dashboard': return <ClientDashboard />
+    case 'client-progress': return <ClientProgress />
+    case 'client-invoices': return <ClientInvoices />
+    case 'client-documents': return <ClientDocuments />
+    case 'client-complaints': return <ClientComplaints />
+    case 'ai-dashboard': return <AIDashboard />
+    case 'ai-insights': return <AIInsights />
+    case 'ai-forecast': return <AIForecast />
+    case 'project-analytics': return <ProjectAnalytics />
+    case 'advanced-reports': return <AdvancedReports />
     default: return <DashboardPage />
   }
 }

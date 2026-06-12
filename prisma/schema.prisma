@@ -125,6 +125,9 @@ model Project {
   resourceAssignments   ResourceAssignment[]
   resourceRequests      ResourceRequest[]
   productivityLogs      ProductivityLog[]
+  submittals            Submittal[]
+  discussions           Discussion[]
+  clientComplaints      ClientComplaint[]
 
   @@index([status])
   @@index([clientId])
@@ -1395,4 +1398,141 @@ model ProductivityLog {
   @@index([projectId, date])
   @@index([resourceType])
   @@map("productivity_logs")
+}
+
+// ============ COLLABORATION - SUBMITTALS ============
+
+model Submittal {
+  id              String   @id @default(cuid())
+  projectId       String
+  submittalNo     String
+  title           String
+  specification   String?
+  category        String   // architectural, structural, mechanical, electrical, plumbing, fire_protection, civil, finish
+  priority        String   @default("medium")
+  revision        String   @default("0")
+  status          String   @default("draft") // draft, submitted, under_review, approved, rejected, returned, for_info
+  submittedById   String
+  reviewedById    String?
+  dueDate         DateTime?
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([category])
+}
+
+// ============ COLLABORATION - DISCUSSIONS ============
+
+model Discussion {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  category    String   // general, technical, schedule, quality, safety, commercial
+  status      String   @default("open") // open, in_progress, resolved, closed
+  priority    String   @default("medium")
+  createdById String
+  assignedTo  String?
+  dueDate     DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project    Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments   DiscussionComment[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([category])
+}
+
+model DiscussionComment {
+  id          String   @id @default(cuid())
+  discussionId String
+  userId      String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  discussion Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+
+  @@index([discussionId])
+}
+
+// ============ COLLABORATION - ANNOUNCEMENTS ============
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  category    String   // general, safety, schedule_change, policy, achievement, emergency
+  priority    String   @default("normal") // low, normal, high, urgent
+  targetScope String   @default("all") // all, management, projects, specific_project
+  projectId   String?  // used when targetScope is specific_project
+  createdById String
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([targetScope])
+}
+
+// ============ CLIENT PORTAL ============
+
+model ClientComplaint {
+  id            String   @id @default(cuid())
+  projectId    String
+  clientName    String
+  subject       String
+  description   String
+  category      String   // quality, safety, delay, communication, billing, scope_change, other
+  severity      String   @default("medium") // low, medium, high, critical
+  status        String   @default("open") // open, acknowledged, investigating, resolving, resolved, closed
+  assignedTo    String?
+  resolvedById  String?
+  resolution    String?
+  resolutionDate DateTime?
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([category])
+  @@index([severity])
+}
+
+// ============ AI & ANALYTICS ============
+
+model AIInsight {
+  id          String   @id @default(cuid())
+  projectId   String?
+  insightType String   // cost_anomaly, schedule_risk, resource_optimization, budget_forecast, quality_alert, safety_risk
+  title       String
+  description String
+  confidence  Float    @default(0)
+  severity    String   @default("info") // info, warning, critical
+  recommendations String // JSON array of recommendations
+  affectedEntities String? // JSON array of affected entity IDs
+  status      String   @default("new") // new, acknowledged, actioned, dismissed
+  createdById String?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  @@index([projectId])
+  @@index([insightType])
+  @@index([status])
+  @@index([severity])
 }
