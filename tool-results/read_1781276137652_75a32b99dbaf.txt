@@ -1,0 +1,788 @@
+     1→'use client'
+     2→
+     3→import { useMemo } from 'react'
+     4→import { useQuery } from '@tanstack/react-query'
+     5→import { api, queryKeys } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { ScrollArea } from '@/components/ui/scroll-area'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Progress } from '@/components/ui/progress'
+    11→import {
+    12→  Table,
+    13→  TableBody,
+    14→  TableCell,
+    15→  TableHead,
+    16→  TableHeader,
+    17→  TableRow,
+    18→} from '@/components/ui/table'
+    19→import {
+    20→  BarChart,
+    21→  Bar,
+    22→  XAxis,
+    23→  YAxis,
+    24→  CartesianGrid,
+    25→  Tooltip,
+    26→  ResponsiveContainer,
+    27→  Legend,
+    28→} from 'recharts'
+    29→import {
+    30→  FolderKanban,
+    31→  DollarSign,
+    32→  FileText,
+    33→  Users,
+    34→  Clock,
+    35→  CheckCircle,
+    36→  TrendingUp,
+    37→  AlertTriangle,
+    38→  Activity,
+    39→} from 'lucide-react'
+    40→import { format, parseISO } from 'date-fns'
+    41→import { cn } from '@/lib/utils'
+    42→
+    43→// ──────────────────────────────────────────
+    44→// Types
+    45→// ──────────────────────────────────────────
+    46→
+    47→interface DashboardData {
+    48→  activeProjects: number
+    49→  revenueThisMonth: number
+    50→  expensesThisMonth: number
+    51→  outstandingInvoices: number
+    52→  labourOnSiteToday: number
+    53→  pendingPurchaseRequests: number
+    54→  pendingApprovals: number
+    55→  recentPayments: Array<{
+    56→    id: string
+    57→    paymentNo: string
+    58→    amount: number
+    59→    method: string
+    60→    status: string
+    61→    date: string
+    62→    receivedBy: string
+    63→    project: { name: string; code: string } | null
+    64→  }>
+    65→  recentActivities: Array<{
+    66→    id: string
+    67→    action: string
+    68→    entity: string
+    69→    createdAt: string
+    70→    userName: string
+    71→  }>
+    72→  upcomingTasks: Array<{
+    73→    id: string
+    74→    title: string
+    75→    status: string
+    76→    priority: string
+    77→    endDate: string
+    78→    progress: number
+    79→    project: { name: string; code: string } | null
+    80→  }>
+    81→  stockAlerts: Array<{
+    82→    id: string
+    83→    name: string
+    84→    code: string
+    85→    currentStock: number
+    86→    minStock: number
+    87→    unit: string
+    88→  }>
+    89→  chartData: {
+    90→    months: string[]
+    91→    revenue: number[]
+    92→    expenses: number[]
+    93→  }
+    94→  projectProgress: Array<{
+    95→    id: string
+    96→    name: string
+    97→    code: string
+    98→    progress: number
+    99→    budget: number
+   100→    totalTasks: number
+   101→    completedTasks: number
+   102→    taskCompletion: number
+   103→  }>
+   104→}
+   105→
+   106→// ──────────────────────────────────────────
+   107→// Helpers
+   108→// ──────────────────────────────────────────
+   109→
+   110→function formatCurrency(amount: number): string {
+   111→  return '₹' + amount.toLocaleString('en-IN')
+   112→}
+   113→
+   114→const paymentStatusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+   115→  completed: 'default',
+   116→  pending: 'secondary',
+   117→  failed: 'destructive',
+   118→  refunded: 'outline',
+   119→  partial: 'outline',
+   120→}
+   121→
+   122→const paymentStatusColor: Record<string, string> = {
+   123→  completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+   124→  pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+   125→  failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+   126→  refunded: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
+   127→  partial: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+   128→}
+   129→
+   130→const priorityColor: Record<string, string> = {
+   131→  high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+   132→  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+   133→  low: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+   134→}
+   135→
+   136→const taskStatusColor: Record<string, string> = {
+   137→  todo: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+   138→  in_progress: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+   139→  completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+   140→}
+   141→
+   142→function formatLabel(str: string): string {
+   143→  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+   144→}
+   145→
+   146→// ──────────────────────────────────────────
+   147→// Custom Tooltip for Chart
+   148→// ──────────────────────────────────────────
+   149→
+   150→function ChartTooltip({ active, payload, label }: any) {
+   151→  if (!active || !payload?.length) return null
+   152→  return (
+   153→    <div className="rounded-lg border bg-card px-3 py-2 shadow-md">
+   154→      <p className="text-sm font-medium text-foreground mb-1">{label}</p>
+   155→      {payload.map((entry: any, i: number) => (
+   156→        <p key={i} className="text-xs" style={{ color: entry.color }}>
+   157→          {entry.name}: {formatCurrency(entry.value)}
+   158→        </p>
+   159→      ))}
+   160→    </div>
+   161→  )
+   162→}
+   163→
+   164→// ──────────────────────────────────────────
+   165→// KPI Card
+   166→// ──────────────────────────────────────────
+   167→
+   168→interface KpiCardProps {
+   169→  label: string
+   170→  value: number | string
+   171→  icon: React.ElementType
+   172→  iconBg: string
+   173→  iconColor: string
+   174→  suffix?: string
+   175→  subtext?: string
+   176→  loading?: boolean
+   177→}
+   178→
+   179→function KpiCard({ label, value, icon: Icon, iconBg, iconColor, suffix, subtext, loading }: KpiCardProps) {
+   180→  return (
+   181→    <Card className="py-4">
+   182→      <CardContent className="flex items-center gap-4">
+   183→        <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', iconBg)}>
+   184→          <Icon className={cn('h-5 w-5', iconColor)} />
+   185→        </div>
+   186→        <div className="min-w-0 flex-1">
+   187→          <p className="text-sm text-muted-foreground truncate">{label}</p>
+   188→          {loading ? (
+   189→            <Skeleton className="mt-1 h-7 w-24" />
+   190→          ) : (
+   191→            <p className="text-2xl font-bold tracking-tight">
+   192→              {typeof value === 'number' ? value.toLocaleString('en-IN') : value}
+   193→              {suffix && <span className="text-sm font-normal text-muted-foreground ml-1">{suffix}</span>}
+   194→            </p>
+   195→          )}
+   196→          {subtext && !loading && (
+   197→            <p className="text-xs text-muted-foreground mt-0.5">{subtext}</p>
+   198→          )}
+   199→        </div>
+   200→      </CardContent>
+   201→    </Card>
+   202→  )
+   203→}
+   204→
+   205→// ──────────────────────────────────────────
+   206→// Loading Skeletons
+   207→// ──────────────────────────────────────────
+   208→
+   209→function KpiGridSkeleton() {
+   210→  return (
+   211→    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+   212→      {Array.from({ length: 6 }).map((_, i) => (
+   213→        <Card key={i} className="py-4">
+   214→          <CardContent className="flex items-center gap-4">
+   215→            <Skeleton className="h-11 w-11 rounded-xl" />
+   216→            <div className="flex-1 space-y-2">
+   217→              <Skeleton className="h-3 w-20" />
+   218→              <Skeleton className="h-7 w-16" />
+   219→            </div>
+   220→          </CardContent>
+   221→        </Card>
+   222→      ))}
+   223→    </div>
+   224→  )
+   225→}
+   226→
+   227→function ChartSkeleton() {
+   228→  return (
+   229→    <Card>
+   230→      <CardHeader>
+   231→        <Skeleton className="h-5 w-40" />
+   232→      </CardHeader>
+   233→      <CardContent>
+   234→        <Skeleton className="h-[300px] w-full" />
+   235→      </CardContent>
+   236→    </Card>
+   237→  )
+   238→}
+   239→
+   240→function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
+   241→  return (
+   242→    <Card>
+   243→      <CardHeader>
+   244→        <Skeleton className="h-5 w-40" />
+   245→      </CardHeader>
+   246→      <CardContent>
+   247→        <div className="space-y-3">
+   248→          <div className="flex gap-4">
+   249→            {Array.from({ length: cols }).map((_, i) => (
+   250→              <Skeleton key={i} className="h-4 flex-1" />
+   251→            ))}
+   252→          </div>
+   253→          {Array.from({ length: rows }).map((_, r) => (
+   254→            <div key={r} className="flex gap-4">
+   255→              {Array.from({ length: cols }).map((_, c) => (
+   256→                <Skeleton key={c} className="h-4 flex-1" />
+   257→              ))}
+   258→            </div>
+   259→          ))}
+   260→        </div>
+   261→      </CardContent>
+   262→    </Card>
+   263→  )
+   264→}
+   265→
+   266→// ──────────────────────────────────────────
+   267→// Main Dashboard Page
+   268→// ──────────────────────────────────────────
+   269→
+   270→export function DashboardPage() {
+   271→  const { data: response, isLoading, isError } = useQuery<{
+   272→    success: boolean
+   273→    data: DashboardData
+   274→    error?: string
+   275→  }>({
+   276→    queryKey: queryKeys.dashboard,
+   277→    queryFn: () => api.get('/api/dashboard/stats').then((r) => r),
+   278→    refetchInterval: 30000,
+   279→  })
+   280→
+   281→  const dashboardData = response?.success ? response.data : null
+   282→
+   283→  // Transform chart data for Recharts
+   284→  const chartFormatted = useMemo(() => {
+   285→    if (!dashboardData?.chartData) return []
+   286→    const { months, revenue, expenses } = dashboardData.chartData
+   287→    return months.map((month, i) => ({
+   288→      month,
+   289→      revenue: revenue[i] || 0,
+   290→      expenses: expenses[i] || 0,
+   291→    }))
+   292→  }, [dashboardData?.chartData])
+   293→
+   294→  // ─── Error State ───
+   295→  if (isError || (response && !response.success)) {
+   296→    return (
+   297→      <div className="p-6">
+   298→        <div className="flex flex-col items-center justify-center py-20 text-center">
+   299→          <div className="h-14 w-14 rounded-2xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
+   300→            <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+   301→          </div>
+   302→          <h2 className="text-lg font-semibold">Failed to load dashboard</h2>
+   303→          <p className="text-sm text-muted-foreground mt-1 max-w-md">
+   304→            {response?.error || 'An unexpected error occurred. Please try again later.'}
+   305→          </p>
+   306→        </div>
+   307→      </div>
+   308→    )
+   309→  }
+   310→
+   311→  return (
+   312→    <div className="p-4 md:p-6 space-y-6">
+   313→      {/* ─── Page Title ─── */}
+   314→      <div>
+   315→        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+   316→        <p className="text-sm text-muted-foreground mt-1">
+   317→          Overview of your construction operations
+   318→        </p>
+   319→      </div>
+   320→
+   321→      {/* ─── KPI Cards ─── */}
+   322→      {isLoading ? (
+   323→        <KpiGridSkeleton />
+   324→      ) : dashboardData ? (
+   325→        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+   326→          <KpiCard
+   327→            label="Active Projects"
+   328→            value={dashboardData.activeProjects}
+   329→            icon={FolderKanban}
+   330→            iconBg="bg-amber-100 dark:bg-amber-900/30"
+   331→            iconColor="text-amber-600 dark:text-amber-400"
+   332→          />
+   333→          <KpiCard
+   334→            label="Revenue This Month"
+   335→            value={formatCurrency(dashboardData.revenueThisMonth)}
+   336→            icon={DollarSign}
+   337→            iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+   338→            iconColor="text-emerald-600 dark:text-emerald-400"
+   339→            subtext={dashboardData.expensesThisMonth > 0 ? `Expenses: ${formatCurrency(dashboardData.expensesThisMonth)}` : undefined}
+   340→          />
+   341→          <KpiCard
+   342→            label="Outstanding Invoices"
+   343→            value={formatCurrency(dashboardData.outstandingInvoices)}
+   344→            icon={FileText}
+   345→            iconBg="bg-red-100 dark:bg-red-900/30"
+   346→            iconColor="text-red-600 dark:text-red-400"
+   347→          />
+   348→          <KpiCard
+   349→            label="Labour On Site"
+   350→            value={dashboardData.labourOnSiteToday}
+   351→            suffix="today"
+   352→            icon={Users}
+   353→            iconBg="bg-teal-100 dark:bg-teal-900/30"
+   354→            iconColor="text-teal-600 dark:text-teal-400"
+   355→          />
+   356→          <KpiCard
+   357→            label="Pending Requests"
+   358→            value={dashboardData.pendingPurchaseRequests}
+   359→            icon={Clock}
+   360→            iconBg="bg-orange-100 dark:bg-orange-900/30"
+   361→            iconColor="text-orange-600 dark:text-orange-400"
+   362→          />
+   363→          <KpiCard
+   364→            label="Pending Approvals"
+   365→            value={dashboardData.pendingApprovals}
+   366→            icon={CheckCircle}
+   367→            iconBg="bg-violet-100 dark:bg-violet-900/30"
+   368→            iconColor="text-violet-600 dark:text-violet-400"
+   369→          />
+   370→        </div>
+   371→      ) : null}
+   372→
+   373→      {/* ─── Charts Row ─── */}
+   374→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   375→        {/* Revenue vs Expenses Chart */}
+   376→        {isLoading ? (
+   377→          <ChartSkeleton />
+   378→        ) : (
+   379→          <Card>
+   380→            <CardHeader>
+   381→              <CardTitle className="flex items-center gap-2 text-base">
+   382→                <TrendingUp className="h-4 w-4 text-amber-600" />
+   383→                Revenue vs Expenses
+   384→              </CardTitle>
+   385→            </CardHeader>
+   386→            <CardContent>
+   387→              {chartFormatted.length > 0 ? (
+   388→                <ResponsiveContainer width="100%" height={300}>
+   389→                  <BarChart data={chartFormatted} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+   390→                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+   391→                    <XAxis
+   392→                      dataKey="month"
+   393→                      tick={{ fontSize: 12 }}
+   394→                      className="text-muted-foreground"
+   395→                      tickLine={false}
+   396→                      axisLine={false}
+   397→                    />
+   398→                    <YAxis
+   399→                      tick={{ fontSize: 12 }}
+   400→                      className="text-muted-foreground"
+   401→                      tickLine={false}
+   402→                      axisLine={false}
+   403→                      tickFormatter={(val: number) =>
+   404→                        val >= 100000 ? `₹${(val / 100000).toFixed(1)}L` : val >= 1000 ? `₹${(val / 1000).toFixed(0)}K` : `₹${val}`
+   405→                      }
+   406→                    />
+   407→                    <Tooltip content={<ChartTooltip />} />
+   408→                    <Legend
+   409→                      wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+   410→                    />
+   411→                    <Bar
+   412→                      dataKey="revenue"
+   413→                      name="Revenue"
+   414→                      fill="#d97706"
+   415→                      radius={[4, 4, 0, 0]}
+   416→                      maxBarSize={40}
+   417→                    />
+   418→                    <Bar
+   419→                      dataKey="expenses"
+   420→                      name="Expenses"
+   421→                      fill="#ef4444"
+   422→                      radius={[4, 4, 0, 0]}
+   423→                      maxBarSize={40}
+   424→                    />
+   425→                  </BarChart>
+   426→                </ResponsiveContainer>
+   427→              ) : (
+   428→                <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
+   429→                  No revenue data available
+   430→                </div>
+   431→              )}
+   432→            </CardContent>
+   433→          </Card>
+   434→        )}
+   435→
+   436→        {/* Project Progress */}
+   437→        {isLoading ? (
+   438→          <ChartSkeleton />
+   439→        ) : (
+   440→          <Card>
+   441→            <CardHeader>
+   442→              <CardTitle className="flex items-center gap-2 text-base">
+   443→                <FolderKanban className="h-4 w-4 text-amber-600" />
+   444→                Project Progress
+   445→              </CardTitle>
+   446→            </CardHeader>
+   447→            <CardContent>
+   448→              {dashboardData?.projectProgress && dashboardData.projectProgress.length > 0 ? (
+   449→                <ScrollArea className="h-[300px]">
+   450→                  <div className="space-y-5 pr-4">
+   451→                    {dashboardData.projectProgress.map((project) => (
+   452→                      <div key={project.id} className="space-y-1.5">
+   453→                        <div className="flex items-center justify-between">
+   454→                          <div className="min-w-0 flex-1">
+   455→                            <p className="text-sm font-medium truncate">{project.name}</p>
+   456→                            <p className="text-xs text-muted-foreground">
+   457→                              {project.completedTasks}/{project.totalTasks} tasks · {formatCurrency(project.budget)}
+   458→                            </p>
+   459→                          </div>
+   460→                          <span className={cn(
+   461→                            'text-sm font-semibold ml-3 tabular-nums',
+   462→                            project.progress >= 75 ? 'text-emerald-600 dark:text-emerald-400' :
+   463→                            project.progress >= 40 ? 'text-amber-600 dark:text-amber-400' :
+   464→                            'text-red-600 dark:text-red-400'
+   465→                          )}>
+   466→                            {project.progress}%
+   467→                          </span>
+   468→                        </div>
+   469→                        <Progress
+   470→                          value={project.progress}
+   471→                          className={cn(
+   472→                            'h-2.5',
+   473→                            project.progress >= 75 && '[&>div]:bg-emerald-500',
+   474→                            project.progress >= 40 && project.progress < 75 && '[&>div]:bg-amber-500',
+   475→                            project.progress < 40 && '[&>div]:bg-red-500'
+   476→                          )}
+   477→                        />
+   478→                      </div>
+   479→                    ))}
+   480→                  </div>
+   481→                </ScrollArea>
+   482→              ) : (
+   483→                <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
+   484→                  No active projects
+   485→                </div>
+   486→              )}
+   487→            </CardContent>
+   488→          </Card>
+   489→        )}
+   490→      </div>
+   491→
+   492→      {/* ─── Tables Row ─── */}
+   493→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   494→        {/* Recent Payments */}
+   495→        {isLoading ? (
+   496→          <TableSkeleton rows={5} cols={5} />
+   497→        ) : (
+   498→          <Card>
+   499→            <CardHeader>
+   500→              <CardTitle className="flex items-center gap-2 text-base">
+   501→                <DollarSign className="h-4 w-4 text-emerald-600" />
+   502→                Recent Payments
+   503→              </CardTitle>
+   504→            </CardHeader>
+   505→            <CardContent>
+   506→              {dashboardData?.recentPayments && dashboardData.recentPayments.length > 0 ? (
+   507→                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+   508→                  <Table>
+   509→                    <TableHeader>
+   510→                      <TableRow>
+   511→                        <TableHead>Payment No</TableHead>
+   512→                        <TableHead className="text-right">Amount</TableHead>
+   513→                        <TableHead>Method</TableHead>
+   514→                        <TableHead>Date</TableHead>
+   515→                        <TableHead>Status</TableHead>
+   516→                      </TableRow>
+   517→                    </TableHeader>
+   518→                    <TableBody>
+   519→                      {dashboardData.recentPayments.map((payment) => (
+   520→                        <TableRow key={payment.id}>
+   521→                          <TableCell className="font-medium text-xs">{payment.paymentNo}</TableCell>
+   522→                          <TableCell className="text-right font-semibold tabular-nums text-xs">
+   523→                            {formatCurrency(payment.amount)}
+   524→                          </TableCell>
+   525→                          <TableCell className="text-xs text-muted-foreground">
+   526→                            {formatLabel(payment.method)}
+   527→                          </TableCell>
+   528→                          <TableCell className="text-xs text-muted-foreground">
+   529→                            {format(parseISO(payment.date), 'dd MMM yyyy')}
+   530→                          </TableCell>
+   531→                          <TableCell>
+   532→                            <Badge
+   533→                              variant={paymentStatusVariant[payment.status] || 'outline'}
+   534→                              className={cn(
+   535→                                'text-[10px] px-1.5 py-0',
+   536→                                paymentStatusColor[payment.status]
+   537→                              )}
+   538→                            >
+   539→                              {formatLabel(payment.status)}
+   540→                            </Badge>
+   541→                          </TableCell>
+   542→                        </TableRow>
+   543→                      ))}
+   544→                    </TableBody>
+   545→                  </Table>
+   546→                </div>
+   547→              ) : (
+   548→                <div className="flex flex-col items-center justify-center py-12 text-center">
+   549→                  <FileText className="h-8 w-8 text-muted-foreground/40 mb-2" />
+   550→                  <p className="text-sm text-muted-foreground">No recent payments</p>
+   551→                </div>
+   552→              )}
+   553→            </CardContent>
+   554→          </Card>
+   555→        )}
+   556→
+   557→        {/* Upcoming Tasks */}
+   558→        {isLoading ? (
+   559→          <TableSkeleton rows={5} cols={5} />
+   560→        ) : (
+   561→          <Card>
+   562→            <CardHeader>
+   563→              <CardTitle className="flex items-center gap-2 text-base">
+   564→                <Clock className="h-4 w-4 text-orange-600" />
+   565→                Upcoming Tasks
+   566→              </CardTitle>
+   567→            </CardHeader>
+   568→            <CardContent>
+   569→              {dashboardData?.upcomingTasks && dashboardData.upcomingTasks.length > 0 ? (
+   570→                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+   571→                  <Table>
+   572→                    <TableHeader>
+   573→                      <TableRow>
+   574→                        <TableHead>Task</TableHead>
+   575→                        <TableHead>Project</TableHead>
+   576→                        <TableHead>Due Date</TableHead>
+   577→                        <TableHead>Priority</TableHead>
+   578→                        <TableHead>Status</TableHead>
+   579→                      </TableRow>
+   580→                    </TableHeader>
+   581→                    <TableBody>
+   582→                      {dashboardData.upcomingTasks.map((task) => (
+   583→                        <TableRow key={task.id}>
+   584→                          <TableCell className="font-medium text-xs max-w-[180px] truncate" title={task.title}>
+   585→                            {task.title}
+   586→                          </TableCell>
+   587→                          <TableCell className="text-xs text-muted-foreground">
+   588→                            {task.project?.name || '—'}
+   589→                          </TableCell>
+   590→                          <TableCell className="text-xs text-muted-foreground">
+   591→                            {format(parseISO(task.endDate), 'dd MMM yyyy')}
+   592→                          </TableCell>
+   593→                          <TableCell>
+   594→                            <Badge
+   595→                              className={cn(
+   596→                                'text-[10px] px-1.5 py-0',
+   597→                                priorityColor[task.priority]
+   598→                              )}
+   599→                            >
+   600→                              {formatLabel(task.priority)}
+   601→                            </Badge>
+   602→                          </TableCell>
+   603→                          <TableCell>
+   604→                            <Badge
+   605→                              className={cn(
+   606→                                'text-[10px] px-1.5 py-0',
+   607→                                taskStatusColor[task.status]
+   608→                              )}
+   609→                            >
+   610→                              {formatLabel(task.status)}
+   611→                            </Badge>
+   612→                          </TableCell>
+   613→                        </TableRow>
+   614→                      ))}
+   615→                    </TableBody>
+   616→                  </Table>
+   617→                </div>
+   618→              ) : (
+   619→                <div className="flex flex-col items-center justify-center py-12 text-center">
+   620→                  <CheckCircle className="h-8 w-8 text-muted-foreground/40 mb-2" />
+   621→                  <p className="text-sm text-muted-foreground">No upcoming tasks</p>
+   622→                </div>
+   623→              )}
+   624→            </CardContent>
+   625→          </Card>
+   626→        )}
+   627→      </div>
+   628→
+   629→      {/* ─── Bottom Row ─── */}
+   630→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   631→        {/* Stock Alerts */}
+   632→        {isLoading ? (
+   633→          <Card>
+   634→            <CardHeader>
+   635→              <Skeleton className="h-5 w-36" />
+   636→            </CardHeader>
+   637→            <CardContent>
+   638→              <div className="space-y-3">
+   639→                {Array.from({ length: 4 }).map((_, i) => (
+   640→                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
+   641→                ))}
+   642→              </div>
+   643→            </CardContent>
+   644→          </Card>
+   645→        ) : (
+   646→          <Card>
+   647→            <CardHeader>
+   648→              <CardTitle className="flex items-center gap-2 text-base">
+   649→                <AlertTriangle className="h-4 w-4 text-red-500" />
+   650→                Stock Alerts
+   651→                {dashboardData?.stockAlerts && dashboardData.stockAlerts.length > 0 && (
+   652→                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0 ml-1">
+   653→                    {dashboardData.stockAlerts.length}
+   654→                  </Badge>
+   655→                )}
+   656→              </CardTitle>
+   657→            </CardHeader>
+   658→            <CardContent>
+   659→              {dashboardData?.stockAlerts && dashboardData.stockAlerts.length > 0 ? (
+   660→                <ScrollArea className="max-h-72">
+   661→                  <div className="space-y-2 pr-4">
+   662→                    {dashboardData.stockAlerts.map((item) => {
+   663→                      const ratio = item.minStock > 0 ? item.currentStock / item.minStock : 0
+   664→                      const severity = ratio === 0 ? 'critical' : ratio < 0.5 ? 'high' : 'low'
+   665→                      return (
+   666→                        <div
+   667→                          key={item.id}
+   668→                          className={cn(
+   669→                            'flex items-center justify-between rounded-lg border p-3 transition-colors',
+   670→                            severity === 'critical' && 'border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20',
+   671→                            severity === 'high' && 'border-orange-200 bg-orange-50/50 dark:border-orange-900/50 dark:bg-orange-950/20',
+   672→                            severity === 'low' && 'border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20'
+   673→                          )}
+   674→                        >
+   675→                          <div className="min-w-0 flex-1">
+   676→                            <div className="flex items-center gap-2">
+   677→                              <p className="text-sm font-medium truncate">{item.name}</p>
+   678→                              <span className="text-[10px] text-muted-foreground font-mono">{item.code}</span>
+   679→                            </div>
+   680→                            <p className="text-xs text-muted-foreground mt-0.5">
+   681→                              Min required: {item.minStock} {item.unit}
+   682→                            </p>
+   683→                          </div>
+   684→                          <div className="text-right shrink-0 ml-3">
+   685→                            <p className={cn(
+   686→                              'text-sm font-bold tabular-nums',
+   687→                              severity === 'critical' && 'text-red-600 dark:text-red-400',
+   688→                              severity === 'high' && 'text-orange-600 dark:text-orange-400',
+   689→                              severity === 'low' && 'text-amber-600 dark:text-amber-400'
+   690→                            )}>
+   691→                              {item.currentStock} {item.unit}
+   692→                            </p>
+   693→                            <p className="text-[10px] text-muted-foreground">current stock</p>
+   694→                          </div>
+   695→                        </div>
+   696→                      )
+   697→                    })}
+   698→                  </div>
+   699→                </ScrollArea>
+   700→              ) : (
+   701→                <div className="flex flex-col items-center justify-center py-12 text-center">
+   702→                  <CheckCircle className="h-8 w-8 text-emerald-500/40 mb-2" />
+   703→                  <p className="text-sm text-muted-foreground">All stock levels are healthy</p>
+   704→                </div>
+   705→              )}
+   706→            </CardContent>
+   707→          </Card>
+   708→        )}
+   709→
+   710→        {/* Recent Activities */}
+   711→        {isLoading ? (
+   712→          <Card>
+   713→            <CardHeader>
+   714→              <Skeleton className="h-5 w-36" />
+   715→            </CardHeader>
+   716→            <CardContent>
+   717→              <div className="space-y-4">
+   718→                {Array.from({ length: 6 }).map((_, i) => (
+   719→                  <div key={i} className="flex gap-3">
+   720→                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+   721→                    <div className="flex-1 space-y-1.5">
+   722→                      <Skeleton className="h-3.5 w-48" />
+   723→                      <Skeleton className="h-3 w-24" />
+   724→                    </div>
+   725→                  </div>
+   726→                ))}
+   727→              </div>
+   728→            </CardContent>
+   729→          </Card>
+   730→        ) : (
+   731→          <Card>
+   732→            <CardHeader>
+   733→              <CardTitle className="flex items-center gap-2 text-base">
+   734→                <Activity className="h-4 w-4 text-amber-600" />
+   735→                Recent Activities
+   736→              </CardTitle>
+   737→            </CardHeader>
+   738→            <CardContent>
+   739→              {dashboardData?.recentActivities && dashboardData.recentActivities.length > 0 ? (
+   740→                <ScrollArea className="max-h-72">
+   741→                  <div className="space-y-1 pr-4">
+   742→                    {dashboardData.recentActivities.map((activity, idx) => {
+   743→                      const isLast = idx === dashboardData.recentActivities.length - 1
+   744→                      return (
+   745→                        <div key={activity.id} className="flex gap-3 pb-4 relative">
+   746→                          {/* Timeline line */}
+   747→                          {!isLast && (
+   748→                            <div className="absolute left-[15px] top-8 bottom-0 w-px bg-border" />
+   749→                          )}
+   750→                          {/* Timeline dot */}
+   751→                          <div className="relative z-10 mt-0.5 shrink-0">
+   752→                            <div className="h-[30px] w-[30px] rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+   753→                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+   754→                                {activity.userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+   755→                              </span>
+   756→                            </div>
+   757→                          </div>
+   758→                          {/* Content */}
+   759→                          <div className="flex-1 min-w-0 pt-0.5">
+   760→                            <p className="text-sm leading-snug">
+   761→                              <span className="font-medium">{activity.userName}</span>
+   762→                              {' '}
+   763→                              <span className="text-muted-foreground">
+   764→                                {formatLabel(activity.action)} on {formatLabel(activity.entity)}
+   765→                              </span>
+   766→                            </p>
+   767→                            <p className="text-xs text-muted-foreground mt-0.5">
+   768→                              {format(parseISO(activity.createdAt), 'dd MMM yyyy, hh:mm a')}
+   769→                            </p>
+   770→                          </div>
+   771→                        </div>
+   772→                      )
+   773→                    })}
+   774→                  </div>
+   775→                </ScrollArea>
+   776→              ) : (
+   777→                <div className="flex flex-col items-center justify-center py-12 text-center">
+   778→                  <Activity className="h-8 w-8 text-muted-foreground/40 mb-2" />
+   779→                  <p className="text-sm text-muted-foreground">No recent activities</p>
+   780→                </div>
+   781→              )}
+   782→            </CardContent>
+   783→          </Card>
+   784→        )}
+   785→      </div>
+   786→    </div>
+   787→  )
+   788→}
