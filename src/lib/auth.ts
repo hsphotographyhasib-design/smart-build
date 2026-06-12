@@ -73,6 +73,10 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
  */
 export function requireRole(user: AuthUser | null, roles: string[]): boolean {
   if (!user) return false
+  // Super admin has access to everything
+  if (user.role === 'super_admin') return true
+  // Admin can access any admin-level route
+  if (user.role === 'admin') return true
   return roles.includes(user.role)
 }
 

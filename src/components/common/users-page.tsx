@@ -51,9 +51,10 @@ interface UserRecord {
   createdAt: string
 }
 
-const ROLES = ['admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'client', 'labour']
+const ROLES = ['super_admin', 'admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'client', 'labour']
 
 const roleLabels: Record<string, string> = {
+  super_admin: 'Super Admin',
   admin: 'Admin',
   supervisor: 'Supervisor',
   hr_manager: 'HR Manager',
@@ -138,7 +139,7 @@ export function UsersPage() {
 
   const roleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-amber-600 text-white border-0'
+      case 'super_admin': return 'bg-red-600 text-white border-0'
       case 'supervisor': return 'bg-emerald-600 text-white border-0'
       case 'hr_manager': return 'bg-violet-600 text-white border-0'
       case 'accountant': return 'bg-teal-600 text-white border-0'

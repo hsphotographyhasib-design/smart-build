@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role
-    const validRoles = ['admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'client', 'labour']
+    const validRoles = ['super_admin', 'admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'client', 'labour']
     if (role && !validRoles.includes(role)) {
       return NextResponse.json(
         { success: false, error: `Invalid role. Must be one of: ${validRoles.join(', ')}` },
