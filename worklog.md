@@ -383,3 +383,102 @@ Task ID: 4 - Full Module Build & Verification (2025-06-13)
 - ✅ Dev server: Running clean on port 3000
 
 ### Total artifacts: 32 custom components + 50+ API routes
+
+---
+Task ID: 4 - Comprehensive Project Workspace (13-Tab Detail Page) (2025-06-13)
+
+### What was built:
+Complete overhaul of `src/components/projects/project-detail-page.tsx` from 5-tab (~1090 lines) to a full 13-tab project workspace (~1948 lines).
+
+**13 Tabs Implemented:**
+1. **Overview** — KPI cards (Budget, Progress, Team Size, Open Items, Pending RFIs, Commitments), budget health bar with spent/committed/remaining breakdown, recent activity timeline from project comments, days remaining indicator
+2. **Tasks** — Full task table with status/priority badges, assignee, dates, create dialog with all fields, search
+3. **Timeline** — Horizontal timeline with milestone dots (color-coded by status: completed=emerald, overdue=red, pending=amber), scrollable milestone cards
+4. **Open Items** — Filterable table (status + category dropdowns), resolve/close workflow buttons, create dialog with 7 categories, auto-generated item numbers
+5. **RFIs** — Filterable table, full workflow (Draft→Submit→Review→Answer→Close), detail dialog with comment thread and add-comment form, status-colored badges
+6. **Change Events** — Table with impact type badges (cost/schedule/scope/quality), potential cost and schedule impact, approve/reject workflow, create dialog
+7. **Change Orders** — Table with cost adjustment (color-coded +/-), adjusted budget, approve button, create dialog
+8. **Team** — Card grid layout with avatar initials, role badges, company/phone/email info, add member dialog with 9 role types
+9. **Commitments** — Summary cards (Total Value, Committed, Remaining), table with type/vendor/value, create dialog with 4 commitment types
+10. **Direct Costs** — Dynamic category summary cards, table with category/description/amount, create dialog with 9 cost categories
+11. **Documents** — Table with type-colored badges, file size formatting, upload dialog with 5 document types
+12. **Daily Notes** — Table with weather icons (sun/cloud/rain/snow/wind), work done, issues, labour count, create dialog
+13. **Insights** — Budget health progress bar, Open Items pie chart (Recharts), RFI status pie chart, Direct Costs by category bar chart, Change Events summary cards
+
+**13 New API Routes:**
+- `GET/POST /api/projects/{id}/rfis` — RFI CRUD with auto-number generation
+- `PUT /api/projects/{id}/rfis/{rfiId}` — RFI status workflow
+- `POST /api/projects/{id}/rfis/{rfiId}/comments` — RFI comment creation
+- `GET/POST /api/projects/{id}/change-events` — Change event CRUD
+- `PUT /api/projects/{id}/change-events/{eventId}` — Change event status workflow
+- `GET/POST /api/projects/{id}/change-orders` — Change order CRUD
+- `PUT /api/projects/{id}/change-orders/{coId}` — Change order approve
+- `GET/POST /api/projects/{id}/team` — Team member CRUD
+- `GET/POST /api/projects/{id}/commitments` — Commitment CRUD
+- `GET/POST /api/projects/{id}/direct-costs` — Direct cost CRUD
+- `PUT /api/projects/{id}/open-items/{itemId}` — Open item resolve/close
+- `GET /api/projects/{id}/insights` — Computed analytics (budget, open items, RFIs, costs by category, change events)
+- `GET /api/projects/{id}/comments` — Recent project comments for activity feed
+
+### Key decisions:
+- Each tab is a separate function component for maintainability
+- Every tab has: loading skeleton, error card, empty card with icon + action button, data display, create dialog
+- Amber/warm theme throughout — tab triggers use `data-[state=active]:bg-amber-600`
+- Status color maps match spec exactly (open=amber, pending=amber-50, in_review=orange, resolved=emerald, closed=slate)
+- RFI workflow: draft→submitted→under_review→answered→closed with contextual action buttons per status
+- Insights tab uses Recharts PieChart (donut style with innerRadius) and BarChart with INR formatting
+- Budget health bar changes color at 70% (amber) and 90% (red) thresholds
+- Fixed lint errors: replaced `useEffect` + `setState` with synchronous render-time state sync; added missing `FolderKanban` import
+- Recharts wrapped in `ResponsiveContainer` for responsive sizing
+
+### Files created/modified:
+- `src/components/projects/project-detail-page.tsx` — Overwritten (1948 lines, was ~1090)
+- `src/app/api/projects/[id]/rfis/route.ts` — NEW
+- `src/app/api/projects/[id]/rfis/[rfiId]/route.ts` — NEW
+- `src/app/api/projects/[id]/rfis/[rfiId]/comments/route.ts` — NEW
+- `src/app/api/projects/[id]/change-events/route.ts` — NEW
+- `src/app/api/projects/[id]/change-events/[eventId]/route.ts` — NEW
+- `src/app/api/projects/[id]/change-orders/route.ts` — NEW
+- `src/app/api/projects/[id]/change-orders/[coId]/route.ts` — NEW
+- `src/app/api/projects/[id]/team/route.ts` — NEW
+- `src/app/api/projects/[id]/commitments/route.ts` — NEW
+- `src/app/api/projects/[id]/direct-costs/route.ts` — NEW
+- `src/app/api/projects/[id]/open-items/[itemId]/route.ts` — NEW
+- `src/app/api/projects/[id]/insights/route.ts` — NEW
+- `src/app/api/projects/[id]/comments/route.ts` — NEW
+
+### Verified:
+- ESLint: 0 errors, 0 warnings ✓
+- Dev server: Compiles clean ✓
+- File size: 1948 lines (well above 1000 minimum) ✓
+
+---
+## Task 3 - Collaboration Module APIs (2025-06-13)
+
+### What was built:
+20 API route files for the SMARTBUILD ERP Collaboration Module, covering all project-level collaboration features:
+
+1. **Open Items** (`open-items/[itemId]/route.ts`) — GET single, PUT (update with auto-resolve), DELETE
+2. **RFIs** (`rfis/route.ts`) — GET list (filters: status, category, priority, search), POST (auto-generates RFI-XXX)
+3. **RFI Single** (`rfis/[rfiId]/route.ts`) — GET, PUT (status transitions: draft→submitted→under_review→answered→closed), DELETE
+4. **RFI Comments** (`rfis/[rfiId]/comments/route.ts`) — GET list, POST add comment
+5. **Change Events** (`change-events/route.ts`) — GET list (filters: status, category, impactType, search), POST (auto-generates CE-XXX)
+6. **Change Event Single** (`change-events/[eventId]/route.ts`) — GET, PUT, DELETE
+7. **Change Event Approve** (`change-events/[eventId]/approve/route.ts`) — POST sets status='approved', approvedById
+8. **Change Event Reject** (`change-events/[eventId]/reject/route.ts`) — POST sets status='rejected'
+9. **Change Orders** (`change-orders/route.ts`) — GET (with changeEvent include), POST (auto-generates CO-XXX)
+10. **Change Order Single** (`change-orders/[coId]/route.ts`) — GET, PUT, DELETE
+11. **Change Order Approve** (`change-orders/[coId]/approve/route.ts`) — POST sets status='approved', approvedById
+12. **Commitments** (`commitments/route.ts`) — GET (filters: status, type, search), POST
+13. **Commitment Single** (`commitments/[commitmentId]/route.ts`) — GET, PUT, DELETE
+14. **Direct Costs** (`direct-costs/route.ts`) — GET (filters: status, category, search), POST
+15. **Direct Cost Single** (`direct-costs/[costId]/route.ts`) — GET, PUT (auto-sets approvedById on approve), DELETE
+16. **Prime Contract** (`prime-contract/route.ts`) — GET (404 if not found), POST (409 if exists), PUT
+17. **Team** (`team/route.ts`) — GET (filters: role, isActive), POST
+18. **Team Member** (`team/[memberId]/route.ts`) — PUT, DELETE
+19. **Project Comments** (`comments/route.ts`) — GET (filters: entityType, entityId), POST (with JSON mentions)
+20. **Insights** (`insights/route.ts`) — GET computes aggregates in parallel (open items, RFIs, commitments, direct costs, change events/orders, prime contract, milestones, project info)
+
+### Verified:
+- ESLint: 0 errors, 0 warnings ✓
+- Dev server compiles successfully ✓

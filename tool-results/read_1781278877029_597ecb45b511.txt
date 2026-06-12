@@ -1,0 +1,1140 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useEffect, useMemo } from 'react'
+     4→     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→     7→import { Button } from '@/components/ui/button'
+     8→     8→import { Badge } from '@/components/ui/badge'
+     9→     9→import { Input } from '@/components/ui/input'
+    10→    10→import { Label } from '@/components/ui/label'
+    11→    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    12→    12→import { Textarea } from '@/components/ui/textarea'
+    13→    13→import { Skeleton } from '@/components/ui/skeleton'
+    14→    14→import { ScrollArea } from '@/components/ui/scroll-area'
+    15→    15→import { Separator } from '@/components/ui/separator'
+    16→    16→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    17→    17→import {
+    18→    18→  Dialog,
+    19→    19→  DialogContent,
+    20→    20→  DialogHeader,
+    21→    21→  DialogTitle,
+    22→    22→  DialogFooter,
+    23→    23→} from '@/components/ui/dialog'
+    24→    24→import {
+    25→    25→  Table,
+    26→    26→  TableBody,
+    27→    27→  TableCell,
+    28→    28→  TableHead,
+    29→    29→  TableHeader,
+    30→    30→  TableRow,
+    31→    31→} from '@/components/ui/table'
+    32→    32→import { toast } from 'sonner'
+    33→    33→import {
+    34→    34→  Plus,
+    35→    35→  ArrowLeft,
+    36→    36→  FolderKanban,
+    37→    37→  Calendar,
+    38→    38→  DollarSign,
+    39→    39→  Users,
+    40→    40→  CheckCircle,
+    41→    41→  Clock,
+    42→    42→  FileText,
+    43→    43→  AlertTriangle,
+    44→    44→  Sun,
+    45→    45→  CloudRain,
+    46→    46→  Cloud,
+    47→    47→  CloudSnow,
+    48→    48→  Wind,
+    49→    49→  ClipboardList,
+    50→    50→  BarChart3,
+    51→    51→} from 'lucide-react'
+    52→    52→import { format, parseISO } from 'date-fns'
+    53→    53→import { cn } from '@/lib/utils'
+    54→    54→
+    55→    55→// ──────────────────────────────────────────
+    56→    56→// Types
+    57→    57→// ──────────────────────────────────────────
+    58→    58→
+    59→    59→interface ProjectDetail {
+    60→    60→  id: string
+    61→    61→  name: string
+    62→    62→  code: string
+    63→    63→  status: string
+    64→    64→  progress: number
+    65→    65→  budget: number
+    66→    66→  startDate: string | null
+    67→    67→  endDate: string | null
+    68→    68→  address: string | null
+    69→    69→  description: string | null
+    70→    70→  clientName: string | null
+    71→    71→  clientPhone: string | null
+    72→    72→  createdAt: string
+    73→    73→  updatedAt: string
+    74→    74→  memberCount: number
+    75→    75→  totalTasks: number
+    76→    76→  completedTasks: number
+    77→    77→  inProgressTasks: number
+    78→    78→  pendingTasks: number
+    79→    79→  documentCount: number
+    80→    80→  dailyNoteCount: number
+    81→    81→}
+    82→    82→
+    83→    83→interface Task {
+    84→    84→  id: string
+    85→    85→  title: string
+    86→    86→  description: string | null
+    87→    87→  status: string
+    88→    88→  priority: string
+    89→    89→  progress: number
+    90→    90→  startDate: string | null
+    91→    91→  endDate: string | null
+    92→    92→  assignee: { id: string; name: string; avatarUrl?: string } | null
+    93→    93→}
+    94→    94→
+    95→    95→interface FinanceSummary {
+    96→    96→  totalBudget: number
+    97→    97→  totalInvoiced: number
+    98→    98→  totalPaid: number
+    99→    99→  totalExpense: number
+   100→   100→  totalOutstanding: number
+   101→   101→  invoices: Array<{
+   102→   102→    id: string
+   103→   103→    invoiceNo: string
+   104→   104→    issueDate: string
+   105→   105→    dueDate: string
+   106→   106→    total: number
+   107→   107→    paid: number
+   108→   108→    status: string
+   109→   109→  }>
+   110→   110→  payments: Array<{
+   111→   111→    id: string
+   112→   112→    paymentNo: string
+   113→   113→    amount: number
+   114→   114→    method: string
+   115→   115→    date: string
+   116→   116→    status: string
+   117→   117→  }>
+   118→   118→  expenses: Array<{
+   119→   119→    id: string
+   120→   120→    description: string
+   121→   121→    category: string
+   122→   122→    amount: number
+   123→   123→    date: string
+   124→   124→  }>
+   125→   125→}
+   126→   126→
+   127→   127→interface Document {
+   128→   128→  id: string
+   129→   129→  name: string
+   130→   130→  type: string
+   131→   131→  fileSize: string | null
+   132→   132→  uploadedBy: { name: string } | null
+   133→   133→  createdAt: string
+   134→   134→}
+   135→   135→
+   136→   136→interface DailyNote {
+   137→   137→  id: string
+   138→   138→  date: string
+   139→   139→  weather: string | null
+   140→   140→  workDone: string | null
+   141→   141→  issues: string | null
+   142→   142→  labourCount: number | null
+   143→   143→  createdAt: string
+   144→   144→}
+   145→   145→
+   146→   146→// ──────────────────────────────────────────
+   147→   147→// Helpers
+   148→   148→// ──────────────────────────────────────────
+   149→   149→
+   150→   150→const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; className: string }> = {
+   151→   151→  planning: { label: 'Planning', variant: 'outline', className: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
+   152→   152→  active: { label: 'Active', variant: 'default', className: 'bg-emerald-600 text-white hover:bg-emerald-700 border-0' },
+   153→   153→  on_hold: { label: 'On Hold', variant: 'secondary', className: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+   154→   154→  completed: { label: 'Completed', variant: 'default', className: 'bg-teal-600 text-white hover:bg-teal-700 border-0' },
+   155→   155→  cancelled: { label: 'Cancelled', variant: 'destructive', className: '' },
+   156→   156→}
+   157→   157→
+   158→   158→const taskStatusConfig: Record<string, { label: string; className: string }> = {
+   159→   159→  pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+   160→   160→  in_progress: { label: 'In Progress', className: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
+   161→   161→  completed: { label: 'Completed', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800' },
+   162→   162→  cancelled: { label: 'Cancelled', className: 'bg-muted text-muted-foreground' },
+   163→   163→}
+   164→   164→
+   165→   165→const priorityConfig: Record<string, { label: string; className: string }> = {
+   166→   166→  low: { label: 'Low', className: 'bg-muted text-muted-foreground' },
+   167→   167→  medium: { label: 'Medium', className: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+   168→   168→  high: { label: 'High', className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800' },
+   169→   169→  critical: { label: 'Critical', className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800' },
+   170→   170→}
+   171→   171→
+   172→   172→const financeStatusConfig: Record<string, { label: string; className: string }> = {
+   173→   173→  draft: { label: 'Draft', className: 'bg-secondary text-secondary-foreground' },
+   174→   174→  submitted: { label: 'Submitted', className: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
+   175→   175→  paid: { label: 'Paid', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800' },
+   176→   176→  overdue: { label: 'Overdue', className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800' },
+   177→   177→  cancelled: { label: 'Cancelled', className: 'bg-muted text-muted-foreground' },
+   178→   178→}
+   179→   179→
+   180→   180→function getStatusBadge(status: string) {
+   181→   181→  const config = statusConfig[status] || statusConfig.planning
+   182→   182→  return <Badge variant={config.variant} className={cn('font-medium text-xs', config.className)}>{config.label}</Badge>
+   183→   183→}
+   184→   184→
+   185→   185→function getTaskStatusBadge(status: string) {
+   186→   186→  const config = taskStatusConfig[status] || taskStatusConfig.pending
+   187→   187→  return <Badge variant="outline" className={cn('font-medium text-xs', config.className)}>{config.label}</Badge>
+   188→   188→}
+   189→   189→
+   190→   190→function getPriorityBadge(priority: string) {
+   191→   191→  const config = priorityConfig[priority] || priorityConfig.medium
+   192→   192→  return <Badge variant="outline" className={cn('font-medium text-xs', config.className)}>{config.label}</Badge>
+   193→   193→}
+   194→   194→
+   195→   195→function getFinanceStatusBadge(status: string) {
+   196→   196→  const config = financeStatusConfig[status] || financeStatusConfig.draft
+   197→   197→  return <Badge variant="outline" className={cn('font-medium text-xs', config.className)}>{config.label}</Badge>
+   198→   198→}
+   199→   199→
+   200→   200→function getProgressColor(progress: number) {
+   201→   201→  if (progress >= 80) return 'bg-emerald-600'
+   202→   202→  if (progress >= 50) return 'bg-amber-500'
+   203→   203→  if (progress >= 25) return 'bg-orange-500'
+   204→   204→  return 'bg-red-500'
+   205→   205→}
+   206→   206→
+   207→   207→function formatCurrency(amount: number) {
+   208→   208→  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
+   209→   209→}
+   210→   210→
+   211→   211→function formatDate(dateStr: string | null) {
+   212→   212→  if (!dateStr) return '—'
+   213→   213→  return format(parseISO(dateStr), 'dd MMM yyyy')
+   214→   214→}
+   215→   215→
+   216→   216→function getWeatherIcon(weather: string | null) {
+   217→   217→  if (!weather) return <Cloud className="h-4 w-4 text-muted-foreground" />
+   218→   218→  const w = weather.toLowerCase()
+   219→   219→  if (w.includes('rain') || w.includes('storm')) return <CloudRain className="h-4 w-4 text-sky-500" />
+   220→   220→  if (w.includes('snow')) return <CloudSnow className="h-4 w-4 text-sky-300" />
+   221→   221→  if (w.includes('wind')) return <Wind className="h-4 w-4 text-muted-foreground" />
+   222→   222→  if (w.includes('sunny') || w.includes('clear') || w.includes('hot')) return <Sun className="h-4 w-4 text-amber-500" />
+   223→   223→  return <Cloud className="h-4 w-4 text-muted-foreground" />
+   224→   224→}
+   225→   225→
+   226→   226→// ──────────────────────────────────────────
+   227→   227→// Skeleton Loaders
+   228→   228→// ──────────────────────────────────────────
+   229→   229→
+   230→   230→function OverviewSkeleton() {
+   231→   231→  return (
+   232→   232→    <div className="space-y-6">
+   233→   233→      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+   234→   234→        {Array.from({ length: 3 }).map((_, i) => (
+   235→   235→          <Card key={i}>
+   236→   236→            <CardContent className="p-5">
+   237→   237→              <Skeleton className="h-4 w-24 mb-3" />
+   238→   238→              <Skeleton className="h-8 w-20" />
+   239→   239→            </CardContent>
+   240→   240→          </Card>
+   241→   241→        ))}
+   242→   242→      </div>
+   243→   243→      <Card>
+   244→   244→        <CardContent className="p-5">
+   245→   245→          <Skeleton className="h-4 w-40 mb-4" />
+   246→   246→          <div className="space-y-3">
+   247→   247→            {Array.from({ length: 5 }).map((_, i) => (
+   248→   248→              <div key={i} className="flex justify-between">
+   249→   249→                <Skeleton className="h-4 w-32" />
+   250→   250→                <Skeleton className="h-4 w-40" />
+   251→   251→              </div>
+   252→   252→            ))}
+   253→   253→          </div>
+   254→   254→        </CardContent>
+   255→   255→      </Card>
+   256→   256→    </div>
+   257→   257→  )
+   258→   258→}
+   259→   259→
+   260→   260→function TableSkeleton() {
+   261→   261→  return (
+   262→   262→    <div className="space-y-3">
+   263→   263→      {Array.from({ length: 5 }).map((_, i) => (
+   264→   264→        <div key={i} className="flex items-center gap-4 px-4 py-3">
+   265→   265→          <Skeleton className="h-4 w-40" />
+   266→   266→          <Skeleton className="h-5 w-20 rounded-full" />
+   267→   267→          <Skeleton className="h-4 w-24" />
+   268→   268→          <Skeleton className="h-4 w-20" />
+   269→   269→        </div>
+   270→   270→      ))}
+   271→   271→    </div>
+   272→   272→  )
+   273→   273→}
+   274→   274→
+   275→   275→// ──────────────────────────────────────────
+   276→   276→// Add Task Dialog
+   277→   277→// ──────────────────────────────────────────
+   278→   278→
+   279→   279→function AddTaskDialog({ projectId }: { projectId: string }) {
+   280→   280→  const [open, setOpen] = useState(false)
+   281→   281→  const [form, setForm] = useState({
+   282→   282→    title: '',
+   283→   283→    description: '',
+   284→   284→    status: 'pending',
+   285→   285→    priority: 'medium',
+   286→   286→    startDate: '',
+   287→   287→    endDate: '',
+   288→   288→  })
+   289→   289→  const queryClient = useQueryClient()
+   290→   290→
+   291→   291→  const createMutation = useMutation({
+   292→   292→    mutationFn: (body: Record<string, unknown>) => api.post(`/api/projects/${projectId}/tasks`, body),
+   293→   293→    onSuccess: () => {
+   294→   294→      queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+   295→   295→      toast.success('Task added successfully!')
+   296→   296→      setOpen(false)
+   297→   297→      setForm({ title: '', description: '', status: 'pending', priority: 'medium', startDate: '', endDate: '' })
+   298→   298→    },
+   299→   299→    onError: (err: Error) => toast.error(err.message || 'Failed to add task'),
+   300→   300→  })
+   301→   301→
+   302→   302→  const handleSubmit = (e: React.FormEvent) => {
+   303→   303→    e.preventDefault()
+   304→   304→    if (!form.title.trim()) { toast.error('Task title is required'); return }
+   305→   305→    createMutation.mutate({
+   306→   306→      title: form.title.trim(),
+   307→   307→      description: form.description.trim() || null,
+   308→   308→      status: form.status,
+   309→   309→      priority: form.priority,
+   310→   310→      startDate: form.startDate || null,
+   311→   311→      endDate: form.endDate || null,
+   312→   312→    })
+   313→   313→  }
+   314→   314→
+   315→   315→  return (
+   316→   316→    <Dialog open={open} onOpenChange={setOpen}>
+   317→   317→      <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   318→   318→        <Plus className="h-4 w-4 mr-2" />Add Task
+   319→   319→      </Button>
+   320→   320→      <DialogContent className="sm:max-w-lg">
+   321→   321→        <DialogHeader><DialogTitle>Add New Task</DialogTitle></DialogHeader>
+   322→   322→        <form onSubmit={handleSubmit} className="space-y-4">
+   323→   323→          <div className="space-y-2">
+   324→   324→            <Label htmlFor="task-title">Title *</Label>
+   325→   325→            <Input id="task-title" placeholder="Task title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+   326→   326→          </div>
+   327→   327→          <div className="space-y-2">
+   328→   328→            <Label htmlFor="task-desc">Description</Label>
+   329→   329→            <Textarea id="task-desc" placeholder="Task description..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+   330→   330→          </div>
+   331→   331→          <div className="grid grid-cols-2 gap-4">
+   332→   332→            <div className="space-y-2">
+   333→   333→              <Label htmlFor="task-status">Status</Label>
+   334→   334→              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+   335→   335→                <SelectTrigger><SelectValue /></SelectTrigger>
+   336→   336→                <SelectContent>
+   337→   337→                  <SelectItem value="pending">Pending</SelectItem>
+   338→   338→                  <SelectItem value="in_progress">In Progress</SelectItem>
+   339→   339→                  <SelectItem value="completed">Completed</SelectItem>
+   340→   340→                </SelectContent>
+   341→   341→              </Select>
+   342→   342→            </div>
+   343→   343→            <div className="space-y-2">
+   344→   344→              <Label htmlFor="task-priority">Priority</Label>
+   345→   345→              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+   346→   346→                <SelectTrigger><SelectValue /></SelectTrigger>
+   347→   347→                <SelectContent>
+   348→   348→                  <SelectItem value="low">Low</SelectItem>
+   349→   349→                  <SelectItem value="medium">Medium</SelectItem>
+   350→   350→                  <SelectItem value="high">High</SelectItem>
+   351→   351→                  <SelectItem value="critical">Critical</SelectItem>
+   352→   352→                </SelectContent>
+   353→   353→              </Select>
+   354→   354→            </div>
+   355→   355→          </div>
+   356→   356→          <div className="grid grid-cols-2 gap-4">
+   357→   357→            <div className="space-y-2">
+   358→   358→              <Label htmlFor="task-start">Start Date</Label>
+   359→   359→              <Input id="task-start" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+   360→   360→            </div>
+   361→   361→            <div className="space-y-2">
+   362→   362→              <Label htmlFor="task-end">End Date</Label>
+   363→   363→              <Input id="task-end" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+   364→   364→            </div>
+   365→   365→          </div>
+   366→   366→          <DialogFooter>
+   367→   367→            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   368→   368→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={createMutation.isPending}>
+   369→   369→              {createMutation.isPending ? 'Adding...' : 'Add Task'}
+   370→   370→            </Button>
+   371→   371→          </DialogFooter>
+   372→   372→        </form>
+   373→   373→      </DialogContent>
+   374→   374→    </Dialog>
+   375→   375→  )
+   376→   376→}
+   377→   377→
+   378→   378→// ──────────────────────────────────────────
+   379→   379→// Add Document Dialog
+   380→   380→// ──────────────────────────────────────────
+   381→   381→
+   382→   382→function AddDocumentDialog({ projectId }: { projectId: string }) {
+   383→   383→  const [open, setOpen] = useState(false)
+   384→   384→  const [form, setForm] = useState({ name: '', type: 'drawing' })
+   385→   385→  const queryClient = useQueryClient()
+   386→   386→
+   387→   387→  const createMutation = useMutation({
+   388→   388→    mutationFn: (body: Record<string, unknown>) => api.post(`/api/projects/${projectId}/documents`, body),
+   389→   389→    onSuccess: () => {
+   390→   390→      queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+   391→   391→      toast.success('Document added successfully!')
+   392→   392→      setOpen(false)
+   393→   393→      setForm({ name: '', type: 'drawing' })
+   394→   394→    },
+   395→   395→    onError: (err: Error) => toast.error(err.message || 'Failed to add document'),
+   396→   396→  })
+   397→   397→
+   398→   398→  const handleSubmit = (e: React.FormEvent) => {
+   399→   399→    e.preventDefault()
+   400→   400→    if (!form.name.trim()) { toast.error('Document name is required'); return }
+   401→   401→    createMutation.mutate({ name: form.name.trim(), type: form.type })
+   402→   402→  }
+   403→   403→
+   404→   404→  return (
+   405→   405→    <Dialog open={open} onOpenChange={setOpen}>
+   406→   406→      <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   407→   407→        <Plus className="h-4 w-4 mr-2" />Add Document
+   408→   408→      </Button>
+   409→   409→      <DialogContent className="sm:max-w-md">
+   410→   410→        <DialogHeader><DialogTitle>Add Document</DialogTitle></DialogHeader>
+   411→   411→        <form onSubmit={handleSubmit} className="space-y-4">
+   412→   412→          <div className="space-y-2">
+   413→   413→            <Label htmlFor="doc-name">Document Name *</Label>
+   414→   414→            <Input id="doc-name" placeholder="e.g. Foundation Plan v2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+   415→   415→          </div>
+   416→   416→          <div className="space-y-2">
+   417→   417→            <Label htmlFor="doc-type">Type</Label>
+   418→   418→            <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+   419→   419→              <SelectTrigger><SelectValue /></SelectTrigger>
+   420→   420→              <SelectContent>
+   421→   421→                <SelectItem value="drawing">Drawing</SelectItem>
+   422→   422→                <SelectItem value="contract">Contract</SelectItem>
+   423→   423→                <SelectItem value="report">Report</SelectItem>
+   424→   424→                <SelectItem value="photo">Photo</SelectItem>
+   425→   425→                <SelectItem value="invoice">Invoice</SelectItem>
+   426→   426→                <SelectItem value="other">Other</SelectItem>
+   427→   427→              </SelectContent>
+   428→   428→            </Select>
+   429→   429→          </div>
+   430→   430→          <DialogFooter>
+   431→   431→            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   432→   432→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={createMutation.isPending}>
+   433→   433→              {createMutation.isPending ? 'Adding...' : 'Add Document'}
+   434→   434→            </Button>
+   435→   435→          </DialogFooter>
+   436→   436→        </form>
+   437→   437→      </DialogContent>
+   438→   438→    </Dialog>
+   439→   439→  )
+   440→   440→}
+   441→   441→
+   442→   442→// ──────────────────────────────────────────
+   443→   443→// Add Daily Note Dialog
+   444→   444→// ──────────────────────────────────────────
+   445→   445→
+   446→   446→function AddDailyNoteDialog({ projectId }: { projectId: string }) {
+   447→   447→  const [open, setOpen] = useState(false)
+   448→   448→  const [form, setForm] = useState({
+   449→   449→    date: format(new Date(), 'yyyy-MM-dd'),
+   450→   450→    weather: '',
+   451→   451→    workDone: '',
+   452→   452→    issues: '',
+   453→   453→    labourCount: '',
+   454→   454→  })
+   455→   455→  const queryClient = useQueryClient()
+   456→   456→
+   457→   457→  const createMutation = useMutation({
+   458→   458→    mutationFn: (body: Record<string, unknown>) => api.post(`/api/projects/${projectId}/daily-notes`, body),
+   459→   459→    onSuccess: () => {
+   460→   460→      queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+   461→   461→      toast.success('Daily note added successfully!')
+   462→   462→      setOpen(false)
+   463→   463→      setForm({ date: format(new Date(), 'yyyy-MM-dd'), weather: '', workDone: '', issues: '', labourCount: '' })
+   464→   464→    },
+   465→   465→    onError: (err: Error) => toast.error(err.message || 'Failed to add daily note'),
+   466→   466→  })
+   467→   467→
+   468→   468→  const handleSubmit = (e: React.FormEvent) => {
+   469→   469→    e.preventDefault()
+   470→   470→    if (!form.date) { toast.error('Date is required'); return }
+   471→   471→    createMutation.mutate({
+   472→   472→      date: form.date,
+   473→   473→      weather: form.weather.trim() || null,
+   474→   474→      workDone: form.workDone.trim() || null,
+   475→   475→      issues: form.issues.trim() || null,
+   476→   476→      labourCount: parseInt(form.labourCount) || null,
+   477→   477→    })
+   478→   478→  }
+   479→   479→
+   480→   480→  return (
+   481→   481→    <Dialog open={open} onOpenChange={setOpen}>
+   482→   482→      <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   483→   483→        <Plus className="h-4 w-4 mr-2" />Add Note
+   484→   484→      </Button>
+   485→   485→      <DialogContent className="sm:max-w-lg">
+   486→   486→        <DialogHeader><DialogTitle>Add Daily Note</DialogTitle></DialogHeader>
+   487→   487→        <form onSubmit={handleSubmit} className="space-y-4">
+   488→   488→          <div className="grid grid-cols-2 gap-4">
+   489→   489→            <div className="space-y-2">
+   490→   490→              <Label htmlFor="note-date">Date *</Label>
+   491→   491→              <Input id="note-date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
+   492→   492→            </div>
+   493→   493→            <div className="space-y-2">
+   494→   494→              <Label htmlFor="note-weather">Weather</Label>
+   495→   495→              <Select value={form.weather} onValueChange={(v) => setForm({ ...form, weather: v })}>
+   496→   496→                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+   497→   497→                <SelectContent>
+   498→   498→                  <SelectItem value="sunny">Sunny</SelectItem>
+   499→   499→                  <SelectItem value="cloudy">Cloudy</SelectItem>
+   500→   500→                  <SelectItem value="rainy">Rainy</SelectItem>
+   501→   501→                  <SelectItem value="windy">Windy</SelectItem>
+   502→   502→                  <SelectItem value="stormy">Stormy</SelectItem>
+   503→   503→                </SelectContent>
+   504→   504→              </Select>
+   505→   505→            </div>
+   506→   506→          </div>
+   507→   507→          <div className="space-y-2">
+   508→   508→            <Label htmlFor="note-work">Work Done</Label>
+   509→   509→            <Textarea id="note-work" placeholder="Describe the work completed today..." value={form.workDone} onChange={(e) => setForm({ ...form, workDone: e.target.value })} rows={3} />
+   510→   510→          </div>
+   511→   511→          <div className="space-y-2">
+   512→   512→            <Label htmlFor="note-issues">Issues / Remarks</Label>
+   513→   513→            <Textarea id="note-issues" placeholder="Any issues, delays, or remarks..." value={form.issues} onChange={(e) => setForm({ ...form, issues: e.target.value })} rows={2} />
+   514→   514→          </div>
+   515→   515→          <div className="space-y-2">
+   516→   516→            <Label htmlFor="note-labour">Labour Count</Label>
+   517→   517→            <Input id="note-labour" type="number" placeholder="Number of workers on site" value={form.labourCount} onChange={(e) => setForm({ ...form, labourCount: e.target.value })} min="0" />
+   518→   518→          </div>
+   519→   519→          <DialogFooter>
+   520→   520→            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   521→   521→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={createMutation.isPending}>
+   522→   522→              {createMutation.isPending ? 'Saving...' : 'Save Note'}
+   523→   523→            </Button>
+   524→   524→          </DialogFooter>
+   525→   525→        </form>
+   526→   526→      </DialogContent>
+   527→   527→    </Dialog>
+   528→   528→  )
+   529→   529→}
+   530→   530→
+   531→   531→// ──────────────────────────────────────────
+   532→   532→// Overview Tab
+   533→   533→// ──────────────────────────────────────────
+   534→   534→
+   535→   535→function OverviewTab({ project }: { project: ProjectDetail }) {
+   536→   536→  const daysLeft = project.endDate
+   537→   537→    ? Math.ceil((parseISO(project.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+   538→   538→    : null
+   539→   539→
+   540→   540→  return (
+   541→   541→    <div className="space-y-6">
+   542→   542→      {/* Stat Cards */}
+   543→   543→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   544→   544→        <Card>
+   545→   545→          <CardContent className="p-5">
+   546→   546→            <div className="flex items-center gap-3">
+   547→   547→              <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center">
+   548→   548→                <DollarSign className="h-5 w-5 text-amber-600" />
+   549→   549→              </div>
+   550→   550→              <div>
+   551→   551→                <p className="text-xs text-muted-foreground">Budget</p>
+   552→   552→                <p className="text-lg font-bold">{formatCurrency(project.budget)}</p>
+   553→   553→              </div>
+   554→   554→            </div>
+   555→   555→          </CardContent>
+   556→   556→        </Card>
+   557→   557→        <Card>
+   558→   558→          <CardContent className="p-5">
+   559→   559→            <div className="flex items-center gap-3">
+   560→   560→              <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+   561→   561→                <CheckCircle className="h-5 w-5 text-emerald-600" />
+   562→   562→              </div>
+   563→   563→              <div>
+   564→   564→                <p className="text-xs text-muted-foreground">Tasks Done</p>
+   565→   565→                <p className="text-lg font-bold">{project.completedTasks} <span className="text-sm font-normal text-muted-foreground">/ {project.totalTasks}</span></p>
+   566→   566→              </div>
+   567→   567→            </div>
+   568→   568→          </CardContent>
+   569→   569→        </Card>
+   570→   570→        <Card>
+   571→   571→          <CardContent className="p-5">
+   572→   572→            <div className="flex items-center gap-3">
+   573→   573→              <div className="h-10 w-10 rounded-lg bg-teal-100 dark:bg-teal-950 flex items-center justify-center">
+   574→   574→                <Users className="h-5 w-5 text-teal-600" />
+   575→   575→              </div>
+   576→   576→              <div>
+   577→   577→                <p className="text-xs text-muted-foreground">Members</p>
+   578→   578→                <p className="text-lg font-bold">{project.memberCount}</p>
+   579→   579→              </div>
+   580→   580→            </div>
+   581→   581→          </CardContent>
+   582→   582→        </Card>
+   583→   583→        <Card>
+   584→   584→          <CardContent className="p-5">
+   585→   585→            <div className="flex items-center gap-3">
+   586→   586→              <div className="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+   587→   587→                <Clock className="h-5 w-5 text-orange-600" />
+   588→   588→              </div>
+   589→   589→              <div>
+   590→   590→                <p className="text-xs text-muted-foreground">Days Left</p>
+   591→   591→                <p className="text-lg font-bold">
+   592→   592→                  {daysLeft !== null
+   593→   593→                    ? daysLeft > 0 ? `${daysLeft}`
+   594→   594→                      : daysLeft === 0 ? 'Today'
+   595→   595→                        : `${Math.abs(daysLeft)} overdue`
+   596→   596→                    : '—'}
+   597→   597→                </p>
+   598→   598→              </div>
+   599→   599→            </div>
+   600→   600→          </CardContent>
+   601→   601→        </Card>
+   602→   602→      </div>
+   603→   603→
+   604→   604→      {/* Progress Bar */}
+   605→   605→      <Card>
+   606→   606→        <CardContent className="p-5">
+   607→   607→          <div className="flex items-center justify-between mb-3">
+   608→   608→            <h3 className="font-semibold text-sm">Overall Progress</h3>
+   609→   609→            <span className="text-lg font-bold">{Math.round(project.progress)}%</span>
+   610→   610→          </div>
+   611→   611→          <div className="relative h-3 w-full overflow-hidden rounded-full bg-secondary">
+   612→   612→            <div
+   613→   613→              className={cn('h-full rounded-full transition-all duration-500', getProgressColor(project.progress))}
+   614→   614→              style={{ width: `${project.progress}%` }}
+   615→   615→            />
+   616→   616→          </div>
+   617→   617→          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+   618→   618→            <div className="flex items-center gap-4">
+   619→   619→              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Completed: {project.completedTasks}</span>
+   620→   620→              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> In Progress: {project.inProgressTasks}</span>
+   621→   621→              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground" /> Pending: {project.pendingTasks}</span>
+   622→   622→            </div>
+   623→   623→          </div>
+   624→   624→        </CardContent>
+   625→   625→      </Card>
+   626→   626→
+   627→   627→      {/* Project Info */}
+   628→   628→      <Card>
+   629→   629→        <CardHeader className="pb-3">
+   630→   630→          <CardTitle className="text-sm font-semibold">Project Information</CardTitle>
+   631→   631→        </CardHeader>
+   632→   632→        <CardContent className="space-y-3">
+   633→   633→          {project.description && (
+   634→   634→            <>
+   635→   635→              <p className="text-sm text-muted-foreground">{project.description}</p>
+   636→   636→              <Separator />
+   637→   637→            </>
+   638→   638→          )}
+   639→   639→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+   640→   640→            <div className="flex justify-between">
+   641→   641→              <span className="text-muted-foreground">Project Code</span>
+   642→   642→              <span className="font-mono font-medium">{project.code}</span>
+   643→   643→            </div>
+   644→   644→            <div className="flex justify-between">
+   645→   645→              <span className="text-muted-foreground">Status</span>
+   646→   646→              {getStatusBadge(project.status)}
+   647→   647→            </div>
+   648→   648→            <div className="flex justify-between">
+   649→   649→              <span className="text-muted-foreground">Client</span>
+   650→   650→              <span className="font-medium">{project.clientName || '—'}</span>
+   651→   651→            </div>
+   652→   652→            <div className="flex justify-between">
+   653→   653→              <span className="text-muted-foreground">Client Phone</span>
+   654→   654→              <span className="font-medium">{project.clientPhone || '—'}</span>
+   655→   655→            </div>
+   656→   656→            <div className="flex justify-between">
+   657→   657→              <span className="text-muted-foreground">Start Date</span>
+   658→   658→              <span className="font-medium">{formatDate(project.startDate)}</span>
+   659→   659→            </div>
+   660→   660→            <div className="flex justify-between">
+   661→   661→              <span className="text-muted-foreground">End Date</span>
+   662→   662→              <span className="font-medium">{formatDate(project.endDate)}</span>
+   663→   663→            </div>
+   664→   664→          </div>
+   665→   665→          {project.address && (
+   666→   666→            <>
+   667→   667→              <Separator />
+   668→   668→              <div className="text-sm">
+   669→   669→                <span className="text-muted-foreground">Site Address:</span>
+   670→   670→                <p className="font-medium mt-0.5">{project.address}</p>
+   671→   671→              </div>
+   672→   672→            </>
+   673→   673→          )}
+   674→   674→        </CardContent>
+   675→   675→      </Card>
+   676→   676→    </div>
+   677→   677→  )
+   678→   678→}
+   679→   679→
+   680→   680→// ──────────────────────────────────────────
+   681→   681→// Tasks Tab
+   682→   682→// ──────────────────────────────────────────
+   683→   683→
+   684→   684→function TasksTab({ projectId }: { projectId: string }) {
+   685→   685→  const { data: tasks, isLoading, error } = useQuery({
+   686→   686→    queryKey: [queryKeys.project(projectId), 'tasks'],
+   687→   687→    queryFn: () => api.get(`/api/projects/${projectId}/tasks`).then((r) => r.data as Task[]),
+   688→   688→  })
+   689→   689→
+   690→   690→  if (isLoading) return <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   691→   691→  if (error) return <Card className="border-red-200"><CardContent className="p-8 text-center"><p className="text-red-600 text-sm">Failed to load tasks.</p></CardContent></Card>
+   692→   692→  if (!tasks || tasks.length === 0) return (
+   693→   693→    <Card>
+   694→   694→      <CardContent className="p-12 text-center">
+   695→   695→        <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   696→   696→        <h3 className="font-semibold text-lg text-muted-foreground">No Tasks Yet</h3>
+   697→   697→        <p className="text-sm text-muted-foreground mt-1">Add your first task to start tracking progress.</p>
+   698→   698→      </CardContent>
+   699→   699→    </Card>
+   700→   700→  )
+   701→   701→
+   702→   702→  return (
+   703→   703→    <Card className="overflow-hidden">
+   704→   704→      <ScrollArea className="max-h-96">
+   705→   705→        <Table>
+   706→   706→          <TableHeader>
+   707→   707→            <TableRow className="bg-muted/50">
+   708→   708→              <TableHead className="font-semibold">Task</TableHead>
+   709→   709→              <TableHead className="font-semibold hidden sm:table-cell">Status</TableHead>
+   710→   710→              <TableHead className="font-semibold hidden md:table-cell">Priority</TableHead>
+   711→   711→              <TableHead className="font-semibold hidden lg:table-cell">Start</TableHead>
+   712→   712→              <TableHead className="font-semibold hidden lg:table-cell">End</TableHead>
+   713→   713→              <TableHead className="font-semibold">Progress</TableHead>
+   714→   714→              <TableHead className="font-semibold hidden md:table-cell">Assignee</TableHead>
+   715→   715→            </TableRow>
+   716→   716→          </TableHeader>
+   717→   717→          <TableBody>
+   718→   718→            {tasks.map((task) => (
+   719→   719→              <TableRow key={task.id}>
+   720→   720→                <TableCell>
+   721→   721→                  <div>
+   722→   722→                    <p className="font-medium text-sm">{task.title}</p>
+   723→   723→                    {task.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{task.description}</p>}
+   724→   724→                  </div>
+   725→   725→                </TableCell>
+   726→   726→                <TableCell className="hidden sm:table-cell">{getTaskStatusBadge(task.status)}</TableCell>
+   727→   727→                <TableCell className="hidden md:table-cell">{getPriorityBadge(task.priority)}</TableCell>
+   728→   728→                <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{formatDate(task.startDate)}</TableCell>
+   729→   729→                <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{formatDate(task.endDate)}</TableCell>
+   730→   730→                <TableCell>
+   731→   731→                  <div className="flex items-center gap-2 min-w-[80px]">
+   732→   732→                    <div className="relative h-2 w-16 overflow-hidden rounded-full bg-secondary">
+   733→   733→                      <div className={cn('h-full rounded-full transition-all', getProgressColor(task.progress))} style={{ width: `${task.progress}%` }} />
+   734→   734→                    </div>
+   735→   735→                    <span className="text-xs font-medium">{Math.round(task.progress)}%</span>
+   736→   736→                  </div>
+   737→   737→                </TableCell>
+   738→   738→                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{task.assignee?.name || '—'}</TableCell>
+   739→   739→              </TableRow>
+   740→   740→            ))}
+   741→   741→          </TableBody>
+   742→   742→        </Table>
+   743→   743→      </ScrollArea>
+   744→   744→    </Card>
+   745→   745→  )
+   746→   746→}
+   747→   747→
+   748→   748→// ──────────────────────────────────────────
+   749→   749→// Finance Tab
+   750→   750→// ──────────────────────────────────────────
+   751→   751→
+   752→   752→function FinanceTab({ projectId }: { projectId: string }) {
+   753→   753→  const { data: finance, isLoading, error } = useQuery({
+   754→   754→    queryKey: [queryKeys.project(projectId), 'finance'],
+   755→   755→    queryFn: () => api.get(`/api/projects/${projectId}/finance`).then((r) => r.data as FinanceSummary),
+   756→   756→  })
+   757→   757→
+   758→   758→  if (isLoading) return <OverviewSkeleton />
+   759→   759→  if (error) return <Card className="border-red-200"><CardContent className="p-8 text-center"><p className="text-red-600 text-sm">Failed to load finance data.</p></CardContent></Card>
+   760→   760→  if (!finance) return (
+   761→   761→    <Card>
+   762→   762→      <CardContent className="p-12 text-center">
+   763→   763→        <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   764→   764→        <h3 className="font-semibold text-lg text-muted-foreground">No Finance Data</h3>
+   765→   765→        <p className="text-sm text-muted-foreground mt-1">Finance details will appear once invoices or expenses are recorded.</p>
+   766→   766→      </CardContent>
+   767→   767→    </Card>
+   768→   768→  )
+   769→   769→
+   770→   770→  return (
+   771→   771→    <div className="space-y-6">
+   772→   772→      {/* Summary Cards */}
+   773→   773→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   774→   774→        <Card>
+   775→   775→          <CardContent className="p-5">
+   776→   776→            <p className="text-xs text-muted-foreground">Total Budget</p>
+   777→   777→            <p className="text-lg font-bold mt-1">{formatCurrency(finance.totalBudget)}</p>
+   778→   778→          </CardContent>
+   779→   779→        </Card>
+   780→   780→        <Card>
+   781→   781→          <CardContent className="p-5">
+   782→   782→            <p className="text-xs text-muted-foreground">Total Invoiced</p>
+   783→   783→            <p className="text-lg font-bold mt-1 text-emerald-600">{formatCurrency(finance.totalInvoiced)}</p>
+   784→   784→          </CardContent>
+   785→   785→        </Card>
+   786→   786→        <Card>
+   787→   787→          <CardContent className="p-5">
+   788→   788→            <p className="text-xs text-muted-foreground">Total Paid</p>
+   789→   789→            <p className="text-lg font-bold mt-1 text-teal-600">{formatCurrency(finance.totalPaid)}</p>
+   790→   790→          </CardContent>
+   791→   791→        </Card>
+   792→   792→        <Card>
+   793→   793→          <CardContent className="p-5">
+   794→   794→            <p className="text-xs text-muted-foreground">Outstanding</p>
+   795→   795→            <p className={cn('text-lg font-bold mt-1', finance.totalOutstanding > 0 ? 'text-red-600' : 'text-emerald-600')}>{formatCurrency(finance.totalOutstanding)}</p>
+   796→   796→          </CardContent>
+   797→   797→        </Card>
+   798→   798→      </div>
+   799→   799→
+   800→   800→      {/* Invoices */}
+   801→   801→      <Card className="overflow-hidden">
+   802→   802→        <CardHeader className="pb-3">
+   803→   803→          <CardTitle className="text-sm font-semibold">Invoices</CardTitle>
+   804→   804→        </CardHeader>
+   805→   805→        <CardContent className="p-0">
+   806→   806→          {finance.invoices.length === 0 ? (
+   807→   807→            <div className="p-8 text-center text-sm text-muted-foreground">No invoices found.</div>
+   808→   808→          ) : (
+   809→   809→            <ScrollArea className="max-h-64">
+   810→   810→              <Table>
+   811→   811→                <TableHeader>
+   812→   812→                  <TableRow className="bg-muted/50">
+   813→   813→                    <TableHead className="font-semibold">Invoice No</TableHead>
+   814→   814→                    <TableHead className="font-semibold hidden sm:table-cell">Issue Date</TableHead>
+   815→   815→                    <TableHead className="font-semibold hidden md:table-cell">Due Date</TableHead>
+   816→   816→                    <TableHead className="font-semibold text-right">Total</TableHead>
+   817→   817→                    <TableHead className="font-semibold text-right hidden sm:table-cell">Paid</TableHead>
+   818→   818→                    <TableHead className="font-semibold">Status</TableHead>
+   819→   819→                  </TableRow>
+   820→   820→                </TableHeader>
+   821→   821→                <TableBody>
+   822→   822→                  {finance.invoices.map((inv) => (
+   823→   823→                    <TableRow key={inv.id}>
+   824→   824→                      <TableCell className="font-mono text-sm">{inv.invoiceNo}</TableCell>
+   825→   825→                      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{formatDate(inv.issueDate)}</TableCell>
+   826→   826→                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{formatDate(inv.dueDate)}</TableCell>
+   827→   827→                      <TableCell className="text-right text-sm font-medium">{formatCurrency(inv.total)}</TableCell>
+   828→   828→                      <TableCell className="text-right text-sm text-muted-foreground hidden sm:table-cell">{formatCurrency(inv.paid)}</TableCell>
+   829→   829→                      <TableCell>{getFinanceStatusBadge(inv.status)}</TableCell>
+   830→   830→                    </TableRow>
+   831→   831→                  ))}
+   832→   832→                </TableBody>
+   833→   833→              </Table>
+   834→   834→            </ScrollArea>
+   835→   835→          )}
+   836→   836→        </CardContent>
+   837→   837→      </Card>
+   838→   838→
+   839→   839→      {/* Payments */}
+   840→   840→      {finance.payments.length > 0 && (
+   841→   841→        <Card className="overflow-hidden">
+   842→   842→          <CardHeader className="pb-3">
+   843→   843→            <CardTitle className="text-sm font-semibold">Recent Payments</CardTitle>
+   844→   844→          </CardHeader>
+   845→   845→          <CardContent className="p-0">
+   846→   846→            <ScrollArea className="max-h-64">
+   847→   847→              <Table>
+   848→   848→                <TableHeader>
+   849→   849→                  <TableRow className="bg-muted/50">
+   850→   850→                    <TableHead className="font-semibold">Payment No</TableHead>
+   851→   851→                    <TableHead className="font-semibold hidden sm:table-cell">Date</TableHead>
+   852→   852→                    <TableHead className="font-semibold hidden md:table-cell">Method</TableHead>
+   853→   853→                    <TableHead className="font-semibold text-right">Amount</TableHead>
+   854→   854→                    <TableHead className="font-semibold">Status</TableHead>
+   855→   855→                  </TableRow>
+   856→   856→                </TableHeader>
+   857→   857→                <TableBody>
+   858→   858→                  {finance.payments.map((pay) => (
+   859→   859→                    <TableRow key={pay.id}>
+   860→   860→                      <TableCell className="font-mono text-sm">{pay.paymentNo}</TableCell>
+   861→   861→                      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{formatDate(pay.date)}</TableCell>
+   862→   862→                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground capitalize">{pay.method}</TableCell>
+   863→   863→                      <TableCell className="text-right text-sm font-medium text-emerald-600">{formatCurrency(pay.amount)}</TableCell>
+   864→   864→                      <TableCell>{getFinanceStatusBadge(pay.status)}</TableCell>
+   865→   865→                    </TableRow>
+   866→   866→                  ))}
+   867→   867→                </TableBody>
+   868→   868→              </Table>
+   869→   869→            </ScrollArea>
+   870→   870→          </CardContent>
+   871→   871→        </Card>
+   872→   872→      )}
+   873→   873→    </div>
+   874→   874→  )
+   875→   875→}
+   876→   876→
+   877→   877→// ──────────────────────────────────────────
+   878→   878→// Documents Tab
+   879→   879→// ──────────────────────────────────────────
+   880→   880→
+   881→   881→function DocumentsTab({ projectId }: { projectId: string }) {
+   882→   882→  const { data: documents, isLoading, error } = useQuery({
+   883→   883→    queryKey: [queryKeys.project(projectId), 'documents'],
+   884→   884→    queryFn: () => api.get(`/api/projects/${projectId}/documents`).then((r) => r.data as Document[]),
+   885→   885→  })
+   886→   886→
+   887→   887→  if (isLoading) return <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   888→   888→  if (error) return <Card className="border-red-200"><CardContent className="p-8 text-center"><p className="text-red-600 text-sm">Failed to load documents.</p></CardContent></Card>
+   889→   889→  if (!documents || documents.length === 0) return (
+   890→   890→    <Card>
+   891→   891→      <CardContent className="p-12 text-center">
+   892→   892→        <FileText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   893→   893→        <h3 className="font-semibold text-lg text-muted-foreground">No Documents</h3>
+   894→   894→        <p className="text-sm text-muted-foreground mt-1">Upload your first document to this project.</p>
+   895→   895→      </CardContent>
+   896→   896→    </Card>
+   897→   897→  )
+   898→   898→
+   899→   899→  return (
+   900→   900→    <Card className="overflow-hidden">
+   901→   901→      <ScrollArea className="max-h-96">
+   902→   902→        <Table>
+   903→   903→          <TableHeader>
+   904→   904→            <TableRow className="bg-muted/50">
+   905→   905→              <TableHead className="font-semibold">Document</TableHead>
+   906→   906→              <TableHead className="font-semibold hidden sm:table-cell">Type</TableHead>
+   907→   907→              <TableHead className="font-semibold hidden md:table-cell">Size</TableHead>
+   908→   908→              <TableHead className="font-semibold hidden md:table-cell">Uploaded By</TableHead>
+   909→   909→              <TableHead className="font-semibold">Date</TableHead>
+   910→   910→            </TableRow>
+   911→   911→          </TableHeader>
+   912→   912→          <TableBody>
+   913→   913→            {documents.map((doc) => (
+   914→   914→              <TableRow key={doc.id}>
+   915→   915→                <TableCell>
+   916→   916→                  <div className="flex items-center gap-2">
+   917→   917→                    <FileText className="h-4 w-4 text-muted-foreground" />
+   918→   918→                    <span className="font-medium text-sm">{doc.name}</span>
+   919→   919→                  </div>
+   920→   920→                </TableCell>
+   921→   921→                <TableCell className="hidden sm:table-cell">
+   922→   922→                  <Badge variant="outline" className="text-xs capitalize">{doc.type}</Badge>
+   923→   923→                </TableCell>
+   924→   924→                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{doc.fileSize || '—'}</TableCell>
+   925→   925→                <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{doc.uploadedBy?.name || '—'}</TableCell>
+   926→   926→                <TableCell className="text-sm text-muted-foreground">{formatDate(doc.createdAt)}</TableCell>
+   927→   927→              </TableRow>
+   928→   928→            ))}
+   929→   929→          </TableBody>
+   930→   930→        </Table>
+   931→   931→      </ScrollArea>
+   932→   932→    </Card>
+   933→   933→  )
+   934→   934→}
+   935→   935→
+   936→   936→// ──────────────────────────────────────────
+   937→   937→// Daily Notes Tab
+   938→   938→// ──────────────────────────────────────────
+   939→   939→
+   940→   940→function DailyNotesTab({ projectId }: { projectId: string }) {
+   941→   941→  const { data: notes, isLoading, error } = useQuery({
+   942→   942→    queryKey: [queryKeys.project(projectId), 'daily-notes'],
+   943→   943→    queryFn: () => api.get(`/api/projects/${projectId}/daily-notes`).then((r) => r.data as DailyNote[]),
+   944→   944→  })
+   945→   945→
+   946→   946→  if (isLoading) return <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   947→   947→  if (error) return <Card className="border-red-200"><CardContent className="p-8 text-center"><p className="text-red-600 text-sm">Failed to load daily notes.</p></CardContent></Card>
+   948→   948→  if (!notes || notes.length === 0) return (
+   949→   949→    <Card>
+   950→   950→      <CardContent className="p-12 text-center">
+   951→   951→        <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   952→   952→        <h3 className="font-semibold text-lg text-muted-foreground">No Daily Notes</h3>
+   953→   953→        <p className="text-sm text-muted-foreground mt-1">Start logging daily site activities.</p>
+   954→   954→      </CardContent>
+   955→   955→    </Card>
+   956→   956→  )
+   957→   957→
+   958→   958→  return (
+   959→   959→    <Card className="overflow-hidden">
+   960→   960→      <ScrollArea className="max-h-96">
+   961→   961→        <Table>
+   962→   962→          <TableHeader>
+   963→   963→            <TableRow className="bg-muted/50">
+   964→   964→              <TableHead className="font-semibold">Date</TableHead>
+   965→   965→              <TableHead className="font-semibold">Weather</TableHead>
+   966→   966→              <TableHead className="font-semibold hidden md:table-cell">Work Done</TableHead>
+   967→   967→              <TableHead className="font-semibold hidden lg:table-cell">Issues</TableHead>
+   968→   968→              <TableHead className="font-semibold hidden sm:table-cell">Labour</TableHead>
+   969→   969→            </TableRow>
+   970→   970→          </TableHeader>
+   971→   971→          <TableBody>
+   972→   972→            {notes.map((note) => (
+   973→   973→              <TableRow key={note.id}>
+   974→   974→                <TableCell className="text-sm font-medium">{formatDate(note.date)}</TableCell>
+   975→   975→                <TableCell>
+   976→   976→                  <div className="flex items-center gap-1.5">
+   977→   977→                    {getWeatherIcon(note.weather)}
+   978→   978→                    <span className="text-sm capitalize">{note.weather || '—'}</span>
+   979→   979→                  </div>
+   980→   980→                </TableCell>
+   981→   981→                <TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-[200px] truncate">{note.workDone || '—'}</TableCell>
+   982→   982→                <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
+   983→   983→                  {note.issues ? (
+   984→   984→                    <span className="flex items-center gap-1 text-red-600">
+   985→   985→                      <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+   986→   986→                      <span className="truncate">{note.issues}</span>
+   987→   987→                    </span>
+   988→   988→                  ) : '—'}
+   989→   989→                </TableCell>
+   990→   990→                <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{note.labourCount ?? '—'}</TableCell>
+   991→   991→              </TableRow>
+   992→   992→            ))}
+   993→   993→          </TableBody>
+   994→   994→        </Table>
+   995→   995→      </ScrollArea>
+   996→   996→    </Card>
+   997→   997→  )
+   998→   998→}
+   999→   999→
+  1000→  1000→// ──────────────────────────────────────────
+  1001→  1001→// Main Component
+  1002→  1002→// ──────────────────────────────────────────
+  1003→  1003→
+  1004→  1004→export function ProjectDetailPage({ projectId, activeTab }: { projectId?: string; activeTab?: string }) {
+  1005→  1005→  const { navigate, setBreadcrumbs } = useAppStore()
+  1006→  1006→  const [tab, setTab] = useState(activeTab || 'overview')
+  1007→  1007→
+  1008→  1008→  const {
+  1009→  1009→    data: project,
+  1010→  1010→    isLoading: projectLoading,
+  1011→  1011→    error: projectError,
+  1012→  1012→  } = useQuery({
+  1013→  1013→    queryKey: queryKeys.project(projectId || ''),
+  1014→  1014→    queryFn: () => api.get(`/api/projects/${projectId}`).then((r) => r.data as ProjectDetail),
+  1015→  1015→    enabled: !!projectId,
+  1016→  1016→  })
+  1017→  1017→
+  1018→  1018→  // Set breadcrumbs
+  1019→  1019→  useEffect(() => {
+  1020→  1020→    if (projectId && project) {
+  1021→  1021→      setBreadcrumbs([
+  1022→  1022→        { label: 'Projects', page: 'projects' },
+  1023→  1023→        { label: project.name, page: 'project-detail', params: { id: projectId } },
+  1024→  1024→      ])
+  1025→  1025→    } else {
+  1026→  1026→      setBreadcrumbs([{ label: 'Project Details' }])
+  1027→  1027→    }
+  1028→  1028→  }, [projectId, project, setBreadcrumbs])
+  1029→  1029→
+  1030→  1030→  // No project selected
+  1031→  1031→  if (!projectId) {
+  1032→  1032→    return (
+  1033→  1033→      <div className="p-4 md:p-6">
+  1034→  1034→        <Card>
+  1035→  1035→          <CardContent className="p-12 text-center">
+  1036→  1036→            <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+  1037→  1037→            <h3 className="font-semibold text-lg text-muted-foreground">No Project Selected</h3>
+  1038→  1038→            <p className="text-sm text-muted-foreground mt-1">Select a project from the Projects page to view its details.</p>
+  1039→  1039→            <Button className="mt-4 bg-amber-600 hover:bg-amber-700 text-white" onClick={() => navigate('projects')}>
+  1040→  1040→              Go to Projects
+  1041→  1041→            </Button>
+  1042→  1042→          </CardContent>
+  1043→  1043→        </Card>
+  1044→  1044→      </div>
+  1045→  1045→    )
+  1046→  1046→  }
+  1047→  1047→
+  1048→  1048→  // Loading
+  1049→  1049→  if (projectLoading) {
+  1050→  1050→    return (
+  1051→  1051→      <div className="p-4 md:p-6 space-y-6">
+  1052→  1052→        <div className="flex items-center gap-3">
+  1053→  1053→          <Skeleton className="h-8 w-8" />
+  1054→  1054→          <Skeleton className="h-8 w-48" />
+  1055→  1055→        </div>
+  1056→  1056→        <Skeleton className="h-10 w-full" />
+  1057→  1057→        <OverviewSkeleton />
+  1058→  1058→      </div>
+  1059→  1059→    )
+  1060→  1060→  }
+  1061→  1061→
+  1062→  1062→  // Error
+  1063→  1063→  if (projectError || !project) {
+  1064→  1064→    return (
+  1065→  1065→      <div className="p-4 md:p-6">
+  1066→  1066→        <Card className="border-red-200">
+  1067→  1067→          <CardContent className="p-8 text-center">
+  1068→  1068→            <AlertTriangle className="h-10 w-10 mx-auto text-red-400 mb-3" />
+  1069→  1069→            <p className="text-red-600 text-sm">Failed to load project details.</p>
+  1070→  1070→            <Button variant="outline" className="mt-4" onClick={() => navigate('projects')}>Back to Projects</Button>
+  1071→  1071→          </CardContent>
+  1072→  1072→        </Card>
+  1073→  1073→      </div>
+  1074→  1074→    )
+  1075→  1075→  }
+  1076→  1076→
+  1077→  1077→  return (
+  1078→  1078→    <div className="p-4 md:p-6 space-y-6">
+  1079→  1079→      {/* Header */}
+  1080→  1080→      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+  1081→  1081→        <Button variant="ghost" size="sm" className="self-start -ml-2" onClick={() => navigate('projects')}>
+  1082→  1082→          <ArrowLeft className="h-4 w-4 mr-1" />Back
+  1083→  1083→        </Button>
+  1084→  1084→        <div className="flex-1 min-w-0">
+  1085→  1085→          <div className="flex items-center gap-3">
+  1086→  1086→            <h1 className="text-2xl font-bold tracking-tight truncate">{project.name}</h1>
+  1087→  1087→            {getStatusBadge(project.status)}
+  1088→  1088→          </div>
+  1089→  1089→          <p className="text-sm text-muted-foreground mt-0.5 font-mono">{project.code}</p>
+  1090→  1090→        </div>
+  1091→  1091→      </div>
+  1092→  1092→
+  1093→  1093→      {/* Tabs */}
+  1094→  1094→      <Tabs value={tab} onValueChange={setTab}>
+  1095→  1095→        <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
+  1096→  1096→          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+  1097→  1097→          <TabsTrigger value="tasks" className="text-xs sm:text-sm">
+  1098→  1098→            Tasks <span className="ml-1 text-[10px] opacity-70">({project.totalTasks})</span>
+  1099→  1099→          </TabsTrigger>
+  1100→  1100→          <TabsTrigger value="finance" className="text-xs sm:text-sm">Finance</TabsTrigger>
+  1101→  1101→          <TabsTrigger value="documents" className="text-xs sm:text-sm">
+  1102→  1102→            Documents <span className="ml-1 text-[10px] opacity-70">({project.documentCount})</span>
+  1103→  1103→          </TabsTrigger>
+  1104→  1104→          <TabsTrigger value="daily-notes" className="text-xs sm:text-sm">
+  1105→  1105→            Daily Notes <span className="ml-1 text-[10px] opacity-70">({project.dailyNoteCount})</span>
+  1106→  1106→          </TabsTrigger>
+  1107→  1107→        </TabsList>
+  1108→  1108→
+  1109→  1109→        <TabsContent value="overview" className="mt-4">
+  1110→  1110→          <OverviewTab project={project} />
+  1111→  1111→        </TabsContent>
+  1112→  1112→
+  1113→  1113→        <TabsContent value="tasks" className="mt-4">
+  1114→  1114→          <div className="flex justify-end mb-4">
+  1115→  1115→            <AddTaskDialog projectId={projectId} />
+  1116→  1116→          </div>
+  1117→  1117→          <TasksTab projectId={projectId} />
+  1118→  1118→        </TabsContent>
+  1119→  1119→
+  1120→  1120→        <TabsContent value="finance" className="mt-4">
+  1121→  1121→          <FinanceTab projectId={projectId} />
+  1122→  1122→        </TabsContent>
+  1123→  1123→
+  1124→  1124→        <TabsContent value="documents" className="mt-4">
+  1125→  1125→          <div className="flex justify-end mb-4">
+  1126→  1126→            <AddDocumentDialog projectId={projectId} />
+  1127→  1127→          </div>
+  1128→  1128→          <DocumentsTab projectId={projectId} />
+  1129→  1129→        </TabsContent>
+  1130→  1130→
+  1131→  1131→        <TabsContent value="daily-notes" className="mt-4">
+  1132→  1132→          <div className="flex justify-end mb-4">
+  1133→  1133→            <AddDailyNoteDialog projectId={projectId} />
+  1134→  1134→          </div>
+  1135→  1135→          <DailyNotesTab projectId={projectId} />
+  1136→  1136→        </TabsContent>
+  1137→  1137→      </Tabs>
+  1138→  1138→    </div>
+  1139→  1139→  )
+  1140→  1140→}
