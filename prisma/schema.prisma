@@ -8,7 +8,7 @@ datasource db {
 }
 
 model AIInsight {
-  id               String    @id
+  id               String    @id @default(uuid())
   projectId        String?
   insightType      String
   title            String
@@ -29,7 +29,7 @@ model AIInsight {
 }
 
 model AdvancePayment {
-  id        String   @id
+  id        String   @id @default(uuid())
   labourId  String
   amount    Float
   date      DateTime
@@ -44,7 +44,7 @@ model AdvancePayment {
 }
 
 model Announcement {
-  id          String    @id
+  id          String    @id @default(uuid())
   title       String
   content     String
   category    String
@@ -63,7 +63,7 @@ model Announcement {
 }
 
 model Asset {
-  id               String             @id
+  id               String             @id @default(uuid())
   name             String
   code             String             @unique
   type             String
@@ -84,7 +84,7 @@ model Asset {
 }
 
 model AssetIssue {
-  id         String    @id
+  id         String    @id @default(uuid())
   assetId    String
   issuedTo   String
   issuedById String
@@ -102,7 +102,7 @@ model AssetIssue {
 }
 
 model AssetMaintenance {
-  id            String    @id
+  id            String    @id @default(uuid())
   assetId       String
   type          String
   description   String
@@ -120,7 +120,7 @@ model AssetMaintenance {
 }
 
 model Attendance {
-  id          String   @id
+  id          String   @id @default(uuid())
   projectId   String
   labourId    String
   date        DateTime
@@ -139,7 +139,7 @@ model Attendance {
 }
 
 model AuditLog {
-  id        String   @id
+  id        String   @id @default(uuid())
   userId    String?
   action    String
   entity    String
@@ -156,7 +156,7 @@ model AuditLog {
 }
 
 model BOQ {
-  id        String    @id
+  id        String    @id @default(uuid())
   projectId String    @unique
   version   Int       @default(1)
   total     Float     @default(0)
@@ -167,7 +167,7 @@ model BOQ {
 }
 
 model BOQItem {
-  id          String @id
+  id          String @id @default(uuid())
   boqId       String
   itemNo      String
   description String
@@ -181,7 +181,7 @@ model BOQItem {
 }
 
 model Budget {
-  id                             String              @id
+  id                             String              @id @default(uuid())
   projectId                      String              @unique
   originalValue                  Float               @default(0)
   revisedValue                   Float               @default(0)
@@ -207,7 +207,7 @@ model Budget {
 }
 
 model BudgetChangeOrder {
-  id                   String                 @id
+  id                   String                 @id @default(uuid())
   budgetId             String
   bcoNo                String
   title                String
@@ -233,7 +233,7 @@ model BudgetChangeOrder {
 }
 
 model BudgetLineItem {
-  id                    String   @id
+  id                    String   @id @default(uuid())
   budgetId              String
   costCodeId            String
   originalBudget        Float    @default(0)
@@ -256,7 +256,7 @@ model BudgetLineItem {
 }
 
 model BudgetLineItemUpdate {
-  id                  String            @id
+  id                  String            @id @default(uuid())
   budgetChangeOrderId String
   budgetLineItemId    String
   previousAmount      Float             @default(0)
@@ -269,7 +269,7 @@ model BudgetLineItemUpdate {
 }
 
 model BudgetSnapshot {
-  id             String   @id
+  id             String   @id @default(uuid())
   budgetId       String
   name           String
   snapshotType   String
@@ -290,7 +290,7 @@ model BudgetSnapshot {
 }
 
 model ChangeEvent {
-  id                      String        @id
+  id                      String        @id @default(uuid())
   projectId               String
   eventNo                 String
   title                   String
@@ -313,7 +313,7 @@ model ChangeEvent {
 }
 
 model ChangeOrder {
-  id             String       @id
+  id             String       @id @default(uuid())
   projectId      String
   changeEventId  String?
   coNo           String
@@ -336,7 +336,7 @@ model ChangeOrder {
 }
 
 model ClientComplaint {
-  id             String    @id
+  id             String    @id @default(uuid())
   projectId      String
   clientName     String
   subject        String
@@ -360,7 +360,7 @@ model ClientComplaint {
 }
 
 model CostCode {
-  id             String           @id
+  id             String           @id @default(uuid())
   code           String           @unique
   name           String
   level          Int              @default(1)
@@ -382,7 +382,7 @@ model CostCode {
 }
 
 model Customer {
-  id           String         @id
+  id           String         @id @default(uuid())
   name         String
   email        String?
   phone        String?
@@ -398,7 +398,7 @@ model Customer {
 }
 
 model DailyNote {
-  id           String   @id
+  id           String   @id @default(uuid())
   projectId    String
   date         DateTime
   weather      String?
@@ -417,7 +417,7 @@ model DailyNote {
 }
 
 model DayBookEntry {
-  id          String   @id
+  id          String   @id @default(uuid())
   date        DateTime
   description String
   category    String
@@ -433,7 +433,7 @@ model DayBookEntry {
 }
 
 model DirectCost {
-  id           String   @id
+  id           String   @id @default(uuid())
   projectId    String
   category     String
   description  String
@@ -453,7 +453,7 @@ model DirectCost {
 }
 
 model Discussion {
-  id                String              @id
+  id                String              @id @default(uuid())
   projectId         String
   title             String
   description       String?
@@ -475,7 +475,7 @@ model Discussion {
 }
 
 model DiscussionComment {
-  id           String     @id
+  id           String     @id @default(uuid())
   discussionId String
   userId       String
   content      String
@@ -487,7 +487,7 @@ model DiscussionComment {
 }
 
 model Employee {
-  id           String         @id
+  id           String         @id @default(uuid())
   userId       String?        @unique
   empCode      String         @unique
   name         String
@@ -507,7 +507,7 @@ model Employee {
 }
 
 model Expense {
-  id          String   @id
+  id          String   @id @default(uuid())
   projectId   String
   category    String
   description String
@@ -528,7 +528,7 @@ model Expense {
 }
 
 model FeatureFlag {
-  id          String   @id
+  id          String   @id @default(uuid())
   key         String   @unique
   name        String
   description String?
@@ -541,7 +541,7 @@ model FeatureFlag {
 }
 
 model Invoice {
-  id          String        @id
+  id          String        @id @default(uuid())
   projectId   String
   invoiceNo   String        @unique
   clientId    String?
@@ -568,7 +568,7 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String  @id
+  id          String  @id @default(uuid())
   invoiceId   String
   description String
   quantity    Float
@@ -582,7 +582,7 @@ model InvoiceItem {
 }
 
 model Labour {
-  id             String           @id
+  id             String           @id @default(uuid())
   groupId        String
   name           String
   phone          String?
@@ -601,7 +601,7 @@ model Labour {
 }
 
 model LabourGroup {
-  id        String   @id
+  id        String   @id @default(uuid())
   name      String
   rate      Float    @default(0)
   isActive  Boolean  @default(true)
@@ -613,7 +613,7 @@ model LabourGroup {
 }
 
 model LeaveRequest {
-  id                                   String   @id
+  id                                   String   @id @default(uuid())
   employeeId                           String
   userId                               String?
   type                                 String
@@ -634,7 +634,7 @@ model LeaveRequest {
 }
 
 model Loan {
-  id           String   @id
+  id           String   @id @default(uuid())
   employeeId   String
   amount       Float
   interestRate Float    @default(0)
@@ -651,7 +651,7 @@ model Loan {
 }
 
 model Material {
-  id            String          @id
+  id            String          @id @default(uuid())
   name          String
   code          String          @unique
   unit          String
@@ -668,7 +668,7 @@ model Material {
 }
 
 model MilestonePayment {
-  id          String    @id
+  id          String    @id @default(uuid())
   workOrderId String
   description String
   amount      Float
@@ -686,7 +686,7 @@ model MilestonePayment {
 }
 
 model Notification {
-  id        String   @id
+  id        String   @id @default(uuid())
   userId    String
   type      String
   title     String
@@ -702,7 +702,7 @@ model Notification {
 }
 
 model NotificationPreference {
-  id        String   @id
+  id        String   @id @default(uuid())
   userId    String   @unique
   inApp     Boolean  @default(true)
   email     Boolean  @default(true)
@@ -713,7 +713,7 @@ model NotificationPreference {
 }
 
 model OpenItem {
-  id           String    @id
+  id           String    @id @default(uuid())
   projectId    String
   itemNo       String
   title        String
@@ -737,7 +737,7 @@ model OpenItem {
 }
 
 model Payment {
-  id         String   @id
+  id         String   @id @default(uuid())
   projectId  String
   invoiceId  String?
   paymentNo  String
@@ -759,7 +759,7 @@ model Payment {
 }
 
 model Payroll {
-  id                String    @id
+  id                String    @id @default(uuid())
   projectId         String
   labourId          String
   periodStart       DateTime
@@ -783,7 +783,7 @@ model Payroll {
 }
 
 model PrimeContract {
-  id              String    @id
+  id              String    @id @default(uuid())
   projectId       String    @unique
   contractNo      String
   client          String
@@ -802,7 +802,7 @@ model PrimeContract {
 }
 
 model Product {
-  id              String          @id
+  id              String          @id @default(uuid())
   categoryId      String
   name            String
   sku             String          @unique
@@ -823,7 +823,7 @@ model Product {
 }
 
 model ProductCategory {
-  id        String    @id
+  id        String    @id @default(uuid())
   name      String
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
@@ -834,7 +834,7 @@ model ProductCategory {
 }
 
 model Project {
-  id                   String                 @id
+  id                   String                 @id @default(uuid())
   name                 String
   code                 String                 @unique
   description          String?
@@ -884,7 +884,7 @@ model Project {
 }
 
 model ProjectComment {
-  id         String   @id
+  id         String   @id @default(uuid())
   projectId  String
   userId     String
   entityType String
@@ -901,7 +901,7 @@ model ProjectComment {
 }
 
 model ProjectCommitment {
-  id            String    @id
+  id            String    @id @default(uuid())
   projectId     String
   type          String
   vendor        String
@@ -921,7 +921,7 @@ model ProjectCommitment {
 }
 
 model ProjectDocument {
-  id         String   @id
+  id         String   @id @default(uuid())
   projectId  String
   name       String
   type       String
@@ -938,7 +938,7 @@ model ProjectDocument {
 }
 
 model ProjectMember {
-  id        String   @id
+  id        String   @id @default(uuid())
   projectId String
   userId    String
   role      String   @default("member")
@@ -952,7 +952,7 @@ model ProjectMember {
 }
 
 model ProjectMilestone {
-  id          String    @id
+  id          String    @id @default(uuid())
   projectId   String
   name        String
   description String?
@@ -966,7 +966,7 @@ model ProjectMilestone {
 }
 
 model ProjectTask {
-  id                String        @id
+  id                String        @id @default(uuid())
   projectId         String
   title             String
   description       String?
@@ -991,7 +991,7 @@ model ProjectTask {
 }
 
 model ProjectTeamMember {
-  id        String   @id
+  id        String   @id @default(uuid())
   projectId String
   name      String
   role      String
@@ -1008,7 +1008,7 @@ model ProjectTeamMember {
 }
 
 model PurchaseOrder {
-  id                String              @id
+  id                String              @id @default(uuid())
   projectId         String
   purchaseRequestId String?             @unique
   supplierId        String
@@ -1033,7 +1033,7 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderItem {
-  id              String        @id
+  id              String        @id @default(uuid())
   purchaseOrderId String
   materialId      String?
   description     String
@@ -1048,7 +1048,7 @@ model PurchaseOrderItem {
 }
 
 model PurchaseRequest {
-  id                                      String                @id
+  id                                      String                @id @default(uuid())
   projectId                               String
   requestNo                               String                @unique
   status                                  String                @default("draft")
@@ -1069,7 +1069,7 @@ model PurchaseRequest {
 }
 
 model PurchaseRequestItem {
-  id                String          @id
+  id                String          @id @default(uuid())
   purchaseRequestId String
   materialId        String?
   description       String
@@ -1082,7 +1082,7 @@ model PurchaseRequestItem {
 }
 
 model RFI {
-  id            String       @id
+  id            String       @id @default(uuid())
   projectId     String
   rfiNo         String
   title         String
@@ -1107,7 +1107,7 @@ model RFI {
 }
 
 model RFIComment {
-  id        String   @id
+  id        String   @id @default(uuid())
   rfiId     String
   userId    String
   content   String
@@ -1118,7 +1118,7 @@ model RFIComment {
 }
 
 model SalesInvoice {
-  id          String    @id
+  id          String    @id @default(uuid())
   invoiceNo   String    @unique
   customerId  String?
   quotationId String?
@@ -1141,7 +1141,7 @@ model SalesInvoice {
 }
 
 model SalesQuotation {
-  id         String   @id
+  id         String   @id @default(uuid())
   quoteNo    String   @unique
   customerId String
   validUntil DateTime
@@ -1158,7 +1158,7 @@ model SalesQuotation {
 }
 
 model Session {
-  id           String    @id
+  id           String    @id @default(uuid())
   userId       String
   token        String    @unique
   refreshToken String?
@@ -1175,7 +1175,7 @@ model Session {
 }
 
 model StockMovement {
-  id         String   @id
+  id         String   @id @default(uuid())
   projectId  String?
   materialId String
   type       String
@@ -1194,7 +1194,7 @@ model StockMovement {
 }
 
 model SubContractor {
-  id        String      @id
+  id        String      @id @default(uuid())
   name      String
   code      String      @unique
   contact   String?
@@ -1212,7 +1212,7 @@ model SubContractor {
 }
 
 model Submittal {
-  id            String    @id
+  id            String    @id @default(uuid())
   projectId     String
   submittalNo   String
   title         String
@@ -1237,7 +1237,7 @@ model Submittal {
 }
 
 model Supplier {
-  id            String          @id
+  id            String          @id @default(uuid())
   name          String
   code          String          @unique
   contact       String?
@@ -1255,7 +1255,7 @@ model Supplier {
 }
 
 model SystemVersion {
-  id           String   @id
+  id           String   @id @default(uuid())
   version      String   @unique
   title        String
   releaseNotes String
@@ -1264,7 +1264,7 @@ model SystemVersion {
 }
 
 model User {
-  id                                                 String                  @id
+  id                                                 String                  @id @default(uuid())
   email                                              String                  @unique
   password                                           String
   name                                               String
@@ -1299,7 +1299,7 @@ model User {
 }
 
 model WorkOrder {
-  id               String             @id
+  id               String             @id @default(uuid())
   projectId        String
   subContractorId  String
   orderNo          String
@@ -1321,7 +1321,7 @@ model WorkOrder {
 }
 
 model crew_members {
-  id         String   @id
+  id         String   @id @default(uuid())
   crewId     String
   workerType String
   workerId   String
@@ -1335,7 +1335,7 @@ model crew_members {
 }
 
 model crews {
-  id           String         @id
+  id           String         @id @default(uuid())
   name         String
   type         String
   leaderName   String?
@@ -1349,7 +1349,7 @@ model crews {
 }
 
 model productivity_logs {
-  id           String   @id
+  id           String   @id @default(uuid())
   projectId    String
   date         DateTime
   resourceType String
@@ -1372,7 +1372,7 @@ model productivity_logs {
 }
 
 model resource_assignments {
-  id           String    @id
+  id           String    @id @default(uuid())
   projectId    String
   resourceType String
   resourceId   String
@@ -1398,7 +1398,7 @@ model resource_assignments {
 }
 
 model resource_requests {
-  id                     String    @id
+  id                     String    @id @default(uuid())
   projectId              String
   requestNo              String
   resourceType           String
@@ -1427,7 +1427,7 @@ model resource_requests {
 }
 
 model skills {
-  id            String          @id
+  id            String          @id @default(uuid())
   name          String          @unique
   category      String?
   description   String?
@@ -1436,7 +1436,7 @@ model skills {
 }
 
 model worker_skills {
-  id          String    @id
+  id          String    @id @default(uuid())
   skillId     String
   workerType  String
   workerId    String
