@@ -1537,3 +1537,27 @@ model AIInsight {
   @@index([status])
   @@index([severity])
 }
+
+// ============ FEATURE FLAGS & VERSIONING ============
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  module      String
+  enabled     Boolean  @default(true)
+  isBeta      Boolean  @default(false)
+  config      String?  // JSON string for additional config
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SystemVersion {
+  id          String   @id @default(cuid())
+  version     String   @unique
+  title       String
+  releaseNotes String
+  releasedAt  DateTime @default(now())
+  releasedBy  String?
+}

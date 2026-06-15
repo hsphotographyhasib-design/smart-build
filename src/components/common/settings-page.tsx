@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { Building2, User, Moon, Sun, Save } from 'lucide-react'
+import { Building2, User, Moon, Sun, Save, Shield, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function SettingsPage() {
-  const { user, theme, setTheme } = useAppStore()
+  const { user, theme, setTheme, navigate } = useAppStore()
 
   // Company info form
   const [companyForm, setCompanyForm] = useState({
@@ -199,6 +199,39 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Separator />
+
+      {/* Admin Section */}
+      {user?.role === 'admin' || user?.role === 'super_admin' ? (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-600" />
+              Administration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <button
+                onClick={() => navigate('feature-updates')}
+                className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-600 p-2">
+                    <Shield className="h-4 w-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">Feature Management</p>
+                    <p className="text-xs text-muted-foreground">Control modules, feature flags & versioning</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   )
 }

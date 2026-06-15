@@ -64,6 +64,7 @@ import { AIInsights } from '@/components/ai/ai-insights'
 import { AIForecast } from '@/components/ai/ai-forecast'
 import { ProjectAnalytics } from '@/components/ai/project-analytics'
 import { AdvancedReports } from '@/components/ai/advanced-reports'
+import { FeatureUpdatesPage } from '@/components/settings/feature-updates-page'
 import { LandingPage } from '@/components/landing/landing-page'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -151,6 +152,7 @@ function PageContent() {
     case 'ai-forecast': return <AIForecast />
     case 'project-analytics': return <ProjectAnalytics />
     case 'advanced-reports': return <AdvancedReports />
+    case 'feature-updates': return <FeatureUpdatesPage />
     default: return <DashboardPage />
   }
 }

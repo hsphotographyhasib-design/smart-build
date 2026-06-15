@@ -66,6 +66,7 @@ export type AppPage =
   | 'ai-forecast'
   | 'project-analytics'
   | 'advanced-reports'
+  | 'feature-updates'
   | 'landing'
 
 interface AppState {
@@ -193,6 +194,7 @@ export const useAppStore = create<AppState>((set) => ({
       'ai-forecast': 'AI Forecasting',
       'project-analytics': 'Project Analytics',
       'advanced-reports': 'Advanced Reports',
+      'feature-updates': 'Feature Management',
       'landing': 'Welcome',
     }
     set({ 
