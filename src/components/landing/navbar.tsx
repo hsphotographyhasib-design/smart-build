@@ -168,7 +168,7 @@ function DesktopDropdown({ item, scrolled }: { item: NavItem; scrolled: boolean 
 /*  Mobile Sheet Content                                               */
 /* ------------------------------------------------------------------ */
 
-function MobileNav() {
+function MobileNav({ onLogin }: { onLogin?: () => void }) {
   return (
     <nav className="flex flex-col gap-1 px-4" aria-label="Mobile navigation">
       {/* Solutions with sub-items */}
@@ -218,18 +218,17 @@ function MobileNav() {
           <Button
             variant="outline"
             className="w-full border-[#e2e8f0] text-[#1a202c] hover:bg-[#f5f1ed] focus-visible:ring-2 focus-visible:ring-[#ff5201]/50"
-            asChild
+            onClick={onLogin}
           >
-            <a href="#login">Login</a>
+            Login
           </Button>
         </SheetClose>
         <SheetClose asChild>
           <Button
             className="w-full text-white hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[#ff5201]/50 focus-visible:ring-offset-2"
             style={{ backgroundColor: '#ff5201' }}
-            asChild
           >
-            <a href="#demo">Request Demo</a>
+            Request Demo
           </Button>
         </SheetClose>
       </div>
@@ -241,7 +240,11 @@ function MobileNav() {
 /*  Main Navbar                                                        */
 /* ------------------------------------------------------------------ */
 
-export function Navbar() {
+interface NavbarProps {
+  onLogin?: () => void;
+}
+
+export function Navbar({ onLogin }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -304,16 +307,15 @@ export function Navbar() {
                 ? 'text-[#1a202c] border-[#e2e8f0] hover:bg-[#f5f1ed]'
                 : 'text-white border-white/30 hover:bg-white/10 hover:text-white'
             )}
-            asChild
+            onClick={onLogin}
           >
-            <a href="#login">Login</a>
+            Login
           </Button>
           <Button
             className="text-white transition-all duration-200 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[#ff5201]/50 focus-visible:ring-offset-2"
             style={{ backgroundColor: '#ff5201' }}
-            asChild
           >
-            <a href="#demo">Request Demo</a>
+            Request Demo
           </Button>
         </div>
 
@@ -341,7 +343,7 @@ export function Navbar() {
                   <Logo />
                 </SheetTitle>
               </SheetHeader>
-              <MobileNav />
+              <MobileNav onLogin={onLogin} />
             </SheetContent>
           </Sheet>
         </div>
