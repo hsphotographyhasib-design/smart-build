@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer, name, start date and end date are required' }, { status: 400 })
     }
 
-    // Auto-generate contract number
+    // স্বয়ংক্রিয়ভাবে চুক্তি নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'AMC'
     const count = await db.aMCContract.count({

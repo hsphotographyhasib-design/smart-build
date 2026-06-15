@@ -49,7 +49,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Calendar name is required' }, { status: 400 })
     }
 
-    // If setting as default, unset others
+    // ডিফল্ট হিসেবে সেট করলে অন্যগুলো বাতিল করা হচ্ছে
     if (isDefault) {
       await db.scheduleCalendar.updateMany({
         where: { scheduleId: id, isDefault: true },

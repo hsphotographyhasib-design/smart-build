@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     })
 
-    // Create BOQ if not exists
+    // বিদ্যমান না থাকলে BOQ তৈরি করা হচ্ছে
     if (!boq) {
       boq = await db.bOQ.create({
         data: { projectId, total: 0 },
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: 'At least one item is required' }, { status: 400 })
     }
 
-    // Upsert BOQ
+    // BOQ আপসার্ট করা হচ্ছে
     let boq = await db.bOQ.findUnique({ where: { projectId } })
 
     if (!boq) {
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     }
 
-    // Delete existing items
+    // বিদ্যমান আইটেম মুছে ফেলা হচ্ছে
     await db.bOQItem.deleteMany({ where: { boqId: boq.id } })
 
-    // Create new items
+    // নতুন আইটেম তৈরি করা হচ্ছে
     const total = items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitRate), 0)
 
     const boqItems = items.map((item: any, index: number) => ({

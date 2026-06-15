@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Status counts
+    // স্ট্যাটাস গণনা
     const [
       pendingCount,
       approvedCount,
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       db.invoice.count({ where: { paymentStatus: 'overdue' } }),
     ])
 
-    // Value aggregations
+    // মূল্য সমষ্টি
     const [totalInvoiceValue, outstandingAmount, totalRetentionHeld, totalRetentionReleased] =
       await Promise.all([
         db.invoice.aggregate({ _sum: { total: true }, where: { status: { not: 'cancelled' } } }),
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         db.invoice.aggregate({ _sum: { retentionReleased: true }, where: { retentionReleased: { gt: 0 } } }),
       ])
 
-    // Average approval time
+    // গড় অনুমোদন সময়
     const approvedInvoices = await db.invoice.findMany({
       where: { status: 'approved', submittedAt: { not: null }, approvedAt: { not: null } },
       select: { submittedAt: true, approvedAt: true },
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       avgApprovalTime = Math.round((totalDays / approvedInvoices.length) * 100) / 100
     }
 
-    // Invoice volume by month (last 6 months)
+    // মাস অনুযায়ী ইনভয়েসের পরিমাণ (last 6 months)
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
     const invoicesByMonth = await db.invoice.findMany({
       where: { createdAt: { gte: sixMonthsAgo }, status: { not: 'cancelled' } },
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Top 5 vendors by total invoice value
+    // মোট ইনভয়েস মূল্য অনুযায়ী শীর্ষ ৫ ভেন্ডর
     const topVendors = await db.invoice.groupBy({
       by: ['vendorId', 'vendorName'],
       where: { vendorId: { not: null }, status: { not: 'cancelled' } },
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       take: 5,
     })
 
-    // Invoice aging
+    // ইনভয়েস বয়স
     const unpaidInvoices = await db.invoice.findMany({
       where: { paymentStatus: { in: ['unpaid', 'partial', 'overdue'] }, status: { not: 'cancelled' }, dueDate: { not: null } },
       select: { dueDate: true, outstandingAmount: true },

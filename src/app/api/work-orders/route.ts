@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Sub-contractor, project, and amount are required' }, { status: 400 })
     }
 
-    // Generate order number
+    // অর্ডার নম্বর তৈরি করা হচ্ছে
     const count = await db.workOrder.count()
     const orderNo = `WO-${String(count + 1).padStart(4, '0')}`
 

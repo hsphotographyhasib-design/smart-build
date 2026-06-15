@@ -46,14 +46,14 @@ export async function GET(request: NextRequest) {
             where: ticketWhere,
             _count: { id: true },
           }),
-          // Monthly trend - get all tickets then group in JS
+          // মাসিক ট্রেন্ড - সব টিকেট নেওয়া হচ্ছে এবং JS-এ গ্রুপ করা হচ্ছে
           db.maintenanceTicket.findMany({
             where: ticketWhere,
             select: { createdAt: true, id: true },
           }),
         ])
 
-        // Group monthly
+        // মাসিকভাবে গ্রুপ করা হচ্ছে
         const monthlyMap = new Map<string, number>()
         monthlyTrend.forEach((t) => {
           const key = `${t.createdAt.getFullYear()}-${String(t.createdAt.getMonth() + 1).padStart(2, '0')}`

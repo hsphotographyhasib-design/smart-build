@@ -29,14 +29,14 @@ import {
   PanelRightOpen, PanelRightClose, RefreshCw,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface ConversationWithContact extends ConversationItem {
   contact: NonNullable<ConversationItem['contact']>
 }
 
 type FilterTab = 'all' | 'unread' | 'open' | 'assigned' | 'mine' | 'has_ticket'
 
-// ─── Tab counts helper ───
+// ─── ট্যাব গণনা সহায়ক ───
 interface TabCounts {
   all: number
   unread: number
@@ -46,13 +46,13 @@ interface TabCounts {
   has_ticket: number
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export default function WhatsAppComplaint() {
   const { user, pageParams, navigate } = useAppStore()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Local state
+  // স্থানীয় অবস্থা
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
@@ -66,7 +66,7 @@ export default function WhatsAppComplaint() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  // ─── Socket ───
+  // ─── সকেট ───
   const {
     isConnected,
     joinConversation,
@@ -90,7 +90,7 @@ export default function WhatsAppComplaint() {
     },
   })
 
-  // ─── Join/leave conversation room ───
+  // ─── কথোপকথন রুমে যোগদান/বাহির ───
   useEffect(() => {
     if (selectedConversationId && isConnected) {
       joinConversation(selectedConversationId)
@@ -102,7 +102,7 @@ export default function WhatsAppComplaint() {
     }
   }, [selectedConversationId, isConnected])
 
-  // ─── Fetch conversations ───
+  // ─── কথোপকথন আনা ───
   const { data: conversations = [], isLoading: convLoading } = useQuery<ConversationWithContact[]>({
     queryKey: ['wa-conversations', activeFilter, searchQuery],
     queryFn: async () => {
@@ -115,7 +115,7 @@ export default function WhatsAppComplaint() {
     refetchInterval: 15000,
   })
 
-  // ─── Fetch selected conversation details ───
+  // ─── নির্বাচিত কথোপকথনের বিবরণ আনা ───
   const { data: conversationDetail, isLoading: detailLoading } = useQuery({
     queryKey: ['wa-conversation', selectedConversationId],
     queryFn: async () => {
@@ -126,7 +126,7 @@ export default function WhatsAppComplaint() {
     enabled: !!selectedConversationId,
   })
 
-  // ─── Fetch messages ───
+  // ─── বার্তা আনা ───
   const { data: messages = [], isLoading: msgsLoading } = useQuery<WhatsAppMessage[]>({
     queryKey: ['wa-messages', selectedConversationId],
     queryFn: async () => {
@@ -137,7 +137,7 @@ export default function WhatsAppComplaint() {
     enabled: !!selectedConversationId,
   })
 
-  // ─── Send message mutation ───
+  // ─── বার্তা পাঠানো মিউটেশন ───
   const sendMessageMutation = useMutation({
     mutationFn: async ({ content, type, file }: { content: string; type: string; file?: File }) => {
       if (file) {
@@ -169,7 +169,7 @@ export default function WhatsAppComplaint() {
     },
   })
 
-  // ─── Mark as read ───
+  // ─── পঠিত হিসেবে চিহ্নিত ───
   const markReadMutation = useMutation({
     mutationFn: async (convId: string) => {
       return api.put(`/api/maintenance/whatsapp/conversations/${convId}/read`, {})
@@ -180,7 +180,7 @@ export default function WhatsAppComplaint() {
     },
   })
 
-  // ─── Auto mark as read on select ───
+  // ─── নির্বাচনে স্বয়ংক্রিয়ভাবে পঠিত হিসেবে চিহ্নিত ───
   useEffect(() => {
     if (selectedConversationId) {
       const conv = conversations.find(c => c.id === selectedConversationId)
@@ -190,14 +190,14 @@ export default function WhatsAppComplaint() {
     }
   }, [selectedConversationId])
 
-  // ─── Scroll to bottom on new messages ───
+  // ─── নতুন বার্তায় নিচে স্ক্রল ───
   useEffect(() => {
     if (messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages.length])
 
-  // ─── Computed tab counts ───
+  // ─── গণনাকৃত ট্যাব গণনা ───
   const tabCounts = useMemo<TabCounts>(() => {
     const counts: TabCounts = { all: conversations.length, unread: 0, open: 0, assigned: 0, mine: 0, has_ticket: 0 }
     for (const c of conversations) {
@@ -210,11 +210,11 @@ export default function WhatsAppComplaint() {
     return counts
   }, [conversations, user?.id])
 
-  // ─── Selected conversation data ───
+  // ─── নির্বাচিত কথোপকথনের তথ্য ───
   const selectedConversation = conversations.find(c => c.id === selectedConversationId)
   const contactData = conversationDetail?.contact || selectedConversation?.contact
 
-  // ─── Group messages by date ───
+  // ─── তারিখ অনুযায়ী বার্তা গোষ্ঠীবদ্ধ করা ───
   const groupedMessages = useMemo(() => {
     const groups: { date: string; messages: WhatsAppMessage[] }[] = []
     let currentDate = ''
@@ -231,7 +231,7 @@ export default function WhatsAppComplaint() {
     return groups
   }, [messages])
 
-  // ─── Handlers ───
+  // ─── হ্যান্ডলারসমূহ ───
   const handleSelectConversation = (id: string) => {
     setSelectedConversationId(id)
     setReplyingTo(null)
@@ -266,7 +266,7 @@ export default function WhatsAppComplaint() {
     })
   }
 
-  // ─── Empty chat state ───
+  // ─── ফাঁকা চ্যাট অবস্থা ───
   const renderEmptyChat = () => (
     <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50">
       <div className="text-center space-y-3 px-6">
@@ -289,7 +289,7 @@ export default function WhatsAppComplaint() {
     </div>
   )
 
-  // ─── Loading chat skeleton ───
+  // ─── চ্যাট লোডিং স্কেলেটন ───
   const renderChatSkeleton = () => (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-950">
       <Skeleton className="h-16 border-b border-gray-200 dark:border-gray-800" />
@@ -303,7 +303,7 @@ export default function WhatsAppComplaint() {
     </div>
   )
 
-  // ─── Chat view ───
+  // ─── চ্যাট দৃশ্য ───
   const renderChatView = () => {
     if (!selectedConversationId || !selectedConversation) return renderEmptyChat()
     if (msgsLoading && messages.length === 0) return renderChatSkeleton()
@@ -312,10 +312,10 @@ export default function WhatsAppComplaint() {
 
     return (
       <div className="flex-1 flex flex-col bg-white dark:bg-gray-950 min-w-0">
-        {/* Chat header */}
+        {/* চ্যাট হেডার */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Mobile back button */}
+            {/* মোবাইল ব্যাক বাটন */}
             <Button
               variant="ghost"
               size="icon"
@@ -340,7 +340,7 @@ export default function WhatsAppComplaint() {
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Connection indicator */}
+            {/* সংযোগ সূচক */}
             <Tooltip>
               <TooltipTrigger>
                 {isConnected ? (
@@ -354,7 +354,7 @@ export default function WhatsAppComplaint() {
               </TooltipContent>
             </Tooltip>
 
-            {/* Mark read */}
+            {/* পঠিত হিসেবে চিহ্নিত */}
             {selectedConversation.unreadCount > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -366,7 +366,7 @@ export default function WhatsAppComplaint() {
               </Tooltip>
             )}
 
-            {/* Right panel toggle */}
+            {/* ডান প্যানেল টগল */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -381,7 +381,7 @@ export default function WhatsAppComplaint() {
               <TooltipContent>{showRightPanel ? 'Hide details' : 'Show details'}</TooltipContent>
             </Tooltip>
 
-            {/* Info / open detail sheet on mobile */}
+            {/* তথ্য / মোবাইলে বিস্তারিত শিট খোলা */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -396,7 +396,7 @@ export default function WhatsAppComplaint() {
               <TooltipContent>Details</TooltipContent>
             </Tooltip>
 
-            {/* More actions */}
+            {/* আরো কার্যকলাপ */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -422,7 +422,7 @@ export default function WhatsAppComplaint() {
           </div>
         </div>
 
-        {/* Messages area */}
+        {/* বার্তা এলাকা */}
         <div
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto px-3 py-3 bg-[#efeae2] dark:bg-gray-900 space-y-0.5"
@@ -450,7 +450,7 @@ export default function WhatsAppComplaint() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Message input */}
+        {/* বার্তা ইনপুট */}
         <WhatsAppMessageInput
           onSend={handleSendMessage}
           onTyping={() => emitTyping(selectedConversationId)}
@@ -462,10 +462,10 @@ export default function WhatsAppComplaint() {
     )
   }
 
-  // ─── Main Layout ───
+  // ─── প্রধান বিন্যাস ───
   return (
     <div className="h-[calc(100vh-3.5rem)] flex flex-col bg-background">
-      {/* Top bar with connection status and refresh */}
+      {/* সংযোগ স্ট্যাটাস ও রিফ্রেশসহ শীর্ষ বার */}
       <div className="h-11 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-shrink-0">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-emerald-600" />
@@ -493,14 +493,14 @@ export default function WhatsAppComplaint() {
         </div>
       </div>
 
-      {/* 3-panel layout */}
+      {/* ৩-প্যানেল বিন্যাস */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Conversations List */}
+        {/* বাম প্যানেল - কথোপকথন তালিকা */}
         <div className={cn(
           'w-full lg:w-80 xl:w-96 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-950 flex-shrink-0',
           mobileView === 'chat' ? 'hidden lg:flex' : 'flex'
         )}>
-          {/* Search */}
+          {/* অনুসন্ধান */}
           <div className="p-3 pb-0">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -513,7 +513,7 @@ export default function WhatsAppComplaint() {
             </div>
           </div>
 
-          {/* Filter tabs */}
+          {/* ফিল্টার ট্যাব */}
           <div className="px-3 pt-2">
             <Tabs value={activeFilter} onValueChange={v => setActiveFilter(v as FilterTab)}>
               <TabsList className="w-full h-8 bg-gray-100 dark:bg-gray-800 p-0.5">
@@ -577,7 +577,7 @@ export default function WhatsAppComplaint() {
             </Tabs>
           </div>
 
-          {/* Conversation list */}
+          {/* কথোপকথন তালিকা */}
           <ScrollArea className="flex-1 mt-2">
             {convLoading ? (
               <div className="space-y-0">
@@ -616,7 +616,7 @@ export default function WhatsAppComplaint() {
           </ScrollArea>
         </div>
 
-        {/* Center Panel - Chat View */}
+        {/* কেন্দ্রীয় প্যানেল - চ্যাট দৃশ্য */}
         <div className={cn(
           'flex-1 flex flex-col min-w-0',
           mobileView === 'list' ? 'hidden lg:flex' : 'flex'
@@ -624,7 +624,7 @@ export default function WhatsAppComplaint() {
           {renderChatView()}
         </div>
 
-        {/* Right Panel - Details (desktop only) */}
+        {/* ডান প্যানেল - বিবরণ (শুধুমাত্র ডেস্কটপ) */}
         {selectedConversationId && conversationDetail && showRightPanel && (
           <div className="hidden lg:flex w-80 xl:w-96 flex-shrink-0">
             <WhatsAppInboxDetail
@@ -643,7 +643,7 @@ export default function WhatsAppComplaint() {
         )}
       </div>
 
-      {/* Mobile details sheet */}
+      {/* মোবাইল বিস্তারিত শিট */}
       {selectedConversationId && conversationDetail && (
         <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
           <SheetContent side="right" className="w-80 p-0">

@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const count = await db.salesInvoice.count()
     const invoiceNo = `SI-${String(count + 1).padStart(4, '0')}`
 
-    // Calculate totals
+    // মোট পরিমাণ হিসাব করা হচ্ছে
     let subtotal = 0
     if (Array.isArray(items)) {
       for (const item of items) {

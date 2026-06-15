@@ -27,7 +27,7 @@ import { SessionTimerBadge } from '@/components/layout/session-timer-badge'
 import { useMenuData, IconByName, findActiveInfo } from '@/hooks/use-menu-data'
 
 // ─────────────────────────────────────────────────────────────────────
-// ANIMATION
+// অ্যানিমেশন
 // ─────────────────────────────────────────────────────────────────────
 
 const expandVariants = {
@@ -43,7 +43,7 @@ const expandVariants = {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MOBILE SKELETON
+// মোবাইল স্কেলিটন
 // ─────────────────────────────────────────────────────────────────────
 
 function DrawerSkeleton() {
@@ -65,7 +65,7 @@ function DrawerSkeleton() {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// HELPERS
+// সহায়ক ফাংশনসমূহ
 // ─────────────────────────────────────────────────────────────────────
 
 function getRoleColor(role: string) {
@@ -92,7 +92,7 @@ function getInitials(name: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MOBILE HEADER WITH HIERARCHICAL DRAWER
+// স্তরবিন্যাস্ত ড্রয়ার সহ মোবাইল হেডার
 // ─────────────────────────────────────────────────────────────────────
 
 export function MobileHeader() {
@@ -110,11 +110,11 @@ export function MobileHeader() {
 
   const activeInfo = useMemo(() => findActiveInfo(menuGroups, currentPage), [menuGroups, currentPage])
 
-  // Effective expanded = user preference OR active route
+  // কার্যকর প্রসারিত = ব্যবহারকারীর পছন্দ অথবা সক্রিয় রুট
   const effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId
   const effectiveExpandedItemId = activeInfo.itemId || expandedItemId
 
-  // Lock body scroll when mobile drawer is open
+  // মোবাইল ড্রয়ার খোলা থাকলে বডি স্ক্রল লক করা হচ্ছে
   useEffect(() => {
     if (sheetOpen) {
       document.body.classList.add('sb-body-lock')
@@ -124,13 +124,13 @@ export function MobileHeader() {
     return () => document.body.classList.remove('sb-body-lock')
   }, [sheetOpen])
 
-  // Accordion toggle: opening a new group closes the previous one
+  // অ্যাকর্ডিয়ন টগল: নতুন গ্রুপ খোললে পূর্ববর্তীটি বন্ধ হয়
   const toggleGroup = useCallback((groupId: string) => {
     setExpandedMenuId((prev) => prev === groupId ? '' : groupId)
     setExpandedItemId('')
   }, [])
 
-  // Accordion toggle for sub-items within a group
+  // গ্রুপের মধ্যে উপ-আইটেমের জন্য অ্যাকর্ডিয়ন টগল
   const toggleItem = useCallback((itemId: string) => {
     setExpandedItemId((prev) => prev === itemId ? '' : itemId)
   }, [])
@@ -147,7 +147,7 @@ export function MobileHeader() {
 
   return (
     <>
-      {/* Mobile Header Bar */}
+      {/* মোবাইল হেডার বার */}
       <header className="md:hidden sticky top-0 z-50 h-14 bg-card border-b flex items-center justify-between px-3">
         <Button variant="ghost" size="icon" className="h-11 w-11 -ml-1" onClick={() => setSheetOpen(true)} aria-label="Open navigation menu">
           <Menu className="h-5 w-5" />
@@ -171,16 +171,16 @@ export function MobileHeader() {
         </div>
       </header>
 
-      {/* Mobile Sheet Drawer with Hierarchical Nav */}
+      {/* স্তরবিন্যাস্ত নেভ সহ মোবাইল শিট ড্রয়ার */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="left" className="w-[300px] sm:w-[340px] p-0">
-          {/* Header */}
+          {/* হেডার */}
           <SheetHeader className="px-4 pt-4 pb-2">
             <SheetTitle className="text-lg">Navigation</SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground">Browse all modules</SheetDescription>
           </SheetHeader>
 
-          {/* User Profile Card */}
+          {/* ব্যবহারকারী প্রোফাইল কার্ড */}
           <div className="px-4 py-3">
             <div className="flex items-center gap-3 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
               <Avatar className="h-10 w-10 shrink-0">
@@ -197,7 +197,7 @@ export function MobileHeader() {
 
           <Separator />
 
-          {/* Hierarchical Navigation */}
+          {/* স্তরবিন্যাস্ত নেভিগেশন */}
           <ScrollArea className="flex-1 overflow-y-auto py-2 px-2 sb-custom-scrollbar" style={{ maxHeight: 'calc(100vh - 240px)' }}>
             {loading ? (
               <DrawerSkeleton />
@@ -214,7 +214,7 @@ export function MobileHeader() {
 
                   return (
                     <div key={group.id}>
-                      {/* Parent button */}
+                      {/* প্যারেন্ট বাটন */}
                       <button
                         onClick={() => {
                           if (isSingleItem) handleNav(group.items[0].page)
@@ -243,7 +243,7 @@ export function MobileHeader() {
                         )}
                       </button>
 
-                      {/* Children */}
+                      {/* চাইল্ড্রেন */}
                       {isSingleItem ? null : (
                         <AnimatePresence initial={false}>
                           {isGroupExpanded && (
@@ -261,7 +261,7 @@ export function MobileHeader() {
                                   const hasActiveDesc = item.hasChildren && item.children.some((c) => c.page === currentPage)
                                   const isItemExpanded = effectiveExpandedItemId === item.id
 
-                                  // Leaf item
+                                  // পাতা আইটেম
                                   if (!isItemFolder) {
                                     return (
                                       <button
@@ -281,7 +281,7 @@ export function MobileHeader() {
                                     )
                                   }
 
-                                  // Folder item — expandable
+                                  // ফোল্ডার আইটেম — প্রসারণযোগ্য
                                   return (
                                     <div key={item.id}>
                                       <button
@@ -345,7 +345,7 @@ export function MobileHeader() {
 
           <Separator />
 
-          {/* Logout */}
+          {/* লগআউট */}
           <div className="p-3">
             <Button
               variant="ghost"

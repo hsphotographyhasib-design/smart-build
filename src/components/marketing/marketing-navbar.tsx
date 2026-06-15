@@ -105,7 +105,7 @@ export function MarketingNavbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-gray-200/60 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-        {/* Logo */}
+        {/* লোগো */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <div className="relative w-8 h-8 rounded-md bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/20">
             <SquareIcon className="w-4 h-4 text-white fill-white" strokeWidth={0} />
@@ -121,7 +121,7 @@ export function MarketingNavbar() {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* ডেস্কটপ নেভিগেশন */}
         <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((item) =>
             item.hasDropdown ? (
@@ -147,12 +147,12 @@ export function MarketingNavbar() {
                   />
                 </button>
 
-                {/* Mega Menu Dropdown */}
+                {/* মেগা মেনু ড্রপডাউন */}
                 {dropdownOpen && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[640px] bg-white rounded-xl shadow-xl shadow-gray-900/10 border border-gray-100 p-6 overflow-hidden">
                     <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-1 rounded-full mb-5" />
                     <div className="grid grid-cols-2 gap-8">
-                      {/* By Industry */}
+                      {/* শিল্প অনুযায়ী */}
                       <div>
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
                           By Industry
@@ -177,7 +177,7 @@ export function MarketingNavbar() {
                         </ul>
                       </div>
 
-                      {/* By Use Case */}
+                      {/* ব্যবহারের ক্ষেত্র অনুযায়ী */}
                       <div>
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
                           By Use Case
@@ -221,7 +221,7 @@ export function MarketingNavbar() {
           )}
         </nav>
 
-        {/* Desktop Actions */}
+        {/* ডেস্কটপ কার্যকলাপ */}
         <div className="hidden lg:flex items-center gap-3">
           <Button
             variant="outline"
@@ -238,7 +238,7 @@ export function MarketingNavbar() {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* মোবাইল মেনু */}
         <div className="lg:hidden">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -266,7 +266,7 @@ export function MarketingNavbar() {
               </SheetHeader>
 
               <div className="flex flex-col py-4">
-                {/* Solutions with collapsible submenu */}
+                {/* সমাধান সহ সঙ্কুচিত সাবমেনু */}
                 <Collapsible open={mobileSolutionsOpen} onOpenChange={setMobileSolutionsOpen}>
                   <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-3 text-gray-700 hover:text-orange-600 hover:bg-orange-50/50 transition-colors">
                     <span className="text-sm font-medium">Solutions</span>
@@ -315,7 +315,7 @@ export function MarketingNavbar() {
                   </CollapsibleContent>
                 </Collapsible>
 
-                {/* Other nav items */}
+                {/* অন্যান্য নেভ আইটেম */}
                 {navLinks
                   .filter((item) => !item.hasDropdown)
                   .map((item) => (
@@ -332,7 +332,7 @@ export function MarketingNavbar() {
                     </Link>
                   ))}
 
-                {/* Bottom buttons */}
+                {/* নিচের বাটন */}
                 <div className="border-t border-gray-100 mt-4 pt-4 px-6 flex flex-col gap-3">
                   <Button
                     variant="outline"

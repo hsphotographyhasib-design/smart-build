@@ -1,3 +1,3 @@
 // src/modules/projects/services/index.ts
-// Projects Module - Services Barrel Export
-// API service functions for projects will be added here
+// প্রজেক্ট মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// প্রজেক্টের API সার্ভিস ফাংশন এখানে যোগ করা হবে

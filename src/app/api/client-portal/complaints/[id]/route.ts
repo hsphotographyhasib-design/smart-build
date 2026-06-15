@@ -19,7 +19,7 @@ export async function GET(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -54,7 +54,7 @@ export async function PUT(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -68,7 +68,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
     }
 
-    // For client role, verify ownership (complaint must belong to their project)
+    // ক্লায়েন্ট ভূমিকার জন্য, মালিকানা যাচাই করা হচ্ছে (অভিযোগটি তাদের প্রজেক্টের হতে হবে)
     if (user.role === 'client') {
       const project = await db.project.findUnique({
         where: { id: existing.projectId },
@@ -79,7 +79,7 @@ export async function PUT(
       }
     }
 
-    // Validate status transition
+    // স্ট্যাটাস ট্রানজিশন যাচাই করা হচ্ছে
     if (status && status !== existing.status) {
       const allowed = VALID_TRANSITIONS[existing.status] || []
       if (!allowed.includes(status)) {
@@ -136,7 +136,7 @@ export async function DELETE(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -148,7 +148,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
     }
 
-    // For client role, verify ownership (complaint must belong to their project)
+    // ক্লায়েন্ট ভূমিকার জন্য, মালিকানা যাচাই করা হচ্ছে (অভিযোগটি তাদের প্রজেক্টের হতে হবে)
     if (user.role === 'client') {
       const project = await db.project.findUnique({
         where: { id: complaint.projectId },
@@ -159,10 +159,10 @@ export async function DELETE(
       }
     }
 
-    // Only open complaints can be deleted
+    // শুধুমাত্র খোলা অভিযোগ মুছে ফেলা যাবে
     if (complaint.status !== 'open') {
       return NextResponse.json(
-        { success: false, error: 'Only open complaints can be deleted' },
+        { success: false, error: 'শুধুমাত্র খোলা অভিযোগ মুছে ফেলা যাবে' },
         { status: 400 }
       )
     }

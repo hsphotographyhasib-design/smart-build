@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
 
-// Connect via gateway using XTransformPort=3005
+// XTransformPort=3005 ব্যবহার করে গেটওয়ে সংযোগ
 const SOCKET_URL = '/?XTransformPort=3005'
 
 interface UseMaintenanceSocketOptions {
@@ -34,7 +34,7 @@ export function useMaintenanceSocket(options: UseMaintenanceSocketOptions = {}) 
 
     socketRef.current = socket
 
-    // Register event handlers
+    // ইভেন্ট হ্যান্ডলার নিবন্ধ করা হচ্ছে
     if (options.onTicketCreated) socket.on('ticket:created', options.onTicketCreated)
     if (options.onTicketAssigned) socket.on('ticket:assigned', options.onTicketAssigned)
     if (options.onTicketStatusChanged) socket.on('ticket:status-changed', options.onTicketStatusChanged)

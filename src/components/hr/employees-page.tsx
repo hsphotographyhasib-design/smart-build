@@ -28,7 +28,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Employee {
@@ -46,7 +46,7 @@ interface Employee {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -59,7 +59,7 @@ const DEPARTMENTS = [
 ]
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -82,7 +82,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create / Edit Dialog
+// তৈরি / সম্পাদনা ডায়ালগ
 // ──────────────────────────────────────────
 
 function EmployeeFormDialog({ employee, open, onClose }: { employee: Employee | null; open: boolean; onClose: () => void }) {
@@ -195,7 +195,7 @@ function EmployeeFormDialog({ employee, open, onClose }: { employee: Employee | 
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function EmployeesPage() {
@@ -231,7 +231,7 @@ export function EmployeesPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Employees</h1>
@@ -245,7 +245,7 @@ export function EmployeesPage() {
         </Button>
       </div>
 
-      {/* Search & Filters */}
+      {/* অনুসন্ধান ও ফিল্টার */}
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -279,7 +279,7 @@ export function EmployeesPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -362,13 +362,13 @@ export function EmployeesPage() {
         </Card>
       ) : null}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <EmployeeFormDialog employee={null} open={createOpen} onClose={() => setCreateOpen(false)} />
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <EmployeeFormDialog employee={editEmployee} open={!!editEmployee} onClose={() => setEditEmployee(null)} />
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

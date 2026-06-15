@@ -1,38 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // ---------------------------------------------------------------------------
-// Sanitization
+// স্যানিটাইজেশন
 // ---------------------------------------------------------------------------
 
 /**
- * Strips common XSS vectors from a string value.
- * This is a defence-in-depth measure and does NOT replace proper output
- * encoding on the front-end.
+ * একটি স্ট্রিং মান থেকে সাধারণ XSS ভেক্টর সরানো হচ্ছে।
+ * এটি একটি প্রতিরক্ষামূলক ব্যবস্থা এবং সঠিক আউটপুট
+ * এনকোডিং প্রতিস্থাপন করে না ফ্রন্ট-এন্ডে।
  */
 export function sanitizeInput(input: string): string {
   return input
-    // Remove null bytes
+    // নাল বাইট সরানো হচ্ছে
     .replace(/\0/g, '')
-    // Normalize unicode
+    // ইউনিকোড নরমালাইজ করা হচ্ছে
     .normalize('NFC')
-    // Strip <script> tags
+    // <script> ট্যাগ সরানো হচ্ছে
     .replace(/<\s*script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Strip HTML event-handler attributes (onclick, onerror, onload, …)
+    // HTML ইভেন্ট-হ্যান্ডলার অ্যাট্রিবিউট সরানো হচ্ছে (onclick, onerror, onload, …)
     .replace(
       /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi,
       ' '
     )
-    // Strip javascript: URIs
+    // javascript: URI সরানো হচ্ছে
     .replace(/javascript\s*:/gi, '')
-    // Strip data: URIs that could carry executable content
+    // এক্সিকিউটেবল কন্টেন্ট বহন করতে পারে এমন data: URI সরানো হচ্ছে
     .replace(/data\s*:\s*text\/html/gi, '')
-    // Strip vbscript: URIs
+    // vbscript: URI সরানো হচ্ছে
     .replace(/vbscript\s*:/gi, '')
 }
 
 /**
- * Recursively sanitizes all string values in an object (plain objects & arrays).
- * Non-container / non-string values pass through unchanged.
+ * একটি অবজেক্টে সকল স্ট্রিং মান পুনরাবৃত্তিমূলকভাবে স্যানিটাইজ করা হচ্ছে।
+ * কন্টেইনার নয় এমন / স্ট্রিং নয় এমন মান অপরিবর্তিত পাস হয়।
  */
 export function sanitizeObject<T>(obj: T): T {
   if (obj === null || obj === undefined) return obj
@@ -51,17 +51,17 @@ export function sanitizeObject<T>(obj: T): T {
 }
 
 // ---------------------------------------------------------------------------
-// Redirect safety
+// পুনঃনির্দেশন নিরাপত্তা
 // ---------------------------------------------------------------------------
 
 /**
- * Returns `true` when `url` is a safe redirect target (relative or same-origin).
- * Rejects protocol-relative, javascript:, data:, and other dangerous schemes.
+ * `url` একটি নিরাপদ পুনঃনির্দেশন লক্ষ্য (আপেক্ষিক বা একই-উৎস) হলে `true` প্রদান করে।
+ * প্রোটোকল-আপেক্ষিক, javascript:, data:, এবং অন্যান্য বিপজ্জনক স্কিম প্রত্যাখ্যান করে।
  */
 export function isSafeRedirect(url: string): boolean {
   if (!url || typeof url !== 'string') return false
 
-  // Allow relative URLs that start with / but not //
+  // / দিয়ে শুরু হয় কিন্তু // দিয়ে নয় এমন আপেক্ষিক URL অনুমোদন করা হচ্ছে
   if (url.startsWith('/') && !url.startsWith('//')) return true
 
   try {
@@ -69,12 +69,12 @@ export function isSafeRedirect(url: string): boolean {
     const safeProtocols = ['http:', 'https:']
     if (!safeProtocols.includes(parsed.protocol)) return false
 
-    // Block external hosts – only allow the same origin
+    // বহিরাগত হোস্ট ব্লক করা হচ্ছে – শুধুমাত্র একই উৎস অনুমোদন করা হচ্ছে
     if (
       parsed.hostname !== 'localhost' &&
       !parsed.hostname.endsWith('.localhost')
     ) {
-      // If a NEXT_PUBLIC_APP_URL is configured, compare against it
+      // NEXT_PUBLIC_APP_URL কনফিগার করা থাকলে, তার বিপরীতে তুলনা করা হচ্ছে
       const appUrl = process.env.NEXT_PUBLIC_APP_URL
       if (appUrl) {
         const allowed = new URL(appUrl)
@@ -91,11 +91,11 @@ export function isSafeRedirect(url: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Secure response helper
+// নিরাপদ প্রতিক্রিয়া সহায়ক
 // ---------------------------------------------------------------------------
 
 /**
- * Creates a JSON `NextResponse` with common security headers pre-applied.
+ * সাধারণ নিরাপত্তা হেডার পূর্বে প্রয়োগ করে একটি JSON `NextResponse` তৈরি করা হচ্ছে।
  */
 export function createSecureResponse(
   data: unknown,
@@ -103,15 +103,15 @@ export function createSecureResponse(
 ): NextResponse {
   const response = NextResponse.json(data, { status })
 
-  // Prevent MIME-type sniffing
+  // MIME-টাইপ স্নিফিং প্রতিরোধ করা হচ্ছে
   response.headers.set('X-Content-Type-Options', 'nosniff')
-  // Clickjacking protection
+  // ক্লিকজ্যাকিং প্রতিরোধ
   response.headers.set('X-Frame-Options', 'DENY')
-  // XSS protection (legacy, but still useful for older browsers)
+  // XSS প্রতিরোধ (পুরনো, তবে পুরনো ব্রাউজারের জন্য এখনও কার্যকর)
   response.headers.set('X-XSS-Protection', '1; mode=block')
-  // Referrer policy
+  // রেফারার নীতি
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  // Content-Security-Policy for API routes – restrict to same-origin
+  // API রাউটের জন্য Content-Security-Policy – শুধুমাত্র একই-উৎসে সীমাবদ্ধ
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'none'; frame-ancestors 'none'"
@@ -121,12 +121,12 @@ export function createSecureResponse(
 }
 
 // ---------------------------------------------------------------------------
-// Client IP extraction
+// ক্লায়েন্ট IP নিষ্কাশন
 // ---------------------------------------------------------------------------
 
 /**
- * Extracts the most likely client IP address from request headers.
- * Checks common proxy headers in order of trustworthiness.
+ * অনুরোধ হেডার থেকে সম্ভাব্য ক্লায়েন্ট IP ঠিকানা নিষ্কাশন করা হচ্ছে।
+ * বিশ্বাসযোগ্যতার ক্রম অনুসারে সাধারণ প্রক্সি হেডার পরীক্ষা করা হচ্ছে।
  */
 export function getClientIp(request: NextRequest): string {
   return (

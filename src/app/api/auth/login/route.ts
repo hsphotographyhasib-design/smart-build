@@ -5,7 +5,7 @@ import { createSession, isRateLimited, createAuditLog } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    // হার সীমাবদ্ধতা প্রয়োগ করা হচ্ছে
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     if (isRateLimited(ip)) {
       return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find user by email
+    // ইমেইল দিয়ে ব্যবহারকারী খোঁজা হচ্ছে
     const user = await db.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     })
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user is active
+    // ব্যবহারকারী সক্রিয় কিনা যাচাই করা হচ্ছে
     if (!user.isActive) {
       return NextResponse.json(
         { success: false, error: 'Account is deactivated. Contact administrator.' },
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user is locked
+    // ব্যবহারকারী লক করা আছে কিনা যাচাই করা হচ্ছে
     if (user.isLocked && user.lockoutUntil && new Date() < user.lockoutUntil) {
       const minutesLeft = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 60000)
       return NextResponse.json(
@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify password
+    // পাসওয়ার্ড যাচাই করা হচ্ছে
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      // Increment failed login attempts - lock after 5 failed within lockout window
+      // ব্যর্থ লগইন প্রচেষ্টা বৃদ্ধি করা হচ্ছে - লকআউট সময়সীমার মধ্যে ৫ বার ব্যর্থ হলে অ্যাকাউন্ট লক করা হবে
       const failedAttempts = (user as any).failedLoginAttempts || 0
       const newAttempts = failedAttempts + 1
       const lockoutMinutes = 15
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If user was locked but lockout expired, unlock
+    // ব্যবহারকারী লক থাকলেও লকআউটের মেয়াদ শেষ হয়ে গেলে আনলক করা হচ্ছে
     if (user.isLocked && user.lockoutUntil && new Date() > user.lockoutUntil) {
       await db.user.update({
         where: { id: user.id },
@@ -89,13 +89,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Reset failed login attempts on successful login
+    // সফল লগইনের পর ব্যর্থ লগইন প্রচেষ্টা রিসেট করা হচ্ছে
     await db.user.update({
       where: { id: user.id },
       data: { failedLoginAttempts: 0, isLocked: false, lockoutUntil: null },
     })
 
-    // Create session
+    // সেশন তৈরি করা হচ্ছে
     const userAgent = request.headers.get('user-agent') || undefined
     const session = await createSession(user.id, {
       device: userAgent?.includes('Mobile') ? 'mobile' : 'desktop',
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       userAgent,
     })
 
-    // Create audit log
+    // অডিট লগ তৈরি করা হচ্ছে
     await createAuditLog({
       userId: user.id,
       action: 'LOGIN',

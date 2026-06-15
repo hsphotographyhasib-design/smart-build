@@ -38,7 +38,7 @@ export function ClientDocuments() {
   const [activeTab, setActiveTab] = React.useState('all')
   const [hasInitialized, setHasInitialized] = React.useState(false)
 
-  // Fetch projects
+  // প্রকল্প আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['client-portal-projects-docs'],
     queryFn: () => api.get('/api/client-portal/projects'),
@@ -52,7 +52,7 @@ export function ClientDocuments() {
     }
   }, [projects, hasInitialized])
 
-  // Fetch documents
+  // নথিপত্র আনা হচ্ছে
   const { data, isLoading } = useQuery({
     queryKey: ['client-portal-documents', selectedProjectId],
     queryFn: () => api.get(`/api/client-portal/projects/${selectedProjectId}/documents`),
@@ -62,7 +62,7 @@ export function ClientDocuments() {
   const documents = data?.data?.documents || []
   const counts = data?.data?.counts || {}
 
-  // Filter
+  // ফিল্টার
   const filtered = documents.filter((doc: any) => {
     if (activeTab !== 'all' && doc.type !== activeTab) return false
     if (searchQuery) {
@@ -72,7 +72,7 @@ export function ClientDocuments() {
     return true
   })
 
-  // Group by type
+  // ধরন অনুযায়ী গোষ্ঠীভুক্ত করা হচ্ছে
   const grouped: Record<string, typeof documents> = {}
   for (const doc of filtered) {
     if (!grouped[doc.type]) grouped[doc.type] = []
@@ -160,7 +160,7 @@ export function ClientDocuments() {
 
             <TabsContent value={activeTab} className="mt-4">
               {activeTab === 'all' ? (
-                // Grouped view
+                // গোষ্ঠীভুক্ত ভিউ
                 <div className="space-y-6">
                   {Object.entries(grouped).map(([type, docs]) => {
                     const config = typeConfig[type] || typeConfig.other
@@ -183,7 +183,7 @@ export function ClientDocuments() {
                   })}
                 </div>
               ) : (
-                // Single type view
+                // একক ধরন ভিউ
                 filtered.length === 0 ? (
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">

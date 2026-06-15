@@ -30,7 +30,7 @@ import {
   Workflow, Copy,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface WorkflowStep {
   id?: string
   stepType: string
@@ -88,7 +88,7 @@ const stepTypeIcon = (type: string) => STEP_TYPES.find(s => s.value === type)?.i
 const stepTypeColor = (type: string) => STEP_TYPES.find(s => s.value === type)?.color || 'text-gray-600 bg-gray-50'
 const stepTypeLabel = (type: string) => STEP_TYPES.find(s => s.value === type)?.label || type
 
-// ─── Component ───
+// ─── উপাদান ───
 export function InvoiceWorkflowBuilderPage() {
   const queryClient = useQueryClient()
 
@@ -96,13 +96,13 @@ export function InvoiceWorkflowBuilderPage() {
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null)
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
 
-  // Editor state
+  // সম্পাদক অবস্থা
   const [wfName, setWfName] = useState('')
   const [wfDesc, setWfDesc] = useState('')
   const [wfType, setWfType] = useState('progress_claim')
   const [steps, setSteps] = useState<WorkflowStep[]>([emptyStep(0), emptyStep(1)])
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const { data: wfData, isLoading } = useQuery({
     queryKey: queryKeys.invoiceWorkflows,
     queryFn: () => api.get<Workflow[]>('/api/invoicing/workflows'),
@@ -110,7 +110,7 @@ export function InvoiceWorkflowBuilderPage() {
 
   const workflows = wfData?.data || []
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/invoicing/workflows', body),
     onSuccess: () => {
@@ -241,7 +241,7 @@ export function InvoiceWorkflowBuilderPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Approval Workflows</h1>
@@ -252,7 +252,7 @@ export function InvoiceWorkflowBuilderPage() {
         </Button>
       </div>
 
-      {/* Workflow List */}
+      {/* ওয়ার্কফ্লো তালিকা */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-lg" />)}
@@ -289,7 +289,7 @@ export function InvoiceWorkflowBuilderPage() {
                   <GitBranch className="h-3.5 w-3.5" />
                   <span>{wf.steps?.length || 0} steps</span>
                 </div>
-                {/* Mini flow preview */}
+                {/* মিনি ফ্লো প্রিভিউ */}
                 <div className="flex items-center gap-1 flex-wrap">
                   {(wf.steps || []).slice(0, 5).map((step: WorkflowStep, idx: number) => {
                     const Icon = stepTypeIcon(step.stepType)
@@ -324,7 +324,7 @@ export function InvoiceWorkflowBuilderPage() {
         </div>
       )}
 
-      {/* ─── Workflow Editor Dialog ─── */}
+      {/* ─── ওয়ার্কফ্লো সম্পাদক ডায়ালগ ─── */}
       <Dialog open={editorOpen} onOpenChange={open => { if (!open) closeEditor() }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
@@ -333,7 +333,7 @@ export function InvoiceWorkflowBuilderPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-            {/* Basic info */}
+            {/* মৌলিক তথ্য */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2 sm:col-span-2">
                 <Label>Workflow Name *</Label>
@@ -366,7 +366,7 @@ export function InvoiceWorkflowBuilderPage() {
 
             <Separator />
 
-            {/* Steps - Vertical Flow */}
+            {/* ধাপসমূহ - উল্লম্ব প্রবাহ */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-semibold text-sm">Workflow Steps</h4>
@@ -384,18 +384,18 @@ export function InvoiceWorkflowBuilderPage() {
 
                   return (
                     <div key={idx} className="relative">
-                      {/* Connector line */}
+                      {/* সংযোগকারী রেখা */}
                       {idx > 0 && (
                         <div className="absolute left-6 -top-3 w-px h-3 bg-border" />
                       )}
 
                       <div className="flex gap-3 pb-4">
-                        {/* Icon */}
+                        {/* আইকন */}
                         <div className={cn('p-2.5 rounded-lg shrink-0 z-10', color.split(' ')[1])}>
                           <Icon className={cn('h-4 w-4', color.split(' ')[0])} />
                         </div>
 
-                        {/* Step Card */}
+                        {/* ধাপ কার্ড */}
                         <div className="flex-1 rounded-lg border p-3 bg-background space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -476,7 +476,7 @@ export function InvoiceWorkflowBuilderPage() {
                             </div>
                           </div>
 
-                          {/* Condition fields */}
+                          {/* শর্ত ক্ষেত্র */}
                           {isConditionLike && (
                             <div className="grid grid-cols-3 gap-3 p-2 rounded-md bg-muted/30 border">
                               <div className="space-y-1">
@@ -499,7 +499,7 @@ export function InvoiceWorkflowBuilderPage() {
                             </div>
                           )}
 
-                          {/* Notification type */}
+                          {/* বিজ্ঞপ্তির প্রকার */}
                           {step.stepType === 'notification' && (
                             <div className="space-y-1">
                               <Label className="text-xs">Notification Type</Label>
@@ -516,7 +516,7 @@ export function InvoiceWorkflowBuilderPage() {
                           )}
                         </div>
 
-                        {/* Add step between */}
+                        {/* মাঝখানে ধাপ যোগ */}
                         {!isStartOrEnd && idx < steps.length - 1 && (
                           <div className="flex items-center shrink-0">
                             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => addStep(idx)}>
@@ -546,7 +546,7 @@ export function InvoiceWorkflowBuilderPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Delete Dialog ─── */}
+      {/* ─── মুছে ফেলার ডায়ালগ ─── */}
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

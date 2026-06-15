@@ -8,18 +8,18 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 })
 
-    // Get user preferences
+    // ব্যবহারকারীর পছন্দ পাওয়া হচ্ছে
     let prefs = await db.userPreference.findUnique({ where: { userId: user.id } })
 
     // If no preferences yet, use defaults based on... return empty (frontend will use detected)
     if (!prefs) {
-      // Create default preferences
+      // ডিফল্ট পছন্দ তৈরি করা হচ্ছে
       prefs = await db.userPreference.create({
         data: { userId: user.id },
       })
     }
 
-    // Build full config from preferences or defaults
+    // পছন্দ বা ডিফল্ট থেকে সম্পূর্ণ কনফিগ তৈরি করা হচ্ছে
     const countryCode = prefs.countryId
       ? (await db.country.findUnique({ where: { id: prefs.countryId } }))?.code ?? 'BN'
       : 'BN'
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const config = getFullRegionalConfig(countryCode)
 
-    // Override with user's saved preferences
+    // ব্যবহারকারীর সংরক্ষিত পছন্দ দিয়ে ওভাররাইড করা হচ্ছে
     if (currencyCode) {
       const { getCurrencyByCode } = await import('@/lib/regional/regional-config')
       const currency = getCurrencyByCode(currencyCode)
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { countryId, currencyId, languageId, timezone, dateFormat, locale } = body
 
-    // Upsert user preferences
+    // ব্যবহারকারীর পছন্দ আপসার্ট করা হচ্ছে
     const prefs = await db.userPreference.upsert({
       where: { userId: user.id },
       create: {

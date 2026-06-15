@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'schedule': {
-        // Schedule overview report
+        // সময়সূচি সামগ্রিক প্রতিবেদন
         const where: Record<string, unknown> = {}
         if (projectId) where.projectId = projectId
 

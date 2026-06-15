@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20))
     const search = searchParams.get('search')?.trim()
 
-    // Non-admin users can only view their own sessions unless userId matches
+    // প্রশাসক ছাড়া অন্যান্য ব্যবহারকারীরা শুধুমাত্র নিজেদের সেশন দেখতে পারবে যদি না userId মিলে
     if (!requireRole(user, ['admin']) && userId && userId !== user.id) {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // If userId not provided for non-admin, default to own sessions
+    // প্রশাসক না হলে userId না দেওয়া থাকলে নিজের সেশন ডিফল্ট হিসেবে বিবেচিত হবে
     const effectiveUserId = !requireRole(user, ['admin']) && !userId ? user.id : userId
 
-    // Build where clause
+    // Where ক্লজ তৈরি করা হচ্ছে
     const where: Record<string, unknown> = {}
     if (effectiveUserId) {
       where.userId = effectiveUserId
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       db.session.count({ where }),
     ])
 
-    // Calculate session duration for completed/expired sessions
+    // সম্পন্ন/মেয়াদোত্তীর্ণ সেশনের সময়কাল হিসাব করা হচ্ছে
     const sessionsWithDuration = sessions.map((session) => {
       const end =
         session.revokedAt ||

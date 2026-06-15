@@ -14,7 +14,7 @@ export async function GET(
 
     const { id } = await params
 
-    // Verify project exists
+    // প্রকল্প বিদ্যমান কিনা যাচাই করা হচ্ছে
     const project = await db.project.findUnique({ where: { id }, select: { id: true } })
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
@@ -96,7 +96,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Task title is required' }, { status: 400 })
     }
 
-    // Get max order
+    // সর্বোচ্চ ক্রম সংখ্যা প্রাপ্ত করা হচ্ছে
     const maxOrder = await db.projectTask.aggregate({
       where: { projectId: id, parentTaskId: parentTaskId || null },
       _max: { order: true },

@@ -155,7 +155,7 @@ export async function DELETE(
       data: { status: 'accepted' },
     })
 
-    // Update vendor stats
+    // ভেন্ডর আপডেট করা হচ্ছে stats
     await db.tenderVendor.update({
       where: { id: bid.vendorId },
       data: { totalBids: { decrement: 1 } },

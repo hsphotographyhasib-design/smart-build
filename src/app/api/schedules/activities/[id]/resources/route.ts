@@ -27,7 +27,7 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     })
 
-    // Compute total cost
+    // মোট খরচ গণনা করা হচ্ছে
     const totalCost = resources.reduce((sum, r) => sum + r.totalCost, 0)
 
     return NextResponse.json({

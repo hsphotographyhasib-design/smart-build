@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: `Schedule type must be one of: ${validTypes.join(', ')}` }, { status: 400 })
     }
 
-    // Auto-generate schedule number
+    // স্বয়ংক্রিয়ভাবে শিডিউল নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'PM'
     const count = await db.pMSchedule.count({
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     })
     const scheduleNo = `${prefix}-${year}-${String(count + 1).padStart(6, '0')}`
 
-    // Set default frequency based on type
+    // টাইপ অনুযায়ী ডিফল্ট ফ্রিকোয়েন্সি সেট করা হচ্ছে
     const defaultFrequency: Record<string, number> = {
       monthly: 1,
       quarterly: 3,

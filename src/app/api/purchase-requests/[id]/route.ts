@@ -70,7 +70,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Purchase request not found' }, { status: 404 })
     }
 
-    // If items provided, delete old and create new
+    // আইটেম প্রদান করা হলে, পুরনো মুছে নতুন তৈরি করা হচ্ছে
     if (items && Array.isArray(items)) {
       await db.purchaseRequestItem.deleteMany({ where: { purchaseRequestId: id } })
     }

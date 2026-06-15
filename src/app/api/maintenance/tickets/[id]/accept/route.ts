@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface AcceptBody {
@@ -52,14 +52,14 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Ticket must be in 'assigned' status to accept, current status: ${ticket.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!ticket.assignedTechnicianId || ticket.assignedTechnician?.userId !== authUser.id) {
       return NextResponse.json({ success: false, error: 'Only the assigned technician can accept this ticket' }, { status: 403 })
     }
 
     const now = new Date()
 
-    // Generate WO number
+    // ওয়ার্ক অর্ডার নম্বর তৈরি করা হচ্ছে
     const year = now.getFullYear().toString()
     const lastWO = await db.maintenanceWorkOrder.findFirst({
       orderBy: { workOrderNo: 'desc' },
@@ -74,18 +74,18 @@ export async function POST(
     }
     const workOrderNo = `WO-${year}-${seq.toString().padStart(6, '0')}`
 
-    // Calculate target completion date
+    // লক্ষ্য সমাপ্তি তারিখ হিসাব করা হচ্ছে
     const targetDate = ticket.resolutionDeadline
       ? new Date(ticket.resolutionDeadline)
       : new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
     const [updatedTicket, workOrder] = await db.$transaction([
-      // Update ticket status
+      // টিকেটের স্ট্যাটাস আপডেট করা হচ্ছে
       db.maintenanceTicket.update({
         where: { id },
         data: { status: 'accepted' },
       }),
-      // Create work order
+      // ওয়ার্ক অর্ডার তৈরি করা হচ্ছে
       db.maintenanceWorkOrder.create({
         data: {
           workOrderNo,
@@ -100,7 +100,7 @@ export async function POST(
       }),
     ])
 
-    // Create timeline entries
+    // টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     await db.maintenanceTimeline.create({
       data: {
         ticketId: id,
@@ -121,7 +121,7 @@ export async function POST(
       },
     })
 
-    // Update technician availability
+    // টেকনিশিয়ানের প্রাপ্যতা আপডেট করা হচ্ছে
     await db.technicianProfile.update({
       where: { id: ticket.assignedTechnicianId! },
       data: { availabilityStatus: 'busy' },

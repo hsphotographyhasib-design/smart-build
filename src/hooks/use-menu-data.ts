@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import * as Icons from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────
-// API MENU TYPES
+// API মেনু ধরন
 // ─────────────────────────────────────────────────────────────────────
 
 export interface MenuSubItem {
@@ -36,7 +36,7 @@ export interface MenuGroup {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// ICON RESOLUTION — pre-registered icon map
+// আইকন রেজোলিউশন — পূর্বে-নিবন্দাধ আইকন ম্যাপ
 // ─────────────────────────────────────────────────────────────────────
 
 const iconMap: Record<string, React.ComponentType<React.ComponentProps<'svg'>>> = {
@@ -78,11 +78,11 @@ export function IconByName({ name, className }: { name: string; className?: stri
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MENU DATA HOOK — Fetches from /api/menus?role=<role> with caching
+// মেনু ডেটা হুক — /api/menus?role=<role> থেকে ক্যাশিং সহ ফেচ করে
 // ─────────────────────────────────────────────────────────────────────
 
 const menuCache: Record<string, { data: MenuGroup[]; timestamp: number }> = {}
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000 // ৫ মিনিট
 
 export function useMenuData(role: string) {
   const [menuGroups, setMenuGroups] = useState<MenuGroup[]>([])
@@ -92,7 +92,7 @@ export function useMenuData(role: string) {
     let cancelled = false
 
     async function fetchMenus() {
-      // Check cache first
+      // প্রথমে ক্যাশে পরীক্ষা করা হচ্ছে
       const cached = menuCache[role]
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
         if (!cancelled) {
@@ -109,7 +109,7 @@ export function useMenuData(role: string) {
         if (token) headers['Authorization'] = `Bearer ${token}`
         const res = await fetch(`/api/menus?role=${role}`, { headers })
         if (!res.ok) {
-          // Auth required — menu will remain empty until user logs in
+          // প্রমাণীকরণ প্রয়োজন — ব্যবহারকারী লগইন না করলে মেনু খালি থাকবে
           return
         }
         const json = await res.json()
@@ -133,12 +133,12 @@ export function useMenuData(role: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// ACTIVE PAGE FINDER — finds which group/item/child contains the page
+// সক্রিয়া পৃষ্ঠা অনুসন্ধানকারী — কোন গ্রুপ/আইটেম/চাইল্ড পৃষ্ঠাটি ধারণ করছে
 // ─────────────────────────────────────────────────────────────────────
 
 export interface ActiveInfo {
   groupId: string | null
-  itemId: string | null // for sub-child active, this is the parent item id
+  itemId: string | null // সাব-চাইল্ড সক্রিয় হলে এটি প্যারেন্ট আইটির id
 }
 
 export function findActiveInfo(groups: MenuGroup[], currentPage: string): ActiveInfo {
@@ -151,7 +151,7 @@ export function findActiveInfo(groups: MenuGroup[], currentPage: string): Active
         groupId = group.id
         return { groupId, itemId: null }
       }
-      // Check children
+      // চিলড্রেন পরীক্ষা করা হচ্ছে
       if (item.hasChildren) {
         for (const child of item.children) {
           if (child.page === currentPage) {

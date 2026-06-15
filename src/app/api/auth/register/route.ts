@@ -5,7 +5,7 @@ import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify the requesting user is an admin
+    // অনুরোধকারী ব্যবহারকারী প্রশাসক কিনা যাচাই করা হচ্ছে
     const currentUser = await verifyAuth(request)
     if (!currentUser || !requireRole(currentUser, ['admin'])) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password, name, phone, role } = body
 
-    // Validate required fields
+    // প্রয়োজনীয় ক্ষেত্রগুলো যাচাই করা হচ্ছে
     if (!email || !password || !name) {
       return NextResponse.json(
         { success: false, error: 'Email, password, and name are required' },
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate email format
+    // ইমেইল ফরম্যাট যাচাই করা হচ্ছে
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate password length
+    // পাসওয়ার্ডের দৈর্ঘ্য যাচাই করা হচ্ছে
     if (password.length < 6) {
       return NextResponse.json(
         { success: false, error: 'Password must be at least 6 characters' },
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate role
+    // ভূমিকা যাচাই করা হচ্ছে
     const validRoles = ['super_admin', 'admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'client', 'labour']
     if (role && !validRoles.includes(role)) {
       return NextResponse.json(
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
+    // ব্যবহারকারী আগে থেকেই বিদ্যমান কিনা যাচাই করা হচ্ছে
     const existingUser = await db.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     })
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password
+    // পাসওয়ার্ড হ্যাশ করা হচ্ছে
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user
+    // ব্যবহারকারী তৈরি করা হচ্ছে
     const user = await db.user.create({
       data: {
         email: email.toLowerCase().trim(),
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create notification preference
+    // বিজ্ঞপ্তি পছন্দ তৈরি করা হচ্ছে
     await db.notificationPreference.create({
       data: {
         userId: user.id,
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create audit log
+    // অডিট লগ তৈরি করা হচ্ছে
     await createAuditLog({
       userId: currentUser.id,
       action: 'CREATE',

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Report Types ───
+// ─── প্রতিবেদনের প্রকারভেদ ───
 const reportTypes = [
   { value: 'complaints', label: 'Complaints Report', icon: FileText },
   { value: 'response_time', label: 'Response Time', icon: Clock },
@@ -59,7 +59,7 @@ export function MaintenanceReports() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  // Fetch report data
+  // প্রতিবেদন তথ্য আনা
   const { data, isLoading } = useQuery({
     queryKey: ['maintenance-report', reportType, startDate, endDate],
     queryFn: () => {
@@ -76,13 +76,13 @@ export function MaintenanceReports() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Maintenance Reports</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Analytics and reporting dashboard for maintenance operations</p>
       </div>
 
-      {/* Report Type Selector */}
+      {/* প্রতিবেদনের প্রকার নির্বাচক */}
       <Tabs value={reportType} onValueChange={(v) => setReportType(v as ReportType)} className="w-full">
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
           <TabsList className="flex-wrap h-auto gap-1">
@@ -95,7 +95,7 @@ export function MaintenanceReports() {
             ))}
           </TabsList>
 
-          {/* Date Range */}
+          {/* তারিখ পরিসর */}
           <div className="flex items-center gap-2">
             <div className="space-y-0.5">
               <Label className="text-xs">From</Label>
@@ -113,7 +113,7 @@ export function MaintenanceReports() {
           </div>
         </div>
 
-        {/* Report Content */}
+        {/* প্রতিবেদন বিষয়বস্তু */}
         {reportTypes.map((rt) => (
           <TabsContent key={rt.value} value={rt.value}>
             {isLoading ? (
@@ -133,7 +133,7 @@ export function MaintenanceReports() {
   )
 }
 
-// ─── Report Content Router ───
+// ─── প্রতিবেদন বিষয়বস্তু রাউটার ───
 function ReportContent({ type, data }: { type: ReportType; data: any }) {
   switch (type) {
     case 'complaints': return <ComplaintsReport data={data} />
@@ -149,7 +149,7 @@ function ReportContent({ type, data }: { type: ReportType; data: any }) {
   }
 }
 
-// ─── Helper: Empty State ───
+// ─── সহায়ক: ফাঁকা অবস্থা ───
 function ReportEmpty({ message }: { message: string }) {
   return (
     <Card>
@@ -161,7 +161,7 @@ function ReportEmpty({ message }: { message: string }) {
   )
 }
 
-// ─── Stat Card ───
+// ─── পরিসংখ্যান কার্ড ───
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
   return (
     <Card className={cn('border-2', color)}>
@@ -176,7 +176,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   )
 }
 
-// ─── 1. Complaints Report ───
+// ─── ১. অভিযোগ প্রতিবেদন ───
 function ComplaintsReport({ data }: { data: any }) {
   const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
   const byStatus = Array.isArray(data.byStatus) ? data.byStatus : []
@@ -257,7 +257,7 @@ function ComplaintsReport({ data }: { data: any }) {
   )
 }
 
-// ─── 2. Response Time Report ───
+// ─── ২. প্রতিক্রিয়া সময় প্রতিবেদন ───
 function ResponseTimeReport({ data }: { data: any }) {
   const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
   const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
@@ -305,7 +305,7 @@ function ResponseTimeReport({ data }: { data: any }) {
   )
 }
 
-// ─── 3. Resolution Time Report ───
+// ─── ৩. সমাধান সময় প্রতিবেদন ───
 function ResolutionTimeReport({ data }: { data: any }) {
   const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
   const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
@@ -353,7 +353,7 @@ function ResolutionTimeReport({ data }: { data: any }) {
   )
 }
 
-// ─── 4. Technician Performance Report ───
+// ─── ৪. প্রযুক্তিবিদ কর্মক্ষমতা প্রতিবেদন ───
 function TechnicianPerformanceReport({ data }: { data: any }) {
   const technicians = Array.isArray(data.technicians) ? data.technicians : []
 
@@ -415,7 +415,7 @@ function TechnicianPerformanceReport({ data }: { data: any }) {
   )
 }
 
-// ─── 5. Customer Satisfaction Report ───
+// ─── ৫. গ্রাহক সন্তুষ্টি প্রতিবেদন ───
 function CustomerSatisfactionReport({ data }: { data: any }) {
   const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
   const byTechnician = Array.isArray(data.byTechnician) ? data.byTechnician : []
@@ -488,7 +488,7 @@ function CustomerSatisfactionReport({ data }: { data: any }) {
   )
 }
 
-// ─── 6. AMC Report ───
+// ─── ৬. AMC প্রতিবেদন ───
 function AMCReport({ data }: { data: any }) {
   const contracts = Array.isArray(data.contracts) ? data.contracts : []
 
@@ -553,7 +553,7 @@ function AMCReport({ data }: { data: any }) {
   )
 }
 
-// ─── 7. PM Compliance Report ───
+// ─── ৭. PM সম্মতি প্রতিবেদন ───
 function PMComplianceReport({ data }: { data: any }) {
   const schedules = Array.isArray(data.schedules) ? data.schedules : []
 
@@ -624,7 +624,7 @@ function PMComplianceReport({ data }: { data: any }) {
   )
 }
 
-// ─── 8. SLA Report ───
+// ─── ৮. SLA প্রতিবেদন ───
 function SLAReport({ data }: { data: any }) {
   const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
   const breached = Array.isArray(data.breachedTickets) ? data.breachedTickets : []
@@ -698,7 +698,7 @@ function SLAReport({ data }: { data: any }) {
   )
 }
 
-// ─── 9. Revenue Report ───
+// ─── ৯. আয় প্রতিবেদন ───
 function RevenueReport({ data }: { data: any }) {
   const byCustomer = Array.isArray(data.byCustomer) ? data.byCustomer : []
   const byMonth = Array.isArray(data.byMonth) ? data.byMonth : []

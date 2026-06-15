@@ -3,7 +3,7 @@ import { resolveUserCountry, getFullRegionalConfig } from '@/lib/regional/region
 
 export async function GET(request: NextRequest) {
   try {
-    // Check for explicit country override (e.g. ?country=SG)
+    // স্পষ্ট দেশ ওভাররাইড যাচাই করা হচ্ছে (যেমন ?country=SG)
     const urlCountry = request.nextUrl.searchParams.get('country')
     if (urlCountry && getFullRegionalConfig(urlCountry.toUpperCase())) {
       const config = getFullRegionalConfig(urlCountry.toUpperCase())
@@ -17,21 +17,21 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get client IP
+    // ক্লায়েন্টের IP পাওয়া হচ্ছে
     const ip =
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
       request.headers.get('x-real-ip') ??
       request.headers.get('cf-connecting-ip') ??
       null
 
-    // Get browser locale
+    // ব্রাউজার লোকেল পাওয়া হচ্ছে
     const acceptLanguage = request.headers.get('accept-language') ?? ''
     const browserLocale = acceptLanguage.split(',')[0]?.trim() ?? null
 
-    // Get timezone from header (set by frontend via JS)
+    // হেডার থেকে টাইমজোন পাওয়া হচ্ছে (ফ্রন্টএন্ডের মাধ্যমে JS দ্বারা সেট করা)
     const timezone = request.headers.get('x-timezone') ?? null
 
-    // Resolve country using priority chain
+    // অগ্রাধিকার চেইন ব্যবহার করে দেশ নির্ধারণ করা হচ্ছে
     const countryCode = resolveUserCountry({
       userPreference: null, // Not logged in context here
       browserLocale,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Regional detect error:', error)
-    // Fallback to Brunei
+    // ব্রুনাইতে ফলব্যাক করা হচ্ছে
     return NextResponse.json({
       success: true,
       data: getFullRegionalConfig('BN'),

@@ -5,9 +5,9 @@ import { verifyAuth, logPermissionAudit } from '@/lib/auth'
 type RouteContext = { params: Promise<{ id: string }> }
 
 /**
- * POST /api/roles/[id]/clone — Clone a role with all its permissions
- * Only super_admin.
- * Body: { name: "New Role Name", code: "new_role_code" }
+ * POST /api/roles/[id]/clone — সকল অনুমতিসহ একটি ভূমিকা ক্লোন করা হচ্ছে
+ * শুধুমাত্র super_admin।
+ * Body: { name: "নতুন ভূমিকার নাম", code: "new_role_code" }
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Check source role exists
+    // উৎস ভূমিকা বিদ্যমান কিনা যাচাই করা হচ্ছে
     const sourceRole = await db.role.findUnique({
       where: { id },
       include: {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Validate uniqueness of name and code
+    // নাম এবং কোডের অনন্যতা যাচাই করা হচ্ছে
     const existingName = await db.role.findUnique({ where: { name } })
     if (existingName) {
       return NextResponse.json(
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const ipAddress = request.headers.get('x-forwarded-for') ?? undefined
 
-    // Create the new role and copy permissions in a transaction
+    // একটি ট্রানজ্যাকশনে নতুন ভূমিকা তৈরি করে অনুমতি কপি করা হচ্ছে
     const newRole = await db.$transaction(async (tx) => {
       const created = await tx.role.create({
         data: {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         },
       })
 
-      // Copy all role permissions from the source
+      // উৎস থেকে সকল ভূমিকা অনুমতি কপি করা হচ্ছে
       if (sourceRole.permissions.length > 0) {
         await tx.rolePermission.createMany({
           data: sourceRole.permissions.map((rp) => ({

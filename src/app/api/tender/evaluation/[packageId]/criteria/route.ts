@@ -20,7 +20,7 @@ export async function GET(
       },
     })
 
-    // Calculate total weight
+    // মোট ওজন হিসাব করা হচ্ছে
     const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0)
 
     return NextResponse.json({
@@ -55,7 +55,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Package not found' }, { status: 404 })
     }
 
-    // Validate total weight doesn't exceed 100
+    // মোট ওজন ১০০ অতিক্রম করছে কিনা যাচাই করা হচ্ছে
     const totalWeight = criteria.reduce((sum: number, c: Record<string, unknown>) => sum + (Number(c.weight) || 0), 0)
     if (totalWeight > 100) {
       return NextResponse.json({ success: false, error: 'Total weight cannot exceed 100%' }, { status: 400 })

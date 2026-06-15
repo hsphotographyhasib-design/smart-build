@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!workerType) return NextResponse.json({ success: false, error: 'workerType is required' }, { status: 400 })
     if (!workerId) return NextResponse.json({ success: false, error: 'workerId is required' }, { status: 400 })
 
-    // Verify skill exists
+    // দক্ষতা বিদ্যমান কিনা যাচাই করা হচ্ছে
     const skill = await db.skill.findUnique({ where: { id: skillId } })
     if (!skill) {
       return NextResponse.json({ success: false, error: 'Skill not found' }, { status: 400 })

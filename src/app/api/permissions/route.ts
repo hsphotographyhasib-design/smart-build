@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
 /**
- * GET /api/permissions — List all permissions grouped by module > feature > [actions]
- * Admin and super_admin can access.
+ * GET /api/permissions — মডিউল > ফিচার > [কার্য] অনুযায়ী সকল অনুমতির তালিকা
+ * প্রশাসক এবং super_admin অ্যাক্সেস করতে পারবেন।
  */
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       orderBy: [{ module: 'asc' }, { feature: 'asc' }, { action: 'asc' }],
     })
 
-    // Group: module → feature → action[]
+    // গোষ্ঠী: মডিউল → ফিচার → কার্য[]
     const grouped: Record<string, Record<string, string[]>> = {}
 
     for (const p of permissions) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       grouped[p.module][p.feature].push(p.action)
     }
 
-    // Convert to the desired format: module → feature → { action: description }
+    // প্রয়োজনীয় ফরম্যাটে রূপান্তর: মডিউল → ফিচার → { কার্য: বিবরণ }
     const data: Record<string, Record<string, Record<string, string | null>>> = {}
 
     for (const p of permissions) {

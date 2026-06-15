@@ -84,7 +84,7 @@ export async function POST(
       results.push(upserted)
     }
 
-    // Update bid total
+    // বিড আপডেট করা হচ্ছে total
     await db.tenderBid.update({
       where: { id },
       data: { totalAmount },

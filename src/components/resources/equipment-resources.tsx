@@ -30,7 +30,7 @@ import { Search, Wrench, Eye, UserPlus, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Asset {
@@ -63,7 +63,7 @@ interface Assignment {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -78,7 +78,7 @@ const statusColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function EquipmentResources() {
@@ -151,7 +151,7 @@ export function EquipmentResources() {
         setAssignOpen(false)
         setSelectedEquipment(null)
         setAssignForm({ projectId: '', role: '', startDate: '', notes: '' })
-        // Refresh
+        // রিফ্রেশ
         api.get<Asset[]>('/api/assets?type=equipment').then((r) => {
           if (r.success && r.data) setEquipment(r.data)
         })

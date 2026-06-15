@@ -19,7 +19,7 @@ const currentPartners = [
 export default function PartnersPage() {
   return (
     <div className="bg-white min-h-screen">
-      {/* Hero */}
+      {/* হিরো */}
       <section className="bg-gradient-to-b from-stone-100 to-white py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
@@ -44,7 +44,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Partner Program Overview */}
+      {/* অংশীদার প্রোগ্রাম ওভারভিউ */}
       <section className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-4">SmartBuild Partner Program</h2>
@@ -77,7 +77,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Partner Types */}
+      {/* অংশীদার ধরন */}
       <section className="bg-stone-50 py-16">
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-8 text-center">Partner Types</h2>
@@ -139,7 +139,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Benefits */}
+      {/* সুবিধা */}
       <section className="max-w-4xl mx-auto px-4 py-16">
         <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-8 text-center">Partner Benefits</h2>
         <div className="grid sm:grid-cols-2 gap-6">
@@ -162,7 +162,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Current Partners */}
+      {/* বর্তমান অংশীদার */}
       <section className="bg-stone-50 py-16">
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-3 text-center">Trusted by Industry Leaders</h2>
@@ -190,7 +190,7 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Become a Partner CTA */}
+      {/* অংশীদার হওয়ার CTA */}
       <section className="max-w-4xl mx-auto px-4 py-16">
         <div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-2xl p-8 md:p-12 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Become a SmartBuild Partner</h2>

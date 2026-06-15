@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Run all independent counts in parallel
+    // সব স্বাধীন গণনা সমান্তরালভাবে চালানো হচ্ছে
     const [
       totalLabour,
       assignedLabour,
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       `),
 
       // 11. Resource cost this month (from assignments + productivity logs)
-      // Part A: Sum of dailyCost * days active this month for active assignments
+      // অংশ ক: সক্রিয় অ্যাসাইনমেন্টের জন্য এই মাসে সক্রিয় দিন * dailyCost এর যোগফল
       db.$queryRawUnsafe<Array<{ total_cost: number }>>(`
         SELECT
           COALESCE(SUM(
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
       unassigned: totalVehicles - vehiclesInUse,
     }
 
-    // Also count tool/subcontractor/employee assignments for breakdown
+    // বিশ্লেষণের জন্য টুল/সাবকনট্রাক্টর/কর্মচারী অ্যাসাইনমেন্টও গণনা করা হচ্ছে
     const [toolAssignments, employeeAssignments, subcontractorAssignments] = await Promise.all([
       db.resourceAssignment.count({ where: { resourceType: 'tool', status: 'active' } }),
       db.resourceAssignment.count({ where: { resourceType: 'employee', status: 'active' } }),

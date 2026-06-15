@@ -54,7 +54,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface PRItem {
@@ -92,7 +92,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -114,7 +114,7 @@ function formatDate(dateStr: string | null) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -134,7 +134,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create PR Dialog
+// ক্রয় অনুরোধ তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function CreatePRDialog() {
@@ -267,7 +267,7 @@ function CreatePRDialog() {
 
           <Separator />
 
-          {/* Items */}
+          {/* আইটেমসমূহ */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-base font-semibold">Items</Label>
@@ -351,7 +351,7 @@ function CreatePRDialog() {
 }
 
 // ──────────────────────────────────────────
-// View PR Dialog
+// ক্রয় অনুরোধ দেখার ডায়ালগ
 // ──────────────────────────────────────────
 
 function ViewPRDialog({ pr, open, onClose }: { pr: PurchaseRequest | null; open: boolean; onClose: () => void }) {
@@ -442,7 +442,7 @@ function ViewPRDialog({ pr, open, onClose }: { pr: PurchaseRequest | null; open:
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function PurchaseRequestsPage() {
@@ -508,7 +508,7 @@ export function PurchaseRequestsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Purchase Requests</h1>
@@ -519,7 +519,7 @@ export function PurchaseRequestsPage() {
         <CreatePRDialog />
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex items-center gap-1.5 flex-wrap">
           {['all', 'draft', 'submitted', 'review', 'approved', 'rejected', 'ordered'].map((s) => (
@@ -555,7 +555,7 @@ export function PurchaseRequestsPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -662,10 +662,10 @@ export function PurchaseRequestsPage() {
         </Card>
       ) : null}
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <ViewPRDialog pr={viewPR} open={!!viewPR} onClose={() => setViewPR(null)} />
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -12,11 +12,11 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
-// POST — Transfer conversation to another agent
+// POST — কথোপকথন অন্য এজেন্টে ট্রান্সফার করা হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,7 +38,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    // Verify target agent
+    // টার্গেট এজেন্ট যাচাই করা হচ্ছে
     const targetAgent = await db.user.findUnique({
       where: { id: targetAgentId },
       select: { id: true, name: true, isActive: true },
@@ -47,7 +47,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Invalid target agent' }, { status: 400 })
     }
 
-    // Build internal notes with transfer info
+    // ট্রান্সফার তথ্য সহ অভ্যন্তরীণ নোট তৈরি করা হচ্ছে
     const existingNotes: Array<{ note: string; agentId: string; agentName: string; createdAt: string }> =
       conversation.internalNotes ? JSON.parse(conversation.internalNotes) : []
 

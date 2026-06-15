@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-// 5 requests per hour per IP
+// প্রতি IP তে প্রতি ঘণ্টায় ৫টি অনুরোধ
 const DEMO_REQUEST_RATE_LIMIT = {
   maxRequests: 5,
-  windowMs: 3_600_000, // 1 hour
+  windowMs: 3_600_000, // ১ ঘণ্টা
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 demo requests per hour per IP
+    // হার সীমাবদ্ধতা: প্রতি IP তে প্রতি ঘণ্টায় ৫টি ডেমো অনুরোধ
     const rateLimitResult = checkRateLimit(request, DEMO_REQUEST_RATE_LIMIT, 'demo-request')
     if (!rateLimitResult.success) {
       return NextResponse.json(

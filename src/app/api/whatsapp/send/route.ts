@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth, createAuditLog } from '@/lib/auth'
 
-// POST — Direct message send (templates, notifications to technicians, status updates)
+// POST — সরাসরি মেসেজ পাঠানো (টেমপ্লেট, টেকনিশিয়ানদের নোটিফিকেশন, স্ট্যাটাস আপডেট)
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     let waPayload: Record<string, unknown> | undefined
     let finalContent = content
 
-    // Template message
+    // টেমপ্লেট মেসেজ
     if (templateName) {
       const template = await db.whatsAppMessageTemplate.findFirst({
         where: { name: templateName, isActive: true },
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Template not found or inactive' }, { status: 404 })
       }
 
-      // Replace template parameters
+      // টেমপ্লেট প্যারামিটার প্রতিস্থাপন করা হচ্ছে
       finalContent = template.bodyText
       if (templateParams && Array.isArray(templateParams)) {
         templateParams.forEach((param: string, idx: number) => {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (template.waTemplateId) {
-        // Use WhatsApp's native template API
+        // WhatsApp-এর নেটিভ টেমপ্লেট API ব্যবহার করা হচ্ছে
         waPayload = {
           messaging_product: 'whatsapp',
           to,
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback to text message
+    // টেক্সট মেসেজে ফলব্যাক করা হচ্ছে
     if (!waPayload) {
       waPayload = {
         messaging_product: 'whatsapp',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send via WhatsApp API
+    // WhatsApp API-এর মাধ্যমে পাঠানো হচ্ছে
     let waMessageId: string | null = null
     let sendSuccess = false
     try {
@@ -105,10 +105,10 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
     } catch {
-      // API call failed
+      // API কল ব্যর্থ হয়েছে
     }
 
-    // Find or create contact
+    // পরিচিতি খুঁজে বের করা বা তৈরি করা হচ্ছে
     const contact = await db.whatsAppContact.upsert({
       where: { accountId_phone: { accountId: account.id, phone: to } },
       create: {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Find or create conversation
+    // কথোপকথন খুঁজে বের করা বা তৈরি করা হচ্ছে
     let conversation = await db.whatsAppConversation.findFirst({
       where: { contactId: contact.id, status: 'open' },
       orderBy: { lastMessageAt: 'desc' },
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Store message
+    // মেসেজ সংরক্ষণ করা হচ্ছে
     const message = await db.whatsAppMessage.create({
       data: {
         conversationId: conversation.id,
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update conversation
+    // কথোপকথন আপডেট করা হচ্ছে
     await db.whatsAppConversation.update({
       where: { id: conversation.id },
       data: {

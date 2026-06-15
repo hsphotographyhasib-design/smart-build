@@ -170,7 +170,7 @@ const features: {
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
+      {/* হিরো সেকশন */}
       <section className="relative bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 py-20 md:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-900/20 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
@@ -194,7 +194,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* Feature Cards Grid */}
+      {/* ফিচার কার্ড গ্রিড */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -228,7 +228,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA সেকশন */}
       <section className="border-t border-neutral-100 bg-neutral-50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">

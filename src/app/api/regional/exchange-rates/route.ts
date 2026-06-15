@@ -22,7 +22,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: formatted })
   } catch (error) {
-    console.error('Get exchange rates error:', error)
+    console.error('বিনিময় হার পাওয়া হচ্ছে error:', error)
     return NextResponse.json({ error: 'Failed to get exchange rates' }, { status: 500 })
   }
 }

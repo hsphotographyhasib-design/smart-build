@@ -3,31 +3,31 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 
 export interface UseSearchOptions {
-  /** Debounce delay in milliseconds (default: 400) */
+  /** মিলিসেকেন্ড ডিলে (ডিফল্ট: 400) */
   debounceMs?: number
-  /** Initial search query value (default: '') */
+  /** প্রারম্ভিক অনুসন্ধান কোয়েরি মান (ডিফল্ট: '') */
   initialQuery?: string
 }
 
 export interface UseSearchReturn {
-  /** The current raw query string as typed by the user */
+  /** ব্যবহারকারীর দ্বারা টাইপ করা কোয়েরি স্ট্রিং */
   query: string
-  /** The debounced version of the query – use this for API calls */
+  /** কোয়েরির ডিবাউন্সড সংস্করণ – API কলের জন্য এটি ব্যবহার করুন */
   debouncedQuery: string
-  /** Update the search query */
+  /** অনুসন্ধান কোয়েরি আপডেট করুন */
   setQuery: (query: string) => void
-  /** Clear the search query */
+  /** অনুসন্ধান কোয়েরি মুছুন */
   clearSearch: () => void
-  /** Whether the debounced value is still catching up to the raw query */
+  /** ডিবাউন্সড মান এখনও কাঁচা করছে কিনা তা প্রামাণ কোয়েরির সাথে ধরতে আছে */
   isDebouncing: boolean
 }
 
 /**
- * Combined search state management with built-in debouncing.
+ * অন্তর্ন্নীয় ডিবাউন্স সহ অনুসন্ধান অবস্থা পরিচালনা।
  *
- * Provides both the raw query (for controlled inputs) and a
- * debounced version (for API calls), so the user gets instant
- * typing feedback while avoiding excessive network requests.
+ * উভয় কাঁচা কোয়েরি (কন্ট্রোলড ইনপুটের জন্য) এবং একটি
+ * ডিবাউন্সড সংস্করণ (API কলের জন্য) প্রদান করে, যাতে ব্যবহারকারী তাৎক্ষণিক টাইপিং প্রতিক্রিয়া পায়
+ * এবং অতিরিক্ত নেটওয়ার্ক অনুরোধ এড়ায়।
  */
 export function useSearch(options?: UseSearchOptions): UseSearchReturn {
   const { debounceMs = 400, initialQuery = '' } = options ?? {}

@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     })
 
-    // Recalculate BOQ total
+    // BOQ মোট পুনরায় হিসাব করা হচ্ছে
     const allItems = await db.bOQItem.findMany({ where: { boqId: boq.id } })
     const total = allItems.reduce((sum, item) => sum + item.amount, 0)
     await db.bOQ.update({ where: { id: boq.id }, data: { total } })
@@ -77,7 +77,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     await db.bOQItem.delete({ where: { id: itemId } })
 
-    // Recalculate BOQ total
+    // BOQ মোট পুনরায় হিসাব করা হচ্ছে
     const allItems = await db.bOQItem.findMany({ where: { boqId: boq.id } })
     const total = allItems.reduce((sum, item) => sum + item.amount, 0)
     await db.bOQ.update({ where: { id: boq.id }, data: { total } })

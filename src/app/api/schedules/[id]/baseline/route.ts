@@ -12,7 +12,7 @@ export async function POST(
 
     const { id } = await params
 
-    // Fetch the source schedule with all activities and dependencies
+    // সমস্ত কার্যক্রম ও নির্ভরতাসহ উৎস সময়সূচি আনা হচ্ছে
     const sourceSchedule = await db.schedule.findUnique({
       where: { id },
       include: {
@@ -29,7 +29,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Schedule not found' }, { status: 404 })
     }
 
-    // Generate baseline schedule number
+    // বেসলাইন সময়সূচি নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'SCH'
     const count = await db.schedule.count({
@@ -37,7 +37,7 @@ export async function POST(
     })
     const scheduleNo = `${prefix}-${year}-${String(count + 1).padStart(7, '0')}`
 
-    // Create baseline schedule
+    // বেসলাইন সময়সূচি তৈরি করা হচ্ছে
     const baselineSchedule = await db.schedule.create({
       data: {
         scheduleNo,
@@ -61,10 +61,10 @@ export async function POST(
       },
     })
 
-    // Build a map of old activity id -> new activity id for dependency mapping
+    // নির্ভরতা ম্যাপিংয়ের জন্য পুরানো কার্যক্রম আইডি থেকে নতুন কার্যক্রম আইডিতে মানচিত্র তৈরি করা হচ্ছে
     const activityIdMap = new Map<string, string>()
 
-    // Clone activities to baseline
+    // বেসলাইনে কার্যক্রম ক্লোন করা হচ্ছে
     for (const activity of sourceSchedule.activities) {
       const newActivity = await db.scheduleActivity.create({
         data: {
@@ -73,7 +73,7 @@ export async function POST(
           name: activity.name,
           description: activity.description,
           taskType: activity.taskType,
-          parentId: null, // Will set parent mapping after all created
+          parentId: null, // সব তৈরির পর প্যারেন্ট ম্যাপিং সেট করা হবে
           startDate: activity.startDate,
           finishDate: activity.finishDate,
           duration: activity.duration,
@@ -109,7 +109,7 @@ export async function POST(
       activityIdMap.set(activity.id, newActivity.id)
     }
 
-    // Fix parent relationships
+    // প্যারেন্ট সম্পর্ক সংশোধন করা হচ্ছে
     for (const activity of sourceSchedule.activities) {
       if (activity.parentId && activityIdMap.has(activity.parentId)) {
         await db.scheduleActivity.update({
@@ -119,7 +119,7 @@ export async function POST(
       }
     }
 
-    // Clone dependencies
+    // নির্ভরতাগুলো ক্লোন করা হচ্ছে
     for (const dep of sourceSchedule.dependencies) {
       const newPredId = activityIdMap.get(dep.predecessorId)
       const newSuccId = activityIdMap.get(dep.successorId)
@@ -138,7 +138,7 @@ export async function POST(
       }
     }
 
-    // Clone milestones
+    // মাইলফলকগুলো ক্লোন করা হচ্ছে
     for (const milestone of sourceSchedule.milestones) {
       await db.scheduleMilestone.create({
         data: {
@@ -155,7 +155,7 @@ export async function POST(
       })
     }
 
-    // Clone calendars
+    // ক্যালেন্ডারগুলো ক্লোন করা হচ্ছে
     for (const calendar of sourceSchedule.calendars) {
       await db.scheduleCalendar.create({
         data: {
@@ -174,13 +174,13 @@ export async function POST(
       })
     }
 
-    // Update source schedule to point to baseline
+    // বেসলাইনের দিকে নির্দেশ করতে উৎস সময়সূচি আপডেট করা হচ্ছে
     await db.schedule.update({
       where: { id },
       data: { baselineScheduleId: baselineSchedule.id },
     })
 
-    // Also create a snapshot of the current state
+    // বর্তমান অবস্থার একটি স্ন্যাপশটও তৈরি করা হচ্ছে
     const snapshotData = {
       source: { id, scheduleNo: sourceSchedule.scheduleNo, name: sourceSchedule.name },
       activitiesCount: sourceSchedule.activities.length,

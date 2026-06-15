@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const budgetId = searchParams.get('budgetId')
 
-    // Get all budgets with their line items for forecasting
+    // সব বাজেট পাওয়া হচ্ছে with their line items for forecasting
     const whereClause: Record<string, unknown> = {}
     if (budgetId) whereClause.id = budgetId
 
@@ -40,14 +40,14 @@ export async function GET(request: NextRequest) {
       const cpi = budget > 0 && totalActual > 0 ? totalEarned / totalActual : 1
       const spi = budget > 0 && totalEarned > 0 ? totalEarned / budget : 1
 
-      const costVariance = budget - totalActual
-      const scheduleVariance = totalEarned - (budget * (b.project.progress / 100))
-      const costVariancePercent = budget > 0 ? (costVariance / budget) * 100 : 0
-      const scheduleVariancePercent = (budget * (b.project.progress / 100)) > 0
-        ? (scheduleVariance / (budget * (b.project.progress / 100))) * 100
+      const costপার্থক্য = budget - totalActual
+      const scheduleপার্থক্য = totalEarned - (budget * (b.project.progress / 100))
+      const costপার্থক্যPercent = budget > 0 ? (costপার্থক্য / budget) * 100 : 0
+      const scheduleপার্থক্যPercent = (budget * (b.project.progress / 100)) > 0
+        ? (scheduleপার্থক্য / (budget * (b.project.progress / 100))) * 100
         : 0
 
-      const atCompletionVariance = budget - totalEAC
+      const atCompletionপার্থক্য = budget - totalEAC
       const toCompleteIndex = totalActual > 0 && totalETC > 0 ? (totalActual + totalETC) / budget : 1
 
       return {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         projectProgress: b.project.progress,
         budgetStatus: b.status,
 
-        // Budget totals
+        // বাজেট সমষ্টি
         originalBudget: totalOriginal,
         revisedBudget: totalRevised,
         actualCost: totalActual,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         earnedRevenue: totalEarned,
         billedRevenue: totalBilled,
 
-        // Forecast metrics
+        // পূর্বাভাস মেট্রিক্স
         estimateAtCompletion: totalEAC || (totalActual > 0 ? totalActual + totalETC : totalRevised),
         estimateToComplete: totalETC || Math.max(0, (totalRevised || totalOriginal) - totalActual),
 
@@ -74,12 +74,12 @@ export async function GET(request: NextRequest) {
         cpi: Math.round(cpi * 1000) / 1000,
         spi: Math.round(spi * 1000) / 1000,
 
-        // Variances
-        costVariance,
-        costVariancePercent: Math.round(costVariancePercent * 100) / 100,
-        scheduleVariance,
-        scheduleVariancePercent: Math.round(scheduleVariancePercent * 100) / 100,
-        atCompletionVariance,
+        // পার্থক্যs
+        costপার্থক্য,
+        costপার্থক্যPercent: Math.round(costপার্থক্যPercent * 100) / 100,
+        scheduleপার্থক্য,
+        scheduleপার্থক্যPercent: Math.round(scheduleপার্থক্যPercent * 100) / 100,
+        atCompletionপার্থক্য,
         toCompleteIndex: Math.round(toCompleteIndex * 1000) / 1000,
 
         // Line item breakdown

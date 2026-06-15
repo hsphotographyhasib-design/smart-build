@@ -43,7 +43,7 @@ export function ScrollableCard({
   )
 }
 
-// WidgetCard - For dashboard KPI widgets
+// WidgetCard - ড্যাশবোর্ড KPI উইজেটের জন্য
 interface WidgetCardProps {
   title?: string
   value: string | number
@@ -79,7 +79,7 @@ export function WidgetCard({ title, value, description, icon: Icon, trend, class
   )
 }
 
-// ResponsiveGrid - Standardized grid layout
+// ResponsiveGrid - প্রমিত গ্রিড লেআউট
 interface ResponsiveGridProps {
   children: React.ReactNode
   cols?: 1 | 2 | 3 | 4
@@ -102,7 +102,7 @@ export function ResponsiveGrid({ children, cols = 4, gap = 'gap-4', className }:
   )
 }
 
-// ContentPanel - Full page content wrapper
+// ContentPanel - পূর্ণ পৃষ্ঠা বিষয়বস্তু র‍্যাপার
 interface ContentPanelProps {
   children: React.ReactNode
   className?: string

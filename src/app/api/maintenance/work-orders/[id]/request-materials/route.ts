@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface MaterialItem {
@@ -66,14 +66,14 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Work order must be in 'in_progress' status to request materials, current status: ${workOrder.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!workOrder.assignedTechnicianId || workOrder.assignedTechnician?.userId !== authUser.id) {
       return NextResponse.json({ success: false, error: 'Only the assigned technician can request materials' }, { status: 403 })
     }
 
     const now = new Date()
 
-    // Generate request number
+    // রিকোয়েস্ট নম্বর তৈরি করা হচ্ছে
     const year = now.getFullYear().toString()
     const lastMR = await db.materialRequest.findFirst({
       orderBy: { requestNo: 'desc' },
@@ -93,7 +93,7 @@ export async function POST(
       return sum + itemCost
     }, 0)
 
-    // Create material request with serialized items
+    // সিরিয়ালাইজড আইটেম সহ ম্যাটেরিয়াল রিকোয়েস্ট তৈরি করা হচ্ছে
     const serializedItems = items.map((item: MaterialItem) => ({
       name: item.name,
       quantity: item.quantity,
@@ -117,7 +117,7 @@ export async function POST(
       },
     })
 
-    // If ticket is in_progress, set to pending_parts
+    // টিকেট in_progress-এ থাকলে, pending_parts-এ সেট করা হচ্ছে
     if (workOrder.ticket && workOrder.ticket.status === 'in_progress') {
       await db.maintenanceTicket.update({
         where: { id: workOrder.ticketId },
@@ -132,7 +132,7 @@ export async function POST(
       })
     }
 
-    // Create timeline entry on ticket
+    // টিকেটে টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     if (workOrder.ticketId) {
       await db.maintenanceTimeline.create({
         data: {

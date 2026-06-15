@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(year, month - 1, 1)
     const endDate = new Date(year, month, 0, 23, 59, 59, 999)
 
-    // Income from payments
+    // পেমেন্ট থেকে আয়
     const payments = await db.payment.findMany({
       where: {
         date: { gte: startDate, lte: endDate },
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       select: { amount: true, date: true, method: true },
     })
 
-    // Expenses from daybook
+    // ডেবুক থেকে ব্যয়
     const expenses = await db.dayBookEntry.findMany({
       where: {
         date: { gte: startDate, lte: endDate },
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const totalIncome = payments.reduce((sum, p) => sum + p.amount, 0)
     const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0)
 
-    // Build daily flow
+    // দৈনিক প্রবাহ তৈরি করা হচ্ছে
     const days: { date: string; income: number; expense: number; net: number }[] = []
     const current = new Date(startDate)
     while (current <= endDate) {

@@ -30,7 +30,7 @@ import { Search, Truck, Eye, ArrowRightLeft, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Asset {
@@ -62,7 +62,7 @@ interface Assignment {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -77,7 +77,7 @@ const statusColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function VehicleResources() {
@@ -151,7 +151,7 @@ export function VehicleResources() {
     }
 
     if (actionType === 'transfer' && getAssignment(selectedVehicle.id)) {
-      // Complete current assignment and create new one
+      // বর্তমান বরাদ্দ সম্পন্ন করুন এবং নতুনটি তৈরি করুন
       const currentAssignment = getAssignment(selectedVehicle.id)!
       api.put(`/api/resources/assignments/${currentAssignment.id}`, { status: 'transferred' })
         .then(() => {

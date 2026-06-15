@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const discountAmount = discount ?? existing.discount
     const total = subtotal + taxAmount - discountAmount
 
-    // If items provided, delete old and create new
+    // আইটেম প্রদান করা হলে, পুরনো মুছে নতুন তৈরি করা হচ্ছে
     if (items && items.length > 0) {
       await db.invoiceItem.deleteMany({ where: { invoiceId: id } })
       await db.invoiceItem.createMany({

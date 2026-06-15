@@ -47,7 +47,7 @@ export async function PUT(
     const body = await request.json()
     const { name, category, description } = body
 
-    // Check for duplicate name if changing
+    // ডুপ্লিকেট যাচাই করা হচ্ছে name if changing
     if (name && name !== existing.name) {
       const duplicate = await db.skill.findUnique({ where: { name } })
       if (duplicate) {

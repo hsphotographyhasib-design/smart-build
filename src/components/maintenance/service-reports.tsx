@@ -48,7 +48,7 @@ function getTypeBadge(type: string) {
 export function ServiceReports() {
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* পৃষ্ঠা হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Service Reports</h1>
@@ -66,7 +66,7 @@ export function ServiceReports() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Reports', value: '48', color: 'text-foreground' },
@@ -83,7 +83,7 @@ export function ServiceReports() {
         ))}
       </div>
 
-      {/* Reports Table */}
+      {/* প্রতিবেদন টেবিল */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

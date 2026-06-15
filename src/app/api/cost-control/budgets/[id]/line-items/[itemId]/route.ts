@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       include: { costCode: true },
     })
 
-    // Recalculate budget totals
+    // বাজেট মোট পুনরায় হিসাব করা হচ্ছেs
     const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
     const newOriginal = allItems.reduce((s, li) => s + li.originalBudget, 0)
     const newRevised = allItems.reduce((s, li) => s + li.revisedBudget, 0)
@@ -71,7 +71,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     await db.budgetLineItem.delete({ where: { id: itemId } })
 
-    // Recalculate budget totals
+    // বাজেট মোট পুনরায় হিসাব করা হচ্ছেs
     const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
     const newTotal = allItems.reduce((s, li) => s + li.originalBudget, 0)
     await db.budget.update({

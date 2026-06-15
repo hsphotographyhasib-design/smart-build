@@ -1,6 +1,6 @@
 // src/modules/hr/components/index.ts
-// HR Module - Components Barrel Export
-// Re-exports all HR-related components for clean imports
+// HR মডিউল - কম্পোনেন্ট ব্যারেল এক্সপোর্ট
+// পরিষ্কার ইম্পোর্টের জন্য সমস্ত HR-সম্পর্কিত কম্পোনেন্ট রি-এক্সপোর্ট করা হয়েছে
 
 export { EmployeesPage } from '@/components/hr/employees-page'
 export { LeavePage } from '@/components/hr/leave-page'

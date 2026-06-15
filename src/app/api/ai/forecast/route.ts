@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
 
     const result: Record<string, unknown> = {}
 
-    // ===== LABOUR FORECASTING =====
+    // ===== শ্রমিক পূর্বাভাস =====
     if (type === 'all' || type === 'labour') {
-      // Attendance history - last 6 months
+      // উপস্থিতি ইতিহাস - গত ৬ মাস
       const sixMonthsAgo = new Date()
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         select: { date: true, labourId: true, hoursWorked: true, overtime: true, projectId: true, status: true },
       })
 
-      // Group by month
+      // মাস অনুযায়ী গোষ্ঠীভুক্ত করা হচ্ছে
       const monthlyLabour: Record<string, { month: string; totalWorkers: number; totalHours: number; avgHoursPerWorker: number }> = {}
       for (const att of attendanceRecords) {
         const monthKey = att.date.toISOString().slice(0, 7)
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
 
       const labourData = Object.values(monthlyLabour).sort((a, b) => a.month.localeCompare(b.month))
 
-      // Calculate forecast for next 3 months
+      // আগামী ৩ মাসের পূর্বাভাস হিসাব করা হচ্ছে
       const avgMonthlyWorkers = labourData.length > 0
-        ? Math.round(labourData.reduce((s, m) => s + m.totalWorkers, 0) / labourData.length / 30) // divide by ~30 days
+        ? Math.round(labourData.reduce((s, m) => s + m.totalWorkers, 0) / labourData.length / 30) // প্রায় ৩০ দিন দিয়ে ভাগ করা হচ্ছে
         : 0
 
       const activeProjects = await db.project.count({ where: { status: { in: ['active', 'on_hold'] } } })
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
           }))
         : []
 
-      // Add 3 forecast months
+      // ৩টি পূর্বাভাস মাস যোগ করা হচ্ছে
       const lastMonth = new Date()
       lastMonth.setMonth(lastMonth.getMonth() - 1)
       for (let i = 1; i <= 3; i++) {
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ===== RESOURCE OPTIMIZATION =====
+    // ===== সম্পদ অপ্টিমাইজেশন =====
     if (type === 'all' || type === 'resources') {
       const resourceAssignments = await db.resourceAssignment.findMany({
         include: {
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ===== COST FORECASTING =====
+    // ===== খরচ পূর্বাভাস =====
     if (type === 'all' || type === 'cost') {
       const sixMonthsAgo = new Date()
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
         },
       })
 
-      // Monthly cost aggregation
+      // মাসিক খরচ সমষ্টি
       const monthlyCosts: Record<string, { month: string; expenses: number; invoiced: number }> = {}
       for (const exp of expenses) {
         const mk = exp.date.toISOString().slice(0, 7)
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
 
       const costTrend = Object.values(monthlyCosts).sort((a, b) => a.month.localeCompare(b.month))
 
-      // Budget health
+      // বাজেট স্বাস্থ্য
       const budgetHealth = budgets.map(b => {
         const totalBudget = b.lineItems.reduce((s, li) => s + li.originalBudget, 0) || b.originalValue
         const totalActual = b.lineItems.reduce((s, li) => s + li.actualCost, 0)
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Cost anomaly detection
+      // খরচ অস্বাভাবিকতা সনাক্তকরণ
       const anomalies: { category: string; currentMonth: number; avgMonth: number; deviation: number; severity: string }[] = []
       if (costTrend.length >= 3) {
         const latest = costTrend[costTrend.length - 1]
@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // 3-month cost forecast
+      // ৩ মাসের খরচ পূর্বাভাস
       const costForecast = costTrend.length >= 2
         ? costTrend.slice(-3).map((m, i) => ({
             month: m.month,
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ===== SCHEDULE RISK =====
+    // ===== সময়সূচি ঝুঁকি =====
     if (type === 'all' || type === 'schedule') {
       const now = new Date()
 

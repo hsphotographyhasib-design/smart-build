@@ -1,13 +1,13 @@
 /**
- * SmartBuild ERP - Role-Based Access Control (RBAC) Configuration
+ * SmartBuild ERP - ভূমিকা-ভিত্তিক অ্যাক্সেস নিয়ন্ত্রণ (RBAC) কনফিগারেশন
  *
- * Defines which pages each role can access in the sidebar menu
- * and which roles can perform which API operations.
+ * সাইডবার মেনুতে প্রতিটি ভূমিকা কোন পৃষ্ঠাগুলোতে অ্যাক্সেস করতে পারে
+ * এবং কোন ভূমিকাগুলো কোন API কার্যকলাপ সম্পাদন করতে পারে তা নির্ধারণ করে।
  *
- * Role Hierarchy: super_admin > admin > {supervisor, hr_manager, accountant, store_manager, auditor} > client, labour, vendor
+ * ভূমিকা স্তরবিন্যাস: super_admin > admin > {supervisor, hr_manager, accountant, store_manager, auditor} > client, labour, vendor
  */
 
-// ============ ROLE DEFINITIONS ============
+// ============ ভূমিকা সংজ্ঞায়িত করা হচ্ছে ============
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
@@ -23,7 +23,7 @@ export const ROLES = {
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
 
-// ============ ROLE LABELS ============
+// ============ ভূমিকা লেবেল ============
 export const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
   admin: 'Admin',
@@ -37,7 +37,7 @@ export const ROLE_LABELS: Record<string, string> = {
   auditor: 'Auditor',
 }
 
-// ============ ROLE HIERARCHY (higher number = more permissions) ============
+// ============ ভূমিকা স্তরবিন্যাস (উচ্চতর সংখ্যা = বেশি অনুমতি) ============
 const ROLE_LEVEL: Record<string, number> = {
   super_admin: 100,
   admin: 90,
@@ -52,7 +52,7 @@ const ROLE_LEVEL: Record<string, number> = {
 }
 
 /**
- * Check if user role has at least the minimum required level.
+ * ব্যবহারকারীর ভূমিকার ন্যূনতম প্রয়োজনীয় স্তর আছে কিনা পরীক্ষা করা হচ্ছে।
  */
 export function hasMinRoleLevel(userRole: string, minRole: string): boolean {
   const userLevel = ROLE_LEVEL[userRole] ?? 0

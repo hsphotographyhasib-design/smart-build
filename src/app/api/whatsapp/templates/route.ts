@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth, createAuditLog } from '@/lib/auth'
 
-// GET — List message templates
+// GET — মেসেজ টেমপ্লেটের তালিকা
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST — Create template
+// POST — টেমপ্লেট তৈরি করা হচ্ছে
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get or check account
+    // অ্যাকাউন্ট পাওয়া বা যাচাই করা হচ্ছে
     const account = await db.whatsAppAccount.findFirst()
     if (!account) {
       return NextResponse.json({ success: false, error: 'WhatsApp account not configured' }, { status: 400 })
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT — Update template
+// PUT — টেমপ্লেট আপডেট করা হচ্ছে
 export async function PUT(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -129,7 +129,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE — Delete template
+// DELETE — টেমপ্লেট মুছে ফেলা হচ্ছে
 export async function DELETE(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)

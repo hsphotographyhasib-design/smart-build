@@ -25,7 +25,7 @@ import {
   Banknote,
 } from 'lucide-react'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const payStatusConfig: Record<string, { label: string; className: string }> = {
   unpaid: { label: 'Unpaid', className: 'bg-gray-100 text-gray-600' },
   partial: { label: 'Partial', className: 'bg-amber-100 text-amber-700' },
@@ -33,7 +33,7 @@ const payStatusConfig: Record<string, { label: string; className: string }> = {
   overdue: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
 }
 
-// ─── Component ───
+// ─── উপাদান ───
 export function InvoicePaymentsPage() {
   const { navigate } = useAppStore()
   const { formatCurrency, formatDate } = useFormat()
@@ -42,7 +42,7 @@ export function InvoicePaymentsPage() {
   const [recordDialog, setRecordDialog] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
 
-  // Filters
+  // ফিল্টারসমূহ
   const [statusFilter, setStatusFilter] = useState('all')
   const [projectFilter, setProjectFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
@@ -50,12 +50,12 @@ export function InvoicePaymentsPage() {
   const [page, setPage] = useState(1)
   const pageSize = 20
 
-  // Payment form
+  // অর্থ প্রদান ফর্ম
   const [payForm, setPayForm] = useState({
     amount: 0, method: 'bank_transfer', reference: '', bankReference: '', chequeNumber: '',
   })
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const params = useMemo(() => {
     const p = new URLSearchParams()
     if (statusFilter !== 'all') p.set('paymentStatus', statusFilter)
@@ -83,7 +83,7 @@ export function InvoicePaymentsPage() {
   const totalItems = payData?.data?.total || payments.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const recordMutation = useMutation({
     mutationFn: ({ invoiceId, body }: { invoiceId: string; body: any }) =>
       api.post(`/api/invoicing/payments/${invoiceId}/record`, body),
@@ -108,7 +108,7 @@ export function InvoicePaymentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Invoice Payments</h1>
@@ -116,7 +116,7 @@ export function InvoicePaymentsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -164,7 +164,7 @@ export function InvoicePaymentsPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -196,7 +196,7 @@ export function InvoicePaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           <div className="max-h-[calc(100vh-280px)] overflow-y-auto overflow-x-auto">
@@ -260,7 +260,7 @@ export function InvoicePaymentsPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-xs text-muted-foreground">
@@ -280,7 +280,7 @@ export function InvoicePaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* ─── Record Payment Dialog ─── */}
+      {/* ─── অর্থ প্রদান রেকর্ড ডায়ালগ ─── */}
       <Dialog open={recordDialog} onOpenChange={open => { setRecordDialog(open); if (!open) setSelectedInvoice(null) }}>
         <DialogContent>
           <DialogHeader>

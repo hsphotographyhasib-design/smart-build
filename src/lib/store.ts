@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-// ============ NAVIGATION / ROUTING STORE ============
+// ============ নেভিগেশন / রাউটিং স্টোর ============
 export type AppPage = 
   | 'dashboard'
   | 'projects'
@@ -70,50 +70,50 @@ export type AppPage =
   | 'landing'
 
 interface AppState {
-  // Auth
+  // প্রমাণীকরণ
   user: any | null
   token: string | null
   isAuthenticated: boolean
   
-  // Navigation
+  // নেভিগেশন
   currentPage: AppPage
   pageParams: Record<string, string>
   breadcrumbs: { label: string; page?: AppPage; params?: Record<string, string> }[]
   sidebarOpen: boolean
   
-  // Theme
+  // থিম
   theme: 'light' | 'dark' | 'system'
   
-  // Actions - Auth
+  // কার্য - প্রমাণীকরণ
   setUser: (user: any) => void
   setToken: (token: string | null) => void
   logout: () => void
   
-  // Actions - Navigation
+  // কার্য - নেভিগেশন
   navigate: (page: AppPage, params?: Record<string, string>) => void
   setSidebarOpen: (open: boolean) => void
   setBreadcrumbs: (items: { label: string; page?: AppPage; params?: Record<string, string> }[]) => void
   
-  // Actions - Theme
+  // কার্য - থিম
   setTheme: (theme: 'light' | 'dark' | 'system') => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  // Auth
+  // প্রমাণীকরণ
   user: null,
   token: typeof window !== 'undefined' ? localStorage.getItem('sb_token') : null,
   isAuthenticated: false,
   
-  // Navigation
+  // নেভিগেশন
   currentPage: 'dashboard',
   pageParams: {},
   breadcrumbs: [{ label: 'Dashboard' }],
   sidebarOpen: true,
   
-  // Theme
+  // থিম
   theme: 'light',
   
-  // Auth actions
+  // প্রমাণীকরণ কার্যসমূহ
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   setToken: (token) => {
     if (typeof window !== 'undefined') {
@@ -127,7 +127,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ user: null, token: null, isAuthenticated: false, currentPage: 'dashboard', pageParams: {} })
   },
   
-  // Navigation actions
+  // নেভিগেশন কার্যসমূহ
   navigate: (page, params = {}) => {
     const pageLabels: Record<string, string> = {
       'dashboard': 'Dashboard',
@@ -206,7 +206,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setBreadcrumbs: (items) => set({ breadcrumbs: items }),
   
-  // Theme actions
+  // থিম কার্যসমূহ
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sb_theme', theme)

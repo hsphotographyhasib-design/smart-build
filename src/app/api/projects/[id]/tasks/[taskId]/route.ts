@@ -91,7 +91,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
     }
 
-    // Delete subtasks first (cascade should handle this, but be explicit)
+    // প্রথমে সাবটাস্ক মুছে ফেলা হচ্ছে (ক্যাসকেড এটি পরিচালনা করলেও, স্পষ্টভাবে উল্লেখ করা হচ্ছে)
     await db.projectTask.deleteMany({ where: { parentTaskId: taskId } })
     await db.projectTask.delete({ where: { id: taskId } })
 

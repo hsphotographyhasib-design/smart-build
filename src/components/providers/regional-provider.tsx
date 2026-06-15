@@ -61,10 +61,10 @@ export function RegionalProvider({ children }: { children: ReactNode }) {
   const regionLoaded = useAppStore((s) => s.regionLoaded)
   const initialized = useRef(false)
 
-  // Fetch regional config from API
+  // API থেকে আঞ্চলিক কনফিগ আনা হচ্ছে
   const fetchRegion = useCallback(async (countryCode?: string) => {
     try {
-      // Get browser timezone for detection
+      // সনাক্তকরণের জন্য ব্রাউজার টাইমজোন প্রাপ্ত হচ্ছে
       let tz: string | null = null
       try {
         tz = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -85,7 +85,7 @@ export function RegionalProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Regional detection failed:', error)
-      // Fallback: set Brunei defaults
+      // ফলব্যাক: ব্রুনাই ডিফল্ট সেট করা হচ্ছে
       if (!regionLoaded) {
         setRegionConfig(defaultConfig)
       }
@@ -98,7 +98,7 @@ export function RegionalProvider({ children }: { children: ReactNode }) {
     fetchRegion()
   }, [fetchRegion])
 
-  // Update user preferences (for logged-in users)
+  // ব্যবহারকারীর পছন্দ হালনাগাদ করা হচ্ছে (লগইন ব্যবহারকারীদের জন্য)
   const updatePreference = useCallback(async (prefs: Record<string, string>) => {
     if (!token) return
 
@@ -120,18 +120,18 @@ export function RegionalProvider({ children }: { children: ReactNode }) {
     }
   }, [token, fetchRegion])
 
-  // Change country (for non-logged-in visitors, stored in sessionStorage)
+  // দেশ পরিবর্তন (লগইন না করা দর্শকদের জন্য, sessionStorage-এ সংরক্ষিত)
   const changeCountry = useCallback(async (countryCode: string) => {
-    // Store preference in sessionStorage for visitors
+    // দর্শকদের জন্য sessionStorage-এ পছন্দ সংরক্ষণ করা হচ্ছে
     try {
       sessionStorage.setItem('sb_country', countryCode)
     } catch { /* ignore */ }
 
-    // For logged-in users, update server preference
+    // লগইন ব্যবহারকারীদের জন্য, সার্ভার পছন্দ হালনাগাদ করুন
     if (token) {
       await updatePreference({ country: countryCode })
     } else {
-      // For visitors, just update the local state
+      // দর্শকদের জন্য, শুধুমাত্র স্থানীয় অবস্থা হালনাগাদ করুন
       const config = getFullRegionalConfig(countryCode)
       if (config) {
         setRegionConfig(config)
@@ -139,7 +139,7 @@ export function RegionalProvider({ children }: { children: ReactNode }) {
     }
   }, [token, updatePreference, setRegionConfig])
 
-  // Build context value from store
+  // স্টোর থেকে কনটেক্সট মান তৈরি করা হচ্ছে
   const ctxValue: RegionConfig = useMemo(() => ({
     country: regionConfig?.country ?? null,
     currency: regionConfig?.currency ?? null,

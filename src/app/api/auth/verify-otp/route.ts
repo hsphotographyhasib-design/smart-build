@@ -10,7 +10,7 @@ const otpSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    // হার সীমাবদ্ধতা প্রয়োগ করা হচ্ছে
     const rateLimit = checkRateLimit(request, rateLimiters.otp, 'otp')
     if (!rateLimit.success) {
       return NextResponse.json(
@@ -22,18 +22,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validation
+    // যাচাইকরণ
     const body = await request.json()
     const validation = validateBody(otpSchema, body)
     if (validation.error) return validation.error
 
     const { email, code } = validation.data
 
-    // TODO: Implement OTP verification logic
-    // - Look up pending OTP for the given email
-    // - Verify the code matches and hasn't expired
-    // - Mark the OTP as verified / consume it
-    // - Activate the user account or complete the auth flow
+    // TODO: OTP যাচাইকরণ লজিক বাস্তবায়ন করুন
+    // - প্রদত্ত ইমেইলের জন্য অমীমাংসিত OTP খুঁজুন
+    // - কোড মিলেছে কিনা এবং মেয়াদ শেষ হয়নি তা যাচাই করুন
+    // - OTP যাচাইকৃত হিসেবে চিহ্নিত / ব্যবহৃত করুন
+    // - ব্যবহারকারী অ্যাকাউন্ট সক্রিয় করুন অথবা প্রমাণীকরণ প্রক্রিয়া সম্পন্ন করুন
 
     return NextResponse.json(
       { success: false, error: 'OTP verification not yet implemented' },

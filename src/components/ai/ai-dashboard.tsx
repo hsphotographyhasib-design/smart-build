@@ -117,7 +117,7 @@ export function AIDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export function AIDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI কার্ড */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <KPICard title="Total Revenue" value={formatCurrency(kpis?.totalRevenue || 0)} icon={DollarSign} color="bg-gradient-to-br from-purple-500 to-violet-500" subtitle={`${kpis?.collectedRevenue ? formatCurrency(kpis.collectedRevenue) + ' collected' : ''}`} />
         <KPICard title="Total Expenses" value={formatCurrency(kpis?.totalExpenses || 0)} icon={TrendingDown} color="bg-gradient-to-br from-amber-500 to-orange-500" />
@@ -154,7 +154,7 @@ export function AIDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Monthly Trends Chart */}
+        {/* মাসিক ট্রেন্ড চার্ট */}
         <Card className="lg:col-span-2 border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Monthly Revenue, Expenses & Profit</CardTitle>
@@ -176,7 +176,7 @@ export function AIDashboard() {
           </CardContent>
         </Card>
 
-        {/* AI Insights Feed */}
+        {/* AI অন্তর্দৃষ্টি ফিড */}
         <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <div>
@@ -231,7 +231,7 @@ export function AIDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Projects by Revenue */}
+        {/* আয় অনুযায়ী শীর্ষ প্রকল্প */}
         <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Top Projects by Revenue</CardTitle>
@@ -250,7 +250,7 @@ export function AIDashboard() {
           </CardContent>
         </Card>
 
-        {/* Risk Alerts & Budget Health */}
+        {/* ঝুঁকি সতর্কতা ও বাজেট স্বাস্থ্য */}
         <div className="space-y-4">
           <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">

@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface Adjustments {
@@ -46,7 +46,7 @@ export async function POST(
     const authUser = await verifyAuth(request)
     if (!authUser) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Finance role check
+    // ফাইন্যান্স ভূমিকা যাচাই করা হচ্ছে
     if (!requireRole(authUser, ['admin', 'manager', 'accountant'])) {
       return NextResponse.json({ success: false, error: 'Only admin, manager, or accountant can review invoices' }, { status: 403 })
     }
@@ -73,7 +73,7 @@ export async function POST(
 
     const newStatus = action === 'approve' ? 'sent' : 'draft'
 
-    // Build update data
+    // আপডেট ডেটা তৈরি করা হচ্ছে
     const updateData: Record<string, unknown> = { status: newStatus, notes: notes || invoice.notes }
 
     if (adjustments) {
@@ -84,7 +84,7 @@ export async function POST(
       if (adjustments.tax !== undefined) updateData.tax = adjustments.tax
       if (adjustments.discount !== undefined) updateData.discount = adjustments.discount
 
-      // Recalculate total
+      // মোট পরিমাণ পুনরায় হিসাব করা হচ্ছে
       const lC = adjustments.labourCost !== undefined ? adjustments.labourCost : invoice.labourCost
       const mC = adjustments.materialCost !== undefined ? adjustments.materialCost : invoice.materialCost
       const tC = adjustments.transportCost !== undefined ? adjustments.transportCost : invoice.transportCost
@@ -99,7 +99,7 @@ export async function POST(
       data: updateData,
     })
 
-    // Create timeline entry on linked ticket
+    // সংযুক্ত টিকেটে টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     if (invoice.ticketId) {
       await db.maintenanceTimeline.create({
         data: {

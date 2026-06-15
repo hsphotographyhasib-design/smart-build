@@ -12,11 +12,11 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
-// POST — Assign conversation to agent
+// POST — কথোপকথন এজেন্টে অ্যাসাইন করা হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -33,7 +33,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'assignedToId is required' }, { status: 400 })
     }
 
-    // Verify assignee exists
+    // অ্যাসাইনি বিদ্যমান কিনা যাচাই করা হচ্ছে
     const assignee = await db.user.findUnique({
       where: { id: assignedToId },
       select: { id: true, name: true, isActive: true },

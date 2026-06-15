@@ -28,7 +28,7 @@ export async function POST(
       )
     }
 
-    // Create a final snapshot before archiving
+    // আর্কাইভ করার পূর্বে একটি চূড়ান্ত স্ন্যাপশট তৈরি করা হচ্ছে
     const activities = await db.scheduleActivity.findMany({
       where: { scheduleId: id },
       select: { activityId: true, name: true, duration: true, startDate: true, finishDate: true, progress: true, status: true },
@@ -55,7 +55,7 @@ export async function POST(
       },
     })
 
-    // Update status to archived
+    // অবস্থা আর্কাইভড হিসেবে আপডেট করা হচ্ছে
     const updated = await db.schedule.update({
       where: { id },
       data: { status: 'archived' },

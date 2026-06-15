@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface VerifyBody {
@@ -77,7 +77,7 @@ export async function POST(
         },
       })
 
-      // Update linked invoice: keep as draft for finance review (no status change)
+      // সংযুক্ত ইনভয়েস আপডেট করা হচ্ছে: ফাইন্যান্স রিভিউয়ের জন্য ড্রাফট রাখা হচ্ছে (স্ট্যাটাস পরিবর্তন নেই)
       await db.maintenanceTimeline.create({
         data: {
           ticketId: id,
@@ -107,13 +107,13 @@ export async function POST(
       return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(updatedTicket)) })
     }
 
-    // reject or rework
+    // প্রত্যাখ্যান বা পুনর্কাজ
     const updatedTicket = await db.maintenanceTicket.update({
       where: { id },
       data: { status: 'in_progress' },
     })
 
-    // If linked WO is completed, set back to in_progress
+    // সংযুক্ত ওয়ার্ক অর্ডার সম্পন্ন হলে, আবার in_progress-এ সেট করা হচ্ছে
     if (ticket.workOrder && ticket.workOrder.status === 'completed') {
       await db.maintenanceWorkOrder.update({
         where: { id: ticket.workOrder.id },

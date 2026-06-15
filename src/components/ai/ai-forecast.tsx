@@ -107,7 +107,7 @@ export function AIForecast() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex items-center gap-2">
         <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600">
           <Zap className="h-5 w-5 text-white" />
@@ -126,7 +126,7 @@ export function AIForecast() {
           <TabsTrigger value="schedule" className="gap-1.5 text-xs"><Clock className="h-3.5 w-3.5" /> Schedule</TabsTrigger>
         </TabsList>
 
-        {/* Labour Tab */}
+        {/* শ্রম ট্যাব */}
         <TabsContent value="labour" className="space-y-4">
           {labour && (
             <>
@@ -170,7 +170,7 @@ export function AIForecast() {
           )}
         </TabsContent>
 
-        {/* Resources Tab */}
+        {/* সম্পদ ট্যাব */}
         <TabsContent value="resources" className="space-y-4">
           {resources && (
             <>
@@ -246,7 +246,7 @@ export function AIForecast() {
           )}
         </TabsContent>
 
-        {/* Cost Tab */}
+        {/* খরচ ট্যাব */}
         <TabsContent value="cost" className="space-y-4">
           {cost && (
             <>
@@ -309,7 +309,7 @@ export function AIForecast() {
           )}
         </TabsContent>
 
-        {/* Schedule Tab */}
+        {/* সময়সূচি ট্যাব */}
         <TabsContent value="schedule" className="space-y-4">
           {schedule && (
             <>

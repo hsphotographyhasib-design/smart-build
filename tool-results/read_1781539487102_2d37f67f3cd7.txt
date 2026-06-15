@@ -1,0 +1,1385 @@
+     1→'use client'
+     2→
+     3→import Link from 'next/link'
+     4→import { useParams } from 'next/navigation'
+     5→import {
+     6→  LayoutDashboard,
+     7→  Users,
+     8→  MessageSquare,
+     9→  ClipboardList,
+    10→  ShoppingCart,
+    11→  Package,
+    12→  DollarSign,
+    13→  Target,
+    14→  UserCog,
+    15→  Wallet,
+    16→  Wrench,
+    17→  CalendarRange,
+    18→  Building,
+    19→  Smartphone,
+    20→  BarChart3,
+    21→  Brain,
+    22→  ArrowRight,
+    23→  ArrowLeft,
+    24→  CheckCircle2,
+    25→  Clock,
+    26→  Settings2,
+    27→  TrendingUp,
+    28→  ShieldCheck,
+    29→  Zap,
+    30→  ListChecks,
+    31→  BarChart2,
+    32→  FileText,
+    33→  Bell,
+    34→  Layers,
+    35→  type LucideIcon,
+    36→} from 'lucide-react'
+    37→
+    38→/* ------------------------------------------------------------------ */
+    39→/*  Icon & colour maps                                                 */
+    40→/* ------------------------------------------------------------------ */
+    41→
+    42→const iconMap: Record<string, LucideIcon> = {
+    43→  'project-management': LayoutDashboard,
+    44→  'resource-management': Users,
+    45→  'complaint-management': MessageSquare,
+    46→  'work-orders': ClipboardList,
+    47→  'preventive-maintenance': CalendarRange,
+    48→  procurement: ShoppingCart,
+    49→  inventory: Package,
+    50→  finance: DollarSign,
+    51→  'cost-control': Target,
+    52→  hr: UserCog,
+    53→  payroll: Wallet,
+    54→  'asset-management': Wrench,
+    55→  scheduling: CalendarRange,
+    56→  'client-portal': Building,
+    57→  'mobile-app': Smartphone,
+    58→  reporting: BarChart3,
+    59→  'ai-assistant': Brain,
+    60→}
+    61→
+    62→const colorMap: Record<string, string> = {
+    63→  'project-management': 'bg-amber-100 text-amber-600',
+    64→  'resource-management': 'bg-emerald-100 text-emerald-600',
+    65→  'complaint-management': 'bg-orange-100 text-orange-600',
+    66→  'work-orders': 'bg-teal-100 text-teal-600',
+    67→  'preventive-maintenance': 'bg-amber-100 text-amber-600',
+    68→  procurement: 'bg-emerald-100 text-emerald-600',
+    69→  inventory: 'bg-orange-100 text-orange-600',
+    70→  finance: 'bg-teal-100 text-teal-600',
+    71→  'cost-control': 'bg-amber-100 text-amber-600',
+    72→  hr: 'bg-emerald-100 text-emerald-600',
+    73→  payroll: 'bg-orange-100 text-orange-600',
+    74→  'asset-management': 'bg-teal-100 text-teal-600',
+    75→  scheduling: 'bg-amber-100 text-amber-600',
+    76→  'client-portal': 'bg-emerald-100 text-emerald-600',
+    77→  'mobile-app': 'bg-orange-100 text-orange-600',
+    78→  reporting: 'bg-teal-100 text-teal-600',
+    79→  'ai-assistant': 'bg-amber-100 text-amber-600',
+    80→}
+    81→
+    82→/* ------------------------------------------------------------------ */
+    83→/*  Feature data (6 detailed + 11 generic)                             */
+    84→/* ------------------------------------------------------------------ */
+    85→
+    86→interface KeyFeature {
+    87→  icon: LucideIcon
+    88→  title: string
+    89→  description: string
+    90→}
+    91→
+    92→interface Benefit {
+    93→  title: string
+    94→  description: string
+    95→}
+    96→
+    97→interface WorkflowStep {
+    98→  step: number
+    99→  title: string
+   100→  description: string
+   101→}
+   102→
+   103→interface FAQItem {
+   104→  question: string
+   105→  answer: string
+   106→}
+   107→
+   108→interface FeatureInfo {
+   109→  title: string
+   110→  metaTitle: string
+   111→  metaDescription: string
+   112→  overview: string[]
+   113→  keyFeatures: KeyFeature[]
+   114→  benefits: Benefit[]
+   115→  workflow: WorkflowStep[]
+   116→  faq: FAQItem[]
+   117→}
+   118→
+   119→const featureData: Record<string, FeatureInfo> = {
+   120→  /* ===== DETAILED ===== */
+   121→
+   122→  'project-management': {
+   123→    title: 'Project Management',
+   124→    metaTitle: 'SmartBuild Project Management - End-to-End Construction Project Tracking',
+   125→    metaDescription:
+   126→      'Manage every phase of your construction projects with SmartBuild. From planning and budgeting to execution and closeout.',
+   127→    overview: [
+   128→      'SmartBuild Project Management gives you complete visibility into every phase of your construction projects. Whether you are managing a single residential build or a portfolio of commercial developments, our module adapts to your workflow and keeps every stakeholder aligned.',
+   129→      'Create detailed project plans with milestones, tasks, and dependencies. Assign resources, set deadlines, and track progress in real time through interactive Gantt charts and Kanban boards. Automatic notifications ensure that nothing falls through the cracks.',
+   130→      'With integrated document management, daily logs, and change order tracking, all project information lives in one place. This eliminates siloed spreadsheets, reduces miscommunication, and keeps your team focused on delivering projects on time and within budget.',
+   131→    ],
+   132→    keyFeatures: [
+   133→      {
+   134→        icon: ListChecks,
+   135→        title: 'Task & Milestone Tracking',
+   136→        description:
+   137→          'Break projects into tasks, set dependencies, and monitor progress with visual Gantt charts and Kanban boards.',
+   138→      },
+   139→      {
+   140→        icon: Layers,
+   141→        title: 'Multi-Project Dashboard',
+   142→        description:
+   143→          'See the status of all active projects at a glance with real-time KPIs, health scores, and timeline indicators.',
+   144→      },
+   145→      {
+   146→        icon: FileText,
+   147→        title: 'Document Management',
+   148→        description:
+   149→          'Upload, version, and share drawings, contracts, and specifications linked directly to project milestones.',
+   150→      },
+   151→      {
+   152→        icon: Bell,
+   153→        title: 'Automated Notifications',
+   154→        description:
+   155→          'Get alerts for upcoming deadlines, overdue tasks, and status changes to keep projects on track.',
+   156→      },
+   157→      {
+   158→        icon: Settings2,
+   159→        title: 'Custom Workflows',
+   160→        description:
+   161→          'Configure approval chains, stage gates, and status transitions that match your company\'s processes.',
+   162→      },
+   163→      {
+   164→        icon: TrendingUp,
+   165→        title: 'Progress Reporting',
+   166→        description:
+   167→          'Generate earned-value, status, and progress reports for stakeholders and clients in one click.',
+   168→      },
+   169→    ],
+   170→    benefits: [
+   171→      {
+   172→        title: 'Reduce Project Overruns by 30%',
+   173→        description:
+   174→          'Proactive scheduling and resource planning help you catch delays early and keep projects on budget.',
+   175→      },
+   176→      {
+   177→        title: 'Improve Team Collaboration',
+   178→        description:
+   179→          'Centralized communication, task assignments, and file sharing keep everyone aligned and accountable.',
+   180→      },
+   181→      {
+   182→        title: 'Faster Decision-Making',
+   183→        description:
+   184→          'Real-time dashboards and automated alerts give managers the data they need to act quickly.',
+   185→      },
+   186→      {
+   187→        title: 'Complete Audit Trail',
+   188→        description:
+   189→          'Every change, comment, and status update is logged, providing full traceability for compliance.',
+   190→      },
+   191→    ],
+   192→    workflow: [
+   193→      {
+   194→        step: 1,
+   195→        title: 'Plan Your Project',
+   196→        description:
+   197→          'Define scope, set milestones, assign resources, and create a detailed project schedule with dependencies.',
+   198→      },
+   199→      {
+   200→        step: 2,
+   201→        title: 'Execute & Track',
+   202→        description:
+   203→          'Teams update task progress daily. Managers monitor dashboards and receive automated alerts for at-risk items.',
+   204→      },
+   205→      {
+   206→        step: 3,
+   207→        title: 'Report & Close',
+   208→        description:
+   209→          'Generate completion reports, archive documents, and capture lessons learned for continuous improvement.',
+   210→      },
+   211→    ],
+   212→    faq: [
+   213→      {
+   214→        question: 'Can I manage multiple projects simultaneously?',
+   215→        answer:
+   216→          'Absolutely. SmartBuild supports unlimited projects with a unified portfolio dashboard that shows progress, budget health, and resource allocation across all active work.',
+   217→      },
+   218→      {
+   219→        question: 'Does it integrate with other modules like finance and procurement?',
+   220→        answer:
+   221→          'Yes — Project Management is deeply integrated with Finance, Procurement, Resource Management, and Cost Control. Budget items link directly to purchase orders, and resource allocation syncs with HR and equipment modules.',
+   222→      },
+   223→      {
+   224→        question: 'Can clients view project progress?',
+   225→        answer:
+   226→          'Through the Client Portal, clients can see real-time progress, milestones, and documents that you choose to share — all without needing a full license.',
+   227→      },
+   228→      {
+   229→        question: 'Is there a limit on the number of tasks per project?',
+   230→        answer:
+   231→          'No. SmartBuild is designed to handle projects of any size, from small renovations with dozens of tasks to large infrastructure projects with thousands.',
+   232→      },
+   233→    ],
+   234→  },
+   235→
+   236→  'resource-management': {
+   237→    title: 'Resource Management',
+   238→    metaTitle: 'SmartBuild Resource Management - Workforce, Equipment & Material Optimization',
+   239→    metaDescription:
+   240→      'Optimize your construction workforce, equipment, and materials with SmartBuild Resource Management for maximum efficiency.',
+   241→    overview: [
+   242→      'SmartBuild Resource Management provides a unified platform to plan, allocate, and track all your construction resources — labour, equipment, vehicles, and tools — across every project in your portfolio.',
+   243→      'With resource-loaded scheduling, you can visualize capacity constraints before they become bottlenecks. Drag-and-drop planning lets you quickly reassign resources when priorities shift, while real-time utilization dashboards highlight underused or over-allocated assets.',
+   244→      'The module integrates seamlessly with HR, Payroll, and Procurement so that resource plans stay in sync with actual availability, costs, and procurement lead times. The result is fewer idle resources, lower costs, and faster project delivery.',
+   245→    ],
+   246→    keyFeatures: [
+   247→      {
+   248→        icon: Users,
+   249→        title: 'Workforce Planning',
+   250→        description:
+   251→          'View all employees and labour groups by skill, availability, and project assignment in a single calendar.',
+   252→      },
+   253→      {
+   254→        icon: Wrench,
+   255→        title: 'Equipment & Vehicle Tracking',
+   256→        description:
+   257→          'Track heavy equipment, vehicles, and tools with maintenance schedules, utilization rates, and GPS location.',
+   258→      },
+   259→      {
+   260→        icon: BarChart2,
+   261→        title: 'Utilization Dashboards',
+   262→        description:
+   263→          'Monitor resource utilization in real time with heat maps and charts that highlight over- or under-allocation.',
+   264→      },
+   265→      {
+   266→        icon: Clock,
+   267→        title: 'Resource Forecasting',
+   268→        description:
+   269→          'Predict future resource needs based on project pipelines, seasonal patterns, and historical utilization.',
+   270→      },
+   271→      {
+   272→        icon: Zap,
+   273→        title: 'Quick Reassignment',
+   274→        description:
+   275→          'Drag-and-drop interface lets you reassign resources between projects when priorities change.',
+   276→      },
+   277→    ],
+   278→    benefits: [
+   279→      {
+   280→        title: 'Up to 25% Higher Utilization',
+   281→        description:
+   282→          'Identify idle resources and redistribute them where they\'re needed most with data-driven insights.',
+   283→      },
+   284→      {
+   285→        title: 'Eliminate Double-Booking',
+   286→        description:
+   287→          'Conflict detection prevents assigning the same person or piece of equipment to overlapping tasks.',
+   288→      },
+   289→      {
+   290→        title: 'Lower Equipment Downtime',
+   291→        description:
+   292→          'Integrated maintenance scheduling ensures equipment is serviced before it fails on-site.',
+   293→      },
+   294→      {
+   295→        title: 'Data-Driven Hiring Decisions',
+   296→        description:
+   297→          'Forecasting reports show exactly when you need more crew members based on upcoming project demand.',
+   298→      },
+   299→    ],
+   300→    workflow: [
+   301→      {
+   302→        step: 1,
+   303→        title: 'Define Resource Pool',
+   304→        description:
+   305→          'Register all workforce, equipment, and tools with their skills, certifications, and availability windows.',
+   306→      },
+   307→      {
+   308→        step: 2,
+   309→        title: 'Allocate to Projects',
+   310→        description:
+   311→          'Use drag-and-drop planning to assign resources to project tasks, with automatic conflict detection.',
+   312→      },
+   313→      {
+   314→        step: 3,
+   315→        title: 'Monitor & Optimize',
+   316→        description:
+   317→          'Track utilization, productivity, and costs in real time. Adjust allocations as conditions change.',
+   318→      },
+   319→    ],
+   320→    faq: [
+   321→      {
+   322→        question: 'How does resource management connect to payroll?',
+   323→        answer:
+   324→          'Attendance data from resource assignments flows directly into Payroll, so hours worked on each project are automatically accounted for in salary calculations.',
+   325→      },
+   326→      {
+   327→        question: 'Can I track equipment GPS location?',
+   328→        answer:
+   329→          'Yes. SmartBuild supports GPS integration for vehicles and heavy equipment, showing real-time locations on an interactive map.',
+   330→      },
+   331→      {
+   332→        question: 'What happens when resources are over-allocated?',
+   333→        answer:
+   334→          'The system highlights conflicts visually and sends alerts to managers, allowing quick reassignment before it impacts the schedule.',
+   335→      },
+   336→      {
+   337→        question: 'Does it support subcontractor resources?',
+   338→        answer:
+   339→          'Yes. Subcontractor crews can be added to the resource pool with their own availability, skills, and cost rates.',
+   340→      },
+   341→    ],
+   342→  },
+   343→
+   344→  'complaint-management': {
+   345→    title: 'Complaint Management',
+   346→    metaTitle: 'SmartBuild Complaint Management - Automated Workflows & SLA Tracking',
+   347→    metaDescription:
+   348→      'Handle client complaints efficiently with automated workflows, SLA tracking, and escalation rules in SmartBuild.',
+   349→    overview: [
+   350→      'SmartBuild Complaint Management transforms how construction companies handle client issues. Instead of scattered emails and phone calls, every complaint is captured in a structured workflow with automatic SLA tracking, escalation rules, and resolution timelines.',
+   351→      'Clients can submit complaints through the Client Portal, WhatsApp, or directly through their account manager. Each complaint is assigned a ticket number, categorized by type and severity, and routed to the appropriate team based on configurable rules.',
+   352→      'Real-time dashboards show complaint volumes, resolution rates, and SLA compliance. Managers can identify recurring issues and take corrective action, turning complaints into opportunities for continuous improvement.',
+   353→    ],
+   354→    keyFeatures: [
+   355→      {
+   356→        icon: MessageSquare,
+   357→        title: 'Multi-Channel Intake',
+   358→        description:
+   359→          'Accept complaints via the Client Portal, WhatsApp integration, email, or manual entry from your team.',
+   360→      },
+   361→      {
+   362→        icon: Clock,
+   363→        title: 'SLA Tracking & Escalation',
+   364→        description:
+   365→          'Define response and resolution SLAs per complaint type. Automatic escalation when deadlines are at risk.',
+   366→      },
+   367→      {
+   368→        icon: Bell,
+   369→        title: 'Real-Time Notifications',
+   370→        description:
+   371→          'Instant alerts for new complaints, status changes, and SLA breaches keep your team responsive.',
+   372→      },
+   373→      {
+   374→        icon: TrendingUp,
+   375→        title: 'Analytics & Trends',
+   376→        description:
+   377→          'Dashboards show complaint volumes by category, resolution times, and customer satisfaction scores.',
+   378→      },
+   379→      {
+   380→        icon: ShieldCheck,
+   381→        title: 'Audit Trail',
+   382→        description:
+   383→          'Every action on a complaint is logged — from assignment to resolution — for full accountability.',
+   384→      },
+   385→    ],
+   386→    benefits: [
+   387→      {
+   388→        title: 'Faster Resolution Times',
+   389→        description:
+   390→          'Automated routing and SLA enforcement reduce average resolution time by up to 40%.',
+   391→      },
+   392→      {
+   393→        title: 'Higher Client Satisfaction',
+   394→        description:
+   395→          'Transparent tracking and proactive communication keep clients informed throughout the resolution process.',
+   396→      },
+   397→      {
+   398→        title: 'Identify Recurring Issues',
+   399→        description:
+   400→          'Trend analytics surface patterns so you can fix root causes, not just individual complaints.',
+   401→      },
+   402→      {
+   403→        title: 'Compliance & Accountability',
+   404→        description:
+   405→          'Complete audit trails and escalation records ensure every complaint is handled according to policy.',
+   406→      },
+   407→    ],
+   408→    workflow: [
+   409→      {
+   410→        step: 1,
+   411→        title: 'Submit Complaint',
+   412→        description:
+   413→          'Client submits a complaint through the portal, WhatsApp, or via a team member on their behalf.',
+   414→      },
+   415→      {
+   416→        step: 2,
+   417→        title: 'Assign & Investigate',
+   418→        description:
+   419→          'The system auto-assigns the ticket based on rules. The responsible team investigates and updates the timeline.',
+   420→      },
+   421→      {
+   422→        step: 3,
+   423→        title: 'Resolve & Close',
+   424→        description:
+   425→          'After resolution, the client is notified and can rate the service. Data feeds into analytics for improvement.',
+   426→      },
+   427→    ],
+   428→    faq: [
+   429→      {
+   430→        question: 'Can clients submit complaints via WhatsApp?',
+   431→        answer:
+   432→          'Yes. SmartBuild integrates with WhatsApp Business API, allowing clients to send complaints as messages that are automatically converted into tickets.',
+   433→      },
+   434→      {
+   435→        question: 'How are SLAs configured?',
+   436→        answer:
+   437→          'You can define different SLA templates for each complaint type, specifying first-response time, resolution time, and escalation tiers.',
+   438→      },
+   439→      {
+   440→        question: 'Is there a client satisfaction survey?',
+   441→        answer:
+   442→          'Yes. After a complaint is resolved, clients can rate the service on a 1-5 scale. These ratings feed into your quality dashboards.',
+   443→      },
+   444→    ],
+   445→  },
+   446→
+   447→  finance: {
+   448→    title: 'Finance',
+   449→    metaTitle: 'SmartBuild Finance - Invoicing, Payments & Cashflow Management',
+   450→    metaDescription:
+   451→      'Streamline construction financial management with invoicing, payment tracking, cashflow forecasting, and daybook accounting in SmartBuild.',
+   452→    overview: [
+   453→      'SmartBuild Finance gives construction companies complete control over their financial operations. From invoicing and payment collection to cashflow forecasting and daybook accounting, every financial transaction is captured and organized in one place.',
+   454→      'The module supports multiple invoice types — progress claims, retention invoices, and final invoices — with configurable approval workflows. Automated payment reminders reduce outstanding receivables, while real-time cashflow dashboards give CFOs the visibility they need to make informed decisions.',
+   455→      'Deep integration with Project Management and Procurement means that every cost is automatically linked to the right project and cost code, eliminating manual reconciliation and giving you accurate, up-to-date financial reporting.',
+   456→    ],
+   457→    keyFeatures: [
+   458→      {
+   459→        icon: FileText,
+   460→        title: 'Invoice Management',
+   461→        description:
+   462→          'Create progress, retention, and final invoices with approval workflows, tax calculations, and batch generation.',
+   463→      },
+   464→      {
+   465→        icon: DollarSign,
+   466→        title: 'Payment Tracking',
+   467→        description:
+   468→          'Record payments, set up reminders for overdue amounts, and reconcile bank transactions automatically.',
+   469→      },
+   470→      {
+   471→        icon: BarChart2,
+   472→        title: 'Cashflow Forecasting',
+   473→        description:
+   474→          'Project future cash inflows and outflows based on contract values, payment terms, and scheduled expenses.',
+   475→      },
+   476→      {
+   477→        icon: ListChecks,
+   478→        title: 'Daybook Accounting',
+   479→        description:
+   480→          'Maintain a comprehensive daybook of all financial transactions with search, filter, and export capabilities.',
+   481→      },
+   482→      {
+   483→        icon: Layers,
+   484→        title: 'Bill of Quantities (BOQ)',
+   485→        description:
+   486→          'Create and manage BOQs linked to project budgets, with unit-rate pricing and variance tracking.',
+   487→      },
+   488→      {
+   489→        icon: ShieldCheck,
+   490→        title: 'Tax & Compliance',
+   491→        description:
+   492→          'Automatic tax calculations, TDS deductions, and compliance-ready reports simplify your financial reporting.',
+   493→      },
+   494→    ],
+   495→    benefits: [
+   496→      {
+   497→        title: 'Reduce Receivables Cycle by 20%',
+   498→        description:
+   499→          'Automated reminders and online payment options help you get paid faster.',
+   500→      },
+   501→      {
+   502→        title: 'Accurate Project Costing',
+   503→        description:
+   504→          'Every financial transaction is linked to projects and cost codes, giving you true project profitability.',
+   505→      },
+   506→      {
+   507→        title: 'Better Cashflow Visibility',
+   508→        description:
+   509→          'Real-time dashboards and forecasts help you avoid cash crunches and plan capital expenditures.',
+   510→      },
+   511→      {
+   512→        title: 'Audit-Ready Records',
+   513→        description:
+   514→          'Complete transaction history, approval trails, and exportable reports simplify year-end audits.',
+   515→      },
+   516→    ],
+   517→    workflow: [
+   518→      {
+   519→        step: 1,
+   520→        title: 'Set Up Financial Structure',
+   521→        description:
+   522→          'Configure chart of accounts, cost codes, tax rates, and approval workflows for your organization.',
+   523→      },
+   524→      {
+   525→        step: 2,
+   526→        title: 'Process Transactions',
+   527→        description:
+   528→          'Create invoices, record payments, manage expenses, and track procurement — all linked to projects.',
+   529→      },
+   530→      {
+   531→        step: 3,
+   532→        title: 'Analyze & Report',
+   533→        description:
+   534→          'Generate P&L statements, cashflow reports, and project profitability analyses for stakeholders.',
+   535→      },
+   536→    ],
+   537→    faq: [
+   538→      {
+   539→        question: 'Does SmartBuild support multi-currency?',
+   540→        answer:
+   541→          'The finance module tracks transactions in your base currency. Multi-currency support is available for projects with international suppliers or clients.',
+   542→      },
+   543→      {
+   544→        question: 'Can I generate statutory reports?',
+   545→        answer:
+   546→          'Yes. SmartBuild produces tax summaries, TDS reports, and other compliance-ready financial reports that can be exported for filing.',
+   547→      },
+   548→      {
+   549→        question: 'How does finance connect to procurement?',
+   550→        answer:
+   551→          'Purchase orders and goods receipts flow directly into accounts payable. Invoices can be matched against POs for three-way reconciliation.',
+   552→      },
+   553→      {
+   554→        question: 'Can clients view their invoices online?',
+   555→        answer:
+   556→          'Yes. Through the Client Portal, clients can view invoices, download PDFs, and see payment history — reducing your accounts receivable calls.',
+   557→      },
+   558→    ],
+   559→  },
+   560→
+   561→  procurement: {
+   562→    title: 'Procurement',
+   563→    metaTitle: 'SmartBuild Procurement - Purchase Orders, Suppliers & Delivery Tracking',
+   564→    metaDescription:
+   565→      'Streamline construction procurement with SmartBuild. Manage purchase requests, purchase orders, supplier relationships, and delivery tracking.',
+   566→    overview: [
+   567→      'SmartBuild Procurement covers the entire purchasing lifecycle — from requisition to delivery — with full traceability and approval controls. Whether you are ordering bulk materials, hiring subcontractors, or renting equipment, every step is tracked in one system.',
+   568→      'Purchase requests can be raised from any project or department, routed through configurable approval chains, and automatically converted into purchase orders. Supplier management features let you maintain a database of vendors, compare quotes, and track delivery performance.',
+   569→      'Integration with Inventory ensures that received goods update stock levels automatically, while integration with Finance ensures that POs flow seamlessly into accounts payable. The result is a streamlined procurement process that reduces cycle times and prevents unauthorized spending.',
+   570→    ],
+   571→    keyFeatures: [
+   572→      {
+   573→        icon: ShoppingCart,
+   574→        title: 'Purchase Request & Approval',
+   575→        description:
+   576→          'Raise requests from projects, route through multi-level approvals, and convert to POs with one click.',
+   577→      },
+   578→      {
+   579→        icon: FileText,
+   580→        title: 'Purchase Order Management',
+   581→        description:
+   582→          'Create, send, and track POs with line-item details, delivery schedules, and terms and conditions.',
+   583→      },
+   584→      {
+   585→        icon: Users,
+   586→        title: 'Supplier Management',
+   587→        description:
+   588→          'Maintain a vendor database with contact info, ratings, past orders, and performance scorecards.',
+   589→      },
+   590→      {
+   591→        icon: Package,
+   592→        title: 'Goods Receipt & Inspection',
+   593→        description:
+   594→          'Record deliveries, perform quality inspections, and automatically update inventory stock levels.',
+   595→      },
+   596→      {
+   597→        icon: BarChart2,
+   598→        title: 'Spend Analytics',
+   599→        description:
+   600→          'Track procurement spend by category, project, and supplier with visual dashboards and trend reports.',
+   601→      },
+   602→    ],
+   603→    benefits: [
+   604→      {
+   605→        title: 'Cut Procurement Cycle Time',
+   606→        description:
+   607→          'Automated approval workflows and PO templates reduce the time from request to order by up to 50%.',
+   608→      },
+   609→      {
+   610→        title: 'Prevent Maverick Spending',
+   611→        description:
+   612→          'All purchases must go through approved workflows, ensuring compliance with budgets and policies.',
+   613→      },
+   614→      {
+   615→        title: 'Better Supplier Relationships',
+   616→        description:
+   617→          'Performance tracking and communication tools help you build stronger vendor partnerships.',
+   618→      },
+   619→      {
+   620→        title: 'Accurate Cost Tracking',
+   621→        description:
+   622→          'Every PO is linked to a project and cost code, so procurement costs are always reflected in project budgets.',
+   623→      },
+   624→    ],
+   625→    workflow: [
+   626→      {
+   627→        step: 1,
+   628→        title: 'Raise a Request',
+   629→        description:
+   630→          'A project team member creates a purchase request with material details, quantities, and required dates.',
+   631→      },
+   632→      {
+   633→        step: 2,
+   634→        title: 'Approve & Order',
+   635→        description:
+   636→          'The request goes through approval chains. Once approved, it becomes a PO sent to the selected supplier.',
+   637→      },
+   638→      {
+   639→        step: 3,
+   640→        title: 'Receive & Reconcile',
+   641→        description:
+   642→          'Goods are received on-site, inspected for quality, and the receipt updates inventory and triggers payment.',
+   643→      },
+   644→    ],
+   645→    faq: [
+   646→      {
+   647→        question: 'Can I compare quotes from multiple suppliers?',
+   648→        answer:
+   649→          'Yes. You can attach quotes from multiple vendors to a purchase request and compare pricing before converting to a PO.',
+   650→      },
+   651→      {
+   652→        question: 'Does it support partial deliveries?',
+   653→        answer:
+   654→          'Absolutely. Record partial deliveries against a PO, and the system tracks remaining quantities for follow-up.',
+   655→      },
+   656→      {
+   657→        question: 'How does procurement connect to inventory?',
+   658→        answer:
+   659→          'When goods are received via the procurement module, inventory stock levels are updated automatically. No manual entry required.',
+   660→      },
+   661→      {
+   662→        question: 'Can suppliers access a vendor portal?',
+   663→        answer:
+   664→          'The supplier portal (coming soon) will allow vendors to view POs, submit invoices, and update delivery statuses online.',
+   665→      },
+   666→    ],
+   667→  },
+   668→
+   669→  hr: {
+   670→    title: 'HR Management',
+   671→    metaTitle: 'SmartBuild HR Management - Employee Records, Leave & Workforce Administration',
+   672→    metaDescription:
+   673→      'Manage your construction workforce with SmartBuild HR. Employee records, leave management, onboarding, and compliance in one platform.',
+   674→    overview: [
+   675→      'SmartBuild HR Management is built for the unique demands of the construction industry. Managing a mobile, project-based workforce requires more than a traditional HR system — you need tools that handle site transfers, shift rotations, and compliance requirements specific to construction.',
+   676→      'The module maintains comprehensive employee records including personal details, qualifications, certifications, and employment history. Leave management supports multiple leave types with configurable accrual rules, and all requests route through the appropriate approval chain.',
+   677→      'Integration with Attendance, Payroll, and Resource Management ensures that HR data flows seamlessly across the platform. Managers can view workforce availability, track training expiry, and ensure compliance with labour regulations — all from a single dashboard.',
+   678→    ],
+   679→    keyFeatures: [
+   680→      {
+   681→        icon: Users,
+   682→        title: 'Employee Database',
+   683→        description:
+   684→          'Comprehensive employee profiles with personal info, qualifications, certifications, employment history, and documents.',
+   685→      },
+   686→      {
+   687→        icon: CalendarRange,
+   688→        title: 'Leave Management',
+   689→        description:
+   690→          'Multiple leave types, accrual rules, holiday calendars, and multi-level approval workflows.',
+   691→      },
+   692→      {
+   693→        icon: Bell,
+   694→        title: 'Compliance Tracking',
+   695→        description:
+   696→          'Track certification expiry, safety training renewals, and visa/work permit deadlines with automated reminders.',
+   697→      },
+   698→      {
+   699→        icon: ShieldCheck,
+   700→        title: 'Onboarding & Offboarding',
+   701→        description:
+   702→          'Structured checklists for new hire onboarding and employee exit processes, including document collection.',
+   703→      },
+   704→      {
+   705→        icon: BarChart2,
+   706→        title: 'Workforce Analytics',
+   707→        description:
+   708→          'Dashboards showing headcount, turnover rates, attendance trends, and workforce demographics.',
+   709→      },
+   710→    ],
+   711→    benefits: [
+   712→      {
+   713→        title: 'Centralized Employee Data',
+   714→        description:
+   715→          'One source of truth for all employee information eliminates scattered records and reduces admin time.',
+   716→      },
+   717→      {
+   718→        title: 'Never Miss a Certification Expiry',
+   719→        description:
+   720→          'Automated alerts for expiring certifications and training keep your workforce compliant and safe.',
+   721→      },
+   722→      {
+   723→        title: 'Streamlined Leave Processing',
+   724→        description:
+   725→          'Self-service leave requests with auto-approval rules reduce HR workload and improve employee satisfaction.',
+   726→      },
+   727→      {
+   728→        title: 'Better Workforce Planning',
+   729→        description:
+   730→          'Integration with Resource Management gives HR visibility into project demands for proactive hiring.',
+   731→      },
+   732→    ],
+   733→    workflow: [
+   734→      {
+   735→        step: 1,
+   736→        title: 'Set Up Your Workforce',
+   737→        description:
+   738→          'Import or enter employee records, define leave policies, and configure approval workflows.',
+   739→      },
+   740→      {
+   741→        step: 2,
+   742→        title: 'Manage Day-to-Day HR',
+   743→        description:
+   744→          'Process leave requests, track attendance, update records, and handle compliance requirements.',
+   745→      },
+   746→      {
+   747→        step: 3,
+   748→        title: 'Analyze & Improve',
+   749→        description:
+   750→          'Use workforce analytics to identify trends, plan hiring, and improve retention strategies.',
+   751→      },
+   752→    ],
+   753→    faq: [
+   754→      {
+   755→        question: 'Does it handle site transfers?',
+   756→        answer:
+   757→          'Yes. You can transfer employees between sites or projects while maintaining their full employment history and benefits continuity.',
+   758→      },
+   759→      {
+   760→        question: 'Can employees self-serve for leave requests?',
+   761→        answer:
+   762→          'Yes. Employees can submit leave requests through the mobile app or web portal. Approvals route to their manager automatically.',
+   763→      },
+   764→      {
+   765→        question: 'How does HR connect to payroll?',
+   766→        answer:
+   767→          'Employee salary details, leave balances, and attendance data flow directly into the Payroll module for accurate salary computation.',
+   768→      },
+   769→      {
+   770→        question: 'Is there a document management feature?',
+   771→        answer:
+   772→          'Yes. Upload and manage employee documents like ID proofs, contracts, certificates, and photographs with version control.',
+   773→      },
+   774→    ],
+   775→  },
+   776→
+   777→  /* ===== GENERIC (remaining 11) ===== */
+   778→
+   779→  'work-orders': {
+   780→    title: 'Work Orders',
+   781→    metaTitle: 'SmartBuild Work Orders - Generate, Assign & Track Work Orders',
+   782→    metaDescription:
+   783→      'Efficiently generate, assign, and track work orders from creation to completion with SmartBuild.',
+   784→    overview: [
+   785→      'SmartBuild Work Orders provides a streamlined system for creating, assigning, and tracking work orders across your organization. Whether it is a maintenance repair, an inspection task, or a service request, every work order follows a structured lifecycle from creation to completion.',
+   786→      'The module integrates with scheduling, resource management, and inventory to ensure that work orders are assigned to the right people with the right materials at the right time. Real-time status tracking and automated notifications keep everyone informed.',
+   787→      'With detailed reporting and analytics, managers can identify recurring issues, measure response times, and optimize their maintenance and service operations for maximum efficiency.',
+   788→    ],
+   789→    keyFeatures: [
+   790→      { icon: ClipboardList, title: 'Work Order Creation', description: 'Quickly create work orders with all required details including priority, location, and assigned team.' },
+   791→      { icon: Users, title: 'Team Assignment', description: 'Assign work orders to individuals or crews based on skills, availability, and location.' },
+   792→      { icon: Clock, title: 'Status Tracking', description: 'Track work order status in real time with configurable stages from open to completed.' },
+   793→      { icon: Bell, title: 'Notifications', description: 'Automated alerts for new assignments, status changes, and overdue work orders.' },
+   794→    ],
+   795→    benefits: [
+   796→      { title: 'Faster Turnaround', description: 'Automated assignment and tracking reduce the time from request to resolution.' },
+   797→      { title: 'Full Traceability', description: 'Every work order has a complete history of actions, notes, and time logs.' },
+   798→      { title: 'Better Resource Usage', description: 'Integration with scheduling ensures optimal allocation of people and materials.' },
+   799→    ],
+   800→    workflow: [
+   801→      { step: 1, title: 'Create Request', description: 'Submit a work order with details about the task, location, and priority level.' },
+   802→      { step: 2, title: 'Assign & Execute', description: 'System assigns based on rules. The assigned team executes and updates progress.' },
+   803→      { step: 3, title: 'Complete & Review', description: 'Work is verified, marked complete, and data feeds into maintenance analytics.' },
+   804→    ],
+   805→    faq: [
+   806→      { question: 'Can work orders be created from mobile?', answer: 'Yes. Field teams can create and update work orders directly from the SmartBuild mobile app.' },
+   807→      { question: 'Can I set up recurring work orders?', answer: 'Yes. Create recurring schedules for routine maintenance tasks that auto-generate work orders at defined intervals.' },
+   808→      { question: 'How does it connect to inventory?', answer: 'Materials used on a work order can be drawn from inventory, automatically updating stock levels.' },
+   809→    ],
+   810→  },
+   811→
+   812→  'preventive-maintenance': {
+   813→    title: 'Preventive Maintenance',
+   814→    metaTitle: 'SmartBuild Preventive Maintenance - Schedule & Automate Maintenance',
+   815→    metaDescription:
+   816→      'Reduce equipment downtime with SmartBuild Preventive Maintenance. Schedule, automate, and track maintenance activities.',
+   817→    overview: [
+   818→      'SmartBuild Preventive Maintenance helps construction companies move from reactive to proactive maintenance strategies. By scheduling regular maintenance activities based on time intervals, usage meters, or condition triggers, you can significantly reduce unexpected equipment failures and downtime.',
+   819→      'The module supports flexible scheduling with calendar-based and meter-based triggers. Maintenance tasks are automatically generated, assigned to technicians, and tracked through completion. Integration with Asset Management ensures that maintenance history is always accessible.',
+   820→      'Analytics dashboards show maintenance compliance rates, mean time between failures, and cost comparisons between preventive and corrective maintenance — helping you optimize your maintenance strategy over time.',
+   821→    ],
+   822→    keyFeatures: [
+   823→      { icon: CalendarRange, title: 'Automated Scheduling', description: 'Create maintenance schedules based on time, usage, or condition triggers with automatic task generation.' },
+   824→      { icon: Wrench, title: 'Asset Integration', description: 'Link maintenance schedules to specific assets with full history and cost tracking.' },
+   825→      { icon: BarChart2, title: 'Compliance Dashboards', description: 'Track maintenance completion rates and identify overdue or missed tasks at a glance.' },
+   826→      { icon: TrendingUp, title: 'Cost Analysis', description: 'Compare preventive vs. corrective maintenance costs to optimize your maintenance budget.' },
+   827→    ],
+   828→    benefits: [
+   829→      { title: 'Reduce Downtime by 35%', description: 'Proactive maintenance prevents costly equipment breakdowns on active construction sites.' },
+   830→      { title: 'Extend Asset Lifespan', description: 'Regular maintenance keeps equipment in peak condition, delaying costly replacements.' },
+   831→      { title: 'Lower Maintenance Costs', description: 'Preventive maintenance is consistently cheaper than emergency repairs and project delays.' },
+   832→    ],
+   833→    workflow: [
+   834→      { step: 1, title: 'Define Schedules', description: 'Create maintenance plans for each asset with frequency, tasks, and required materials.' },
+   835→      { step: 2, title: 'Auto-Generate Tasks', description: 'The system generates work orders automatically when schedules are due.' },
+   836→      { step: 3, title: 'Execute & Record', description: 'Technicians complete maintenance, record findings, and the history is saved for future reference.' },
+   837→    ],
+   838→    faq: [
+   839→      { question: 'Can I set maintenance based on equipment usage hours?', answer: 'Yes. SmartBuild supports meter-based triggers so maintenance is scheduled based on actual usage, not just calendar time.' },
+   840→      { question: 'Does it integrate with asset management?', answer: 'Yes. All maintenance records are linked to the asset profile, giving you a complete history in one place.' },
+   841→      { question: 'Can I get alerts for overdue maintenance?', answer: 'Absolutely. The system sends notifications for upcoming, due, and overdue maintenance tasks.' },
+   842→    ],
+   843→  },
+   844→
+   845→  inventory: {
+   846→    title: 'Inventory',
+   847→    metaTitle: 'SmartBuild Inventory - Real-Time Material & Equipment Tracking',
+   848→    metaDescription:
+   849→      'Track construction materials, equipment, and tools with real-time stock levels using SmartBuild Inventory.',
+   850→    overview: [
+   851→      'SmartBuild Inventory provides real-time visibility into your material and equipment stock levels across all warehouses and project sites. From cement and steel to power tools and safety gear, every item is tracked from receipt to consumption.',
+   852→      'The module supports multiple warehouses, stock transfer between sites, and automatic stock updates when goods are received through procurement or consumed through work orders. Low-stock alerts and reorder point management ensure you never run out of critical materials.',
+   853→      'With barcode/QR code support and batch/lot tracking, you can trace every item back to its supplier and delivery batch — essential for quality control and compliance on construction projects.',
+   854→    ],
+   855→    keyFeatures: [
+   856→      { icon: Package, title: 'Multi-Warehouse Support', description: 'Manage inventory across multiple warehouses and project sites with inter-site transfers.' },
+   857→      { icon: Bell, title: 'Low-Stock Alerts', description: 'Configure reorder points and get automatic alerts when stock falls below minimum levels.' },
+   858→      { icon: Layers, title: 'Batch & Lot Tracking', description: 'Trace every item to its supplier batch for quality control and warranty management.' },
+   859→      { icon: BarChart2, title: 'Consumption Reports', description: 'Track material consumption by project, compare planned vs. actual usage, and identify waste.' },
+   860→    ],
+   861→    benefits: [
+   862→      { title: 'Eliminate Stockouts', description: 'Automated reorder alerts ensure critical materials are always available when needed.' },
+   863→      { title: 'Reduce Material Waste', description: 'Consumption tracking identifies over-usage and helps you optimize material planning.' },
+   864→      { title: 'Faster Receiving', description: 'Procurement integration auto-updates stock when goods are received, reducing manual entry.' },
+   865→    ],
+   866→    workflow: [
+   867→      { step: 1, title: 'Set Up Inventory', description: 'Define warehouses, item categories, units of measure, and reorder points.' },
+   868→      { step: 2, title: 'Track Movements', description: 'Record receipts, issues, transfers, and returns with automatic stock level updates.' },
+   869→      { step: 3, title: 'Report & Reorder', description: 'Generate consumption reports and use reorder alerts to maintain optimal stock levels.' },
+   870→    ],
+   871→    faq: [
+   872→      { question: 'Does it support barcode scanning?', answer: 'Yes. SmartBuild supports barcode and QR code scanning for fast receiving, issuing, and stock-taking.' },
+   873→      { question: 'Can I transfer stock between sites?', answer: 'Yes. Inter-warehouse and inter-site transfers are fully supported with approval workflows.' },
+   874→      { question: 'How does it connect to procurement?', answer: 'Goods received through purchase orders automatically update inventory quantities.' },
+   875→    ],
+   876→  },
+   877→
+   878→  'cost-control': {
+   879→    title: 'Cost Control',
+   880→    metaTitle: 'SmartBuild Cost Control - Budget Tracking, Cost Forecasting & Change Orders',
+   881→    metaDescription:
+   882→      'Monitor budgets, track costs, forecast expenses, and manage change orders with SmartBuild Cost Control.',
+   883→    overview: [
+   884→      'SmartBuild Cost Control gives project managers and finance teams the tools to keep construction projects within budget. With real-time cost tracking against planned budgets, you can identify cost overruns early and take corrective action before they become critical.',
+   885→      'The module supports hierarchical budget structures with cost codes, allowing you to track spending at any level — from the overall project down to individual tasks or material categories. Budget change orders are managed through approval workflows with full traceability.',
+   886→      'Forecasting tools project final costs based on current spending trends, earned value analysis shows project health at a glance, and variance reports highlight where actual costs deviate from the plan.',
+   887→    ],
+   888→    keyFeatures: [
+   889→      { icon: Target, title: 'Budget Management', description: 'Create hierarchical budgets with cost codes and track actual spending against planned amounts.' },
+   890→      { icon: TrendingUp, title: 'Cost Forecasting', description: 'Project final costs based on current trends with earned value analysis and estimate-at-completion.' },
+   891→      { icon: Settings2, title: 'Change Order Management', description: 'Submit, approve, and track budget change orders with full impact analysis and approval trails.' },
+   892→      { icon: BarChart2, title: 'Variance Analysis', description: 'Identify cost variances at any level with drill-down reports showing root causes.' },
+   893→    ],
+   894→    benefits: [
+   895→      { title: 'Catch Overruns Early', description: 'Real-time tracking alerts you to budget deviations before they become unmanageable.' },
+   896→      { title: 'Accurate Project Profitability', description: 'Know your true project costs at any point, enabling better pricing and bidding decisions.' },
+   897→      { title: 'Controlled Change Orders', description: 'Formal approval workflows prevent unauthorized budget changes and maintain financial discipline.' },
+   898→    ],
+   899→    workflow: [
+   900→      { step: 1, title: 'Set Budgets', description: 'Define project budgets with detailed cost codes aligned to your estimating methodology.' },
+   901→      { step: 2, title: 'Track & Monitor', description: 'Actual costs from procurement, payroll, and expenses are automatically tracked against budgets.' },
+   902→      { step: 3, title: 'Forecast & Control', description: 'Use forecasting tools to predict final costs and manage change orders through approval.' },
+   903→    ],
+   904→    faq: [
+   905→      { question: 'How granular can budget tracking be?', answer: 'You can track costs at any level — project, phase, task, or individual cost code — with drill-down capability.' },
+   906→      { question: 'Does it support earned value management?', answer: 'Yes. SmartBuild calculates EVM metrics including CPI, SPI, EAC, and TCPI for project health assessment.' },
+   907→      { question: 'Can I see cost forecasts in real time?', answer: 'Yes. The forecasting engine updates in real time as actual costs are recorded from connected modules.' },
+   908→    ],
+   909→  },
+   910→
+   911→  payroll: {
+   912→    title: 'Payroll',
+   913→    metaTitle: 'SmartBuild Payroll - Automated Payroll Processing with Attendance Integration',
+   914→    metaDescription:
+   915→      'Automate payroll processing with attendance integration, overtime calculations, and compliance reporting in SmartBuild.',
+   916→    overview: [
+   917→      'SmartBuild Payroll automates the complex process of paying construction workers — from daily-wage labourers to salaried project managers. With deep integration with Attendance and HR, the module pulls in actual hours worked, leave records, and overtime to calculate accurate pay every cycle.',
+   918→      'The system handles multiple pay structures including hourly, daily, weekly, and monthly. Overtime, allowances, deductions, and statutory contributions are calculated automatically based on configurable rules. Payslips are generated digitally and can be accessed by employees through the mobile app.',
+   919→      'Compliance reports for tax filings, labour department submissions, and internal audits are generated with one click. The result is a payroll process that is faster, more accurate, and fully auditable.',
+   920→    ],
+   921→    keyFeatures: [
+   922→      { icon: Wallet, title: 'Multi-Pay Structure', description: 'Support for hourly, daily, weekly, and monthly pay structures with configurable rules.' },
+   923→      { icon: Clock, title: 'Attendance Integration', description: 'Automatic pull of attendance data for accurate hour-based pay calculations.' },
+   924→      { icon: FileText, title: 'Digital Payslips', description: 'Generate and distribute payslips digitally. Employees can access them from the mobile app.' },
+   925→      { icon: ShieldCheck, title: 'Compliance Reports', description: 'One-click generation of tax, statutory, and labour compliance reports for filing.' },
+   926→    ],
+   927→    benefits: [
+   928→      { title: 'Save Hours Every Pay Cycle', description: 'Automation eliminates manual calculations, reducing payroll processing time by up to 70%.' },
+   929→      { title: 'Eliminate Payroll Errors', description: 'Rules-based calculations and attendance integration ensure accurate, consistent pay every time.' },
+   930→      { title: 'Employee Self-Service', description: 'Employees view payslips, tax forms, and leave balances through the app, reducing HR inquiries.' },
+   931→    ],
+   932→    workflow: [
+   933→      { step: 1, title: 'Configure Pay Rules', description: 'Set up pay structures, overtime rules, allowances, deductions, and statutory contributions.' },
+   934→      { step: 2, title: 'Process Payroll', description: 'The system pulls attendance, calculates pay, applies deductions, and generates payslips.' },
+   935→      { step: 3, title: 'Disburse & Report', description: 'Approve payroll, process disbursements, and generate compliance reports for filing.' },
+   936→    ],
+   937→    faq: [
+   938→      { question: 'Does it handle overtime automatically?', answer: 'Yes. Overtime is calculated based on attendance records and configurable overtime rules per employee category.' },
+   939→      { question: 'Can employees view their payslips online?', answer: 'Yes. Employees can access current and past payslips through the SmartBuild mobile app or web portal.' },
+   940→      { question: 'What compliance reports are available?', answer: 'SmartBuild generates tax summaries, TDS reports, labour welfare contributions, and other statutory reports.' },
+   941→    ],
+   942→  },
+   943→
+   944→  'asset-management': {
+   945→    title: 'Asset Management',
+   946→    metaTitle: 'SmartBuild Asset Management - Track & Manage Assets Throughout Their Lifecycle',
+   947→    metaDescription:
+   948→      'Track and manage all company assets throughout their lifecycle with SmartBuild Asset Management.',
+   949→    overview: [
+   950→      'SmartBuild Asset Management provides a comprehensive system for tracking and managing all company assets — from heavy construction equipment and vehicles to small tools and IT equipment. Every asset is registered with its details, location, maintenance history, and current status.',
+   951→      'The module tracks assets throughout their lifecycle: from acquisition and deployment to maintenance and eventual disposal. GPS integration shows real-time locations for mobile assets, while maintenance integration ensures that service schedules are never missed.',
+   952→      'Depreciation tracking, insurance management, and cost analysis help you understand the true total cost of ownership for each asset, enabling better capital expenditure decisions.',
+   953→    ],
+   954→    keyFeatures: [
+   955→      { icon: Wrench, title: 'Asset Register', description: 'Maintain a complete register of all assets with details, images, documents, and current location.' },
+   956→      { icon: Clock, title: 'Maintenance Integration', description: 'Link assets to preventive maintenance schedules and track repair history.' },
+   957→      { icon: BarChart2, title: 'Depreciation Tracking', description: 'Automatic depreciation calculations with multiple methods for financial reporting.' },
+   958→      { icon: TrendingUp, title: 'Cost Analysis', description: 'Track total cost of ownership including purchase, maintenance, fuel, and disposal costs.' },
+   959→    ],
+   960→    benefits: [
+   961→      { title: 'Prevent Asset Loss', description: 'GPS tracking and check-out/check-in processes reduce equipment theft and misplacement.' },
+   962→      { title: 'Optimize Utilization', description: 'Identify underutilized assets and redeploy them where they add the most value.' },
+   963→      { title: 'Extend Asset Life', description: 'Integrated maintenance scheduling keeps assets in good condition and extends their useful life.' },
+   964→    ],
+   965→    workflow: [
+   966→      { step: 1, title: 'Register Assets', description: 'Enter all assets with details, specifications, purchase information, and assign to locations.' },
+   967→      { step: 2, title: 'Track & Maintain', description: 'Monitor usage, schedule maintenance, and track repairs through the integrated work order system.' },
+   968→      { step: 3, title: 'Analyze & Decide', description: 'Review utilization, costs, and maintenance data to make informed decisions about repair or replacement.' },
+   969→    ],
+   970→    faq: [
+   971→      { question: 'Can I track assets across multiple sites?', answer: 'Yes. Assets can be assigned to any site or warehouse, and transfers between locations are fully tracked.' },
+   972→      { question: 'Does it support GPS tracking for vehicles?', answer: 'Yes. GPS integration shows real-time locations of vehicles and mobile equipment on an interactive map.' },
+   973→      { question: 'How does it connect to maintenance?', answer: 'Assets link directly to the Preventive Maintenance module for automated scheduling of service tasks.' },
+   974→    ],
+   975→  },
+   976→
+   977→  scheduling: {
+   978→    title: 'Scheduling',
+   979→    metaTitle: 'SmartBuild Scheduling - Gantt Charts, Critical Path & Resource-Loaded Scheduling',
+   980→    metaDescription:
+   981→      'Plan construction schedules with Gantt charts, critical path analysis, and resource-loaded scheduling in SmartBuild.',
+   982→    overview: [
+   983→      'SmartBuild Scheduling provides powerful tools for planning and managing construction project timelines. With interactive Gantt charts, critical path analysis, and resource-loaded scheduling, project managers can create realistic schedules that account for task dependencies and resource constraints.',
+   984→      'The module supports multiple scheduling methodologies including task-based, milestone-based, and location-based scheduling. Drag-and-drop functionality makes it easy to adjust timelines, while automatic dependency recalculation ensures schedule integrity after any change.',
+   985→      'Integration with Resource Management means schedules are always resource-feasible, and integration with Project Management ensures that schedule changes are reflected in task assignments and deadline tracking across the platform.',
+   986→    ],
+   987→    keyFeatures: [
+   988→      { icon: CalendarRange, title: 'Interactive Gantt Charts', description: 'Visualize project timelines with interactive Gantt charts that support drag-and-drop editing.' },
+   989→      { icon: Target, title: 'Critical Path Analysis', description: 'Automatically identify the critical path and understand which tasks drive the project end date.' },
+   990→      { icon: Users, title: 'Resource-Loaded Schedules', description: 'Assign resources to tasks and see resource loading across the timeline to prevent over-allocation.' },
+   991→      { icon: TrendingUp, title: 'Baseline Comparison', description: 'Compare actual progress against the original baseline to identify schedule variances.' },
+   992→    ],
+   993→    benefits: [
+   994→      { title: 'Realistic Project Timelines', description: 'Resource-loaded schedules prevent over-optimistic planning that leads to missed deadlines.' },
+   995→      { title: 'Quick Schedule Adjustments', description: 'Drag-and-drop editing with automatic recalculation lets you respond to changes in minutes.' },
+   996→      { title: 'Early Delay Detection', description: 'Critical path analysis highlights at-risk tasks before they impact the project end date.' },
+   997→    ],
+   998→    workflow: [
+   999→      { step: 1, title: 'Build the Schedule', description: 'Define tasks, set dependencies, assign resources, and establish the project timeline.' },
+  1000→      { step: 2, title: 'Monitor Progress', description: 'Track actual progress against the plan with real-time updates from field teams.' },
+  1001→      { step: 3, title: 'Adjust & Communicate', description: 'Modify the schedule as needed and share updated timelines with all stakeholders.' },
+  1002→    ],
+  1003→    faq: [
+  1004→      { question: 'Can I import schedules from Microsoft Project?', answer: 'SmartBuild supports import of project schedules through standard file formats for easy migration.' },
+  1005→      { question: 'Does scheduling show resource conflicts?', answer: 'Yes. Resource loading views highlight over-allocated periods, allowing you to resolve conflicts proactively.' },
+  1006→      { question: 'Can clients see the project schedule?', answer: 'Yes. Through the Client Portal, clients can view high-level milestones and progress without seeing internal resource details.' },
+  1007→    ],
+  1008→  },
+  1009→
+  1010→  'client-portal': {
+  1011→    title: 'Client Portal',
+  1012→    metaTitle: 'SmartBuild Client Portal - Project Progress, Invoices & Document Sharing',
+  1013→    metaDescription:
+  1014→      'Give clients visibility into project progress, invoices, and documents with the SmartBuild Client Portal.',
+  1015→    overview: [
+  1016→      'The SmartBuild Client Portal provides a secure, branded space where your clients can stay informed about their projects without needing to call or email your team. From project progress and milestones to invoices and documents, clients have self-service access to the information they need.',
+  1017→      'The portal shows project timelines, photo galleries, and progress updates that you control. Clients can view and download invoices, access shared documents, and even submit service requests or complaints — all from a clean, mobile-friendly interface.',
+  1018→      'By giving clients direct access to information, you reduce routine communication overhead, improve transparency, and build stronger client relationships. The portal is fully configurable so you control exactly what each client can see.',
+  1019→    ],
+  1020→    keyFeatures: [
+  1021→      { icon: Building, title: 'Project Dashboard', description: 'Clients see a personalized dashboard with their project progress, upcoming milestones, and recent updates.' },
+  1022→      { icon: FileText, title: 'Invoice Access', description: 'Clients can view, download, and track payment status for all their project invoices.' },
+  1023→      { icon: Package, title: 'Document Sharing', description: 'Share drawings, reports, and other documents with clients through a secure, organized file library.' },
+  1024→      { icon: MessageSquare, title: 'Communication Hub', description: 'Clients can submit inquiries, complaints, and service requests directly through the portal.' },
+  1025→    ],
+  1026→    benefits: [
+  1027→      { title: 'Reduce Communication Overhead', description: 'Clients self-serve for routine information, freeing up your team for higher-value work.' },
+  1028→      { title: 'Build Client Trust', description: 'Transparency and easy access to information build confidence and strengthen client relationships.' },
+  1029→      { title: 'Faster Invoice Payments', description: 'When clients can easily view and download invoices, payment cycles tend to shorten.' },
+  1030→    ],
+  1031→    workflow: [
+  1032→      { step: 1, title: 'Set Up Client Access', description: 'Create client accounts, assign them to projects, and configure what information they can see.' },
+  1033→      { step: 2, title: 'Share Updates', description: 'Publish progress updates, documents, and invoices that clients can access at any time.' },
+  1034→      { step: 3, title: 'Engage & Collaborate', description: 'Clients view progress, ask questions, and submit requests — all through the portal.' },
+  1035→    ],
+  1036→    faq: [
+  1037→      { question: 'Can I customize what each client sees?', answer: 'Yes. You have full control over which projects, documents, and data each client account can access.' },
+  1038→      { question: 'Is the portal mobile-friendly?', answer: 'Yes. The client portal is fully responsive and works beautifully on phones, tablets, and desktops.' },
+  1039→      { question: 'Can clients make payments through the portal?', answer: 'Clients can view invoices and track payment status. Online payment integration is available for supported payment gateways.' },
+  1040→    ],
+  1041→  },
+  1042→
+  1043→  'mobile-app': {
+  1044→    title: 'Mobile App',
+  1045→    metaTitle: 'SmartBuild Mobile App - Offline Support, GPS Tracking & Field Management',
+  1046→    metaDescription:
+  1047→      'Manage construction on the go with the SmartBuild mobile app featuring offline support, GPS tracking, and field management.',
+  1048→    overview: [
+  1049→      'The SmartBuild Mobile App brings the full power of the platform to your field teams. Whether they are on a construction site, at a supplier yard, or traveling between projects, your team has everything they need to stay productive — even without an internet connection.',
+  1050→      'The app supports offline data capture for attendance, daily logs, work order updates, and site photos. When connectivity is restored, all data syncs automatically. GPS tracking provides real-time location data for field staff, vehicles, and equipment.',
+  1051→      'With push notifications, camera integration for photo documentation, and a clean mobile-optimized interface, the app is designed for the realities of construction fieldwork — where conditions are tough and connectivity is unreliable.',
+  1052→    ],
+  1053→    keyFeatures: [
+  1054→      { icon: Smartphone, title: 'Offline Support', description: 'Capture data without internet. Everything syncs automatically when you are back online.' },
+  1055→      { icon: Clock, title: 'Field Attendance', description: 'Mark attendance with GPS verification and facial recognition directly from the field.' },
+  1056→      { icon: Package, title: 'Photo Documentation', description: 'Capture and upload site photos with automatic location and timestamp tagging.' },
+  1057→      { icon: Bell, title: 'Push Notifications', description: 'Receive instant alerts for task assignments, approvals, and important project updates.' },
+  1058→    ],
+  1059→    benefits: [
+  1060→      { title: 'Productive Anywhere', description: 'Offline support means field teams can work productively regardless of connectivity.' },
+  1061→      { title: 'Real-Time Visibility', description: 'GPS tracking and instant data sync give managers real-time visibility into field operations.' },
+  1062→      { title: 'Faster Reporting', description: 'Field teams submit daily logs, photos, and updates from site, eliminating paperwork delays.' },
+  1063→    ],
+  1064→    workflow: [
+  1065→      { step: 1, title: 'Install & Login', description: 'Download the app, log in with your SmartBuild credentials, and your data is ready.' },
+  1066→      { step: 2, title: 'Work Offline or Online', description: 'Capture attendance, update tasks, take photos — the app works with or without internet.' },
+  1067→      { step: 3, title: 'Auto-Sync', description: 'When you reconnect, all data syncs automatically to the central system.' },
+  1068→    ],
+  1069→    faq: [
+  1070→      { question: 'Does the app work offline?', answer: 'Yes. The app caches your project data and allows full offline functionality. Changes sync when connectivity returns.' },
+  1071→      { question: 'Is GPS tracking always on?', answer: 'GPS is used for specific actions like attendance marking and location tagging. Battery-optimized tracking respects device settings.' },
+  1072→      { question: 'Is the app available for both iOS and Android?', answer: 'Yes. The SmartBuild mobile app is available for both iOS and Android platforms.' },
+  1073→    ],
+  1074→  },
+  1075→
+  1076→  reporting: {
+  1077→    title: 'Reporting & Analytics',
+  1078→    metaTitle: 'SmartBuild Reporting & Analytics - Custom Reports, PDF/Excel Export & Dashboards',
+  1079→    metaDescription:
+  1080→      'Generate custom reports with PDF/Excel export and real-time dashboards with SmartBuild Reporting & Analytics.',
+  1081→    overview: [
+  1082→      'SmartBuild Reporting & Analytics transforms your construction data into actionable insights. With a library of pre-built reports and a powerful custom report builder, you can create exactly the views you need — from project profitability summaries to detailed resource utilization analyses.',
+  1083→      'All reports support PDF and Excel export, scheduled delivery via email, and interactive drill-down for deeper analysis. Real-time dashboards give executives and managers instant visibility into key performance indicators across all modules.',
+  1084→      'The analytics engine combines data from Project Management, Finance, HR, Procurement, and other modules to provide cross-functional insights that are impossible to get from siloed systems.',
+  1085→    ],
+  1086→    keyFeatures: [
+  1087→      { icon: BarChart3, title: 'Custom Report Builder', description: 'Create reports with drag-and-drop fields, filters, grouping, and calculated columns.' },
+  1088→      { icon: FileText, title: 'PDF & Excel Export', description: 'Export any report to professionally formatted PDF or Excel with one click.' },
+  1089→      { icon: TrendingUp, title: 'Real-Time Dashboards', description: 'Interactive dashboards with charts, KPIs, and drill-downs that update in real time.' },
+  1090→      { icon: Bell, title: 'Scheduled Reports', description: 'Set up automatic report generation and delivery via email on daily, weekly, or monthly schedules.' },
+  1091→    ],
+  1092→    benefits: [
+  1093→      { title: 'Data-Driven Decisions', description: 'Move from gut feelings to data-backed decisions with comprehensive cross-module analytics.' },
+  1094→      { title: 'Save Reporting Time', description: 'Pre-built templates and automated scheduling eliminate manual report compilation.' },
+  1095→      { title: 'Share Insights Easily', description: 'Export and share reports with stakeholders, clients, and auditors in standard formats.' },
+  1096→    ],
+  1097→    workflow: [
+  1098→      { step: 1, title: 'Choose or Create', description: 'Select a pre-built report or use the builder to create a custom report from any module.' },
+  1099→      { step: 2, title: 'Filter & Analyze', description: 'Apply filters, group data, and drill down into details to find exactly what you need.' },
+  1100→      { step: 3, title: 'Export & Share', description: 'Export to PDF/Excel or schedule automatic delivery to stakeholders via email.' },
+  1101→    ],
+  1102→    faq: [
+  1103→      { question: 'Can I create my own custom reports?', answer: 'Yes. The report builder lets you select fields, apply filters, add calculations, and save custom templates for reuse.' },
+  1104→      { question: 'Are reports real-time?', answer: 'Yes. Dashboard widgets and on-demand reports pull the latest data. Scheduled reports can also be configured for real-time data.' },
+  1105→      { question: 'Can reports combine data from multiple modules?', answer: 'Absolutely. Cross-module reports can combine data from projects, finance, HR, procurement, and other modules.' },
+  1106→    ],
+  1107→  },
+  1108→
+  1109→  'ai-assistant': {
+  1110→    title: 'AI Assistant',
+  1111→    metaTitle: 'SmartBuild AI Assistant - AI-Powered Insights, Predictions & Recommendations',
+  1112→    metaDescription:
+  1113→      'Leverage AI-powered insights, predictions, and automated recommendations to optimize construction operations with SmartBuild.',
+  1114→    overview: [
+  1115→      'The SmartBuild AI Assistant brings artificial intelligence to your construction operations. Powered by machine learning models trained on construction industry data, it provides intelligent insights, predictions, and recommendations that help you make better decisions, faster.',
+  1116→      'From predicting project delays and cost overruns to recommending optimal resource allocations and identifying maintenance risks, the AI Assistant analyzes patterns across your data that would be impossible for humans to detect manually. It learns from your historical data and continuously improves its recommendations.',
+  1117→      'The AI Assistant is integrated throughout the platform — you will find AI-powered suggestions in Project Management, Finance, Resource Management, and Maintenance, providing contextual intelligence exactly where and when you need it.',
+  1118→    ],
+  1119→    keyFeatures: [
+  1120→      { icon: Brain, title: 'Predictive Analytics', description: 'AI models predict project delays, cost overruns, and resource bottlenecks before they happen.' },
+  1121→      { icon: TrendingUp, title: 'Smart Recommendations', description: 'Get actionable recommendations for resource allocation, scheduling, and cost optimization.' },
+  1122→      { icon: BarChart2, title: 'Anomaly Detection', description: 'AI identifies unusual patterns in costs, attendance, or productivity that may indicate problems.' },
+  1123→      { icon: Zap, title: 'Natural Language Queries', description: 'Ask questions in plain language and get instant answers from your construction data.' },
+  1124→    ],
+  1125→    benefits: [
+  1126→      { title: 'Proactive Problem Solving', description: 'Predict issues before they become problems, allowing you to take corrective action early.' },
+  1127→      { title: 'Faster Decision-Making', description: 'AI-powered insights reduce the time spent analyzing data and building reports manually.' },
+  1128→      { title: 'Continuous Improvement', description: 'The AI learns from your data over time, providing increasingly accurate and relevant recommendations.' },
+  1129→    ],
+  1130→    workflow: [
+  1131→      { step: 1, title: 'Data Collection', description: 'The AI continuously analyzes data from all SmartBuild modules to build understanding of your operations.' },
+  1132→      { step: 2, title: 'Insight Generation', description: 'AI models identify patterns, predict outcomes, and generate actionable recommendations.' },
+  1133→      { step: 3, title: 'Action & Learn', description: 'You act on AI recommendations, and the system learns from outcomes to improve future predictions.' },
+  1134→    ],
+  1135→    faq: [
+  1136→      { question: 'How does the AI learn from my data?', answer: 'The AI analyzes your historical project data, costs, schedules, and outcomes to build models specific to your operations.' },
+  1137→      { question: 'Is my data secure?', answer: 'Yes. All AI processing happens within your SmartBuild instance. Your data is never shared with third parties.' },
+  1138→      { question: 'Can I ask questions in natural language?', answer: 'Yes. The AI Assistant supports natural language queries — just type your question and get an instant, data-backed answer.' },
+  1139→    ],
+  1140→  },
+  1141→}
+  1142→
+  1143→/* ------------------------------------------------------------------ */
+  1144→/*  Fallback for unknown slugs                                         */
+  1145→/* ------------------------------------------------------------------ */
+  1146→
+  1147→const fallbackFeature: FeatureInfo = {
+  1148→  title: 'Feature',
+  1149→  metaTitle: 'SmartBuild Feature',
+  1150→  metaDescription: 'Learn more about this SmartBuild feature.',
+  1151→  overview: [
+  1152→    'This SmartBuild module provides powerful capabilities to streamline your construction operations. Designed with industry best practices, it helps you manage this aspect of your business more efficiently.',
+  1153→    'With intuitive interfaces, automated workflows, and deep integration with other SmartBuild modules, this feature eliminates manual processes and provides real-time visibility into your operations.',
+  1154→    'Whether you are a small contractor or a large construction firm, this module scales to meet your needs and helps you deliver projects more effectively.',
+  1155→  ],
+  1156→  keyFeatures: [
+  1157→    { icon: CheckCircle2, title: 'Comprehensive Management', description: 'Full-featured tools to manage all aspects of this module.' },
+  1158→    { icon: Zap, title: 'Automation', description: 'Automated workflows reduce manual effort and human error.' },
+  1159→    { icon: BarChart2, title: 'Reporting', description: 'Built-in reports and dashboards provide real-time insights.' },
+  1160→    { icon: ShieldCheck, title: 'Integration', description: 'Seamlessly connects with other SmartBuild modules for end-to-end visibility.' },
+  1161→  ],
+  1162→  benefits: [
+  1163→    { title: 'Increased Efficiency', description: 'Automation and streamlined processes save time and reduce errors.' },
+  1164→    { title: 'Better Visibility', description: 'Real-time dashboards give you instant insight into operations.' },
+  1165→    { title: 'Scalable', description: 'Works for projects and organizations of all sizes.' },
+  1166→  ],
+  1167→  workflow: [
+  1168→    { step: 1, title: 'Configure', description: 'Set up the module to match your organization\'s requirements and workflows.' },
+  1169→    { step: 2, title: 'Operate', description: 'Your team uses the module daily, with data flowing automatically between integrated systems.' },
+  1170→    { step: 3, title: 'Optimize', description: 'Use reports and analytics to identify improvements and continuously refine processes.' },
+  1171→  ],
+  1172→  faq: [
+  1173→    { question: 'Is this module included in my plan?', answer: 'This module is available on all SmartBuild plans. Contact sales for specific pricing details.' },
+  1174→    { question: 'Does it integrate with other modules?', answer: 'Yes. This module integrates deeply with all other SmartBuild modules for seamless data flow.' },
+  1175→  ],
+  1176→}
+  1177→
+  1178→/* ------------------------------------------------------------------ */
+  1179→/*  All valid slugs (for navigation)                                   */
+  1180→/* ------------------------------------------------------------------ */
+  1181→
+  1182→const allSlugs = [
+  1183→  'project-management',
+  1184→  'resource-management',
+  1185→  'complaint-management',
+  1186→  'work-orders',
+  1187→  'preventive-maintenance',
+  1188→  'procurement',
+  1189→  'inventory',
+  1190→  'finance',
+  1191→  'cost-control',
+  1192→  'hr',
+  1193→  'payroll',
+  1194→  'asset-management',
+  1195→  'scheduling',
+  1196→  'client-portal',
+  1197→  'mobile-app',
+  1198→  'reporting',
+  1199→  'ai-assistant',
+  1200→]
+  1201→
+  1202→/* ------------------------------------------------------------------ */
+  1203→/*  Page component                                                     */
+  1204→/* ------------------------------------------------------------------ */
+  1205→
+  1206→export default function FeatureDetailPage() {
+  1207→  const params = useParams<{ slug: string }>()
+  1208→  const slug = params.slug
+  1209→  const data = featureData[slug] || { ...fallbackFeature, title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') }
+  1210→  const Icon = iconMap[slug] || LayoutDashboard
+  1211→  const color = colorMap[slug] || 'bg-amber-100 text-amber-600'
+  1212→
+  1213→  const currentIndex = allSlugs.indexOf(slug)
+  1214→  const prevSlug = currentIndex > 0 ? allSlugs[currentIndex - 1] : null
+  1215→  const nextSlug = currentIndex < allSlugs.length - 1 ? allSlugs[currentIndex + 1] : null
+  1216→
+  1217→  return (
+  1218→    <div className="min-h-screen bg-white">
+  1219→      {/* Hero */}
+  1220→      <section className="relative bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 py-20 md:py-28">
+  1221→        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-900/20 via-transparent to-transparent" />
+  1222→        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  1223→          {/* Breadcrumb */}
+  1224→          <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-400" aria-label="Breadcrumb">
+  1225→            <Link href="/features" className="transition-colors hover:text-white">
+  1226→              Features
+  1227→            </Link>
+  1228→            <span>/</span>
+  1229→            <span className="text-white">{data.title}</span>
+  1230→          </nav>
+  1231→          <div className="flex items-center gap-4">
+  1232→            <div className={`inline-flex h-14 w-14 items-center justify-center rounded-full ${color}`}>
+  1233→              <Icon className="h-7 w-7" />
+  1234→            </div>
+  1235→            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+  1236→              {data.title}
+  1237→            </h1>
+  1238→          </div>
+  1239→        </div>
+  1240→      </section>
+  1241→
+  1242→      {/* Overview */}
+  1243→      <section className="py-16">
+  1244→        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+  1245→          <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Overview</h2>
+  1246→          <div className="mt-6 space-y-4 text-neutral-600 leading-relaxed">
+  1247→            {data.overview.map((p, i) => (
+  1248→              <p key={i}>{p}</p>
+  1249→            ))}
+  1250→          </div>
+  1251→        </div>
+  1252→      </section>
+  1253→
+  1254→      {/* Key Features */}
+  1255→      <section className="border-t border-neutral-100 bg-neutral-50 py-16">
+  1256→        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  1257→          <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Key Features</h2>
+  1258→          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  1259→            {data.keyFeatures.map((f, i) => {
+  1260→              const FIcon = f.icon
+  1261→              return (
+  1262→                <div key={i} className="rounded-xl border border-neutral-200 bg-white p-6">
+  1263→                  <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full ${color}`}>
+  1264→                    <FIcon className="h-5 w-5" />
+  1265→                  </div>
+  1266→                  <h3 className="font-semibold text-neutral-900">{f.title}</h3>
+  1267→                  <p className="mt-2 text-sm leading-relaxed text-neutral-500">{f.description}</p>
+  1268→                </div>
+  1269→              )
+  1270→            })}
+  1271→          </div>
+  1272→        </div>
+  1273→      </section>
+  1274→
+  1275→      {/* Benefits */}
+  1276→      <section className="py-16">
+  1277→        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  1278→          <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Benefits</h2>
+  1279→          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+  1280→            {data.benefits.map((b, i) => (
+  1281→              <div key={i} className="rounded-xl border border-neutral-200 bg-white p-6 text-center">
+  1282→                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+  1283→                  <CheckCircle2 className="h-5 w-5" />
+  1284→                </div>
+  1285→                <h3 className="font-semibold text-neutral-900">{b.title}</h3>
+  1286→                <p className="mt-2 text-sm leading-relaxed text-neutral-500">{b.description}</p>
+  1287→              </div>
+  1288→            ))}
+  1289→          </div>
+  1290→        </div>
+  1291→      </section>
+  1292→
+  1293→      {/* How It Works */}
+  1294→      <section className="border-t border-neutral-100 bg-neutral-50 py-16">
+  1295→        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+  1296→          <h2 className="text-center text-2xl font-bold text-neutral-900 sm:text-3xl">How It Works</h2>
+  1297→          <div className="mt-12 grid gap-8 md:grid-cols-3">
+  1298→            {data.workflow.map((w) => (
+  1299→              <div key={w.step} className="relative text-center">
+  1300→                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-600 text-lg font-bold text-white">
+  1301→                  {w.step}
+  1302→                </div>
+  1303→                <h3 className="font-semibold text-neutral-900">{w.title}</h3>
+  1304→                <p className="mt-2 text-sm leading-relaxed text-neutral-500">{w.description}</p>
+  1305→              </div>
+  1306→            ))}
+  1307→          </div>
+  1308→        </div>
+  1309→      </section>
+  1310→
+  1311→      {/* FAQ */}
+  1312→      <section className="py-16">
+  1313→        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+  1314→          <h2 className="text-center text-2xl font-bold text-neutral-900 sm:text-3xl">
+  1315→            Frequently Asked Questions
+  1316→          </h2>
+  1317→          <div className="mt-10 space-y-6">
+  1318→            {data.faq.map((item, i) => (
+  1319→              <div key={i} className="rounded-xl border border-neutral-200 p-6">
+  1320→                <h3 className="font-semibold text-neutral-900">{item.question}</h3>
+  1321→                <p className="mt-3 text-sm leading-relaxed text-neutral-500">{item.answer}</p>
+  1322→              </div>
+  1323→            ))}
+  1324→          </div>
+  1325→        </div>
+  1326→      </section>
+  1327→
+  1328→      {/* CTA */}
+  1329→      <section className="border-t border-neutral-100 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 py-20">
+  1330→        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+  1331→          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+  1332→            Try {data.title}
+  1333→          </h2>
+  1334→          <p className="mx-auto mt-4 max-w-xl text-neutral-400">
+  1335→            See how SmartBuild can transform your construction operations. Schedule a personalized demo today.
+  1336→          </p>
+  1337→          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+  1338→            <Link
+  1339→              href="/request-demo"
+  1340→              className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-700"
+  1341→            >
+  1342→              Request a Demo
+  1343→              <ArrowRight className="h-4 w-4" />
+  1344→            </Link>
+  1345→            <Link
+  1346→              href="/features"
+  1347→              className="inline-flex items-center gap-2 rounded-lg border border-neutral-600 px-8 py-3.5 text-sm font-semibold text-neutral-300 transition-colors hover:border-neutral-500 hover:text-white"
+  1348→            >
+  1349→              <ArrowLeft className="h-4 w-4" />
+  1350→              View All Features
+  1351→            </Link>
+  1352→          </div>
+  1353→        </div>
+  1354→      </section>
+  1355→
+  1356→      {/* Prev / Next Navigation */}
+  1357→      <section className="border-t border-neutral-100 py-8">
+  1358→        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+  1359→          {prevSlug ? (
+  1360→            <Link
+  1361→              href={`/features/${prevSlug}`}
+  1362→              className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+  1363→            >
+  1364→              <ArrowLeft className="h-4 w-4" />
+  1365→              {featureData[prevSlug]?.title || prevSlug}
+  1366→            </Link>
+  1367→          ) : (
+  1368→            <div />
+  1369→          )}
+  1370→          {nextSlug ? (
+  1371→            <Link
+  1372→              href={`/features/${nextSlug}`}
+  1373→              className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+  1374→            >
+  1375→              {featureData[nextSlug]?.title || nextSlug}
+  1376→              <ArrowRight className="h-4 w-4" />
+  1377→            </Link>
+  1378→          ) : (
+  1379→            <div />
+  1380→          )}
+  1381→        </div>
+  1382→      </section>
+  1383→    </div>
+  1384→  )
+  1385→}

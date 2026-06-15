@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const currentStepId = invoice.workflowInstance.currentStepId
 
-    // Create delegation action
+    // প্রতিনিধি অ্যাকশন তৈরি করা হচ্ছে
     const commentText = comments
       ? `Delegated to ${targetUser.name}: ${comments}`
       : `Delegated to ${targetUser.name}`

@@ -1,5 +1,5 @@
 // src/modules/reports/index.ts
-// Reports Module - Barrel Export
-// Re-exports all report-related components for clean imports
+// রিপোর্ট মডিউল - ব্যারেল এক্সপোর্ট
+// পরিষ্কার ইম্পোর্টের জন্য সমস্ত রিপোর্ট-সম্পর্কিত কম্পোনেন্ট রি-এক্সপোর্ট করা হয়েছে
 
 export { ReportsPage } from './components'

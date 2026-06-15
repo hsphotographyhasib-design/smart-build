@@ -3,27 +3,26 @@
 import { useState, useEffect, useMemo } from 'react'
 
 export interface DeadlineInfo {
-  /** Whether the deadline has passed */
+  /** ডেডলাইন অতিক্রম হয়েছে কিনা */
   isOverdue: boolean
-  /** Whether the deadline is within 1 hour (urgent) */
+  /** ডেডলাইন ১ ঘণ্টারের মধ্যে আছে কিনা (জরুরি) */
   isUrgent: boolean
-  /** Human-readable time remaining, e.g. "2d 5h" or "Overdue" */
+  /** মানবিক পঠনায়ী সময়, যেমন "2d 5h" বা "Overdue" */
   timeRemaining: string
-  /** Whole days remaining (0 or negative if overdue) */
+  /** বাকি দিন (0 বা ঋণাত্মক যদি ডেডলাইন অতিক্রম হলে) */
   daysLeft: number
-  /** Whole hours remaining (0 or negative if overdue) */
+  /** বাকি ঘণ্টা (0 বা ঋণাত্মক যদি ডেডলাইন অতিক্রম হলে) */
   hoursLeft: number
 }
 
 const URGENT_THRESHOLD_MS = 60 * 60 * 1000 // 1 hour
-const TICK_INTERVAL_MS = 60 * 1000 // Re-calculate every minute
+const TICK_INTERVAL_MS = 60 * 1000 // প্রতি মিনিটে পুনঃহিসাব করা হচ্ছে
 
 /**
- * Calculates time remaining from a deadline string (ISO date string).
- * Re-calculates every minute so the UI stays fresh.
+ * ISO তারিখ স্ট্রিং থেকে ডেডলাইন পরিমাপ নিয়ম করা হচ্ছে।
+ * UI সতেজ রাখতে প্রতি মিনিটে পুনঃহিসাব করে।
  *
- * Returns sensible defaults when the deadline is null, undefined,
- * or cannot be parsed.
+ * ডেডলাইন null, undefined, বা পার্স করা না গেলে যুক্তিমান ডিফল্ট প্রদান করে।
  *
  * @example
  * function TaskCard({ task }) {
@@ -41,7 +40,7 @@ const TICK_INTERVAL_MS = 60 * 1000 // Re-calculate every minute
 export function useDeadline(deadline: string | null | undefined): DeadlineInfo {
   const [now, setNow] = useState<number>(() => Date.now())
 
-  // Tick every minute to keep the countdown fresh
+  // প্রতি মিনিটে কাউন্টডাউন রিফ্রেশ রাখতে হচ্ছে
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now())
@@ -53,7 +52,7 @@ export function useDeadline(deadline: string | null | undefined): DeadlineInfo {
   }, [])
 
   return useMemo<DeadlineInfo>(() => {
-    // Handle null / undefined / empty deadline
+    // null / undefined / খালি ডেডলাইন হ্যান্ডেল করা হচ্ছে
     if (!deadline) {
       return {
         isOverdue: false,
@@ -64,10 +63,10 @@ export function useDeadline(deadline: string | null | undefined): DeadlineInfo {
       }
     }
 
-    // Parse the deadline
+    // ডেডলাইন পার্স করা হচ্ছে
     const deadlineMs = new Date(deadline).getTime()
 
-    // Handle unparseable dates
+    // পার্স করতে না পারা তারিখ হ্যান্ডেল করা হচ্ছে
     if (Number.isNaN(deadlineMs)) {
       return {
         isOverdue: false,
@@ -91,7 +90,7 @@ export function useDeadline(deadline: string | null | undefined): DeadlineInfo {
     const daysLeft = isOverdue ? -Math.ceil(-diffMs / (1000 * 60 * 60 * 24)) : Math.floor(diffMs / (1000 * 60 * 60 * 24))
     const hoursLeft = isOverdue ? -Math.ceil(-diffMs / (1000 * 60 * 60)) : Math.floor(diffMs / (1000 * 60 * 60))
 
-    // Format time remaining string
+    // সময় বাকি ফরম্যাট স্ট্রিং করা হচ্ছে
     let timeRemaining: string
 
     if (isOverdue) {

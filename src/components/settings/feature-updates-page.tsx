@@ -123,7 +123,7 @@ export function FeatureUpdatesPage() {
       if (!groups[flag.module]) groups[flag.module] = []
       groups[flag.module].push(flag)
     }
-    // Sort modules in a logical order
+    // যৌক্তিক ক্রমে মডিউল সাজানো
     const moduleOrder = ['projects', 'finance', 'procurement', 'hr', 'resources', 'cost-control', 'collaboration', 'client-portal', 'ai', 'sales', 'operations']
     const sortedKeys = Object.keys(groups).sort((a, b) => {
       const ai = moduleOrder.indexOf(a)
@@ -150,7 +150,7 @@ export function FeatureUpdatesPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl">
-      {/* Header */}
+      {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <Shield className="h-6 w-6 text-amber-600" />
@@ -161,7 +161,7 @@ export function FeatureUpdatesPage() {
         </p>
       </div>
 
-      {/* Version Info Card */}
+      {/* সংস্করণ তথ্য কার্ড */}
       {version && (
         <Card className="border-amber-200 dark:border-amber-900 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
           <CardContent className="p-4 md:p-5">
@@ -189,7 +189,7 @@ export function FeatureUpdatesPage() {
         </Card>
       )}
 
-      {/* Stats Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -232,7 +232,7 @@ export function FeatureUpdatesPage() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* অনুসন্ধান */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -243,7 +243,7 @@ export function FeatureUpdatesPage() {
         />
       </div>
 
-      {/* Feature Flags by Module */}
+      {/* মডিউল অনুযায়ী বৈশিষ্ট্য ফ্ল্যাগ */}
       {groupedFlags.map(({ module, flags: moduleFlags }) => (
         <Card key={module}>
           <CardHeader className="pb-3">
@@ -347,7 +347,7 @@ export function FeatureUpdatesPage() {
         </Card>
       )}
 
-      {/* Info Footer */}
+      {/* তথ্য ফুটার */}
       <Card className="bg-muted/30">
         <CardContent className="p-4">
           <div className="flex items-start gap-2">

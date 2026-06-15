@@ -61,7 +61,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Delay title is required' }, { status: 400 })
     }
 
-    // Verify activity belongs to this schedule if provided
+    // প্রদান করা হলে কার্যক্রমটি এই সময়সূচিতে আছে কিনা যাচাই করা হচ্ছে
     if (activityId) {
       const activity = await db.scheduleActivity.findFirst({
         where: { id: activityId, scheduleId: id },

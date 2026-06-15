@@ -43,7 +43,7 @@ export function ClientProgress() {
   const [selectedProjectId, setSelectedProjectId] = React.useState<string>('')
   const [hasInitialized, setHasInitialized] = React.useState(false)
 
-  // Fetch projects list for the selector
+  // নির্বাচকের জন্য প্রকল্প তালিকা আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['client-portal-projects'],
     queryFn: () => api.get('/api/client-portal/projects'),
@@ -51,7 +51,7 @@ export function ClientProgress() {
 
   const projects = projectsData?.data || []
 
-  // Auto-select first project
+  // প্রথম প্রকল্প স্বয়ংক্রিয়ভাবে নির্বাচিত হচ্ছে
   React.useEffect(() => {
     if (!hasInitialized && projects.length > 0) {
       setSelectedProjectId(projects[0].id)
@@ -59,7 +59,7 @@ export function ClientProgress() {
     }
   }, [projects, hasInitialized])
 
-  // Fetch progress data for selected project
+  // নির্বাচিত প্রকল্পের জন্য অগ্রগতি ডেটা আনা হচ্ছে
   const { data, isLoading } = useQuery({
     queryKey: ['client-portal-progress', selectedProjectId],
     queryFn: () => api.get(`/api/client-portal/projects/${selectedProjectId}/progress`),

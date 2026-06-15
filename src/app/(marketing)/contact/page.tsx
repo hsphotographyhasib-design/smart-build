@@ -89,7 +89,7 @@ export default function ContactPage() {
 
   return (
     <>
-      {/* Hero Section */}
+      {/* হিরো সেকশন */}
       <section className="relative bg-gradient-to-br from-gray-900 via-stone-900 to-stone-800 py-20 md:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-orange-900/20 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
@@ -108,7 +108,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Info Grid */}
+      {/* যোগাযোগ তথ্য গ্রিড */}
       <section className="py-16 md:py-20 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
@@ -135,11 +135,11 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Form + Office Info */}
+      {/* যোগাযোগ ফর্ম + অফিস তথ্য */}
       <section className="py-16 md:py-20 bg-stone-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-            {/* Form */}
+            {/* ফর্ম */}
             <div className="lg:col-span-2">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-2">
                 Send Us a Message
@@ -151,7 +151,7 @@ export default function ContactPage() {
               <ContactForm />
             </div>
 
-            {/* Office Info Sidebar */}
+            {/* অফিস তথ্য সাইডবার */}
             <div className="space-y-6">
               <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-2">
                 Office Information
@@ -180,7 +180,7 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              {/* Map Placeholder */}
+              {/* ম্যাপ প্লেসহোল্ডার */}
               <div className="rounded-xl border border-stone-200 bg-stone-100 h-48 flex flex-col items-center justify-center gap-2 text-stone-400">
                 <Map className="h-8 w-8" />
                 <span className="text-sm font-medium">Map</span>
@@ -193,7 +193,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ সেকশন */}
       <section className="py-20 md:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — List conversations with filters
+// GET — ফিল্টার সহ কথোপকথনের তালিকা
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {}
 
-    // Tab filtering
+    // ট্যাব ফিল্টারিং
     if (tab === 'unread') {
       where.unreadCount = { gt: 0 }
     } else if (tab === 'open') {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       where.ticketId = { not: null }
     }
 
-    // Individual filters override tab
+    // পৃথক ফিল্টার ট্যাব ওভাররাইড করছে
     if (status) where.status = status
     if (priority) where.priority = priority
     if (assignedTo) where.assignedToId = assignedTo
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       where.unreadCount = { gt: 0 }
     }
 
-    // Search
+    // সার্চ
     if (search) {
       where.OR = [
         { lastMessageText: { contains: search } },

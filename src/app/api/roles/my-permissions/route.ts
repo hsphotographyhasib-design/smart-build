@@ -3,10 +3,10 @@ import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
 /**
- * GET /api/roles/my-permissions — Get current user's permissions as flat object
- * Any authenticated user can access.
- * Super admin returns { _super_admin: true }.
- * Others return { "finance.invoice_management.view": true, ... }
+ * GET /api/roles/my-permissions — বর্তমান ব্যবহারকারীর অনুমতি ফ্ল্যাট অবজেক্ট হিসেবে সংগ্রহ করা হচ্ছে
+ * যেকোনো প্রমাণীকৃত ব্যবহারকারী অ্যাক্সেস করতে পারবেন।
+ * Super admin { _super_admin: true } প্রদান করে।
+ * অন্যরা { "finance.invoice_management.view": true, ... } প্রদান করে
  */
 export async function GET(request: NextRequest) {
   try {
@@ -18,22 +18,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Super admin has all permissions
+    // Super admin এর সকল অনুমতি আছে
     if (user.role === 'super_admin') {
       return NextResponse.json({ success: true, data: { _super_admin: true } })
     }
 
-    // Find the role
+    // ভূমিকা খোঁজা হচ্ছে
     const role = await db.role.findUnique({
       where: { code: user.role },
     })
 
     if (!role) {
-      // Unknown role — return empty
+      // অজানা ভূমিকা — খালি প্রদান করা হচ্ছে
       return NextResponse.json({ success: true, data: {} })
     }
 
-    // Get all allowed permissions
+    // সকল অনুমোদিত অনুমতি সংগ্রহ করা হচ্ছে
     const rolePermissions = await db.rolePermission.findMany({
       where: {
         roleId: role.id,

@@ -25,7 +25,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Cannot approve a request that is already ${existing.status}` }, { status: 400 })
     }
 
-    // Determine approval level based on user role
+    // ব্যবহারকারীর ভূমিকার উপর ভিত্তি করে অনুমোদন স্তর নির্ধারণ করা হচ্ছে
     let newStatus: string
     let updateData: Record<string, unknown>
 
@@ -42,7 +42,7 @@ export async function POST(
         status: newStatus,
         pmApprovedById: user.id,
         pmApprovedAt: new Date(),
-        // If supervisor hasn't approved yet, auto-approve at supervisor level too
+        // সুপারভাইজার এখনও অনুমোদন করেননি, সুপারভাইজার স্তরেও স্বয়ংক্রিয়ভাবে অনুমোদন করা হচ্ছে
         ...(existing.status === 'pending' && {
           supervisorApprovedById: user.id,
           supervisorApprovedAt: new Date(),

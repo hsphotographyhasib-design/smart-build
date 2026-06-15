@@ -113,7 +113,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Technician not found' }, { status: 404 })
     }
 
-    // Check for active jobs
+    // সক্রিয় কাজ আছে কিনা যাচাই করা হচ্ছে
     const activeJobs = await db.maintenanceTicket.count({
       where: { assignedTechnicianId: id, status: { notIn: ['closed', 'completed'] } },
     })

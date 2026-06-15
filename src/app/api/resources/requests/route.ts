@@ -56,13 +56,13 @@ export async function POST(request: NextRequest) {
     if (!projectId) return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 })
     if (!resourceType) return NextResponse.json({ success: false, error: 'resourceType is required' }, { status: 400 })
 
-    // Verify project exists
+    // প্রজেক্ট বিদ্যমান কিনা যাচাই করা হচ্ছে
     const project = await db.project.findUnique({ where: { id: projectId } })
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 400 })
     }
 
-    // Auto-generate requestNo using format "RR-" + timestamp
+    // "RR-" + টাইমস্ট্যাম্প ফরম্যাট ব্যবহার করে স্বয়ংক্রিয়ভাবে requestNo তৈরি করা হচ্ছে
     const requestNo = `RR-${Date.now()}`
 
     const result = await db.resourceRequest.create({

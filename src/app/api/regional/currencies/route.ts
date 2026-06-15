@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: { currencies: formatted, conversion } })
   } catch (error) {
-    console.error('Get currencies error:', error)
+    console.error('মুদ্রা পাওয়া হচ্ছে error:', error)
     return NextResponse.json({ error: 'Failed to get currencies' }, { status: 500 })
   }
 }

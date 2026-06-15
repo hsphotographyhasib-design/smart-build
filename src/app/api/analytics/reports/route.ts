@@ -72,7 +72,7 @@ async function generateProjectPL(projectId: string | null, dateFilter: Record<st
     const poCosts = purchaseOrders.reduce((s, po) => s + po.total, 0)
     const totalCosts = directCosts + poCosts
 
-    // Cost breakdown
+    // খরচ বিশ্লেষণ
     const costByCategory: Record<string, number> = {}
     for (const e of expenses) {
       costByCategory[e.category || 'Other'] = (costByCategory[e.category || 'Other'] || 0) + e.amount
@@ -138,7 +138,7 @@ async function generateLabourSummary(projectId: string | null, dateFilter: Recor
     }),
   ])
 
-  // By project
+  // প্রকল্প অনুযায়ী (উপস্থিতি)
   const byProject: Record<string, { projectId: string; projectName: string; projectCode: string; totalDays: number; totalHours: number; totalOvertime: number; totalCost: number; uniqueWorkers: number }> = {}
   for (const att of attendance) {
     const key = att.project.id
@@ -151,7 +151,7 @@ async function generateLabourSummary(projectId: string | null, dateFilter: Recor
     byProject[key].totalCost += (att.hoursWorked || 0) * (att.labour.group?.rate || 0)
   }
 
-  // Count unique workers per project
+  // প্রতিটি প্রকল্পে অনন্য শ্রমিক গণনা করা হচ্ছে
   const workerSets: Record<string, Set<string>> = {}
   for (const att of attendance) {
     if (!workerSets[att.project.id]) workerSets[att.project.id] = new Set()
@@ -161,7 +161,7 @@ async function generateLabourSummary(projectId: string | null, dateFilter: Recor
     byProject[key].uniqueWorkers = workerSets[key]?.size || 0
   }
 
-  // Payroll summary
+  // বেতন সারসংক্ষেপ
   const payrollByProject: Record<string, { projectId: string; projectName: string; totalPaid: number; totalDeductions: number; totalNet: number; payslipCount: number }> = {}
   for (const p of payrollData) {
     const key = p.project.id
@@ -258,7 +258,7 @@ async function generateResourceUtilization(projectId: string | null) {
     include: { members: { include: { labour: { select: { name: true, isActive: true } } } } },
   })
 
-  // By project
+  // প্রকল্প অনুযায়ী (সম্পদ)
   const byProject: Record<string, { projectId: string; projectName: string; projectCode: string; projectStatus: string; totalAssignments: number; activeAssignments: number; uniqueCrews: number; utilizationRate: number }> = {}
   for (const a of assignments) {
     const key = a.project.id
@@ -281,7 +281,7 @@ async function generateResourceUtilization(projectId: string | null) {
       : 0
   }
 
-  // By crew
+  // ক্রু অনুযায়ী
   const byCrew = crews.map(c => {
     const crewAssignments = assignments.filter(a => a.crewId === c.id)
     return {

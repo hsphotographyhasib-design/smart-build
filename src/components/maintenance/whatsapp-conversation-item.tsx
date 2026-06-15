@@ -102,7 +102,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
             : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-l-2 border-l-transparent'
         )}
       >
-        {/* Avatar with online indicator */}
+        {/* অনলাইন সূচকসহ অ্যাভাটার */}
         <div className="relative flex-shrink-0">
           <Avatar className="h-11 w-11">
             {conversation.contact.profilePicUrl ? (
@@ -120,7 +120,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
           )}
         </div>
 
-        {/* Content */}
+        {/* বিষয়বস্তু */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
@@ -156,7 +156,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
               {truncate(conversation.lastMessageText || '', 35)}
             </p>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              {/* Priority dot */}
+              {/* অগ্রাধিকার বিন্দু */}
               {conversation.priority !== 'medium' && (
                 <Tooltip>
                   <TooltipTrigger>
@@ -165,7 +165,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
                   <TooltipContent>{getPriorityLabel(conversation.priority)}</TooltipContent>
                 </Tooltip>
               )}
-              {/* Linked ticket indicator */}
+              {/* সংযুক্ত টিকেট সূচক */}
               {conversation.ticketId && (
                 <Tooltip>
                   <TooltipTrigger>
@@ -174,7 +174,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
                   <TooltipContent>Linked to ticket</TooltipContent>
                 </Tooltip>
               )}
-              {/* Unread count */}
+              {/* অপঠিত গণনা */}
               {conversation.unreadCount > 0 && (
                 <span className="flex-shrink-0 min-w-[18px] h-[18px] rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
                   {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
@@ -183,7 +183,7 @@ export function WhatsAppConversationItem({ conversation, isActive, onClick }: Wh
             </div>
           </div>
 
-          {/* Assigned agent chip */}
+          {/* বরাদ্দকৃত এজেন্ট চিপ */}
           {conversation.assignedTo && (
             <div className="mt-1">
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100">

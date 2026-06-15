@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { differenceInDays, addDays, format, parseISO, startOfMonth, startOfWeek, endOfMonth, endOfWeek, isSameDay, isToday } from 'date-fns'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 export interface GanttActivity {
   id: string
   activityId: string
@@ -52,7 +52,7 @@ interface ScheduleGanttChartProps {
   loading?: boolean
 }
 
-// ─── Constants ───
+// ─── ধ্রুবক ───
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 56
 const TASK_BAR_HEIGHT = 22
@@ -98,7 +98,7 @@ const STATUS_BADGE_CONFIG: Record<string, { label: string; className: string }> 
   on_hold: { label: 'On Hold', className: 'bg-gray-100 text-gray-700' },
 }
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function flattenActivities(activities: GanttActivity[]): (GanttActivity & { depth: number })[] {
   const result: (GanttActivity & { depth: number })[] = []
 
@@ -186,7 +186,7 @@ function generateDateColumns(startDate: Date, endDate: Date, zoom: ZoomLevel) {
   return columns
 }
 
-// ─── Zoom Button Group ───
+// ─── জুম বাটন গ্রুপ ───
 function ZoomControls({ zoom, onZoomChange }: { zoom: ZoomLevel; onZoomChange: (z: ZoomLevel) => void }) {
   const levels: ZoomLevel[] = ['day', 'week', 'month', 'quarter']
   return (
@@ -207,7 +207,7 @@ function ZoomControls({ zoom, onZoomChange }: { zoom: ZoomLevel; onZoomChange: (
   )
 }
 
-// ─── Main Gantt Chart Component ───
+// ─── প্রধান গ্যান্ট চার্ট উপাদান ───
 export function ScheduleGanttChart({
   activities,
   dependencies = [],
@@ -225,7 +225,7 @@ export function ScheduleGanttChart({
   const rightPanelRef = useRef<HTMLDivElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
 
-  // ─── Computed Data ───
+  // ─── গণনাকৃত তথ্য ───
   const baseStartDate = useMemo(() => {
     if (!scheduleStartDate) return new Date()
     return parseISO(scheduleStartDate)
@@ -248,7 +248,7 @@ export function ScheduleGanttChart({
     return parseISO(scheduleEndDate)
   }, [scheduleEndDate, activities, baseStartDate])
 
-  // Add padding to the timeline
+  // টাইমলাইনে প্যাডিং যোগ
   const timelineStart = addDays(baseStartDate, -7)
   const timelineEnd = addDays(baseEndDate, 14)
 
@@ -264,7 +264,7 @@ export function ScheduleGanttChart({
     [dateColumns]
   )
 
-  // Get filtered flat activities accounting for collapsed state
+  // সঙ্কুচিত অবস্থা বিবেচনা করে ফিল্টারকৃত সমতল কার্যকলাপ পাওয়া
   const flatActivities = useMemo(() => {
     const flat: (GanttActivity & { depth: number; visibleIndex: number })[] = []
     let visibleIdx = 0
@@ -284,7 +284,7 @@ export function ScheduleGanttChart({
 
   const totalRows = flatActivities.length
 
-  // Map activity ID -> row index for dependency arrows
+  // নির্ভরতা তীরের জন্য কার্যকলাপ ID -> সারি সূচক ম্যাপ
   const activityRowMap = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of flatActivities) {
@@ -293,7 +293,7 @@ export function ScheduleGanttChart({
     return map
   }, [flatActivities])
 
-  // ─── Position Calculations ───
+  // ─── অবস্থান গণনা ───
   function getDatePosition(date: Date): number {
     const daysDiff = differenceInDays(date, timelineStart)
     let position = 0
@@ -334,7 +334,7 @@ export function ScheduleGanttChart({
     }
   }
 
-  // ─── Today line position ───
+  // ─── আজকের রেখার অবস্থান ───
   const todayX = useMemo(() => {
     try {
       return getDatePosition(new Date())
@@ -343,7 +343,7 @@ export function ScheduleGanttChart({
     }
   }, [dateColumns, timelineStart])
 
-  // ─── Toggle collapse ───
+  // ─── সঙ্কুচিত করা/খোলা টগল ───
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedIds((prev) => {
       const next = new Set(prev)
@@ -353,12 +353,12 @@ export function ScheduleGanttChart({
     })
   }, [])
 
-  // ─── Sync horizontal scroll ───
+  // ─── অনুভূমিক স্ক্রল সিঙ্ক ───
   const handleTimelineScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setHorizontalScroll(e.currentTarget.scrollLeft)
   }, [])
 
-  // ─── Dependency Arrow Paths ───
+  // ─── নির্ভরতা তীর পথ ───
   const dependencyPaths = useMemo(() => {
     const paths: { key: string; d: string; color: string }[] = []
 
@@ -379,7 +379,7 @@ export function ScheduleGanttChart({
       const isCritical = dep.depType === 'FS' && (fromActivity.isOnCriticalPath || toActivity.isOnCriticalPath)
       const color = isCritical ? '#ef4444' : '#94a3b8'
 
-      // Simple right-angle connector
+      // সরল সমকোণ সংযোগকারী
       const midX = fromX + Math.min((toX - fromX) * 0.4, 40)
       const d = `M ${fromX} ${fromY} H ${midX} V ${toY} H ${toX}`
       paths.push({ key: dep.id, d, color })
@@ -407,7 +407,7 @@ export function ScheduleGanttChart({
   return (
     <TooltipProvider delayDuration={200}>
       <div className="border rounded-xl overflow-hidden bg-card">
-        {/* ─── Toolbar ─── */}
+        {/* ─── টুলবার ─── */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground font-medium">{totalRows} activities</span>
@@ -417,7 +417,7 @@ export function ScheduleGanttChart({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Legend */}
+            {/* লিজেন্ড */}
             <div className="hidden lg:flex items-center gap-3 mr-4">
               <div className="flex items-center gap-1.5">
                 <div className="h-2.5 w-4 rounded-sm bg-amber-500" />
@@ -444,11 +444,11 @@ export function ScheduleGanttChart({
           </div>
         </div>
 
-        {/* ─── Main Content ─── */}
+        {/* ─── প্রধান বিষয়বস্তু ─── */}
         <div className="flex">
-          {/* ─── Left Panel (Activity Table) ─── */}
+          {/* ─── বাম প্যানেল (কার্যকলাপ টেবিল) ─── */}
           <div ref={leftPanelRef} className="w-[420px] min-w-[420px] border-r flex flex-col bg-card">
-            {/* Left Header */}
+            {/* বাম হেডার */}
             <div className="flex items-center border-b text-xs font-medium text-muted-foreground bg-muted/50" style={{ height: HEADER_HEIGHT }}>
               <div className="w-8 flex-shrink-0" />
               <div className="flex-1 min-w-0 px-2">Activity Name</div>
@@ -457,7 +457,7 @@ export function ScheduleGanttChart({
               <div className="w-14 text-center">Days</div>
               <div className="w-12 text-center">%</div>
             </div>
-            {/* Left Rows */}
+            {/* বাম সারিসমূহ */}
             <div className="flex-1 overflow-y-auto" style={{ maxHeight: Math.min(totalRows * ROW_HEIGHT, 600) }}>
               {flatActivities.map((activity) => {
                 const hasChildren = activity.children && activity.children.length > 0
@@ -477,7 +477,7 @@ export function ScheduleGanttChart({
                       onActivityClick?.(activity)
                     }}
                   >
-                    {/* Expand/Collapse */}
+                    {/* প্রসারিত/সঙ্কুচিত */}
                     <div className="w-8 flex-shrink-0 flex items-center justify-center">
                       {hasChildren ? (
                         <button
@@ -497,7 +497,7 @@ export function ScheduleGanttChart({
                         <span className="w-3" />
                       )}
                     </div>
-                    {/* Name */}
+                    {/* নাম */}
                     <div className="flex-1 min-w-0 flex items-center gap-1.5 px-1">
                       {activity.taskType === 'milestone' ? (
                         <Diamond className="h-3 w-3 text-amber-600 flex-shrink-0" />
@@ -519,19 +519,19 @@ export function ScheduleGanttChart({
                         <span className="text-[9px] text-red-600 font-medium flex-shrink-0">CP</span>
                       )}
                     </div>
-                    {/* Start */}
+                    {/* শুরু */}
                     <div className="w-16 text-center text-[10px] text-muted-foreground">
                       {activity.startDate ? format(parseISO(activity.startDate), 'd MMM') : '—'}
                     </div>
-                    {/* Finish */}
+                    {/* সমাপ্তি */}
                     <div className="w-16 text-center text-[10px] text-muted-foreground">
                       {activity.finishDate ? format(parseISO(activity.finishDate), 'd MMM') : '—'}
                     </div>
-                    {/* Duration */}
+                    {/* মেয়াদ */}
                     <div className="w-14 text-center text-[10px] font-medium text-muted-foreground">
                       {activity.duration}d
                     </div>
-                    {/* Progress */}
+                    {/* অগ্রগতি */}
                     <div className="w-12 flex items-center justify-center">
                       <span
                         className={cn(
@@ -548,9 +548,9 @@ export function ScheduleGanttChart({
             </div>
           </div>
 
-          {/* ─── Right Panel (Timeline) ─── */}
+          {/* ─── ডান প্যানেল (টাইমলাইন) ─── */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Timeline Header */}
+            {/* টাইমলাইন হেডার */}
             <div
               ref={timelineRef}
               className="flex border-b overflow-hidden bg-muted/50"
@@ -568,16 +568,16 @@ export function ScheduleGanttChart({
               ))}
             </div>
 
-            {/* Timeline Body (scrollable) */}
+            {/* টাইমলাইন বডি (স্ক্রলযোগ্য) */}
             <div
               ref={rightPanelRef}
               className="flex-1 overflow-auto relative"
               style={{ maxHeight: Math.min(totalRows * ROW_HEIGHT, 600) + 40 }}
               onScroll={handleTimelineScroll}
             >
-              {/* Timeline content */}
+              {/* টাইমলাইন বিষয়বস্তু */}
               <div className="relative" style={{ width: totalTimelineWidth, minHeight: totalRows * ROW_HEIGHT }}>
-                {/* Grid lines */}
+                {/* গ্রিড রেখা */}
                 {dateColumns.map((col, idx) => (
                   <div
                     key={`grid-${idx}`}
@@ -586,7 +586,7 @@ export function ScheduleGanttChart({
                   />
                 ))}
 
-                {/* Alternating row backgrounds */}
+                {/* বিকল্প সারি পটভূমি */}
                 {flatActivities.map((_, idx) => (
                   <div
                     key={`row-bg-${idx}`}
@@ -595,7 +595,7 @@ export function ScheduleGanttChart({
                   />
                 ))}
 
-                {/* Today line */}
+                {/* আজকের রেখা */}
                 {todayX > 0 && todayX < totalTimelineWidth && (
                   <div
                     className="absolute top-0 bottom-0 w-px z-20"
@@ -608,7 +608,7 @@ export function ScheduleGanttChart({
                   </div>
                 )}
 
-                {/* Task bars */}
+                {/* কাজের বার */}
                 {flatActivities.map((activity) => {
                   if (!activity.startDate) return null
 
@@ -626,7 +626,7 @@ export function ScheduleGanttChart({
                   return (
                     <TooltipTrigger key={`bar-${activity.id}`} asChild>
                       <div className="absolute group">
-                        {/* Regular task bar */}
+                        {/* সাধারণ কাজের বার */}
                         {!isMilestone && (
                           <div
                             className={cn(
@@ -647,14 +647,14 @@ export function ScheduleGanttChart({
                               onActivityClick?.(activity)
                             }}
                           >
-                            {/* Progress overlay */}
+                            {/* অগ্রগতি ওভারলে */}
                             {activity.progress > 0 && (
                               <div
                                 className={cn('absolute inset-y-0 left-0 rounded-sm', progressColor)}
                                 style={{ width: progressWidth }}
                               />
                             )}
-                            {/* Progress label */}
+                            {/* অগ্রগতি লেবেল */}
                             {barWidth > 60 && (
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <span className="text-[9px] font-medium text-white drop-shadow-sm">
@@ -665,7 +665,7 @@ export function ScheduleGanttChart({
                           </div>
                         )}
 
-                        {/* Milestone diamond */}
+                        {/* মাইলফলক ডায়মন্ড */}
                         {isMilestone && (
                           <div
                             className="absolute cursor-pointer"
@@ -689,7 +689,7 @@ export function ScheduleGanttChart({
                           </div>
                         )}
 
-                        {/* Tooltip */}
+                        {/* টুলটিপ */}
                         <TooltipContent side="top" className="text-xs">
                           <div className="space-y-1">
                             <div className="font-semibold">{activity.activityId}: {activity.name}</div>
@@ -705,7 +705,7 @@ export function ScheduleGanttChart({
                   )
                 })}
 
-                {/* Dependency arrows SVG overlay */}
+                {/* নির্ভরতা তীর SVG ওভারলে */}
                 <svg
                   className="absolute inset-0 pointer-events-none z-10"
                   width={totalTimelineWidth}

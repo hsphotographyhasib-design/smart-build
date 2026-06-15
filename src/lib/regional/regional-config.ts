@@ -1,8 +1,8 @@
-// ============ GLOBAL LOCALIZATION & REGIONAL CONFIGURATION SERVICE ============
-// Core service with country, currency, language registries and detection functions
+// ============ বৈশ্বিক লোকালাইজেশন ও আঞ্চলিক কনফিগারেশন সেবা ============
+// দেশ, মুদ্রা, ভাষা রেজিস্ট্রি এবং সনাক্তকরণ ফাংশন সহ মূল সেবা
 
 export interface CountryConfig {
-  code: string           // ISO 3166-1 alpha-2
+  code: string           // ISO ৩১৬৬-১ আলফা-২
   name: string
   callingCode: string
   flagEmoji: string
@@ -12,31 +12,31 @@ export interface CountryConfig {
   defaultCurrencyCode: string
   defaultLanguageCode: string
   taxName: string
-  taxRate: number        // decimal: 0.07 = 7%
+  taxRate: number        // দশমিক: ০.০৭ = ৭%
   addressFormat: 'street-city-state-postal' | 'street-district-city-postal' | 'street-city-province-postal'
   postalCodeLabel: string
   stateLabel: string
   sortOrder: number
-  phonePlaceholder: string   // e.g. '+673 7123456'
-  phoneFormat: string       // e.g. 'XX XXXXXX'
+  phonePlaceholder: string   // যেমন '+673 7123456'
+  phoneFormat: string       // যেমন 'XX XXXXXX'
 }
 
 export interface CurrencyConfig {
-  code: string           // ISO 4217
+  code: string           // ISO ৪২১৭
   name: string
   symbol: string
   symbolNative: string
   decimalDigits: number
-  locale: string          // for Intl.NumberFormat
+  locale: string          // Intl.NumberFormat এর জন্য
 }
 
 export interface LanguageConfig {
-  code: string           // ISO 639-1
+  code: string           // ISO ৬৩৯-১
   name: string
   nativeName: string
 }
 
-// ──────────── COUNTRY REGISTRY ────────────
+// ──────────── দেশ রেজিস্ট্রি ────────────
 export const COUNTRIES: Record<string, CountryConfig> = {
   BN: {
     code: 'BN', name: 'Brunei', callingCode: '+673', flagEmoji: '🇧🇳',
@@ -144,7 +144,7 @@ export const COUNTRIES: Record<string, CountryConfig> = {
   },
 }
 
-// ──────────── CURRENCY REGISTRY ────────────
+// ──────────── মুদ্রা রেজিস্ট্রি ────────────
 export const CURRENCIES: Record<string, CurrencyConfig> = {
   BND:  { code: 'BND',  name: 'Brunei Dollar',        symbol: 'B$',  symbolNative: 'B$',  decimalDigits: 2, locale: 'en-BN' },
   SGD:  { code: 'SGD',  name: 'Singapore Dollar',      symbol: 'S$',  symbolNative: 'S$',  decimalDigits: 2, locale: 'en-SG' },
@@ -161,7 +161,7 @@ export const CURRENCIES: Record<string, CurrencyConfig> = {
   INR:  { code: 'INR',  name: 'Indian Rupee',          symbol: '₹',   symbolNative: '₹',   decimalDigits: 2, locale: 'en-IN' },
 }
 
-// ──────────── LANGUAGE REGISTRY ────────────
+// ──────────── ভাষা রেজিস্ট্রি ────────────
 export const LANGUAGES: Record<string, LanguageConfig> = {
   en:  { code: 'en',  name: 'English',    nativeName: 'English' },
   ms:  { code: 'ms',  name: 'Malay',      nativeName: 'Bahasa Melayu' },
@@ -174,7 +174,7 @@ export const LANGUAGES: Record<string, LanguageConfig> = {
   fil: { code: 'fil', name: 'Filipino',   nativeName: 'Filipino' },
 }
 
-// ──────────── BROWSER LOCALE → COUNTRY MAPPING ────────────
+// ──────────── ব্রাউজার লোকেল → দেশ ম্যাপিং ────────────
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   'en-BN': 'BN', 'ms-BN': 'BN',
   'en-SG': 'SG', 'zh-SG': 'SG', 'ms-SG': 'SG',
@@ -191,7 +191,7 @@ const LOCALE_TO_COUNTRY: Record<string, string> = {
   'en-IN': 'IN', 'hi-IN': 'IN',
 }
 
-// ──────────── TIMEZONE → COUNTRY MAPPING ────────────
+// ──────────── টাইমজোন → দেশ ম্যাপিং ────────────
 const TZ_TO_COUNTRY: Record<string, string> = {
   'Asia/Brunei': 'BN',
   'Asia/Singapore': 'SG',
@@ -199,7 +199,7 @@ const TZ_TO_COUNTRY: Record<string, string> = {
   'Asia/Jakarta': 'ID', 'Asia/Makassar': 'ID', 'Asia/Jayapura': 'ID',
   'Asia/Bangkok': 'TH',
   'Asia/Manila': 'PH',
-  'Asia/Ho_Chi_Minh': 'ID', // fallback - Vietnam
+  'Asia/Ho_Chi_Minh': 'ID', // ফলব্যাক - ভিয়েতনাম
   'Asia/Saigon': 'VN',
   'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU',
   'Europe/London': 'GB',
@@ -209,7 +209,7 @@ const TZ_TO_COUNTRY: Record<string, string> = {
   'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN',
 }
 
-// ──────────── CORE FUNCTIONS ────────────
+// ──────────── মূল ফাংশনসমূহ ────────────
 
 export function getCountryByCode(code: string): CountryConfig | null {
   return COUNTRIES[code.toUpperCase()] ?? null
@@ -248,18 +248,18 @@ export function getAllLanguages(): LanguageConfig[] {
 }
 
 export function detectCountryFromLocale(locale: string): string | null {
-  // Try exact match first
+  // প্রথমে সঠিক মিল খোঁজা হচ্ছে
   if (LOCALE_TO_COUNTRY[locale]) return LOCALE_TO_COUNTRY[locale]
-  // Try normalized (lowercase)
+  // নরমালাইজড (ছোট হাতের) চেষ্টা করা হচ্ছে
   const normalized = locale.toLowerCase()
   for (const [key, val] of Object.entries(LOCALE_TO_COUNTRY)) {
     if (key.toLowerCase() === normalized) return val
   }
-  // Try language-only match (e.g. "ms" → MY)
+  // শুধুমাত্র ভাষার মিল চেষ্টা করা হচ্ছে (যেমন "ms" → MY)
   const langPart = locale.split('-')[0].toLowerCase()
   if (langPart === 'ms') return 'MY'
-  if (langPart === 'zh') return 'SG' // default Chinese to SG
-  if (langPart === 'ar') return 'AE' // default Arabic to UAE
+  if (langPart === 'zh') return 'SG' // ডিফল্ট চাইনিজ → SG
+  if (langPart === 'ar') return 'AE' // ডিফল্ট আরবি → UAE
   if (langPart === 'hi') return 'IN'
   if (langPart === 'th') return 'TH'
   if (langPart === 'vi') return 'VN'
@@ -273,8 +273,8 @@ export function detectCountryFromTimezone(tz: string): string | null {
 }
 
 export function detectCountryFromIP(_ip: string): string | null {
-  // In production, this would use a geo-IP service (e.g., ip-api.com, MaxMind)
-  // For now, return null to fall back to other detection methods
+  // প্রোডাকশনে, এখানে একটি জিও-IP সেবা ব্যবহৃত হবে (যেমন, ip-api.com, MaxMind)
+  // বর্তমানে, অন্যান্য সনাক্তকরণ পদ্ধতিতে ফলব্যাক করতে null প্রদান করা হচ্ছে
   return null
 }
 
@@ -288,34 +288,34 @@ export interface ResolveCountryOptions {
 export function resolveUserCountry(options: ResolveCountryOptions): string {
   const { userPreference, browserLocale, timezone, ip } = options
 
-  // Priority 1: User preference (explicitly saved in DB or sessionStorage)
+  // অগ্রাধিকার ১: ব্যবহারকারীর পছন্দ (DB বা sessionStorage-এ সংরক্ষিত)
   if (userPreference && COUNTRIES[userPreference.toUpperCase()]) {
     return userPreference.toUpperCase()
   }
 
-  // For this Brunei marketplace: default to Brunei (BND, zero tax)
-  // Browser locale/timezone detection is disabled to avoid showing wrong currency
-  // (e.g., en-US → USD, UTC → US). Uncomment below if multi-country support is needed.
+  // এই ব্রুনাই মার্কেটপ্লেসের জন্য: ব্রুনাই (BND, শূন্য কর) ডিফল্ট
+  // ভুল মুদ্রা প্রদর্শন এড়াতে ব্রাউজার লোকেল/টাইমজোন সনাক্তকরণ নিস্ক্রিয়
+  // (যেমন, en-US → USD, UTC → US)। বহু-দেশ সমর্থন প্রয়োজন হলে নিচের কোড আনকমেন্ট করুন।
 
-  // // Priority 2: Browser locale
+  // // অগ্রাধিকার ২: ব্রাউজার লোকেল
   // if (browserLocale) {
   //   const fromLocale = detectCountryFromLocale(browserLocale)
   //   if (fromLocale) return fromLocale
   // }
 
-  // // Priority 3: Timezone
+  // // অগ্রাধিকার ৩: টাইমজোন
   // if (timezone) {
   //   const fromTz = detectCountryFromTimezone(timezone)
   //   if (fromTz) return fromTz
   // }
 
-  // // Priority 4: IP
+  // // অগ্রাধিকার ৪: IP
   // if (ip) {
   //   const fromIP = detectCountryFromIP(ip)
   //   if (fromIP) return fromIP
   // }
 
-  // Default: Brunei
+  // ডিফল্ট: ব্রুনাই
   return 'BN'
 }
 
@@ -362,10 +362,10 @@ export function getFullRegionalConfig(countryCode: string) {
   }
 }
 
-// Simple exchange rates (relative to BND as base currency)
+// সাধারণ বিনিময় হার (BND ভিত্তি মুদ্রা হিসেবে)
 export const BASE_EXCHANGE_RATES: Record<string, number> = {
   BND: 1,
-  SGD: 1.0,     // pegged to BND
+  SGD: 1.0,     // BND-এর সাথে সংযুক্ত
   MYR: 2.18,
   IDR: 4757.0,
   THB: 25.13,

@@ -75,7 +75,7 @@ export function WhatsAppConvertDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
-  // Build description from last messages
+  // শেষ বার্তা থেকে বিবরণ তৈরি
   const handleOpen = (isOpen: boolean) => {
     if (isOpen && !description) {
       const textParts = (lastMessages || [])
@@ -136,7 +136,7 @@ export function WhatsAppConvertDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Convert type */}
+          {/* রূপান্তরের প্রকার */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Type</Label>
             <Select value={convertType} onValueChange={setConvertType}>
@@ -151,7 +151,7 @@ export function WhatsAppConvertDialog({
             </Select>
           </div>
 
-          {/* Category */}
+          {/* বিভাগ */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Category *</Label>
             <Select value={category} onValueChange={setCategory}>
@@ -166,7 +166,7 @@ export function WhatsAppConvertDialog({
             </Select>
           </div>
 
-          {/* Priority */}
+          {/* অগ্রাধিকার */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Priority</Label>
             <Select value={priority} onValueChange={setPriority}>
@@ -181,7 +181,7 @@ export function WhatsAppConvertDialog({
             </Select>
           </div>
 
-          {/* Description */}
+          {/* বিবরণ */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Description</Label>
             <Textarea
@@ -193,7 +193,7 @@ export function WhatsAppConvertDialog({
             />
           </div>
 
-          {/* Actions */}
+          {/* কার্যকলাপ */}
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSubmitting}>
               Cancel

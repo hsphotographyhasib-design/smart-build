@@ -73,7 +73,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Purchase order not found' }, { status: 404 })
     }
 
-    // Recalculate totals if items or tax changed
+    // আইটেম বা ট্যাক্স পরিবর্তন হলে মোট পরিমাণ পুনরায় হিসাব করা হচ্ছে
     let subtotal = existing.subtotal
     let newItems: any[] | undefined = undefined
 

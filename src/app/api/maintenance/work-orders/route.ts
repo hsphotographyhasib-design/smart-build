@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Ticket ID is required' }, { status: 400 })
     }
 
-    // Check if work order already exists for this ticket
+    // এই টিকেটের জন্য ইতিমধ্যে ওয়ার্ক অর্ডার আছে কিনা যাচাই করা হচ্ছে
     const existingWO = await db.maintenanceWorkOrder.findUnique({ where: { ticketId } })
     if (existingWO) {
       return NextResponse.json({ success: false, error: 'Work order already exists for this ticket' }, { status: 400 })
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Ticket not found' }, { status: 404 })
     }
 
-    // Auto-generate work order number
+    // স্বয়ংক্রিয়ভাবে ওয়ার্ক অর্ডার নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'WO'
     const count = await db.maintenanceWorkOrder.count({
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update ticket status to in_progress if not already
+    // ইতিমধ্যে না হলে টিকেটের স্ট্যাটাস in_progress-এ আপডেট করা হচ্ছে
     if (ticket.status === 'assigned' || ticket.status === 'accepted') {
       await db.maintenanceTicket.update({
         where: { id: ticketId },

@@ -5,9 +5,9 @@ import { verifyAuth, logPermissionAudit } from '@/lib/auth'
 type RouteContext = { params: Promise<{ id: string }> }
 
 /**
- * GET /api/roles/[id]/permissions — Get permission matrix for a role
- * Returns nested object: { module: { feature: { action: boolean } } }
- * Admin and super_admin can access.
+ * GET /api/roles/[id]/permissions — একটি ভূমিকার জন্য অনুমতি ম্যাট্রিক্স সংগ্রহ করা হচ্ছে
+ * নেস্টেড অবজেক্ট প্রদান করে: { module: { feature: { action: boolean } } }
+ * প্রশাসক এবং super_admin অ্যাক্সেস করতে পারবেন।
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Build the matrix from allowed role permissions
+    // অনুমোদিত ভূমিকা অনুমতি থেকে ম্যাট্রিক্স তৈরি করা হচ্ছে
     const matrix: Record<string, Record<string, Record<string, boolean>>> = {}
 
     for (const rp of role.permissions) {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       matrix[module][feature][action] = true
     }
 
-    // Ensure all actions exist (even if false) by fetching all permissions
+    // সকল অনুমতি সংগ্রহ করে সব কার্য বিদ্যমান কিনা নিশ্চিত করা হচ্ছে (false হলেও)
     const allPermissions = await db.permission.findMany({
       select: { module: true, feature: true, action: true },
     })
@@ -81,10 +81,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * PUT /api/roles/[id]/permissions — Update permission matrix for a role
+ * PUT /api/roles/[id]/permissions — একটি ভূমিকার অনুমতি ম্যাট্রিক্স আপডেট করা হচ্ছে
  * Body: { "finance.invoice_management.create": true, ... }
- * Only super_admin. Cannot modify super_admin's own permissions.
- * Logs all changes to PermissionAuditLog. Uses a transaction.
+ * শুধুমাত্র super_admin। super_admin এর নিজের অনুমতি পরিবর্তন করা যাবে না।
+ * সকল পরিবর্তন PermissionAuditLog এ লগ করা হয়। একটি ট্রানজ্যাকশন ব্যবহার করা হয়।
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const body: Record<string, boolean> = await request.json()
     const ipAddress = request.headers.get('x-forwarded-for') ?? undefined
 
-    // Parse the flat keys into { module, feature, action, isAllowed }[]
+    // ফ্ল্যাট কীগুলো { module, feature, action, isAllowed }[] তে পার্স করা হচ্ছে
     const changes: { module: string; feature: string; action: string; isAllowed: boolean }[] = []
     for (const [key, isAllowed] of Object.entries(body)) {
       const parts = key.split('.')
@@ -124,13 +124,13 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       changes.push({ module: parts[0], feature: parts[1], action: parts[2], isAllowed })
     }
 
-    // Fetch existing permissions for this role
+    // এই ভূমিকার জন্য বিদ্যমান অনুমতি সংগ্রহ করা হচ্ছে
     const existingRPs = await db.rolePermission.findMany({
       where: { roleId: id },
       include: { permission: true },
     })
 
-    // Build a map of existing: "module:feature:action" → RolePermission
+    // বিদ্যমান একটি মানচিত্র তৈরি করা হচ্ছে: "module:feature:action" → RolePermission
     const existingMap = new Map<string, (typeof existingRPs)[number]>()
     for (const rp of existingRPs) {
       const key = `${rp.permission.module}:${rp.permission.feature}:${rp.permission.action}`
@@ -141,11 +141,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const revokedKeys: string[] = []
 
     await db.$transaction(async (tx) => {
-      // For each change, create or update the RolePermission
+      // প্রতিটি পরিবর্তনের জন্য, RolePermission তৈরি বা আপডেট করা হচ্ছে
       for (const change of changes) {
         const mapKey = `${change.module}:${change.feature}:${change.action}`
 
-        // Find or create the permission record
+        // অনুমতি রেকর্ড খোঁজা বা তৈরি করা হচ্ছে
         let permission = await tx.permission.findUnique({
           where: {
             module_feature_action: {
@@ -171,7 +171,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         if (change.isAllowed) {
           if (existingRP) {
             if (!existingRP.isAllowed) {
-              // Re-enable previously denied permission
+              // পূর্বে অস্বীকৃত অনুমতি পুনরায় সক্রিয় করা হচ্ছে
               await tx.rolePermission.update({
                 where: { id: existingRP.id },
                 data: { isAllowed: true },
@@ -179,7 +179,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
               grantedKeys.push(mapKey)
             }
           } else {
-            // Create new role permission
+            // নতুন ভূমিকা অনুমতি তৈরি করা হচ্ছে
             await tx.rolePermission.create({
               data: {
                 roleId: id,
@@ -191,7 +191,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           }
         } else {
           if (existingRP && existingRP.isAllowed) {
-            // Revoke permission (set to false, keep the record)
+            // অনুমতি বাতিল করা হচ্ছে (false সেট করা হচ্ছে, রেকর্ড রাখা হচ্ছে)
             await tx.rolePermission.update({
               where: { id: existingRP.id },
               data: { isAllowed: false },
@@ -202,7 +202,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       }
     })
 
-    // Audit log
+    // অডিট লগ
     if (grantedKeys.length > 0 || revokedKeys.length > 0) {
       await logPermissionAudit({
         userId: user.id,

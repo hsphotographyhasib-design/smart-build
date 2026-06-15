@@ -101,7 +101,7 @@ export function ProjectAnalytics() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600">
@@ -139,7 +139,7 @@ export function ProjectAnalytics() {
         </div>
       ) : (
         <>
-          {/* Project Title */}
+          {/* প্রকল্পের শিরোনাম */}
           <div className="flex items-center gap-3">
             <div>
               <h2 className="text-lg font-semibold">{proj?.name}</h2>
@@ -159,7 +159,7 @@ export function ProjectAnalytics() {
               <TabsTrigger value="risks" className="gap-1.5 text-xs"><AlertTriangle className="h-3.5 w-3.5" /> Risks</TabsTrigger>
             </TabsList>
 
-            {/* Financial Tab */}
+            {/* আর্থিক ট্যাব */}
             <TabsContent value="financial" className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <MetricCard label="Total Budget" value={formatCurrency(budget?.totalBudget || 0)} sub={`Revised: ${formatCurrency(budget?.revisedBudget || 0)}`} icon={DollarSign} color="bg-gradient-to-br from-purple-500 to-violet-500" />
@@ -169,7 +169,7 @@ export function ProjectAnalytics() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Budget vs Actual */}
+                {/* বাজেট বনাম প্রকৃত */}
                 <Card className="lg:col-span-2 border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Budget vs Actual by Cost Code</CardTitle>
@@ -189,11 +189,11 @@ export function ProjectAnalytics() {
                   </CardContent>
                 </Card>
 
-                {/* Health Gauge */}
+                {/* স্বাস্থ্য গেজ */}
                 <HealthGauge value={financial?.healthScore || 0} label={financial?.healthLabel || 'N/A'} />
               </div>
 
-              {/* Cost Breakdown Pie */}
+              {/* খরচ বিশ্লেষণ পাই */}
               {costBreakdown.length > 0 && (
                 <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
                   <CardHeader className="pb-2"><CardTitle className="text-base">Cost Breakdown by Category</CardTitle></CardHeader>
@@ -210,7 +210,7 @@ export function ProjectAnalytics() {
                 </Card>
               )}
 
-              {/* Financial Summary */}
+              {/* আর্থিক সারসংক্ষেপ */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 <MetricCard label="Total Invoiced" value={formatCurrency(financial?.totalInvoiced || 0)} icon={DollarSign} color="bg-gradient-to-br from-purple-500 to-violet-500" />
                 <MetricCard label="Collected" value={formatCurrency(financial?.totalCollected || 0)} sub={`Collection rate: ${financial?.collectionRate || 0}%`} icon={TrendingUp} color="bg-gradient-to-br from-emerald-500 to-green-500" />
@@ -218,7 +218,7 @@ export function ProjectAnalytics() {
               </div>
             </TabsContent>
 
-            {/* Timeline Tab */}
+            {/* টাইমলাইন ট্যাব */}
             <TabsContent value="timeline" className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <MetricCard label="Total Tasks" value={`${timeline?.totalTasks || 0}`} sub={`${timeline?.completedTasks || 0} completed`} icon={BarChart3} color="bg-gradient-to-br from-purple-500 to-violet-500" />
@@ -252,7 +252,7 @@ export function ProjectAnalytics() {
               </div>
             </TabsContent>
 
-            {/* Resources Tab */}
+            {/* সম্পদ ট্যাব */}
             <TabsContent value="resources" className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <MetricCard label="Total Assignments" value={`${resources?.totalAssignments || 0}`} icon={Users} color="bg-gradient-to-br from-purple-500 to-violet-500" />
@@ -272,7 +272,7 @@ export function ProjectAnalytics() {
               </Card>
             </TabsContent>
 
-            {/* Risks Tab */}
+            {/* ঝুঁকি ট্যাব */}
             <TabsContent value="risks" className="space-y-4">
               {risks.length === 0 ? (
                 <Card className="py-12 text-center border-purple-200/50 dark:border-purple-800/30">

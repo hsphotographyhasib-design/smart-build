@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: 'title and category are required' }, { status: 400 })
     }
 
-    // Auto-generate item number
+    // স্বয়ংক্রিয়ভাবে আইটেম নম্বর তৈরি করা হচ্ছে
     const count = await db.openItem.count({ where: { projectId } })
     const itemNo = `OI-${String(count + 1).padStart(3, '0')}`
 

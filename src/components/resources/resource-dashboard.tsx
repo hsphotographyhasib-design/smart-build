@@ -45,7 +45,7 @@ import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface DashboardKpis {
@@ -88,7 +88,7 @@ interface DashboardData {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -109,7 +109,7 @@ const priorityColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// KPI Card Component
+// KPI কার্ড কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 function KpiCard({ title, value, icon: Icon, color, subtitle, badge }: {
@@ -147,7 +147,7 @@ function KpiCard({ title, value, icon: Icon, color, subtitle, badge }: {
 }
 
 // ──────────────────────────────────────────
-// Skeletons
+// স্কেলিটন
 // ──────────────────────────────────────────
 
 function KpiSkeleton() {
@@ -193,7 +193,7 @@ function ChartSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function ResourceDashboard() {
@@ -298,7 +298,7 @@ export function ResourceDashboard() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Resource Utilization by Type */}
+        {/* ধরন অনুযায়ী সম্পদ ব্যবহার */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Resource Utilization by Type</CardTitle>
@@ -487,7 +487,7 @@ export function ResourceDashboard() {
   )
 }
 
-// Need CheckCircle for empty state
+// খালি অবস্থার জন্য CheckCircle প্রয়োজন
 function CheckCircle({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>

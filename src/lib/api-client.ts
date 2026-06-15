@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 import { useAppStore } from './store'
 
-// ============ TYPES ============
+// ============ ধরন (TYPES) ============
 
 interface ApiRequestConfig {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
@@ -23,7 +23,7 @@ interface ApiResponse<T = unknown> {
 
 type ErrorContext = 'network' | 'timeout' | 'server' | 'auth' | 'rate_limit' | 'default'
 
-// ============ ERROR MESSAGES ============
+// ============ ত্রুটি বার্তা ============
 
 const ERROR_MESSAGES: Record<ErrorContext, string> = {
   network: 'Unable to connect. Check your internet connection.',
@@ -43,7 +43,7 @@ function classifyError(status: number | undefined, isNetworkError: boolean, isTi
   return 'default'
 }
 
-// ============ HELPERS ============
+// ============ সহায়ক ফাংশন ============
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -60,7 +60,7 @@ function buildAuthHeaders(skipAuth: boolean): Record<string, string> {
   return headers
 }
 
-// ============ API CLIENT ============
+// ============ API ক্লায়েন্ট ============
 
 class ApiClient {
   private baseURL: string
@@ -89,7 +89,7 @@ class ApiClient {
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        // Offline check before making request
+        // অনুরোধ করার পূর্বে অফলাইন পরীক্ষা করা হচ্ছে
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
           if (!silent) {
             toast.error('You are offline. Please check your internet connection.')
@@ -113,7 +113,7 @@ class ApiClient {
 
         clearTimeout(timeoutId)
 
-        // Parse response body
+        // প্রতিক্রিয়ার বডি পার্স করা হচ্ছে
         let data: T | undefined
         let responseError: string | undefined
         let responseMessage: string | undefined
@@ -135,7 +135,7 @@ class ApiClient {
           }
         }
 
-        // Handle 401 — redirect to login
+        // 401 হ্যান্ডেল করা হচ্ছে — লগইন পৃষ্ঠায় পুনঃনির্দেশিত করা হচ্ছে
         if (response.status === 401) {
           if (!silent) {
             toast.error(ERROR_MESSAGES.auth)
@@ -151,7 +151,7 @@ class ApiClient {
           }
         }
 
-        // Handle 429 — rate limited
+        // 429 হ্যান্ডেল করা হচ্ছে — হার সীমাবদ্ধ
         if (response.status === 429) {
           const retryAfterHeader = response.headers.get('retry-after')
           const retryAfterMs = retryAfterHeader
@@ -173,7 +173,7 @@ class ApiClient {
           }
         }
 
-        // Handle 5xx — server errors, retry
+        // 5xx হ্যান্ডেল করা হচ্ছে — সার্ভার ত্রুটি, পুনঃচেষ্টা করা হচ্ছে
         if (response.status >= 500) {
           lastError = ERROR_MESSAGES.server
           lastContext = 'server'
@@ -194,7 +194,7 @@ class ApiClient {
           }
         }
 
-        // Handle 4xx (excluding 401 and 429) — don't retry
+        // 4xx হ্যান্ডেল করা হচ্ছে (401 এবং 429 বাদে) — পুনঃচেষ্টা করা হচ্ছে না
         if (response.status >= 400 && response.status < 500) {
           const context = classifyError(response.status, false, false)
           const message = responseError ?? responseMessage ?? ERROR_MESSAGES[context]
@@ -209,14 +209,14 @@ class ApiClient {
           }
         }
 
-        // Successful response
+        // সফল প্রতিক্রিয়া
         return {
           success: true,
           data,
           message: responseMessage,
         }
       } catch (err: unknown) {
-        // Check if it's a timeout (AbortError)
+        // এটি টাইমআউট (AbortError) কিনা পরীক্ষা করা হচ্ছে
         if (err instanceof DOMException && err.name === 'AbortError') {
           lastError = ERROR_MESSAGES.timeout
           lastContext = 'timeout'
@@ -236,11 +236,11 @@ class ApiClient {
           }
         }
 
-        // Network error (fetch failed entirely)
+        // নেটওয়ার্ক ত্রুটি (fetch সম্পূর্ণভাবে ব্যর্থ হয়েছে)
         lastError = ERROR_MESSAGES.network
         lastContext = 'network'
 
-        // Retry on network errors
+        // নেটওয়ার্ক ত্রুটিতে পুনঃচেষ্টা করা হচ্ছে
         if (attempt < retries) {
           await sleep(Math.pow(2, attempt) * 1000)
           continue
@@ -257,7 +257,7 @@ class ApiClient {
       }
     }
 
-    // Exhausted all retries
+    // সকল পুনঃচেষ্টা শেষ হয়ে গেছে
     if (!silent) {
       toast.error(lastError ?? ERROR_MESSAGES.default)
     }

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer ID and name are required' }, { status: 400 })
     }
 
-    // Auto-generate site code
+    // স্বয়ংক্রিয়ভাবে সাইট কোড তৈরি করা হচ্ছে
     const customer = await db.customer.findUnique({ where: { id: customerId } })
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })

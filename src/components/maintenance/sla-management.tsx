@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Priority Color Config ───
+// ─── অগ্রাধিকার রঙ কনফিগারেশন ───
 const priorityConfig: Record<string, { label: string; color: string; border: string; bg: string; dot: string }> = {
   emergency: { label: 'Emergency', color: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-700', bg: 'bg-red-50 dark:bg-red-950/30', dot: 'bg-red-500' },
   high: { label: 'High', color: 'text-orange-700 dark:text-orange-400', border: 'border-orange-300 dark:border-orange-700', bg: 'bg-orange-50 dark:bg-orange-950/30', dot: 'bg-orange-500' },
@@ -45,21 +45,21 @@ export function SLAManagement() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editingSLA, setEditingSLA] = useState<any>(null)
 
-  // Fetch SLA templates
+  // SLA টেমপ্লেট আনা
   const { data: slaData, isLoading } = useQuery({
     queryKey: ['maintenance-sla'],
     queryFn: () => api.get('/api/maintenance/sla'),
   })
   const slaTemplates = slaData?.data || []
 
-  // Fetch SLA compliance / breached tickets
+  // SLA সম্মতি / লঙ্ঘনকৃত টিকেট আনা
   const { data: complianceData, isLoading: compLoading } = useQuery({
     queryKey: ['maintenance-sla-compliance'],
     queryFn: () => api.get('/api/maintenance/reports?type=sla'),
   })
   const compliance = complianceData?.data || {}
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/sla', body),
     onSuccess: () => {
@@ -70,7 +70,7 @@ export function SLAManagement() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create SLA', variant: 'destructive' }),
   })
 
-  // Update mutation
+  // আপডেট মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/sla/${id}`, body),
     onSuccess: () => {
@@ -82,7 +82,7 @@ export function SLAManagement() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update', variant: 'destructive' }),
   })
 
-  // Toggle active mutation
+  // সক্রিয় টগল মিউটেশন
   const toggleMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => api.put(`/api/maintenance/sla/${id}`, { active }),
     onSuccess: () => {
@@ -99,7 +99,7 @@ export function SLAManagement() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">SLA Management</h1>
@@ -124,7 +124,7 @@ export function SLAManagement() {
         </Dialog>
       </div>
 
-      {/* SLA Template Cards */}
+      {/* SLA টেমপ্লেট কার্ড */}
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
           <Shield className="h-5 w-5 text-rose-600" /> SLA Templates
@@ -237,7 +237,7 @@ export function SLAManagement() {
             </Card>
           </div>
 
-          {/* By Priority Compliance */}
+          {/* অগ্রাধিকার অনুযায়ী সম্মতি */}
           {compliance.byPriority && (
             <Card>
               <CardHeader className="pb-3">
@@ -348,7 +348,7 @@ export function SLAManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -368,7 +368,7 @@ export function SLAManagement() {
   )
 }
 
-// ─── Create SLA Form ───
+// ─── SLA তৈরির ফর্ম ───
 function CreateSLAForm({ onSubmit, loading }: { onSubmit: (data: any) => void; loading: boolean }) {
   const [form, setForm] = useState({
     priority: 'emergency',
@@ -438,7 +438,7 @@ function CreateSLAForm({ onSubmit, loading }: { onSubmit: (data: any) => void; l
   )
 }
 
-// ─── Edit SLA Form ───
+// ─── SLA সম্পাদনার ফর্ম ───
 function EditSLAForm({ sla, onSubmit, loading }: { sla: any; onSubmit: (data: any) => void; loading: boolean }) {
   const [form, setForm] = useState({
     responseTimeHours: sla.responseTimeHours || 2,

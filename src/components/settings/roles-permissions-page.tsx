@@ -70,7 +70,7 @@ import {
 } from 'lucide-react'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Role {
@@ -117,7 +117,7 @@ interface AuditLogEntry {
 }
 
 // ──────────────────────────────────────────
-// Constants
+// ধ্রুবকসমূহ
 // ──────────────────────────────────────────
 
 const ACTION_COLUMNS: PermissionAction[] = [
@@ -141,7 +141,7 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
 }
 
 // ──────────────────────────────────────────
-// Helper: flatten permission matrix to key-value for saving
+// সহায়ক: সংরক্ষণের জন্য অনুমতি ম্যাট্রিক্সকে কী-মানে রূপান্তর
 // ──────────────────────────────────────────
 
 function flattenPermissions(matrix: PermissionMatrix): Record<string, boolean> {
@@ -158,17 +158,17 @@ function flattenPermissions(matrix: PermissionMatrix): Record<string, boolean> {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function RolesPermissionsPage() {
   const [activeTab, setActiveTab] = useState('roles')
 
-  // ── Roles List state ──
+  // ── ভূমিকা তালিকা অবস্থা ──
   const [roles, setRoles] = useState<Role[]>([])
   const [rolesLoading, setRolesLoading] = useState(true)
 
-  // ── Dialog state ──
+  // ── ডায়ালগ অবস্থা ──
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [cloneOpen, setCloneOpen] = useState(false)
@@ -176,12 +176,12 @@ export function RolesPermissionsPage() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [formLoading, setFormLoading] = useState(false)
 
-  // ── Form state ──
+  // ── ফর্ম অবস্থা ──
   const [formName, setFormName] = useState('')
   const [formCode, setFormCode] = useState('')
   const [formDescription, setFormDescription] = useState('')
 
-  // ── Permission Matrix state ──
+  // ── অনুমতি ম্যাট্রিক্স অবস্থা ──
   const [matrixRoleId, setMatrixRoleId] = useState<string>('')
   const [permissionMatrix, setPermissionMatrix] = useState<PermissionMatrix>({})
   const [originalPermissions, setOriginalPermissions] = useState<Record<string, boolean>>({})
@@ -189,17 +189,17 @@ export function RolesPermissionsPage() {
   const [matrixSaving, setMatrixSaving] = useState(false)
   const [moduleSearch, setModuleSearch] = useState('')
 
-  // ── Audit Log state ──
+  // ── অডিট লগ অবস্থা ──
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditPage, setAuditPage] = useState(1)
   const [auditTotalPages, setAuditTotalPages] = useState(1)
 
-  // Ref to prevent duplicate initial fetch
+  // নকল প্রাথমিক আনা প্রতিরোধে রেফারেন্স
   const rolesFetched = useRef(false)
 
   // ──────────────────────────────────────────
-  // Data fetching functions (not called from effects)
+  // তথ্য আনার ফাংশন (ইফেক্ট থেকে কল করা হয় না)
   // ──────────────────────────────────────────
 
   const loadRoles = async () => {
@@ -248,7 +248,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Initial roles load (uses callback-only pattern)
+  // প্রাথমিক ভূমিকা লোড (কলব্যাক-শুধু প্যাটার্ন ব্যবহার করে)
   // ──────────────────────────────────────────
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export function RolesPermissionsPage() {
   }, [])
 
   // ──────────────────────────────────────────
-  // Handle tab changes — trigger data loading
+  // ট্যাব পরিবর্তন পরিচালনা — তথ্য লোডিং ট্রিগার
   // ──────────────────────────────────────────
 
   const handleTabChange = (tab: string) => {
@@ -283,7 +283,7 @@ export function RolesPermissionsPage() {
     }
   }
 
-  // Handle role selector change
+  // ভূমিকা নির্বাচক পরিবর্তন পরিচালনা
   const handleMatrixRoleChange = (roleId: string) => {
     setMatrixRoleId(roleId)
     setModuleSearch('')
@@ -291,7 +291,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Computed: modified permissions count
+  // গণনাকৃত: পরিবর্তিত অনুমতি গণনা
   // ──────────────────────────────────────────
 
   const modifiedCount = useMemo(() => {
@@ -304,7 +304,7 @@ export function RolesPermissionsPage() {
   }, [permissionMatrix, originalPermissions])
 
   // ──────────────────────────────────────────
-  // Computed: filtered modules
+  // গণনাকৃত: ফিল্টারকৃত মডিউল
   // ──────────────────────────────────────────
 
   const filteredModules = useMemo(() => {
@@ -323,7 +323,7 @@ export function RolesPermissionsPage() {
   }, [permissionMatrix, moduleSearch])
 
   // ──────────────────────────────────────────
-  // Role CRUD handlers
+  // ভূমিকা CRUD হ্যান্ডলার
   // ──────────────────────────────────────────
 
   const openCreate = () => {
@@ -436,7 +436,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Permission matrix handlers
+  // অনুমতি ম্যাট্রিক্স হ্যান্ডলার
   // ──────────────────────────────────────────
 
   const togglePermission = (
@@ -509,7 +509,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Tab 1: Roles List
+  // ট্যাব ১: ভূমিকা তালিকা
   // ──────────────────────────────────────────
 
   const renderRolesList = () => {
@@ -525,7 +525,7 @@ export function RolesPermissionsPage() {
 
     return (
       <>
-        {/* Desktop Table */}
+        {/* ডেস্কটপ টেবিল */}
         <div className="hidden md:block">
           <Card>
             <CardContent className="p-0">
@@ -635,7 +635,7 @@ export function RolesPermissionsPage() {
           </Card>
         </div>
 
-        {/* Mobile Cards */}
+        {/* মোবাইল কার্ড */}
         <div className="md:hidden space-y-3">
           {roles.length === 0 ? (
             <Card>
@@ -710,7 +710,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Tab 2: Permission Matrix
+  // ট্যাব ২: অনুমতি ম্যাট্রিক্স
   // ──────────────────────────────────────────
 
   const renderPermissionMatrix = () => {
@@ -751,7 +751,7 @@ export function RolesPermissionsPage() {
     return (
       <Card>
         <CardContent className="p-0">
-          {/* Toolbar */}
+          {/* টুলবার */}
           <div className="flex items-center justify-between gap-3 p-4 border-b">
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -784,7 +784,7 @@ export function RolesPermissionsPage() {
             </div>
           </div>
 
-          {/* Matrix Header */}
+          {/* ম্যাট্রিক্স হেডার */}
           <div className="hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-2.5 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
             <div>Module / Feature</div>
             {ACTION_COLUMNS.map((a) => (
@@ -795,7 +795,7 @@ export function RolesPermissionsPage() {
             ))}
           </div>
 
-          {/* Matrix Body */}
+          {/* ম্যাট্রিক্স বডি */}
           <div className="max-h-[calc(100vh-18rem)] overflow-y-auto">
             {filteredModules.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground">
@@ -805,7 +805,7 @@ export function RolesPermissionsPage() {
             ) : (
               filteredModules.map(([moduleKey, mod], modIdx) => (
                 <div key={moduleKey} className={cn(modIdx > 0 && 'border-t')}>
-                  {/* Module Header — desktop */}
+                  {/* মডিউল হেডার — ডেস্কটপ */}
                   <div
                     className={cn(
                       'hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-2 bg-muted/30 sticky top-0 z-10',
@@ -837,7 +837,7 @@ export function RolesPermissionsPage() {
                     })}
                   </div>
 
-                  {/* Module Header — mobile */}
+                  {/* মডিউল হেডার — মোবাইল */}
                   <div className="lg:hidden px-4 py-2.5 bg-muted/30 sticky top-0 z-10 border-b">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 font-semibold text-sm">
@@ -850,7 +850,7 @@ export function RolesPermissionsPage() {
                     </div>
                   </div>
 
-                  {/* Feature Rows */}
+                  {/* বৈশিষ্ট্য সারিসমূহ */}
                   {mod.features.map((feat) => {
                     const rowKey = `${moduleKey}.${feat.feature}`
                     const currentFlat = flattenPermissions(permissionMatrix)
@@ -866,7 +866,7 @@ export function RolesPermissionsPage() {
                           hasChanges && 'bg-amber-50/50 dark:bg-amber-950/20'
                         )}
                       >
-                        {/* Desktop Row */}
+                        {/* ডেস্কটপ সারি */}
                         <div className="hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-1.5 items-center hover:bg-muted/20 transition-colors border-b border-border/50 last:border-b-0">
                           <div className="flex items-center gap-2 pl-6">
                             <span className="text-sm truncate" title={feat.feature}>
@@ -896,7 +896,7 @@ export function RolesPermissionsPage() {
                           })}
                         </div>
 
-                        {/* Mobile Row */}
+                        {/* মোবাইল সারি */}
                         <div className="lg:hidden px-4 py-3 border-b border-border/50">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium truncate">
@@ -953,7 +953,7 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Tab 3: Audit Log
+  // ট্যাব ৩: অডিট লগ
   // ──────────────────────────────────────────
 
   const renderAuditLog = () => {
@@ -979,7 +979,7 @@ export function RolesPermissionsPage() {
 
     return (
       <>
-        {/* Desktop Table */}
+        {/* ডেস্কটপ টেবিল */}
         <div className="hidden md:block">
           <Card>
             <CardContent className="p-0">
@@ -1036,7 +1036,7 @@ export function RolesPermissionsPage() {
           </Card>
         </div>
 
-        {/* Mobile Cards */}
+        {/* মোবাইল কার্ড */}
         <div className="md:hidden space-y-3">
           {auditLogs.length === 0 ? (
             <Card>
@@ -1078,7 +1078,7 @@ export function RolesPermissionsPage() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* পেজিনেশন */}
         {auditTotalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-4">
             <Button
@@ -1115,12 +1115,12 @@ export function RolesPermissionsPage() {
   }
 
   // ──────────────────────────────────────────
-  // Render
+  // রেন্ডার
   // ──────────────────────────────────────────
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* পৃষ্ঠা হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -1139,7 +1139,7 @@ export function RolesPermissionsPage() {
 
       <Separator />
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="roles" className="gap-1.5">
@@ -1156,15 +1156,15 @@ export function RolesPermissionsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Roles List */}
+        {/* ট্যাব ১: ভূমিকা তালিকা */}
         <TabsContent value="roles">
           {renderRolesList()}
         </TabsContent>
 
-        {/* Tab 2: Permission Matrix */}
+        {/* ট্যাব ২: অনুমতি ম্যাট্রিক্স */}
         <TabsContent value="permissions">
           <div className="space-y-4">
-            {/* Role Selector */}
+            {/* ভূমিকা নির্বাচক */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -1211,13 +1211,13 @@ export function RolesPermissionsPage() {
           </div>
         </TabsContent>
 
-        {/* Tab 3: Audit Log */}
+        {/* ট্যাব ৩: অডিট লগ */}
         <TabsContent value="audit">
           {renderAuditLog()}
         </TabsContent>
       </Tabs>
 
-      {/* ── Create Role Dialog ── */}
+      {/* ── ভূমিকা তৈরির ডায়ালগ ── */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1272,7 +1272,7 @@ export function RolesPermissionsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Edit Role Dialog ── */}
+      {/* ── ভূমিকা সম্পাদনা ডায়ালগ ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1323,7 +1323,7 @@ export function RolesPermissionsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Clone Role Dialog ── */}
+      {/* ── ভূমিকা ক্লোন ডায়ালগ ── */}
       <Dialog open={cloneOpen} onOpenChange={setCloneOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1375,7 +1375,7 @@ export function RolesPermissionsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete Role Confirmation ── */}
+      {/* ── ভূমিকা মুছে ফেলার নিশ্চিতকরণ ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

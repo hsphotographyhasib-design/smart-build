@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
     weekStart.setHours(0, 0, 0, 0)
 
-    // Run all queries in parallel
+    // সকল কোয়েরি সমান্তরালে চালানো হচ্ছে
     const [
       activeProjects,
       paymentsThisMonth,
@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
       upcomingTasks,
       stockAlerts,
     ] = await Promise.all([
-      // 1. Active projects count
+      // ১. সক্রিয় প্রকল্পের সংখ্যা
       db.project.count({ where: { status: 'active' } }),
 
-      // 2. Revenue this month
+      // ২. এই মাসের আয়
       db.payment.aggregate({
         where: {
           date: { gte: monthStart },
@@ -48,13 +48,13 @@ export async function GET(request: NextRequest) {
         _sum: { amount: true },
       }),
 
-      // 3. Outstanding invoices (sent/partial/overdue - total minus paid)
+      // ৩. অপরিশোধিত চালান (প্রেরিত/আংশিক/মেয়াদোত্তীর্ণ - মোট বিয়োগ পরিশোধিত)
       db.invoice.findMany({
         where: { status: { in: ['sent', 'partial', 'overdue'] } },
         select: { total: true, paidAmount: true },
       }),
 
-      // 4. Labour on site today
+      // ৪. আজকে কর্মস্থলে উপস্থিত শ্রমিক
       db.attendance.count({
         where: {
           date: todayStart,
@@ -62,18 +62,18 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // 5. Pending purchase requests
+      // ৫. অমীমাংসিত ক্রয় অনুরোধ
       db.purchaseRequest.count({
         where: { status: { in: ['submitted', 'review'] } },
       }),
 
-      // 6. Pending approvals (purchase requests + expenses)
+      // ৬. অমীমাংসিত অনুমোদন (ক্রয় অনুরোধ + ব্যয়)
       Promise.all([
         db.purchaseRequest.count({ where: { status: { in: ['submitted', 'review'] } } }),
         db.expense.count({ where: { status: 'pending' } }),
       ]).then(([pr, exp]) => pr + exp),
 
-      // 7. Recent payments (last 10)
+      // ৭. সাম্প্রতিক পেমেন্ট (সর্বশেষ ১০টি)
       db.payment.findMany({
         take: 10,
         orderBy: { date: 'desc' },
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // 8. Recent activities (last 20 audit logs)
+      // ৮. সাম্প্রতিক কার্যক্রম (সর্বশেষ ২০টি অডিট লগ)
       db.auditLog.findMany({
         take: 20,
         orderBy: { createdAt: 'desc' },
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // 9. Upcoming tasks (due this week)
+      // ৯. আসন্ন কাজ (এই সপ্তাহে সময়সীমা)
       db.projectTask.findMany({
         where: {
           status: { in: ['todo', 'in_progress'] },
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // 10. Stock alerts (materials below min stock)
+      // ১০. স্টক সতর্কতা (সর্বনিম্ন স্টকের নিচে থাকা উপকরণ)
       db.material.findMany({
         where: { currentStock: { lte: db.material.fields.minStock } },
         select: {
@@ -135,20 +135,20 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Calculate outstanding amount
+    // অপরিশোধিত পরিমাণ হিসাব করা হচ্ছে
     const outstandingTotal = outstandingInvoices.reduce(
       (sum, inv) => sum + (inv.total - inv.paidAmount),
       0
     )
 
-    // Revenue/Expense data for last 6 months (chart data)
+    // গত ৬ মাসের আয়/ব্যয় ডেটা (চার্ট ডেটা)
     const sixMonthsAgo = new Date(now)
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
     sixMonthsAgo.setDate(1)
     sixMonthsAgo.setHours(0, 0, 0, 0)
 
     const [paymentsByMonth, expensesByMonth] = await Promise.all([
-      // Revenue (payments) by month
+      // মাস অনুযায়ী আয় (পেমেন্ট)
       db.$queryRawUnsafe<Array<{ month: string; total: number }>>(`
         SELECT
           strftime('%Y-%m', date) as month,
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
         ORDER BY month ASC
       `, sixMonthsAgo.toISOString()),
 
-      // Expenses by month
+      // মাস অনুযায়ী ব্যয়
       db.$queryRawUnsafe<Array<{ month: string; total: number }>>(`
         SELECT
           strftime('%Y-%m', date) as month,
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       `, sixMonthsAgo.toISOString()),
     ])
 
-    // Build month labels for last 6 months
+    // গত ৬ মাসের জন্য মাসের লেবেল তৈরি করা হচ্ছে
     const monthLabels: string[] = []
     const revenueData: number[] = []
     const expenseData: number[] = []
@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
       expenseData.push(expenseMonth?.total || 0)
     }
 
-    // Project progress data
+    // প্রকল্পের অগ্রগতি ডেটা
     const projectProgress = await db.project.findMany({
       where: { status: { in: ['active', 'on_hold'] } },
       select: {
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Total expenses this month
+    // এই মাসের মোট ব্যয়
     const expensesThisMonth = await db.expense.aggregate({
       where: {
         date: { gte: monthStart },

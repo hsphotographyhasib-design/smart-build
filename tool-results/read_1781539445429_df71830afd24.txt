@@ -1,0 +1,1338 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useRef } from 'react'
+     4→import { useFormat } from '@/hooks/use-format'
+     5→import { useRegion } from '@/components/providers/regional-provider'
+     6→import { useAppStore } from '@/lib/store'
+     7→import Link from 'next/link'
+     8→import { useRouter } from 'next/navigation'
+     9→import { toast } from 'sonner'
+    10→import { motion, AnimatePresence } from 'framer-motion'
+    11→import { Button } from '@/components/ui/button'
+    12→import { Input } from '@/components/ui/input'
+    13→import { Label } from '@/components/ui/label'
+    14→import { Checkbox } from '@/components/ui/checkbox'
+    15→import { Separator } from '@/components/ui/separator'
+    16→import {
+    17→  InputOTP,
+    18→  InputOTPGroup,
+    19→  InputOTPSlot,
+    20→} from '@/components/ui/input-otp'
+    21→import {
+    22→  Eye,
+    23→  EyeOff,
+    24→  Loader2,
+    25→  Mail,
+    26→  MessageSquare,
+    27→  Phone,
+    28→  ArrowRight,
+    29→  CheckCircle2,
+    30→  Building2,
+    31→  HardHat,
+    32→  Shield,
+    33→  BarChart3,
+    34→  Users,
+    35→  Construction,
+    36→  Wrench,
+    37→  SquareIcon,
+    38→  UserPlus,
+    39→  LogIn,
+    40→  ChevronRight,
+    41→  Lock,
+    42→} from 'lucide-react'
+    43→
+    44→// ═══════════════════════════════════════════════════════════════════
+    45→// OVERLAY CONTENT DATA
+    46→// ═══════════════════════════════════════════════════════════════════
+    47→
+    48→const features = [
+    49→  { icon: Building2, label: 'Project Management' },
+    50→  { icon: Wrench, label: 'Maintenance Management' },
+    51→  { icon: Construction, label: 'Facility Management' },
+    52→  { icon: Users, label: 'Resource Management' },
+    53→]
+    54→
+    55→// ═══════════════════════════════════════════════════════════════════
+    56→// ANIMATION VARIANTS
+    57→// ═══════════════════════════════════════════════════════════════════
+    58→
+    59→const staggerContainer = {
+    60→  animate: {
+    61→    transition: {
+    62→      staggerChildren: 0.06,
+    63→      delayChildren: 0.1,
+    64→    },
+    65→  },
+    66→}
+    67→
+    68→const staggerItem = {
+    69→  initial: { opacity: 0, y: 20, filter: 'blur(4px)' },
+    70→  animate: {
+    71→    opacity: 1,
+    72→    y: 0,
+    73→    filter: 'blur(0px)',
+    74→    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+    75→  },
+    76→}
+    77→
+    78→const formSlideVariants = {
+    79→  initial: (direction: number) => ({
+    80→    opacity: 0,
+    81→    x: direction > 0 ? 60 : -60,
+    82→    filter: 'blur(4px)',
+    83→  }),
+    84→  animate: {
+    85→    opacity: 1,
+    86→    x: 0,
+    87→    filter: 'blur(0px)',
+    88→    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    89→  },
+    90→  exit: (direction: number) => ({
+    91→    opacity: 0,
+    92→    x: direction > 0 ? -60 : 60,
+    93→    filter: 'blur(4px)',
+    94→    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+    95→  }),
+    96→}
+    97→
+    98→// Overlay content variants
+    99→const overlayContentVariants = {
+   100→  initial: (direction: number) => ({
+   101→    opacity: 0,
+   102→    x: direction > 0 ? 40 : -40,
+   103→    scale: 0.95,
+   104→  }),
+   105→  animate: {
+   106→    opacity: 1,
+   107→    x: 0,
+   108→    scale: 1,
+   109→    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 },
+   110→  },
+   111→  exit: (direction: number) => ({
+   112→    opacity: 0,
+   113→    x: direction > 0 ? -40 : 40,
+   114→    scale: 0.95,
+   115→    transition: { duration: 0.3 },
+   116→  }),
+   117→}
+   118→
+   119→// ═══════════════════════════════════════════════════════════════════
+   120→// ANIMATED INPUT WRAPPER — floating label with icon & focus effects
+   121→// ═══════════════════════════════════════════════════════════════════
+   122→
+   123→function AnimatedInput({
+   124→  id,
+   125→  label,
+   126→  type = 'text',
+   127→  placeholder,
+   128→  icon: Icon,
+   129→  value,
+   130→  onChange,
+   131→  required,
+   132→  className = '',
+   133→  onClearError,
+   134→}: {
+   135→  id: string
+   136→  label: string
+   137→  type?: string
+   138→  placeholder?: string
+   139→  icon?: React.ElementType
+   140→  value: string
+   141→  onChange: (val: string) => void
+   142→  required?: boolean
+   143→  className?: string
+   144→  onClearError?: () => void
+   145→}) {
+   146→  const [isFocused, setIsFocused] = useState(false)
+   147→  const isFloating = isFocused || value.length > 0
+   148→  const hasValue = value.length > 0
+   149→
+   150→  return (
+   151→    <div className="relative">
+   152→      <motion.div
+   153→        className="relative"
+   154→        animate={{
+   155→          scale: isFocused ? 1.01 : 1,
+   156→        }}
+   157→        transition={{ duration: 0.2 }}
+   158→      >
+   159→        <div className="relative">
+   160→          {Icon && (
+   161→            <motion.div
+   162→              className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
+   163→              animate={{ color: isFocused ? '#f59e0b' : '#94a3b8' }}
+   164→              transition={{ duration: 0.2 }}
+   165→            >
+   166→              <Icon className="w-4 h-4" />
+   167→            </motion.div>
+   168→          )}
+   169→          <Input
+   170→            id={id}
+   171→            type={type}
+   172→            placeholder={isFloating ? '' : (placeholder || label)}
+   173→            value={value}
+   174→            onChange={(e) => { onChange(e.target.value); onClearError?.() }}
+   175→            onFocus={() => setIsFocused(true)}
+   176→            onBlur={() => setIsFocused(false)}
+   177→            required={required}
+   178→            className={`h-11 ${Icon ? 'pl-11' : 'pl-4'} rounded-xl border-slate-200 bg-slate-50/50 transition-all duration-300 text-sm ${
+   179→              isFocused
+   180→                ? 'bg-white border-amber-400 shadow-[0_0_0_3px_rgba(245,158,11,0.12)]'
+   181→                : hasValue
+   182→                ? 'bg-white border-slate-300'
+   183→                : 'bg-slate-50/50'
+   184→            } ${className}`}
+   185→          />
+   186→        </div>
+   187→      </motion.div>
+   188→    </div>
+   189→  )
+   190→}
+   191→
+   192→// ═══════════════════════════════════════════════════════════════════
+   193→// LOGIN FORM (preserves ALL existing business logic)
+   194→// ═══════════════════════════════════════════════════════════════════
+   195→
+   196→function LoginFormContent() {
+   197→  const router = useRouter()
+   198→  const { getCallingCode, getPhonePlaceholder } = useFormat()
+   199→  const { country } = useRegion()
+   200→  const { setToken, setUser } = useAppStore()
+   201→
+   202→  // Login tab state: 'email' or 'whatsapp'
+   203→  const [loginTab, setLoginTab] = useState<'email' | 'whatsapp'>('email')
+   204→
+   205→  // Email login state
+   206→  const [email, setEmail] = useState('')
+   207→  const [password, setPassword] = useState('')
+   208→  const [showPassword, setShowPassword] = useState(false)
+   209→  const [rememberMe, setRememberMe] = useState(false)
+   210→  const [loginLoading, setLoginLoading] = useState(false)
+   211→  const [loginError, setLoginError] = useState('')
+   212→
+   213→  // WhatsApp OTP state
+   214→  const [phoneNumber, setPhoneNumber] = useState('')
+   215→  const [otpSent, setOtpSent] = useState(false)
+   216→  const [otpValue, setOtpValue] = useState('')
+   217→  const [otpLoading, setOtpLoading] = useState(false)
+   218→  const [otpVerifyLoading, setOtpVerifyLoading] = useState(false)
+   219→  const [resendTimer, setResendTimer] = useState(0)
+   220→  const [otpError, setOtpError] = useState('')
+   221→
+   222→  const resendInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+   223→
+   224→  useEffect(() => {
+   225→    if (resendTimer > 0) {
+   226→      resendInterval.current = setInterval(() => {
+   227→        setResendTimer((t) => {
+   228→          if (t <= 1) {
+   229→            if (resendInterval.current) clearInterval(resendInterval.current)
+   230→            return 0
+   231→          }
+   232→          return t - 1
+   233→        })
+   234→      }, 1000)
+   235→    }
+   236→    return () => {
+   237→      if (resendInterval.current) clearInterval(resendInterval.current)
+   238→    }
+   239→  }, [resendTimer])
+   240→
+   241→  // ──────── AUTH HANDLERS (preserved from original) ────────
+   242→
+   243→  const handleEmailLogin = async (e: React.FormEvent) => {
+   244→    e.preventDefault()
+   245→    setLoginError('')
+   246→    setLoginLoading(true)
+   247→
+   248→    try {
+   249→      const res = await fetch('/api/auth/login', {
+   250→        method: 'POST',
+   251→        headers: { 'Content-Type': 'application/json' },
+   252→        body: JSON.stringify({ email, password }),
+   253→      })
+   254→      const data = await res.json()
+   255→
+   256→      if (data.success) {
+   257→        setToken(data.data.token)
+   258→        setUser(data.data.user)
+   259→        toast.success('Welcome back!', {
+   260→          description: `Logged in as ${data.data.user?.name || data.data.user?.email}`,
+   261→        })
+   262→        window.location.href = '/'
+   263→      } else {
+   264→        setLoginError(data.error || 'Login failed. Please try again.')
+   265→      }
+   266→    } catch {
+   267→      setLoginError('Network error. Please check your connection.')
+   268→    } finally {
+   269→      setLoginLoading(false)
+   270→    }
+   271→  }
+   272→
+   273→  const handleSendOtp = () => {
+   274→    if (!phoneNumber.trim()) {
+   275→      setOtpError('Please enter your phone number')
+   276→      return
+   277→    }
+   278→    setOtpLoading(true)
+   279→    setOtpError('')
+   280→    setTimeout(() => {
+   281→      setOtpSent(true)
+   282→      setOtpLoading(false)
+   283→      setResendTimer(60)
+   284→    }, 1500)
+   285→  }
+   286→
+   287→  const handleVerifyOtp = () => {
+   288→    if (otpValue.length !== 6) {
+   289→      setOtpError('Please enter the complete 6-digit code')
+   290→      return
+   291→    }
+   292→    setOtpVerifyLoading(true)
+   293→    setOtpError('')
+   294→    setTimeout(() => {
+   295→      setOtpVerifyLoading(false)
+   296→      setOtpError('WhatsApp OTP login is coming soon. Please use email login.')
+   297→    }, 1500)
+   298→  }
+   299→
+   300→  const handleResendOtp = () => {
+   301→    setResendTimer(60)
+   302→    setOtpValue('')
+   303→    setOtpError('')
+   304→  }
+   305→
+   306→  return (
+   307→    <div className="space-y-1">
+   308→      {/* Logo */}
+   309→      <motion.div
+   310→        className="flex items-center gap-2.5 mb-5"
+   311→        variants={staggerItem}
+   312→      >
+   313→        <motion.div
+   314→          className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25"
+   315→          whileHover={{ scale: 1.05, rotate: -2 }}
+   316→          whileTap={{ scale: 0.95 }}
+   317→        >
+   318→          <SquareIcon className="w-5 h-5 text-white fill-white" strokeWidth={0} />
+   319→        </motion.div>
+   320→        <div>
+   321→          <span className="text-lg font-extrabold tracking-tight text-slate-900">SmartBuild</span>
+   322→          <span className="block text-[9px] font-medium tracking-[0.2em] uppercase text-amber-600">Construction ERP</span>
+   323→        </div>
+   324→      </motion.div>
+   325→
+   326→      <motion.h2 className="text-[22px] font-bold text-slate-900 mb-0.5" variants={staggerItem}>
+   327→        Welcome Back
+   328→      </motion.h2>
+   329→      <motion.p className="text-sm text-slate-500 mb-5" variants={staggerItem}>
+   330→        Sign in to your account to continue
+   331→      </motion.p>
+   332→
+   333→      {/* Tab switcher */}
+   334→      <motion.div
+   335→        className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4"
+   336→        variants={staggerItem}
+   337→      >
+   338→        <button
+   339→          onClick={() => setLoginTab('email')}
+   340→          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
+   341→            loginTab === 'email'
+   342→              ? 'bg-white text-slate-900 shadow-sm'
+   343→              : 'text-slate-500 hover:text-slate-700'
+   344→          }`}
+   345→        >
+   346→          <Mail className="w-4 h-4" />
+   347→          Email
+   348→        </button>
+   349→        <button
+   350→          onClick={() => setLoginTab('whatsapp')}
+   351→          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
+   352→            loginTab === 'whatsapp'
+   353→              ? 'bg-white text-slate-900 shadow-sm'
+   354→              : 'text-slate-500 hover:text-slate-700'
+   355→          }`}
+   356→        >
+   357→          <MessageSquare className="w-4 h-4" />
+   358→          WhatsApp OTP
+   359→        </button>
+   360→      </motion.div>
+   361→
+   362→      <AnimatePresence mode="wait">
+   363→        {loginTab === 'email' ? (
+   364→          <motion.form
+   365→            key="email-login"
+   366→            onSubmit={handleEmailLogin}
+   367→            initial={{ opacity: 0, y: 10 }}
+   368→            animate={{ opacity: 1, y: 0 }}
+   369→            exit={{ opacity: 0, y: -10 }}
+   370→            transition={{ duration: 0.3 }}
+   371→            className="space-y-3.5"
+   372→          >
+   373→            {loginError && (
+   374→              <motion.div
+   375→                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+   376→                animate={{ opacity: 1, y: 0, scale: 1 }}
+   377→                className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2"
+   378→              >
+   379→                <motion.div
+   380→                  className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0"
+   381→                  animate={{ rotate: [0, 10, -10, 0] }}
+   382→                  transition={{ duration: 0.4 }}
+   383→                >
+   384→                  <span className="text-red-500 text-xs font-bold">!</span>
+   385→                </motion.div>
+   386→                {loginError}
+   387→              </motion.div>
+   388→            )}
+   389→
+   390→            {/* Email field */}
+   391→            <div className="space-y-1.5">
+   392→              <Label htmlFor="login-email" className="text-sm font-medium text-slate-700">
+   393→                Email Address
+   394→              </Label>
+   395→              <AnimatedInput
+   396→                id="login-email"
+   397→                label="Email Address"
+   398→                type="email"
+   399→                placeholder="you@company.com"
+   400→                icon={Mail}
+   401→                value={email}
+   402→                onChange={setEmail}
+   403→                required
+   404→                onClearError={() => setLoginError('')}
+   405→              />
+   406→            </div>
+   407→
+   408→            {/* Password field */}
+   409→            <div className="space-y-1.5">
+   410→              <Label htmlFor="login-password" className="text-sm font-medium text-slate-700">
+   411→                Password
+   412→              </Label>
+   413→              <div className="relative">
+   414→                <AnimatedInput
+   415→                  id="login-password"
+   416→                  label="Password"
+   417→                  type={showPassword ? 'text' : 'password'}
+   418→                  placeholder="Enter your password"
+   419→                  icon={Lock}
+   420→                  value={password}
+   421→                  onChange={setPassword}
+   422→                  required
+   423→                  onClearError={() => setLoginError('')}
+   424→                />
+   425→                <button
+   426→                  type="button"
+   427→                  onClick={() => setShowPassword(!showPassword)}
+   428→                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors z-10"
+   429→                  tabIndex={-1}
+   430→                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+   431→                >
+   432→                  <motion.div
+   433→                    whileTap={{ scale: 0.85 }}
+   434→                    transition={{ duration: 0.15 }}
+   435→                  >
+   436→                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   437→                  </motion.div>
+   438→                </button>
+   439→              </div>
+   440→            </div>
+   441→
+   442→            {/* Remember me & forgot password */}
+   443→            <div className="flex items-center justify-between">
+   444→              <label className="flex items-center gap-2 cursor-pointer group">
+   445→                <Checkbox
+   446→                  checked={rememberMe}
+   447→                  onCheckedChange={(v) => setRememberMe(!!v)}
+   448→                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 rounded"
+   449→                />
+   450→                <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+   451→                  Remember me
+   452→                </span>
+   453→              </label>
+   454→              <Link
+   455→                href="/forgot-password"
+   456→                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+   457→              >
+   458→                Forgot Password?
+   459→              </Link>
+   460→            </div>
+   461→
+   462→            {/* Submit button */}
+   463→            <motion.div
+   464→              whileTap={{ scale: 0.98 }}
+   465→            >
+   466→              <Button
+   467→                type="submit"
+   468→                disabled={loginLoading}
+   469→                className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   470→              >
+   471→                {loginLoading ? (
+   472→                  <span className="flex items-center gap-2">
+   473→                    <Loader2 className="w-5 h-5 animate-spin" />
+   474→                    Signing in...
+   475→                  </span>
+   476→                ) : (
+   477→                  <span className="flex items-center justify-center gap-2">
+   478→                    Sign In
+   479→                    <ArrowRight className="w-4 h-4" />
+   480→                  </span>
+   481→                )}
+   482→              </Button>
+   483→            </motion.div>
+   484→          </motion.form>
+   485→        ) : (
+   486→          <motion.div
+   487→            key="whatsapp-login"
+   488→            initial={{ opacity: 0, y: 10 }}
+   489→            animate={{ opacity: 1, y: 0 }}
+   490→            exit={{ opacity: 0, y: -10 }}
+   491→            transition={{ duration: 0.3 }}
+   492→            className="space-y-3.5"
+   493→          >
+   494→            {otpError && (
+   495→              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+   496→                <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   497→                  <span className="text-red-500 text-xs font-bold">!</span>
+   498→                </div>
+   499→                {otpError}
+   500→              </div>
+   501→            )}
+   502→
+   503→            {!otpSent ? (
+   504→              <>
+   505→                <div className="space-y-1.5">
+   506→                  <Label htmlFor="whatsapp-phone" className="text-sm font-medium text-slate-700">
+   507→                    Phone Number
+   508→                  </Label>
+   509→                  <div className="flex gap-2">
+   510→                    <div className="flex items-center gap-1.5 px-3 h-11 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-600 shrink-0 font-medium">
+   511→                      <Phone className="w-4 h-4 text-slate-400" />
+   512→                      <span>{getCallingCode()}</span>
+   513→                    </div>
+   514→                    <Input
+   515→                      id="whatsapp-phone"
+   516→                      type="tel"
+   517→                      placeholder={getPhonePlaceholder()}
+   518→                      value={phoneNumber}
+   519→                      onChange={(e) => { setPhoneNumber(e.target.value); setOtpError('') }}
+   520→                      className="flex-1 h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors"
+   521→                    />
+   522→                  </div>
+   523→                </div>
+   524→
+   525→                <motion.div whileTap={{ scale: 0.98 }}>
+   526→                  <Button
+   527→                    onClick={handleSendOtp}
+   528→                    disabled={otpLoading}
+   529→                    className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   530→                  >
+   531→                    {otpLoading ? (
+   532→                      <span className="flex items-center gap-2">
+   533→                        <Loader2 className="w-5 h-5 animate-spin" />
+   534→                        Sending OTP...
+   535→                      </span>
+   536→                    ) : (
+   537→                      <span className="flex items-center justify-center gap-2">
+   538→                        Send OTP Code
+   539→                        <ArrowRight className="w-4 h-4" />
+   540→                      </span>
+   541→                    )}
+   542→                  </Button>
+   543→                </motion.div>
+   544→              </>
+   545→            ) : (
+   546→              <>
+   547→                <div className="text-center space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
+   548→                  <p className="text-sm text-slate-500">Enter the 6-digit code sent to</p>
+   549→                  <p className="text-sm font-semibold text-slate-900">{getCallingCode()} {phoneNumber}</p>
+   550→                </div>
+   551→
+   552→                <div className="flex justify-center py-2">
+   553→                  <InputOTP
+   554→                    maxLength={6}
+   555→                    value={otpValue}
+   556→                    onChange={(val) => { setOtpValue(val); setOtpError('') }}
+   557→                  >
+   558→                    <InputOTPGroup>
+   559→                      <InputOTPSlot index={0} className="h-14 w-12 rounded-lg" />
+   560→                      <InputOTPSlot index={1} className="h-14 w-12 rounded-lg" />
+   561→                      <InputOTPSlot index={2} className="h-14 w-12 rounded-lg" />
+   562→                    </InputOTPGroup>
+   563→                    <div className="w-3 flex items-center justify-center text-slate-300 text-xl font-bold">-</div>
+   564→                    <InputOTPGroup>
+   565→                      <InputOTPSlot index={3} className="h-14 w-12 rounded-lg" />
+   566→                      <InputOTPSlot index={4} className="h-14 w-12 rounded-lg" />
+   567→                      <InputOTPSlot index={5} className="h-14 w-12 rounded-lg" />
+   568→                    </InputOTPGroup>
+   569→                  </InputOTP>
+   570→                </div>
+   571→
+   572→                <motion.div whileTap={{ scale: 0.98 }}>
+   573→                  <Button
+   574→                    onClick={handleVerifyOtp}
+   575→                    disabled={otpVerifyLoading}
+   576→                    className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   577→                  >
+   578→                    {otpVerifyLoading ? (
+   579→                      <span className="flex items-center gap-2">
+   580→                        <Loader2 className="w-5 h-5 animate-spin" />
+   581→                        Verifying...
+   582→                      </span>
+   583→                    ) : (
+   584→                      <span className="flex items-center justify-center gap-2">
+   585→                        Verify & Login
+   586→                        <CheckCircle2 className="w-4 h-4" />
+   587→                      </span>
+   588→                    )}
+   589→                  </Button>
+   590→                </motion.div>
+   591→
+   592→                <div className="text-center">
+   593→                  {resendTimer > 0 ? (
+   594→                    <p className="text-sm text-slate-500">
+   595→                      Resend code in <span className="font-semibold text-amber-600">{resendTimer}s</span>
+   596→                    </p>
+   597→                  ) : (
+   598→                    <button
+   599→                      onClick={handleResendOtp}
+   600→                      className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors cursor-pointer"
+   601→                    >
+   602→                      Resend OTP Code
+   603→                    </button>
+   604→                  )}
+   605→                </div>
+   606→              </>
+   607→            )}
+   608→          </motion.div>
+   609→        )}
+   610→      </AnimatePresence>
+   611→
+   612→      {/* Divider */}
+   613→      <div className="relative my-5">
+   614→        <Separator className="bg-slate-200" />
+   615→        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-400 uppercase tracking-wider">
+   616→          or continue with
+   617→        </span>
+   618→      </div>
+   619→
+   620→      {/* Social Login */}
+   621→      <div className="grid grid-cols-2 gap-3">
+   622→        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+   623→          <Button
+   624→            variant="outline"
+   625→            className="w-full h-11 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+   626→            type="button"
+   627→          >
+   628→            <svg className="w-5 h-5" viewBox="0 0 24 24">
+   629→              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+   630→              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+   631→              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+   632→              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+   633→            </svg>
+   634→            Google
+   635→          </Button>
+   636→        </motion.div>
+   637→        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+   638→          <Button
+   639→            variant="outline"
+   640→            className="w-full h-11 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+   641→            type="button"
+   642→          >
+   643→            <svg className="w-5 h-5" viewBox="0 0 24 24">
+   644→              <rect x="1" y="1" width="10" height="10" fill="#F25022" />
+   645→              <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
+   646→              <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
+   647→              <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+   648→            </svg>
+   649→            Microsoft
+   650→          </Button>
+   651→        </motion.div>
+   652→      </div>
+   653→    </div>
+   654→  )
+   655→}
+   656→
+   657→// ═══════════════════════════════════════════════════════════════════
+   658→// REGISTER FORM (preserves ALL existing business logic)
+   659→// ═══════════════════════════════════════════════════════════════════
+   660→
+   661→function RegisterFormContent() {
+   662→  const router = useRouter()
+   663→  const { getCallingCode, getPhonePlaceholder } = useFormat()
+   664→  const { country } = useRegion()
+   665→
+   666→  // Register state
+   667→  const [regFirstName, setRegFirstName] = useState('')
+   668→  const [regLastName, setRegLastName] = useState('')
+   669→  const [regEmail, setRegEmail] = useState('')
+   670→  const [regPhone, setRegPhone] = useState('')
+   671→  const [regCompany, setRegCompany] = useState('')
+   672→  const [regPosition, setRegPosition] = useState('')
+   673→  const [regPassword, setRegPassword] = useState('')
+   674→  const [regConfirmPassword, setRegConfirmPassword] = useState('')
+   675→  const [regShowPassword, setRegShowPassword] = useState(false)
+   676→  const [regLoading, setRegLoading] = useState(false)
+   677→  const [regError, setRegError] = useState('')
+   678→
+   679→  const handleRegister = async (e: React.FormEvent) => {
+   680→    e.preventDefault()
+   681→    setRegError('')
+   682→    if (regPassword !== regConfirmPassword) {
+   683→      setRegError('Passwords do not match')
+   684→      return
+   685→    }
+   686→    if (regPassword.length < 6) {
+   687→      setRegError('Password must be at least 6 characters')
+   688→      return
+   689→    }
+   690→    setRegLoading(true)
+   691→    try {
+   692→      const res = await fetch('/api/auth/register', {
+   693→        method: 'POST',
+   694→        headers: { 'Content-Type': 'application/json' },
+   695→        body: JSON.stringify({
+   696→          name: `${regFirstName} ${regLastName}`.trim(),
+   697→          email: regEmail,
+   698→          password: regPassword,
+   699→          phone: regPhone ? `${getCallingCode()} ${regPhone}` : undefined,
+   700→        }),
+   701→      })
+   702→      const data = await res.json()
+   703→      if (data.success) {
+   704→        router.push('/login')
+   705→      } else {
+   706→        setRegError(data.error || 'Registration failed. Please try again.')
+   707→      }
+   708→    } catch {
+   709→      setRegError('Network error. Please check your connection.')
+   710→    } finally {
+   711→      setRegLoading(false)
+   712→    }
+   713→  }
+   714→
+   715→  return (
+   716→    <div className="space-y-1">
+   717→      {/* Logo */}
+   718→      <motion.div
+   719→        className="flex items-center gap-2.5 mb-5"
+   720→        variants={staggerItem}
+   721→      >
+   722→        <motion.div
+   723→          className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25"
+   724→          whileHover={{ scale: 1.05, rotate: -2 }}
+   725→          whileTap={{ scale: 0.95 }}
+   726→        >
+   727→          <SquareIcon className="w-5 h-5 text-white fill-white" strokeWidth={0} />
+   728→        </motion.div>
+   729→        <div>
+   730→          <span className="text-lg font-extrabold tracking-tight text-slate-900">SmartBuild</span>
+   731→          <span className="block text-[9px] font-medium tracking-[0.2em] uppercase text-amber-600">Construction ERP</span>
+   732→        </div>
+   733→      </motion.div>
+   734→
+   735→      <motion.h2 className="text-[22px] font-bold text-slate-900 mb-0.5" variants={staggerItem}>
+   736→        Create Account
+   737→      </motion.h2>
+   738→      <motion.p className="text-sm text-slate-500 mb-4" variants={staggerItem}>
+   739→        Fill in your details to get started
+   740→      </motion.p>
+   741→
+   742→      <form onSubmit={handleRegister} className="space-y-2.5">
+   743→        {regError && (
+   744→          <motion.div
+   745→            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+   746→            animate={{ opacity: 1, y: 0, scale: 1 }}
+   747→            className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2"
+   748→          >
+   749→            <motion.div
+   750→              className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0"
+   751→              animate={{ rotate: [0, 10, -10, 0] }}
+   752→              transition={{ duration: 0.4 }}
+   753→            >
+   754→              <span className="text-red-500 text-xs font-bold">!</span>
+   755→            </motion.div>
+   756→            {regError}
+   757→          </motion.div>
+   758→        )}
+   759→
+   760→        {/* Name row */}
+   761→        <div className="grid grid-cols-2 gap-2.5">
+   762→          <div className="space-y-1">
+   763→            <Label htmlFor="reg-first" className="text-xs font-medium text-slate-700">First Name</Label>
+   764→            <Input
+   765→              id="reg-first"
+   766→              placeholder="John"
+   767→              value={regFirstName}
+   768→              onChange={(e) => { setRegFirstName(e.target.value); setRegError('') }}
+   769→              required
+   770→              className="h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 focus:bg-white transition-all duration-300 text-sm"
+   771→            />
+   772→          </div>
+   773→          <div className="space-y-1">
+   774→            <Label htmlFor="reg-last" className="text-xs font-medium text-slate-700">Last Name</Label>
+   775→            <Input
+   776→              id="reg-last"
+   777→              placeholder="Doe"
+   778→              value={regLastName}
+   779→              onChange={(e) => { setRegLastName(e.target.value); setRegError('') }}
+   780→              required
+   781→              className="h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 focus:bg-white transition-all duration-300 text-sm"
+   782→            />
+   783→          </div>
+   784→        </div>
+   785→
+   786→        {/* Email */}
+   787→        <div className="space-y-1">
+   788→          <Label htmlFor="reg-email" className="text-xs font-medium text-slate-700">Email Address</Label>
+   789→          <div className="relative">
+   790→            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   791→            <Input
+   792→              id="reg-email"
+   793→              type="email"
+   794→              placeholder="john@company.com"
+   795→              value={regEmail}
+   796→              onChange={(e) => { setRegEmail(e.target.value); setRegError('') }}
+   797→              required
+   798→              className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 focus:bg-white transition-all duration-300 text-sm"
+   799→            />
+   800→          </div>
+   801→        </div>
+   802→
+   803→        {/* Phone */}
+   804→        <div className="space-y-1">
+   805→          <Label htmlFor="reg-phone" className="text-xs font-medium text-slate-700">Phone Number</Label>
+   806→          <div className="flex gap-2">
+   807→            <div className="flex items-center gap-1 px-2.5 h-10 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-600 shrink-0 font-medium">
+   808→              <span>{country?.flagEmoji ?? '🇧🇳'}</span>
+   809→              <span>{getCallingCode()}</span>
+   810→            </div>
+   811→            <Input
+   812→              id="reg-phone"
+   813→              type="tel"
+   814→              placeholder={getPhonePlaceholder()}
+   815→              value={regPhone}
+   816→              onChange={(e) => { setRegPhone(e.target.value); setRegError('') }}
+   817→              className="flex-1 h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   818→            />
+   819→          </div>
+   820→        </div>
+   821→
+   822→        {/* Company & Position */}
+   823→        <div className="grid grid-cols-2 gap-2.5">
+   824→          <div className="space-y-1">
+   825→            <Label htmlFor="reg-company" className="text-xs font-medium text-slate-700">Company</Label>
+   826→            <div className="relative">
+   827→              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   828→              <Input
+   829→                id="reg-company"
+   830→                placeholder="Company Name"
+   831→                value={regCompany}
+   832→                onChange={(e) => setRegCompany(e.target.value)}
+   833→                className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   834→              />
+   835→            </div>
+   836→          </div>
+   837→          <div className="space-y-1">
+   838→            <Label htmlFor="reg-position" className="text-xs font-medium text-slate-700">Position</Label>
+   839→            <div className="relative">
+   840→              <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   841→              <Input
+   842→                id="reg-position"
+   843→                placeholder="Project Manager"
+   844→                value={regPosition}
+   845→                onChange={(e) => setRegPosition(e.target.value)}
+   846→                className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   847→              />
+   848→            </div>
+   849→          </div>
+   850→        </div>
+   851→
+   852→        {/* Password */}
+   853→        <div className="space-y-1">
+   854→          <Label htmlFor="reg-password" className="text-xs font-medium text-slate-700">Password</Label>
+   855→          <div className="relative">
+   856→            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   857→            <Input
+   858→              id="reg-password"
+   859→              type={regShowPassword ? 'text' : 'password'}
+   860→              placeholder="Min. 6 characters"
+   861→              value={regPassword}
+   862→              onChange={(e) => { setRegPassword(e.target.value); setRegError('') }}
+   863→              required
+   864→              className="h-10 pl-9 pr-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   865→            />
+   866→            <button
+   867→              type="button"
+   868→              onClick={() => setRegShowPassword(!regShowPassword)}
+   869→              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   870→              tabIndex={-1}
+   871→            >
+   872→              {regShowPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+   873→            </button>
+   874→          </div>
+   875→        </div>
+   876→
+   877→        {/* Confirm Password */}
+   878→        <div className="space-y-1">
+   879→          <Label htmlFor="reg-confirm" className="text-xs font-medium text-slate-700">Confirm Password</Label>
+   880→          <div className="relative">
+   881→            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   882→            <Input
+   883→              id="reg-confirm"
+   884→              type={regShowPassword ? 'text' : 'password'}
+   885→              placeholder="Re-enter your password"
+   886→              value={regConfirmPassword}
+   887→              onChange={(e) => { setRegConfirmPassword(e.target.value); setRegError('') }}
+   888→              required
+   889→              className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   890→            />
+   891→          </div>
+   892→        </div>
+   893→
+   894→        {/* Terms */}
+   895→        <label className="flex items-start gap-2 cursor-pointer">
+   896→          <Checkbox className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 rounded mt-0.5" />
+   897→          <span className="text-xs text-slate-500 leading-relaxed">
+   898→            I agree to the{' '}
+   899→            <Link href="/terms-of-service" className="text-amber-600 hover:underline">Terms of Service</Link>
+   900→            {' '}and{' '}
+   901→            <Link href="/privacy-policy" className="text-amber-600 hover:underline">Privacy Policy</Link>
+   902→          </span>
+   903→        </label>
+   904→
+   905→        {/* Submit button */}
+   906→        <motion.div whileTap={{ scale: 0.98 }}>
+   907→          <Button
+   908→            type="submit"
+   909→            disabled={regLoading}
+   910→            className="w-full h-11 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+   911→          >
+   912→            {regLoading ? (
+   913→              <span className="flex items-center gap-2">
+   914→                <Loader2 className="w-4 h-4 animate-spin" />
+   915→                Creating Account...
+   916→              </span>
+   917→            ) : (
+   918→              <span className="flex items-center justify-center gap-2">
+   919→                Create Account
+   920→                <ArrowRight className="w-4 h-4" />
+   921→              </span>
+   922→            )}
+   923→          </Button>
+   924→        </motion.div>
+   925→      </form>
+   926→    </div>
+   927→  )
+   928→}
+   929→
+   930→// ═══════════════════════════════════════════════════════════════════
+   931→// OVERLAY PANEL CONTENT — Branded content that shows on the sliding panel
+   932→// ═══════════════════════════════════════════════════════════════════
+   933→
+   934→function OverlayContent({
+   935→  mode,
+   936→  direction,
+   937→}: {
+   938→  mode: 'login' | 'register'
+   939→  direction: number
+   940→}) {
+   941→  return (
+   942→    <motion.div
+   943→      key={mode}
+   944→      custom={direction}
+   945→      variants={overlayContentVariants}
+   946→      initial="initial"
+   947→      animate="animate"
+   948→      exit="exit"
+   949→      className="absolute inset-0 flex flex-col items-center justify-center px-10 xl:px-16 text-center"
+   950→    >
+   951→      {/* Logo */}
+   952→      <motion.div
+   953→        initial={{ opacity: 0, scale: 0.8 }}
+   954→        animate={{ opacity: 1, scale: 1 }}
+   955→        transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+   956→        className="mb-6"
+   957→      >
+   958→        <motion.div
+   959→          className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20 mb-4 mx-auto"
+   960→          animate={{ rotate: [0, 2, -2, 0] }}
+   961→          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+   962→        >
+   963→          <SquareIcon className="w-9 h-9 text-white fill-white" strokeWidth={0} />
+   964→        </motion.div>
+   965→        <motion.h2
+   966→          initial={{ opacity: 0, y: 10 }}
+   967→          animate={{ opacity: 1, y: 0 }}
+   968→          transition={{ delay: 0.3, duration: 0.5 }}
+   969→          className="text-2xl xl:text-3xl font-extrabold text-white tracking-tight"
+   970→        >
+   971→          SmartBuild
+   972→        </motion.h2>
+   973→        <motion.p
+   974→          initial={{ opacity: 0 }}
+   975→          animate={{ opacity: 1 }}
+   976→          transition={{ delay: 0.35 }}
+   977→          className="text-white/50 text-[10px] font-medium tracking-[0.25em] uppercase mt-1"
+   978→        >
+   979→          Construction ERP
+   980→        </motion.p>
+   981→      </motion.div>
+   982→
+   983→      {/* Heading */}
+   984→      <motion.h3
+   985→        initial={{ opacity: 0, y: 15 }}
+   986→        animate={{ opacity: 1, y: 0 }}
+   987→        transition={{ delay: 0.4, duration: 0.5 }}
+   988→        className="text-xl xl:text-2xl font-bold text-white mb-2"
+   989→      >
+   990→        {mode === 'login' ? 'Welcome to SmartBuild' : 'Welcome Back'}
+   991→      </motion.h3>
+   992→      <motion.p
+   993→        initial={{ opacity: 0, y: 10 }}
+   994→        animate={{ opacity: 1, y: 0 }}
+   995→        transition={{ delay: 0.45, duration: 0.5 }}
+   996→        className="text-white/70 text-sm leading-relaxed max-w-xs mb-8"
+   997→      >
+   998→        {mode === 'login'
+   999→          ? 'Manage Projects, Maintenance, Assets, Resources and Finance from a single platform.'
+  1000→          : 'Already have an account? Sign in to continue managing your operations.'}
+  1001→      </motion.p>
+  1002→
+  1003→      {/* Features */}
+  1004→      <motion.div
+  1005→        initial={{ opacity: 0 }}
+  1006→        animate={{ opacity: 1 }}
+  1007→        transition={{ delay: 0.55, duration: 0.5 }}
+  1008→        className="space-y-3 mb-8 w-full max-w-[220px]"
+  1009→      >
+  1010→        {features.map((feat, i) => {
+  1011→          const Icon = feat.icon
+  1012→          return (
+  1013→            <motion.div
+  1014→              key={feat.label}
+  1015→              initial={{ opacity: 0, x: -20 }}
+  1016→              animate={{ opacity: 1, x: 0 }}
+  1017→              transition={{ delay: 0.6 + i * 0.08, duration: 0.4 }}
+  1018→              className="flex items-center gap-3 text-white/80"
+  1019→            >
+  1020→              <motion.div
+  1021→                className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0"
+  1022→                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.15)' }}
+  1023→                transition={{ duration: 0.2 }}
+  1024→              >
+  1025→                <Icon className="w-4 h-4" />
+  1026→              </motion.div>
+  1027→              <span className="text-sm">{feat.label}</span>
+  1028→            </motion.div>
+  1029→          )
+  1030→        })}
+  1031→      </motion.div>
+  1032→
+  1033→      {/* CTA Button */}
+  1034→      <motion.div
+  1035→        initial={{ opacity: 0, y: 15 }}
+  1036→        animate={{ opacity: 1, y: 0 }}
+  1037→        transition={{ delay: 0.8, duration: 0.5 }}
+  1038→      >
+  1039→        {/* This button is a no-op placeholder; the real switch is handled by the parent */}
+  1040→      </motion.div>
+  1041→    </motion.div>
+  1042→  )
+  1043→}
+  1044→
+  1045→// ═══════════════════════════════════════════════════════════════════
+  1046→// MOBILE VIEW — Stacked single card layout
+  1047→// ═══════════════════════════════════════════════════════════════════
+  1048→
+  1049→function MobileAuthCard({ initialMode = 'login' }: { initialMode?: 'login' | 'register' }) {
+  1050→  const [mode, setMode] = useState<'login' | 'register'>(initialMode)
+  1051→  const direction = mode === 'login' ? -1 : 1
+  1052→
+  1053→  return (
+  1054→    <div className="w-full max-w-md mx-auto">
+  1055→      <AnimatePresence mode="wait" custom={direction}>
+  1056→        {mode === 'login' ? (
+  1057→          <motion.div
+  1058→            key="mobile-login"
+  1059→            custom={direction}
+  1060→            variants={formSlideVariants}
+  1061→            initial="initial"
+  1062→            animate="animate"
+  1063→            exit="exit"
+  1064→          >
+  1065→            <LoginFormContent />
+  1066→            <div className="mt-6 text-center">
+  1067→              <p className="text-sm text-slate-500">
+  1068→                Don&apos;t have an account?{' '}
+  1069→                <button
+  1070→                  onClick={() => setMode('register')}
+  1071→                  className="text-amber-600 hover:text-amber-700 font-semibold transition-colors cursor-pointer"
+  1072→                >
+  1073→                  Create Account
+  1074→                </button>
+  1075→              </p>
+  1076→            </div>
+  1077→          </motion.div>
+  1078→        ) : (
+  1079→          <motion.div
+  1080→            key="mobile-register"
+  1081→            custom={direction}
+  1082→            variants={formSlideVariants}
+  1083→            initial="initial"
+  1084→            animate="animate"
+  1085→            exit="exit"
+  1086→          >
+  1087→            <RegisterFormContent />
+  1088→            <div className="mt-4 text-center">
+  1089→              <p className="text-sm text-slate-500">
+  1090→                Already have an account?{' '}
+  1091→                <button
+  1092→                  onClick={() => setMode('login')}
+  1093→                  className="text-amber-600 hover:text-amber-700 font-semibold transition-colors cursor-pointer"
+  1094→                >
+  1095→                  Sign In
+  1096→                </button>
+  1097→              </p>
+  1098→            </div>
+  1099→          </motion.div>
+  1100→        )}
+  1101→      </AnimatePresence>
+  1102→    </div>
+  1103→  )
+  1104→}
+  1105→
+  1106→// ═══════════════════════════════════════════════════════════════════
+  1107→// MAIN PREMIUM AUTH CARD — Desktop sliding panel + mobile stacked
+  1108→// ═══════════════════════════════════════════════════════════════════
+  1109→
+  1110→interface PremiumAuthCardProps {
+  1111→  initialMode?: 'login' | 'register'
+  1112→}
+  1113→
+  1114→export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps) {
+  1115→  const [isLoginMode, setIsLoginMode] = useState(initialMode === 'login')
+  1116→  // direction: -1 = panel moving left (login -> register), 1 = panel moving right (register -> login)
+  1117→  const [direction, setDirection] = useState(0)
+  1118→
+  1119→  const switchMode = () => {
+  1120→    const newDirection = isLoginMode ? -1 : 1
+  1121→    setDirection(newDirection)
+  1122→    setIsLoginMode(!isLoginMode)
+  1123→  }
+  1124→
+  1125→  return (
+  1126→    <div className="w-full min-h-screen flex items-center justify-center px-4 py-8 lg:py-0 relative">
+  1127→      {/* Desktop: Sliding Panel Card */}
+  1128→      <div className="hidden lg:block">
+  1129→        <motion.div
+  1130→          initial={{ opacity: 0, scale: 0.88, y: 40 }}
+  1131→          animate={{ opacity: 1, scale: 1, y: 0 }}
+  1132→          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+  1133→          className="relative w-[1100px] h-[700px] rounded-3xl overflow-hidden"
+  1134→          style={{
+  1135→            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.06), 0 0 120px -20px rgba(245, 158, 11, 0.15)',
+  1136→          }}
+  1137→        >
+  1138→          {/* ═════ GLASS EFFECT BASE ═══════ */}
+  1139→          <div className="absolute inset-0 bg-white/[0.97] backdrop-blur-2xl" />
+  1140→
+  1141→          {/* ═════ LEFT PANEL — Login Form (visible when isLoginMode) ═══════ */}
+  1142→          <div className="absolute inset-y-0 left-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14">
+  1143→            <div className="w-full max-w-[380px]">
+  1144→              <AnimatePresence mode="wait" custom={direction}>
+  1145→                {isLoginMode && (
+  1146→                  <motion.div
+  1147→                    key="left-login"
+  1148→                    custom={direction}
+  1149→                    variants={formSlideVariants}
+  1150→                    initial="initial"
+  1151→                    animate="animate"
+  1152→                    exit="exit"
+  1153→                  >
+  1154→                    <motion.div variants={staggerContainer} initial="initial" animate="animate">
+  1155→                      <LoginFormContent />
+  1156→                    </motion.div>
+  1157→                  </motion.div>
+  1158→                )}
+  1159→              </AnimatePresence>
+  1160→            </div>
+  1161→          </div>
+  1162→
+  1163→          {/* ═════ RIGHT PANEL — Register Form (visible when NOT isLoginMode) ═══════ */}
+  1164→          <div className="absolute inset-y-0 right-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14 overflow-hidden">
+  1165→            <div className="w-full max-w-[380px]">
+  1166→              <AnimatePresence mode="wait" custom={direction}>
+  1167→                {!isLoginMode && (
+  1168→                  <motion.div
+  1169→                    key="right-register"
+  1170→                    custom={direction}
+  1171→                    variants={formSlideVariants}
+  1172→                    initial="initial"
+  1173→                    animate="animate"
+  1174→                    exit="exit"
+  1175→                  >
+  1176→                    <motion.div variants={staggerContainer} initial="initial" animate="animate">
+  1177→                      <RegisterFormContent />
+  1178→                    </motion.div>
+  1179→                  </motion.div>
+  1180→                )}
+  1181→              </AnimatePresence>
+  1182→            </div>
+  1183→          </div>
+  1184→
+  1185→          {/* ═════ SLIDING OVERLAY PANEL — Framer Motion driven ═══════ */}
+  1186→          <motion.div
+  1187→            className="absolute inset-y-0 w-1/2 z-30 overflow-hidden"
+  1188→            animate={{ left: isLoginMode ? '50%' : '0%' }}
+  1189→            transition={{
+  1190→              type: 'spring',
+  1191→              stiffness: 80,
+  1192→              damping: 22,
+  1193→              mass: 1.2,
+  1194→            }}
+  1195→            style={{
+  1196→              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 40%, #0F172A 100%)',
+  1197→              willChange: 'left',
+  1198→            }}
+  1199→          >
+  1200→            {/* Decorative shapes inside overlay */}
+  1201→            <div className="absolute inset-0 overflow-hidden">
+  1202→              {/* Grid pattern */}
+  1203→              <div
+  1204→                className="absolute inset-0 opacity-[0.04]"
+  1205→                style={{
+  1206→                  backgroundImage: `
+  1207→                    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px),
+  1208→                    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px)
+  1209→                  `,
+  1210→                }}
+  1211→              />
+  1212→
+  1213→              {/* Floating circles with Framer Motion */}
+  1214→              <motion.div
+  1215→                className="absolute w-40 h-40 rounded-full bg-white/[0.04]"
+  1216→                style={{ top: '8%', right: '8%' }}
+  1217→                animate={{ y: [0, -20, 0], x: [0, 10, 0], scale: [1, 1.15, 1] }}
+  1218→                transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+  1219→              />
+  1220→              <motion.div
+  1221→                className="absolute w-28 h-28 rounded-full bg-amber-500/[0.06]"
+  1222→                style={{ bottom: '12%', left: '12%' }}
+  1223→                animate={{ y: [0, 15, 0], x: [0, -8, 0], scale: [1, 0.9, 1] }}
+  1224→                transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+  1225→              />
+  1226→              <motion.div
+  1227→                className="absolute w-20 h-20 rounded-full bg-white/[0.05]"
+  1228→                style={{ top: '45%', left: '50%' }}
+  1229→                animate={{ y: [0, -12, 0], x: [0, 12, 0] }}
+  1230→                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+  1231→              />
+  1232→              <motion.div
+  1233→                className="absolute w-16 h-16 rounded-full bg-amber-400/[0.04]"
+  1234→                style={{ top: '20%', left: '25%' }}
+  1235→                animate={{ y: [0, 8, 0], scale: [1, 1.2, 1] }}
+  1236→                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+  1237→              />
+  1238→
+  1239→              {/* Radial glow */}
+  1240→              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-amber-500/[0.08] rounded-full blur-[100px] pointer-events-none" />
+  1241→
+  1242→              {/* Bottom glow */}
+  1243→              <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-white/[0.03] to-transparent pointer-events-none" />
+  1244→            </div>
+  1245→
+  1246→            {/* ═════ OVERLAY CONTENT — Cross-fades when switching ═══════ */}
+  1247→            <AnimatePresence mode="wait" custom={direction}>
+  1248→              {isLoginMode ? (
+  1249→                <OverlayContent key="overlay-login" mode="login" direction={direction} />
+  1250→              ) : (
+  1251→                <OverlayContent key="overlay-register" mode="register" direction={direction} />
+  1252→              )}
+  1253→            </AnimatePresence>
+  1254→
+  1255→            {/* CTA Button on Overlay */}
+  1256→            <div className="absolute bottom-12 left-0 right-0 flex justify-center">
+  1257→              <AnimatePresence mode="wait">
+  1258→                <motion.button
+  1259→                  key={isLoginMode ? 'cta-register' : 'cta-login'}
+  1260→                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+  1261→                  animate={{ opacity: 1, y: 0, scale: 1 }}
+  1262→                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
+  1263→                  transition={{ delay: 0.85, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+  1264→                  onClick={switchMode}
+  1265→                  className="flex items-center gap-2.5 px-8 py-3 bg-white text-slate-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+  1266→                  style={{
+  1267→                    boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+  1268→                  }}
+  1269→                  whileHover={{ scale: 1.03, y: -2 }}
+  1270→                  whileTap={{ scale: 0.97 }}
+  1271→                >
+  1272→                  {isLoginMode ? (
+  1273→                    <>
+  1274→                      <UserPlus className="w-4 h-4" />
+  1275→                      Create Account
+  1276→                      <motion.span
+  1277→                        animate={{ x: [0, 3, 0] }}
+  1278→                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+  1279→                      >
+  1280→                        <ChevronRight className="w-4 h-4" />
+  1281→                      </motion.span>
+  1282→                    </>
+  1283→                  ) : (
+  1284→                    <>
+  1285→                      <LogIn className="w-4 h-4" />
+  1286→                      Sign In
+  1287→                      <motion.span
+  1288→                        animate={{ x: [0, 3, 0] }}
+  1289→                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+  1290→                      >
+  1291→                        <ChevronRight className="w-4 h-4" />
+  1292→                      </motion.span>
+  1293→                    </>
+  1294→                  )}
+  1295→                </motion.button>
+  1296→              </AnimatePresence>
+  1297→            </div>
+  1298→          </motion.div>
+  1299→
+  1300→          {/* ═════ CENTER DIVIDER LINE ═══════ */}
+  1301→          <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-slate-300/40 to-transparent z-20 pointer-events-none" />
+  1302→
+  1303→          {/* ═════ CARD BORDER GLOW ═══════ */}
+  1304→          <div className="absolute inset-0 rounded-3xl pointer-events-none z-40">
+  1305→            <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
+  1306→            <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/[0.04]" />
+  1307→          </div>
+  1308→
+  1309→          {/* ═════ AMBIENT GLOW BEHIND CARD ═══════ */}
+  1310→          <div
+  1311→            className="absolute -inset-4 rounded-[2rem] blur-2xl pointer-events-none opacity-30"
+  1312→            style={{
+  1313→              background: 'radial-gradient(ellipse at 30% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 50%)',
+  1314→            }}
+  1315→          />
+  1316→        </motion.div>
+  1317→      </div>
+  1318→
+  1319→      {/* ═══════════════════════════════════════════════════════════
+  1320→          MOBILE: Stacked Single Card
+  1321→      ═══════════════════════════════════════════════════════════ */}
+  1322→      <div className="lg:hidden">
+  1323→        <motion.div
+  1324→          initial={{ opacity: 0, y: 30, scale: 0.96 }}
+  1325→          animate={{ opacity: 1, y: 0, scale: 1 }}
+  1326→          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+  1327→          className="w-full max-w-md bg-white rounded-2xl border border-slate-100/80 p-6 sm:p-8"
+  1328→          style={{
+  1329→            boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03), 0 0 80px -20px rgba(245, 158, 11, 0.12)',
+  1330→          }}
+  1331→        >
+  1332→          <MobileAuthCard initialMode={initialMode} />
+  1333→        </motion.div>
+  1334→      </div>
+  1335→    </div>
+  1336→  )
+  1337→}
+  1338→

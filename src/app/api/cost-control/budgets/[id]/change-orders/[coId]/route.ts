@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (status !== undefined) {
       updateData.status = status
       if (status === 'submitted') {
-        // Already submitted by default when created
+        // তৈরির সময় ডিফল্টভাবে ইতিমধ্যে জমা দেওয়া হয়েছে
       } else if (status === 'reviewed') {
         updateData.reviewedById = user.id
         updateData.reviewedAt = new Date()
@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         updateData.approvedById = user.id
         updateData.approvedAt = new Date()
 
-        // Apply changes: update line items and budget
+        // পরিবর্তন প্রয়োগ করা হচ্ছে: লাইন আইটেম এবং বাজেট আপডেট করা হচ্ছে
         const updates = await db.budgetLineItemUpdate.findMany({ where: { budgetChangeOrderId: coId } })
         for (const u of updates) {
           await db.budgetLineItem.update({
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             data: { revisedBudget: u.newAmount },
           })
         }
-        // Update budget totals
+        // বাজেট আপডেট করা হচ্ছে totals
         const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
         const newRevised = allItems.reduce((s, li) => s + li.revisedBudget, 0)
         const budget = await db.budget.findUnique({ where: { id } })
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           },
         })
       } else if (status === 'rejected') {
-        // Revert pending changes
+        // মুলত্বী পরিবর্তন প্রত্যাহার করা হচ্ছে
         const budget = await db.budget.findUnique({ where: { id } })
         if (budget) {
           await db.budget.update({
@@ -122,7 +122,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ success: false, error: 'Only draft or rejected change orders can be deleted' }, { status: 400 })
     }
 
-    // Revert pending changes if any
+    // মুলত্বী পরিবর্তন প্রত্যাহার করা হচ্ছে if any
     if (co.status === 'draft') {
       await db.budget.update({
         where: { id },

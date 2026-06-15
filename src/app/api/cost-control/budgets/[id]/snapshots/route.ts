@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const body = await request.json()
     const { name, snapshotType = 'custom' } = body
 
-    // Capture current state of all line items
+    // সব লাইন আইটেমের বর্তমান অবস্থা ক্যাপচার করা হচ্ছে
     const lineItems = await db.budgetLineItem.findMany({
       where: { budgetId: id },
       include: { costCode: { select: { id: true, code: true, name: true } } },

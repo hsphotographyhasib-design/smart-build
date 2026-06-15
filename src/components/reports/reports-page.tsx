@@ -80,7 +80,7 @@ export function ReportsPage() {
   const renderReportTable = () => {
     if (!data) return null
 
-    // Handle different report types
+    // বিভিন্ন রিপোর্ট ধরন পরিচালনা করা হচ্ছে
     if (reportType === 'income-expense') {
       const d = data as any
       return (
@@ -180,7 +180,7 @@ export function ReportsPage() {
       )
     }
 
-    // Generic table for project-pl, attendance, material, supplier
+    // project-pl, উপস্থিতি, উপকরণ, সরবরাহকারীর জন্য সাধারণ সারণি
     const rows = Array.isArray(data) ? data : (data as any).assets || []
     if (rows.length === 0) {
       return (

@@ -71,7 +71,7 @@ export function ClientComplaints() {
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
-  // Fetch complaints
+  // অভিযোগ আনা হচ্ছে
   const { data, isLoading } = useQuery({
     queryKey: ['client-complaints', statusFilter, severityFilter, projectFilter],
     queryFn: () => {
@@ -86,14 +86,14 @@ export function ClientComplaints() {
 
   const complaints = data?.data || []
 
-  // Fetch projects for dropdowns
+  // ড্রপডাউনের জন্য প্রকল্প আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['client-portal-projects-complaints'],
     queryFn: () => api.get('/api/client-portal/projects'),
   })
   const projects = projectsData?.data || []
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/client-portal/complaints', body),
     onSuccess: () => {
@@ -106,7 +106,7 @@ export function ClientComplaints() {
     },
   })
 
-  // Delete mutation
+  // মুছে ফেলা মিউটেশন
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.del(`/api/client-portal/complaints/${id}`),
     onSuccess: () => {
@@ -119,7 +119,7 @@ export function ClientComplaints() {
     },
   })
 
-  // Filter
+  // ফিল্টার
   const filtered = complaints.filter((c: any) => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase()

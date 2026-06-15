@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, error: 'Workflow not found' }, { status: 404 })
     }
 
-    // If setting as default, clear existing defaults for the same type
+    // ডিফল্ট হিসেবে সেট করলে, একই ধরনের বিদ্যমান ডিফল্টগুলো মুছে ফেলা হচ্ছে
     if (isDefault && invoiceType) {
       await db.invoiceWorkflow.updateMany({
         where: { invoiceType, isDefault: true, id: { not: id } },
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       })
     }
 
-    // Update steps if provided
+    // প্রদান করা হলে ধাপগুলো আপডেট করা হচ্ছে
     if (steps && Array.isArray(steps)) {
       await db.invoiceWorkflowStep.deleteMany({ where: { workflowId: id } })
       if (steps.length > 0) {

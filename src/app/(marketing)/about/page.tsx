@@ -159,7 +159,7 @@ const partners = [
 export default function AboutPage() {
   return (
     <>
-      {/* Hero Section */}
+      {/* হিরো সেকশন */}
       <section className="relative bg-gradient-to-br from-gray-900 via-stone-900 to-stone-800 py-20 md:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
@@ -179,7 +179,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Company Story */}
+      {/* কোম্পানির গল্প */}
       <section className="py-20 md:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl">
@@ -220,7 +220,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Mission & Vision */}
+      {/* মিশন ও ভিশন */}
       <section className="py-20 md:py-24 bg-stone-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -258,7 +258,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Why SmartBuild */}
+      {/* কেন SmartBuild */}
       <section className="py-20 md:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -290,7 +290,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Leadership Team */}
+      {/* নেতৃত্ব দল */}
       <section className="py-20 md:py-24 bg-stone-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -329,7 +329,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Core Values */}
+      {/* মূল মূল্যবোধ */}
       <section className="py-20 md:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -362,7 +362,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Roadmap Timeline */}
+      {/* রোডম্যাপ টাইমলাইন */}
       <section className="py-20 md:py-24 bg-stone-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -375,7 +375,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="relative">
-            {/* Vertical line (desktop only) */}
+            {/* উল্লম্ব রেখা (শুধুমাত্র ডেস্কটপ) */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-stone-300 hidden md:block -translate-x-px" />
             <div className="space-y-12 md:space-y-0">
               {roadmap.map((milestone, index) => (
@@ -385,7 +385,7 @@ export default function AboutPage() {
                     index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
                   } md:mb-16`}
                 >
-                  {/* Dot on the line */}
+                  {/* রেখায় বিন্দু */}
                   <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center">
                     <div
                       className={`h-12 w-12 rounded-full ${milestone.color} flex items-center justify-center text-white shadow-lg`}
@@ -393,7 +393,7 @@ export default function AboutPage() {
                       <milestone.icon className="h-5 w-5" />
                     </div>
                   </div>
-                  {/* Content */}
+                  {/* বিষয়বস্তু */}
                   <div className="ml-16 md:ml-0 md:w-1/2 md:px-12">
                     <span className="text-sm font-bold text-amber-600">
                       {milestone.year}
@@ -412,7 +412,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Partners Section */}
+      {/* অংশীদার সেকশন */}
       <section className="py-20 md:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -439,7 +439,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA সেকশন */}
       <section className="py-20 md:py-24 bg-gradient-to-br from-gray-900 via-stone-900 to-stone-800">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white">

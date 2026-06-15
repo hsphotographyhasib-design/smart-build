@@ -7,8 +7,8 @@ export type AuthResult =
   | { forbidden: true; response: NextResponse }
 
 /**
- * Authenticate and authorize a request.
- * Returns { user } on success, or { forbidden: true, response } on failure.
+ * একটি অনুরোধ প্রমাণীকরণ ও অনুমোদন করা হচ্ছে।
+ * সফল হলে { user } প্রদান করে, ব্যর্থ হলে { forbidden: true, response } প্রদান করে।
  */
 export async function authAndAuthorize(
   request: NextRequest,
@@ -26,7 +26,7 @@ export async function authAndAuthorize(
     }
   }
 
-  // If explicit roles provided, use requireRole
+  // সুনির্দিষ্ট ভূমিকা প্রদান করা হলে, requireRole ব্যবহার করা হচ্ছে
   if (allowedRoles && allowedRoles.length > 0) {
     if (!requireRole(user, allowedRoles)) {
       return {
@@ -43,7 +43,7 @@ export async function authAndAuthorize(
 }
 
 /**
- * Shorthand: check auth only (no role check).
+ * সংক্ষিপ্ত রূপ: শুধুমাত্র প্রমাণীকরণ পরীক্ষা (কোনো ভূমিকা পরীক্ষা নেই)।
  */
 export async function authenticate(request: NextRequest): Promise<AuthResult> {
   return authAndAuthorize(request, 'GET', [])

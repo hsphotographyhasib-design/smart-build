@@ -39,7 +39,7 @@ import { cn } from '@/lib/utils'
 import { useFormat } from '@/hooks/use-format'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface StatsData {
@@ -81,7 +81,7 @@ interface StatsData {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function relativeTime(dateStr: string): string {
@@ -143,7 +143,7 @@ const tenderStatusPill: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// KPI Card (Compact Mobile Style)
+// KPI কার্ড (কম্প্যাক্ট মোবাইল স্টাইল)
 // ──────────────────────────────────────────
 
 function KpiCard({
@@ -199,7 +199,7 @@ function KpiCardSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Component
+// কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export default function MobileDashboard() {
@@ -215,7 +215,7 @@ export default function MobileDashboard() {
         setStats(res.data)
       }
     } catch {
-      // Silently handle
+      // নীরবে পরিচালনা করা হচ্ছে
     } finally {
       setLoading(false)
     }
@@ -269,7 +269,7 @@ export default function MobileDashboard() {
     }))
   }, [stats?.workCategories])
 
-  // Quick actions
+  // দ্রুত কার্যসমূহ
   const quickActions = [
     { label: 'New Complaint', icon: MessageSquarePlus, page: 'maintenance-service-requests' as const },
     { label: 'New Project', icon: FolderKanban, page: 'projects' as const },
@@ -612,7 +612,7 @@ export default function MobileDashboard() {
 }
 
 // ──────────────────────────────────────────
-// Utility
+// ইউটিলিটি
 // ──────────────────────────────────────────
 
 function getGreeting(): string {

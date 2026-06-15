@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
     const supplier = await db.supplier.findUnique({ where: { id: supplierId } })
     if (!supplier) return NextResponse.json({ success: false, error: 'Supplier not found' }, { status: 400 })
 
-    // Generate order number
+    // অর্ডার নম্বর তৈরি করা হচ্ছে
     const count = await db.purchaseOrder.count()
     const orderNo = `PO-${String(count + 1).padStart(4, '0')}`
 
-    // Calculate totals
+    // মোট পরিমাণ হিসাব করা হচ্ছে
     let subtotal = 0
     const orderItems = items.map((item: { materialId?: string; description: string; quantity: number; unit: string; unitPrice: number }) => {
       const amount = item.quantity * item.unitPrice
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Mark linked purchase request as ordered
+    // সংযুক্ত পারচেজ রিকোয়েস্ট অর্ডার করা হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
     if (purchaseRequestId) {
       await db.purchaseRequest.update({
         where: { id: purchaseRequestId },

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET - Get notifications for current user
+// GET - বর্তমান ব্যবহারকারীর বিজ্ঞপ্তি সংগ্রহ করা হচ্ছে
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Mark notification(s) as read
+// POST - বিজ্ঞপ্তি পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const { id, markAll } = body
 
     if (markAll) {
-      // Mark all as read
+      // সবগুলো পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
       await db.notification.updateMany({
         where: { userId: user.id, isRead: false },
         data: { isRead: true },
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - Delete a notification
+// DELETE - একটি বিজ্ঞপ্তি মুছে ফেলা হচ্ছে
 export async function DELETE(request: NextRequest) {
   try {
     const user = await verifyAuth(request)

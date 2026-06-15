@@ -27,7 +27,7 @@ import {
   Clock, ArrowLeft, Star, Link as LinkIcon,
 } from 'lucide-react'
 
-// ─── Shared Constants ───
+// ─── যৌথ ধ্রুবক ───
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
   emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
   high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
@@ -86,7 +86,7 @@ const TYPE_BADGE_COLORS: Record<string, string> = {
   preventive_maintenance: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
 }
 
-// ─── SLA Countdown Component ───
+// ─── SLA কাউন্টডাউন উপাদান ───
 function SLACountdown({ deadline }: { deadline: string }) {
   const [remaining, setRemaining] = useState('')
 
@@ -123,7 +123,7 @@ function SLACountdown({ deadline }: { deadline: string }) {
   )
 }
 
-// ─── Status Workflow Stepper (compact) ───
+// ─── স্ট্যাটাস ওয়ার্কফ্লো স্টেপার (সংক্ষিপ্ত) ───
 function CompactWorkflowStepper({ status }: { status: string }) {
   const currentStep = STATUS_CONFIG[status]?.step ?? -1
 
@@ -157,13 +157,13 @@ function CompactWorkflowStepper({ status }: { status: string }) {
   )
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function ServiceRequests() {
   const { navigate } = useAppStore()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Filters
+  // ফিল্টারসমূহ
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -174,7 +174,7 @@ export function ServiceRequests() {
   const [activeTab, setActiveTab] = useState('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  // Fetch tickets
+  // টিকেট আনা
   const { data, isLoading } = useQuery({
     queryKey: ['maintenance-tickets', statusFilter, priorityFilter, categoryFilter, typeFilter, customerFilter, siteFilter, debouncedQuery],
     queryFn: () => {
@@ -193,7 +193,7 @@ export function ServiceRequests() {
 
   const tickets = (data?.data || []) as any[]
 
-  // Fetch reference data
+  // রেফারেন্স তথ্য আনা
   const { data: sitesData } = useQuery({
     queryKey: ['maintenance-sites'],
     queryFn: () => api.get('/api/maintenance/sites'),
@@ -206,7 +206,7 @@ export function ServiceRequests() {
   })
   const assets = (assetsData?.data || []) as any[]
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/tickets', body),
     onSuccess: () => {
@@ -219,7 +219,7 @@ export function ServiceRequests() {
     },
   })
 
-  // Client-side search filter
+  // ক্লায়েন্ট-সাইড অনুসন্ধান ফিল্টার
   const filtered = tickets.filter((t: any) => {
     if (query) {
       const q = query.toLowerCase()
@@ -232,7 +232,7 @@ export function ServiceRequests() {
     return true
   })
 
-  // My requests filter (placeholder - uses current user id from store)
+  // আমার অনুরোধ ফিল্টার (স্থানধারক - স্টোর থেকে বর্তমান ব্যবহারকারী আইডি ব্যবহার করে)
   const { user } = useAppStore()
   const myTickets = tickets.filter((t: any) => t.createdById === user?.id)
 
@@ -240,7 +240,7 @@ export function ServiceRequests() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button size="icon" variant="ghost" onClick={() => navigate('maintenance-dashboard')}>
@@ -253,7 +253,7 @@ export function ServiceRequests() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All Requests</TabsTrigger>
@@ -263,7 +263,7 @@ export function ServiceRequests() {
           </TabsTrigger>
         </TabsList>
 
-        {/* All Requests / My Requests */}
+        {/* সকল অনুরোধ / আমার অনুরোধ */}
         <TabsContent value="all" className="space-y-4 mt-4">
           <TicketFilters
             sites={sites}
@@ -302,7 +302,7 @@ export function ServiceRequests() {
           />
         </TabsContent>
 
-        {/* Create New */}
+        {/* নতুন তৈরি */}
         <TabsContent value="create" className="mt-4">
           <CreateTicketForm
             sites={sites}
@@ -316,7 +316,7 @@ export function ServiceRequests() {
   )
 }
 
-// ─── Filter Bar Component ───
+// ─── ফিল্টার বার উপাদান ───
 function TicketFilters({
   sites,
   statusFilter, setStatusFilter,
@@ -340,7 +340,7 @@ function TicketFilters({
     <Card>
       <CardContent className="p-4">
         <div className="flex flex-col gap-3">
-          {/* Search Row */}
+          {/* অনুসন্ধান সারি */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -350,7 +350,7 @@ function TicketFilters({
               className="pl-9"
             />
           </div>
-          {/* Filter Row */}
+          {/* ফিল্টার সারি */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
@@ -432,7 +432,7 @@ function TicketFilters({
   )
 }
 
-// ─── Ticket Table Component ───
+// ─── টিকেট টেবিল উপাদান ───
 function TicketTable({
   tickets,
   isLoading,
@@ -535,7 +535,7 @@ function TicketTable({
                         <TableRow>
                           <TableCell colSpan={9} className="bg-muted/20 px-6 py-4">
                             <div className="space-y-4">
-                              {/* Workflow Stepper */}
+                              {/* ওয়ার্কফ্লো স্টেপার */}
                               <div>
                                 <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Status Progress</h4>
                                 <CompactWorkflowStepper status={ticket.status} />
@@ -558,7 +558,7 @@ function TicketTable({
 
                               <Separator />
 
-                              {/* Details Grid */}
+                              {/* বিবরণ গ্রিড */}
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="text-muted-foreground text-xs">Description:</span>
@@ -594,7 +594,7 @@ function TicketTable({
                                 </div>
                               </div>
 
-                              {/* Attachments */}
+                              {/* সংযুক্তি */}
                               {(ticket.photoUrls?.length > 0 || ticket.videoUrls?.length > 0 || ticket.documentUrls?.length > 0) && (
                                 <div>
                                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Attachments</h4>
@@ -646,7 +646,7 @@ function TicketTable({
   )
 }
 
-// ─── Create Ticket Form Component ───
+// ─── টিকেট তৈরির ফর্ম উপাদান ───
 function CreateTicketForm({
   sites,
   assets,
@@ -704,7 +704,7 @@ function CreateTicketForm({
       contactPhone: form.contactPhone || undefined,
     }
 
-    // Parse URL fields into arrays
+    // URL ফিল্ডকে অ্যারেতে পার্স করা
     if (form.photoUrls.trim()) {
       payload.photoUrls = form.photoUrls.split('\n').map(u => u.trim()).filter(Boolean)
     }
@@ -716,7 +716,7 @@ function CreateTicketForm({
     }
 
     onSubmit(payload)
-    // Reset form
+    // ফর্ম রিসেট
     setForm({
       type: '', category: '', priority: 'medium', subject: '', description: '',
       customerId: '', siteId: '', building: '', floor: '', room: '',
@@ -732,7 +732,7 @@ function CreateTicketForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Row 1: Type, Category, Priority */}
+          {/* সারি ১: প্রকার, বিভাগ, অগ্রাধিকার */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Request Type *</Label>
@@ -780,7 +780,7 @@ function CreateTicketForm({
             </div>
           </div>
 
-          {/* Row 2: Subject */}
+          {/* সারি ২: বিষয় */}
           <div className="space-y-2">
             <Label>Subject *</Label>
             <Input
@@ -790,7 +790,7 @@ function CreateTicketForm({
             />
           </div>
 
-          {/* Row 3: Description */}
+          {/* সারি ৩: বিবরণ */}
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
@@ -803,7 +803,7 @@ function CreateTicketForm({
 
           <Separator />
 
-          {/* Row 4: Site, Customer */}
+          {/* সারি ৪: সাইট, গ্রাহক */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Customer</Label>
@@ -831,7 +831,7 @@ function CreateTicketForm({
             </div>
           </div>
 
-          {/* Row 5: Building, Floor, Room */}
+          {/* সারি ৫: ভবন, তলা, কক্ষ */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Building</Label>
@@ -859,7 +859,7 @@ function CreateTicketForm({
             </div>
           </div>
 
-          {/* Row 6: Equipment, Location */}
+          {/* সারি ৬: সরঞ্জাম, অবস্থান */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Equipment</Label>
@@ -886,7 +886,7 @@ function CreateTicketForm({
 
           <Separator />
 
-          {/* Row 7: Preferred Visit */}
+          {/* সারি ৭: পছন্দের পরিদর্শন */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Preferred Visit Date</Label>
@@ -906,7 +906,7 @@ function CreateTicketForm({
             </div>
           </div>
 
-          {/* Row 8: Contact */}
+          {/* সারি ৮: যোগাযোগ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Contact Person</Label>
@@ -928,7 +928,7 @@ function CreateTicketForm({
 
           <Separator />
 
-          {/* Row 9: Attachments (URL fields) */}
+          {/* সারি ৯: সংযুক্তি (URL ক্ষেত্র) */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">Attachments (URLs)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

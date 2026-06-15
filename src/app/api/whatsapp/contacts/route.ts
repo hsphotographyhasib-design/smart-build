@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — List WhatsApp contacts with search and filters
+// GET — সার্চ এবং ফিল্টার সহ WhatsApp পরিচিতিগণের তালিকা
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)

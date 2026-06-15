@@ -31,12 +31,12 @@ import {
   HelpCircle, FileUp, BarChart3,
 } from 'lucide-react'
 
-// ─── Props ───
+// ─── প্রপস ───
 interface TenderDetailPageProps {
   packageId: string
 }
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface BidItem {
   id: string
   description: string
@@ -134,7 +134,7 @@ interface TenderPackage {
   approvalSteps: { step: string; status: string; completedAt?: string; note?: string }[]
 }
 
-// ─── Config Maps ───
+// ─── কনফিগারেশন ম্যাপ ───
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
   published: { label: 'Published', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -160,7 +160,7 @@ const submissionStatusConfig: Record<string, { label: string; className: string 
   withdrawn: { label: 'Withdrawn', className: 'bg-gray-100 text-gray-500' },
 }
 
-// ─── Component ───
+// ─── উপাদান ───
 export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
   const { navigate } = useAppStore()
   const { formatCurrency, formatDate, formatDateTime } = useFormat()
@@ -172,13 +172,13 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
   const [addendaOpen, setAddendaOpen] = useState(false)
   const [awardOpen, setAwardOpen] = useState(false)
 
-  // Form states
+  // ফর্ম অবস্থা
   const [inviteVendorId, setInviteVendorId] = useState('')
   const [qaForm, setQaForm] = useState({ question: '' })
   const [addendaForm, setAddendaForm] = useState({ title: '', description: '' })
   const [awardForm, setAwardForm] = useState({ vendorId: '', notes: '', awardAmount: 0 })
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const { data, isLoading } = useQuery({
     queryKey: ['tender-package', packageId],
     queryFn: () => api.get<TenderPackage>(`/api/tender/packages/${packageId}`),
@@ -194,7 +194,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
   const vendors = vendorsData?.data || []
   const sc = statusConfig[pkg?.status || 'draft'] || statusConfig.draft
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const publishMutation = useMutation({
     mutationFn: () => api.put(`/api/tender/packages/${packageId}/publish`, {}),
     onSuccess: () => { toast.success('Tender published'); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
@@ -257,7 +257,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-3">
           <Button variant="outline" size="icon" className="mt-0.5" onClick={() => navigate('tender-packages')}>
@@ -292,7 +292,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
@@ -306,10 +306,10 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           <TabsTrigger value="award" className="text-xs">Award</TabsTrigger>
         </TabsList>
 
-        {/* ═══ OVERVIEW TAB ═══ */}
+        {/* ═══ পরিচিতি ট্যাব ═══ */}
         <TabsContent value="overview" className="space-y-6 mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Package Info */}
+            {/* প্যাকেজ তথ্য */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Package Information</CardTitle>
@@ -345,7 +345,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
               </CardContent>
             </Card>
 
-            {/* Approval Steps */}
+            {/* অনুমোদন ধাপ */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Approval Progress</CardTitle>
@@ -390,7 +390,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
             </Card>
           </div>
 
-          {/* Timeline */}
+          {/* টাইমলাইন */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Key Dates</CardTitle>
@@ -422,7 +422,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ═══ BID ITEMS TAB ═══ */}
+        {/* ═══ দরপত্র আইটেম ট্যাব ═══ */}
         <TabsContent value="items" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -477,7 +477,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ═══ INVITATIONS TAB ═══ */}
+        {/* ═══ আমন্ত্রণ ট্যাব ═══ */}
         <TabsContent value="invitations" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -529,7 +529,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
             </CardContent>
           </Card>
 
-          {/* Invite Vendor Dialog */}
+          {/* ভেন্ডর আমন্ত্রণ ডায়ালগ */}
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
@@ -564,7 +564,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Dialog>
         </TabsContent>
 
-        {/* ═══ SUBMISSIONS TAB ═══ */}
+        {/* ═══ জমা ট্যাব ═══ */}
         <TabsContent value="submissions" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -617,10 +617,10 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ═══ EVALUATION TAB ═══ */}
+        {/* ═══ মূল্যায়ন ট্যাব ═══ */}
         <TabsContent value="evaluation" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Evaluation Criteria */}
+            {/* মূল্যায়ন মানদণ্ড */}
             <Card>
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-semibold">Evaluation Criteria</CardTitle>
@@ -645,7 +645,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
               </CardContent>
             </Card>
 
-            {/* Scoring Summary */}
+            {/* স্কোরিং সারসংক্ষেপ */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Scoring Summary</CardTitle>
@@ -708,7 +708,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </div>
         </TabsContent>
 
-        {/* ═══ DOCUMENTS TAB ═══ */}
+        {/* ═══ নথিপত্র ট্যাব ═══ */}
         <TabsContent value="documents" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -772,7 +772,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ═══ Q&A TAB ═══ */}
+        {/* ═══ প্রশ্নোত্তর ট্যাব ═══ */}
         <TabsContent value="qa" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -828,7 +828,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
             </CardContent>
           </Card>
 
-          {/* Add Question Dialog */}
+          {/* প্রশ্ন যোগ ডায়ালগ */}
           <Dialog open={qaOpen} onOpenChange={setQaOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
@@ -861,7 +861,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Dialog>
         </TabsContent>
 
-        {/* ═══ ADDENDA TAB ═══ */}
+        {/* ═══ সংযোজনী ট্যাব ═══ */}
         <TabsContent value="addenda" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -905,7 +905,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
             </CardContent>
           </Card>
 
-          {/* Create Addendum Dialog */}
+          {/* সংযোজনী তৈরির ডায়ালগ */}
           <Dialog open={addendaOpen} onOpenChange={setAddendaOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
@@ -945,7 +945,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
           </Dialog>
         </TabsContent>
 
-        {/* ═══ AWARD TAB ═══ */}
+        {/* ═══ পুরস্কার ট্যাব ═══ */}
         <TabsContent value="award" className="space-y-4 mt-4">
           {pkg.status === 'awarded' ? (
             <Card>

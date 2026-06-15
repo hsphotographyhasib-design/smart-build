@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface CloseBody {
@@ -35,7 +35,7 @@ export async function POST(
     const authUser = await verifyAuth(request)
     if (!authUser) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Only admin or manager can close
+    // শুধুমাত্র অ্যাডমিন বা ম্যানেজার ক্লোজ করতে পারবেন
     if (!requireRole(authUser, ['admin', 'manager'])) {
       return NextResponse.json({ success: false, error: 'Only admin or manager can close tickets' }, { status: 403 })
     }

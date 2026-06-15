@@ -12,7 +12,7 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
@@ -38,7 +38,7 @@ async function generateTicketNo(): Promise<string> {
   return `CMP-${year}-${String(nextNum).padStart(6, '0')}`
 }
 
-// POST — Convert conversation to ticket
+// POST — কথোপকথন টিকেটে রূপান্তর করা হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -67,7 +67,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    // Check if already linked to a ticket
+    // ইতিমধ্যে কোনো টিকেটের সাথে লিংক আছে কিনা যাচাই করা হচ্ছে
     const existingLink = await db.complaintWhatsAppLink.findFirst({
       where: { conversationId: id },
     })
@@ -81,7 +81,7 @@ export async function POST(
     const ticketNo = await generateTicketNo()
     const ticketType = TYPE_MAP[convertTo] || 'complaint'
 
-    // Build description from conversation messages if not provided
+    // দেওয়া না হলে কথোপকথনের মেসেজ থেকে বিবরণ তৈরি করা হচ্ছে
     const messageHistory = conversation.messages
       .filter(m => m.content)
       .map(m => `[${m.direction === 'incoming' ? 'Customer' : 'Agent'}]: ${m.content}`)
@@ -90,7 +90,7 @@ export async function POST(
     const ticketSubject = subject || `WhatsApp ${convertTo.replace('_', ' ')} - ${conversation.contact.name || conversation.contact.phone}`
     const ticketDescription = description || messageHistory || 'Created from WhatsApp conversation'
 
-    // Find a system user for createdById
+    // createdById-এর জন্য একটি সিস্টেম ইউজার খুঁজে বের করা হচ্ছে
     let systemUser = await db.user.findFirst({ where: { email: 'system@smartbuild.com' } })
     if (!systemUser) {
       systemUser = await db.user.findFirst()
@@ -115,7 +115,7 @@ export async function POST(
       },
     })
 
-    // Create the link
+    // লিংক তৈরি করা হচ্ছে
     const link = await db.complaintWhatsAppLink.create({
       data: {
         ticketId: ticket.id,
@@ -125,13 +125,13 @@ export async function POST(
       },
     })
 
-    // Update conversation
+    // কথোপকথন আপডেট করা হচ্ছে
     await db.whatsAppConversation.update({
       where: { id },
       data: { ticketId: ticket.id },
     })
 
-    // Send WhatsApp confirmation to customer
+    // গ্রাহককে WhatsApp নিশ্চিতকরণ পাঠানো হচ্ছে
     const account = await db.whatsAppAccount.findFirst({ where: { isEnabled: true } })
     if (account?.accessToken) {
       try {
@@ -150,7 +150,7 @@ export async function POST(
           }),
         })
 
-        // Store outgoing message
+        // বহির্গামী মেসেজ সংরক্ষণ করা হচ্ছে
         await db.whatsAppMessage.create({
           data: {
             conversationId: id,
@@ -163,7 +163,7 @@ export async function POST(
           },
         })
       } catch {
-        // Confirmation send failed silently
+        // নিশ্চিতকরণ পাঠাতে ব্যর্থ হয়েছে (নীরবে)
       }
     }
 

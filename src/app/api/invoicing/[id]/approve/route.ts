@@ -43,12 +43,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const currentStep = steps[currentStepIndex]
 
-    // Check permission: user role matches assigneeRole or is the assigned user
+    // অনুমতি যাচাই: ব্যবহারকারীর ভূমিকা assigneeRole-এর সাথে মিলছে কিংবা নির্ধারিত ব্যবহারকারী কিনা
     if (currentStep.assigneeRole && currentStep.assigneeRole !== user.role) {
       return NextResponse.json({ success: false, error: 'You do not have permission to approve at this step' }, { status: 403 })
     }
 
-    // Create approval action
+    // অনুমোদন অ্যাকশন তৈরি করা হচ্ছে
     await db.invoiceApprovalAction.create({
       data: {
         instanceId: instance.id,
@@ -61,12 +61,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
-    // Determine next step
+    // পরবর্তী ধাপ নির্ধারণ করা হচ্ছে
     const nextStepIndex = currentStepIndex + 1
     const isLastStep = nextStepIndex >= steps.length
 
     if (isLastStep) {
-      // Fully approved
+      // সম্পূর্ণভাবে অনুমোদিত
       await db.invoiceWorkflowInstance.update({
         where: { id: instance.id },
         data: { status: 'approved', completedAt: new Date() },
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       return NextResponse.json({ success: true, data: updated })
     } else {
-      // Move to next step
+      // পরবর্তী ধাপে যাওয়া হচ্ছে
       const nextStep = steps[nextStepIndex]
       const nextStatus = nextStep.stepType === 'approval' ? 'pending_approval' : 'under_review'
 

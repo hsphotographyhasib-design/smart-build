@@ -87,7 +87,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Auto-fill country, phone placeholder when region is detected
+  // অঞ্চল শনাক্ত হলে দেশ এবং ফোন প্লেসহোল্ডার স্বয়ংক্রিয়ভাবে পূরণ করা হচ্ছে
   useEffect(() => {
     if (isLoaded && country && !formData.country) {
       setFormData((prev) => ({
@@ -108,15 +108,15 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
     }
   }, [errors])
 
-  // Handle country selection change
+  // দেশ নির্বাচন পরিবর্তন পরিচালনা করা হচ্ছে
   const handleCountryChange = useCallback(async (countryCode: string) => {
     updateField('country', countryCode)
-    // Also update the global region
+    // গ্লোবাল অঞ্চলও হালনাগাদ করা হচ্ছে
     await changeCountry(countryCode)
     setCountryDropdownOpen(false)
   }, [updateField, changeCountry])
 
-  // Get current phone placeholder based on selected country
+  // নির্বাচিত দেশের ভিত্তিতে বর্তমান ফোন প্লেসহোল্ডার প্রাপ্ত হচ্ছে
   const currentPhonePlaceholder = (() => {
     if (formData.country) {
       const c = countries.find(c => c.code === formData.country)
@@ -148,7 +148,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
 
     setLoading(true)
     try {
-      // Get timezone from browser
+      // ব্রাউজার থেকে টাইমজোন প্রাপ্ত হচ্ছে
       let timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
 
       const res = await fetch('/api/demo-request', {
@@ -176,7 +176,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
   const handleClose = useCallback((isOpen: boolean) => {
     onOpenChange(isOpen)
     if (!isOpen) {
-      // Reset form after a short delay for smooth transition
+      // মসৃণ রূপান্তরের জন্য স্বল্প বিলম্বের পর ফর্ম রিসেট করা হচ্ছে
       setTimeout(() => {
         setFormData({
           fullName: '', email: '', phone: '', company: '',
@@ -192,7 +192,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden">
-        {/* Header */}
+        {/* হেডার */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-8 pb-6 text-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-white">
@@ -204,7 +204,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 : 'See how SmartBuild can transform your operations.'}
             </DialogDescription>
           </DialogHeader>
-          {/* Currency indicator */}
+          {/* মুদ্রা নির্দেশক */}
           {step !== 'success' && isLoaded && (
             <div className="mt-3 flex items-center gap-2 text-orange-100/80 text-xs">
               <Globe className="w-3 h-3" />
@@ -233,7 +233,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
         ) : (
           <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2">
             <div className="grid gap-4">
-              {/* Row 1: Name & Email */}
+              {/* সারি ১: নাম ও ইমেইল */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
@@ -264,7 +264,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 </div>
               </div>
 
-              {/* Row 2: Phone & Company */}
+              {/* সারি ২: ফোন ও কোম্পানি */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
@@ -290,7 +290,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 </div>
               </div>
 
-              {/* Row 3: Position & Country Selector */}
+              {/* সারি ৩: পদবি ও দেশ নির্বাচক */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
@@ -329,7 +329,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 </div>
               </div>
 
-              {/* Row 4: Industry & Team Size */}
+              {/* সারি ৪: শিল্প ও দলের আকার */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
@@ -365,7 +365,7 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 </div>
               </div>
 
-              {/* Requirements */}
+              {/* প্রয়োজনীয়তা */}
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                   <MessageSquare className="w-3.5 h-3.5 text-gray-400" />
@@ -380,14 +380,14 @@ export function DemoRequestDialog({ open, onOpenChange }: DemoRequestDialogProps
                 />
               </div>
 
-              {/* Error message */}
+              {/* ত্রুটি বার্তা */}
               {errors.submit && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2.5 rounded-lg">
                   {errors.submit}
                 </div>
               )}
 
-              {/* Submit */}
+              {/* জমা দিন */}
               <Button
                 type="submit"
                 disabled={loading}

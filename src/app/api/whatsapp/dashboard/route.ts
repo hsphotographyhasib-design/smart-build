@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — Dashboard stats
+// GET — ড্যাশবোর্ড পরিসংখ্যান
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       db.complaintWhatsAppLink.count({ where: { createdAt: { gte: today, lt: tomorrow } } }),
     ])
 
-    // Average response time (time between first incoming and first outgoing message per conversation)
+    // গড় রেসপন্স টাইম (প্রতিটি কথোপকথনে প্রথম আগত এবং প্রথম বহির্গামী মেসেজের মধ্যবর্তী সময়)
     const recentConversations = await db.whatsAppConversation.findMany({
       where: { status: { in: ['open', 'closed'] } },
       include: {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
     const avgResponseTime = responseCount > 0 ? Math.round(totalResponseTime / responseCount) : 0
 
-    // By category stats (from conversation tags)
+    // বিভাগ অনুযায়ী পরিসংখ্যান (কথোপকথনের ট্যাগ থেকে)
     const conversations = await db.whatsAppConversation.findMany({
       select: { tags: true, priority: true, status: true },
     })

@@ -23,14 +23,14 @@ import {
   Shield, Banknote, AlertTriangle, CreditCard, DollarSign, Unlock,
 } from 'lucide-react'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const retStatusConfig: Record<string, { label: string; className: string }> = {
   active: { label: 'Active', className: 'bg-purple-100 text-purple-700' },
   released: { label: 'Released', className: 'bg-teal-100 text-teal-700' },
   overdue: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
 }
 
-// ─── Component ───
+// ─── উপাদান ───
 export function InvoiceRetentionPage() {
   const { navigate } = useAppStore()
   const { formatCurrency, formatDate } = useFormat()
@@ -39,17 +39,17 @@ export function InvoiceRetentionPage() {
   const [releaseDialog, setReleaseDialog] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
 
-  // Filters
+  // ফিল্টারসমূহ
   const [projectFilter, setProjectFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const pageSize = 20
 
-  // Release form
+  // মুক্তি ফর্ম
   const [relForm, setRelForm] = useState({ amount: 0, reference: '' })
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const params = useMemo(() => {
     const p = new URLSearchParams()
     if (projectFilter !== 'all') p.set('projectId', projectFilter)
@@ -76,7 +76,7 @@ export function InvoiceRetentionPage() {
   const totalItems = retData?.data?.total || retentionList.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const releaseMutation = useMutation({
     mutationFn: ({ invoiceId, body }: { invoiceId: string; body: any }) =>
       api.post(`/api/invoicing/retention/${invoiceId}/release`, body),
@@ -98,13 +98,13 @@ export function InvoiceRetentionPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Retention Management</h1>
         <p className="text-sm text-muted-foreground">Track and release invoice retention amounts</p>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -152,7 +152,7 @@ export function InvoiceRetentionPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -179,7 +179,7 @@ export function InvoiceRetentionPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           <div className="max-h-[calc(100vh-280px)] overflow-y-auto overflow-x-auto">
@@ -249,7 +249,7 @@ export function InvoiceRetentionPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-xs text-muted-foreground">
@@ -269,7 +269,7 @@ export function InvoiceRetentionPage() {
         </CardContent>
       </Card>
 
-      {/* ─── Release Retention Dialog ─── */}
+      {/* ─── ধারণ সংরক্ষণ মুক্তি ডায়ালগ ─── */}
       <Dialog open={releaseDialog} onOpenChange={open => { setReleaseDialog(open); if (!open) setSelectedInvoice(null) }}>
         <DialogContent>
           <DialogHeader>

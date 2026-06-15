@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { EmptyTickets } from '@/components/common/empty-states'
 
-// ─── Shared Constants ───
+// ─── ভাগ করা ধ্রুবক ───
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
   emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
   high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
@@ -100,7 +100,7 @@ const QUICK_ACTIONS = [
   { type: 'preventive_maintenance', label: 'Preventive Maintenance', icon: ShieldCheck, color: 'text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border-cyan-200 dark:bg-cyan-950 dark:border-cyan-800 dark:hover:bg-cyan-900' },
 ]
 
-// ─── SLA Countdown Component ───
+// ─── SLA কাউন্টডাউন কম্পোনেন্ট ───
 function SLACountdown({ deadline }: { deadline: string }) {
   const [remaining, setRemaining] = useState('')
 
@@ -137,7 +137,7 @@ function SLACountdown({ deadline }: { deadline: string }) {
   )
 }
 
-// ─── Workflow Stepper ───
+// ─── ওয়ার্কফ্লো স্টেপার ───
 function WorkflowStepper({ status }: { status: string }) {
   const currentStep = STATUS_CONFIG[status]?.step ?? -1
 
@@ -188,7 +188,7 @@ function WorkflowStepper({ status }: { status: string }) {
   )
 }
 
-// ─── Stat Card Skeleton ───
+// ─── পরিসংখ্যান কার্ড স্কেলিটন ───
 function StatCardSkeleton() {
   return (
     <Card>
@@ -204,7 +204,7 @@ function StatCardSkeleton() {
   )
 }
 
-// ─── Main Component ───
+// ─── প্রধান কম্পোনেন্ট ───
 export function ClientServiceRequests() {
   const { navigate, user } = useAppStore()
   const { toast } = useToast()
@@ -212,7 +212,7 @@ export function ClientServiceRequests() {
 
   const customerId = user?.customerId || user?.id
 
-  // Filters
+  // ফিল্টার
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -223,7 +223,7 @@ export function ClientServiceRequests() {
   const [createOpen, setCreateOpen] = useState(false)
   const [prefillType, setPrefillType] = useState('')
 
-  // Fetch tickets for this customer
+  // এই গ্রাহকের জন্য টিকেট আনা হচ্ছে
   const { data, isLoading } = useQuery({
     queryKey: ['client-service-tickets', customerId, statusFilter, priorityFilter, categoryFilter, typeFilter],
     queryFn: () => {
@@ -241,7 +241,7 @@ export function ClientServiceRequests() {
 
   const tickets = (data?.data || []) as any[]
 
-  // Fetch customer sites
+  // গ্রাহক সাইট আনা হচ্ছে
   const { data: sitesData } = useQuery({
     queryKey: ['client-maintenance-sites', customerId],
     queryFn: () => {
@@ -253,7 +253,7 @@ export function ClientServiceRequests() {
   })
   const sites = (sitesData?.data || []) as any[]
 
-  // Fetch PM schedules for this customer
+  // এই গ্রাহকের জন্য PM সময়সূচি আনা হচ্ছে
   const { data: pmData } = useQuery({
     queryKey: ['client-pm-schedules', customerId],
     queryFn: () => {
@@ -265,7 +265,7 @@ export function ClientServiceRequests() {
   })
   const pmSchedules = (pmData?.data || []) as any[]
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/tickets', body),
     onSuccess: () => {
@@ -279,7 +279,7 @@ export function ClientServiceRequests() {
     },
   })
 
-  // Approve/Reject mutation
+  // অনুমোদন/প্রত্যাখ্যান মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/tickets/${id}`, body),
     onSuccess: () => {
@@ -292,13 +292,13 @@ export function ClientServiceRequests() {
     },
   })
 
-  // Quick action handler
+  // দ্রুত কার্য হ্যান্ডলার
   const handleQuickAction = (type: string) => {
     setPrefillType(type)
     setCreateOpen(true)
   }
 
-  // Client-side search
+  // ক্লায়েন্ট-সাইড অনুসন্ধান
   const filtered = tickets.filter((t: any) => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
@@ -311,7 +311,7 @@ export function ClientServiceRequests() {
     return true
   })
 
-  // Tab filtering
+  // ট্যাব ফিল্টারিং
   const getTabTickets = (tab: string) => {
     switch (tab) {
       case 'open': return filtered.filter((t: any) => ['new', 'under_review', 'assigned', 'accepted'].includes(t.status))
@@ -324,7 +324,7 @@ export function ClientServiceRequests() {
 
   const displayTickets = getTabTickets(activeTab)
 
-  // Dashboard stats
+  // ড্যাশবোর্ড পরিসংখ্যান
   const openCount = tickets.filter((t: any) => ['new', 'under_review', 'assigned', 'accepted'].includes(t.status)).length
   const pendingApprovalCount = tickets.filter((t: any) => ['pending_customer', 'customer_verification'].includes(t.status)).length
   const inProgressCount = tickets.filter((t: any) => ['in_progress', 'pending_parts'].includes(t.status)).length
@@ -335,7 +335,7 @@ export function ClientServiceRequests() {
   }).length
   const emergencyCount = tickets.filter((t: any) => t.priority === 'emergency' && !['completed', 'closed'].includes(t.status)).length
 
-  // Avg response time (from new to assigned)
+  // গড় প্রতিক্রিয়া সময় (নতুন থেকে বরাদ্দ পর্যন্ত)
   const avgResponseCalc = (() => {
     const responded = tickets.filter((t: any) => t.createdAt && (t.assignedAt || t.updatedAt))
     if (responded.length === 0) return null
@@ -362,13 +362,13 @@ export function ClientServiceRequests() {
     { label: 'Avg Response Time', value: avgResponseCalc ? `${Math.round(avgResponseCalc)}h` : '—', icon: Clock, trend: 'neutral', color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950' },
   ]
 
-  // Completed tickets for service history
+  // সেবা ইতিহাসের জন্য সম্পন্ন টিকেট
   const completedTickets = tickets
     .filter((t: any) => ['completed', 'closed'].includes(t.status))
     .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 5)
 
-  // Active PM schedules
+  // সক্রিয় PM সময়সূচি
   const activePMs = pmSchedules.filter((pm: any) => pm.status === 'active')
 
   return (
@@ -454,7 +454,7 @@ export function ClientServiceRequests() {
           <TabsTrigger value="upcoming">Upcoming Visits</TabsTrigger>
         </TabsList>
 
-        {/* All / Open / In Progress / Pending / Completed Tabs */}
+        {/* সকল / খোলা / চলমান / অপেক্ষমান / সম্পন্ন ট্যাব */}
         {['all', 'open', 'in_progress', 'pending_approval', 'completed'].map((tab) => (
           <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
             {/* Filters */}
@@ -775,7 +775,7 @@ export function ClientServiceRequests() {
   )
 }
 
-// ─── Expanded Ticket Detail ───
+// ─── প্রসারিত টিকেট বিবরণ ───
 function TicketDetailExpanded({
   ticket,
   onApprove,
@@ -793,7 +793,7 @@ function TicketDetailExpanded({
   const [feedback, setFeedback] = useState(ticket.customerFeedback || '')
   const [showRating, setShowRating] = useState(false)
 
-  // Fetch timeline
+  // টাইমলাইন আনা হচ্ছে
   const { data: timelineData } = useQuery({
     queryKey: ['client-ticket-timeline', ticket.id],
     queryFn: () => api.get(`/api/maintenance/tickets/${ticket.id}/timeline`),
@@ -801,7 +801,7 @@ function TicketDetailExpanded({
   })
   const timeline = (timelineData?.data || []) as any[]
 
-  // Rating mutation
+  // রেটিং মিউটেশন
   const ratingMutation = useMutation({
     mutationFn: (body: any) => api.put(`/api/maintenance/tickets/${ticket.id}`, body),
     onSuccess: () => {
@@ -967,7 +967,7 @@ function TicketDetailExpanded({
           </>
         )}
 
-        {/* Rate for completed tickets */}
+        {/* সম্পন্ন টিকেটের রেটিং */}
         {(isCompleted && !showRating) && (
           <Button
             size="sm"
@@ -1044,7 +1044,7 @@ function TicketDetailExpanded({
   )
 }
 
-// ─── XCircle Icon (not in lucide by default, use a simple span) ───
+// ─── XCircle আইকন (lucide-এ ডিফল্ট নেই, একটি সাধারণ span ব্যবহার করুন) ───
 function XCircleIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -1055,7 +1055,7 @@ function XCircleIcon({ className }: { className?: string }) {
   )
 }
 
-// ─── Create Request Form ───
+// ─── অনুরোধ তৈরি ফর্ম ───
 function CreateRequestForm({
   sites,
   prefillType,

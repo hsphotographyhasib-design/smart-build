@@ -25,7 +25,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function formatCurrency(val: number) {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
   if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
@@ -41,7 +41,7 @@ const statusColor: Record<string, string> = {
   applied: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
 }
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface ChangeOrder {
   id: string
   budgetId: string
@@ -98,13 +98,13 @@ export function BudgetChangeOrders() {
   const [detailCO, setDetailCO] = useState<ChangeOrder | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  // Fetch all change orders (via budgets)
+  // সকল পরিবর্তন অর্ডার আনা (বাজেটের মাধ্যমে)
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets-for-co'],
     queryFn: () => api.get<BudgetSummary[]>('/api/cost-control/budgets').then(r => r.data || []),
   })
 
-  // Fetch COs for selected/all budgets
+  // নির্বাচিত/সকল বাজেটের জন্য CO আনা
   const { data: allChangeOrders = [], isLoading: coLoading } = useQuery({
     queryKey: ['all-change-orders', statusFilter, selectedBudgetId],
     queryFn: async () => {
@@ -119,14 +119,14 @@ export function BudgetChangeOrders() {
     enabled: budgets.length > 0 || !!selectedBudgetId,
   })
 
-  // Fetch line items for create dialog
+  // তৈরির ডায়ালগের জন্য লাইন আইটেম আনা
   const { data: lineItems = [] } = useQuery({
     queryKey: ['line-items-for-co', selectedBudgetId],
     queryFn: () => api.get<LineItemOption[]>(`/api/cost-control/budgets/${selectedBudgetId}/line-items`).then(r => r.data || []),
     enabled: !!selectedBudgetId,
   })
 
-  // Create CO mutation
+  // CO তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post(`/api/cost-control/budgets/${selectedBudgetId}/change-orders`, body),
     onSuccess: () => {
@@ -137,7 +137,7 @@ export function BudgetChangeOrders() {
     },
   })
 
-  // Update CO status
+  // CO স্ট্যাটাস আপডেট
   const updateMutation = useMutation({
     mutationFn: ({ budgetId, coId, status }: { budgetId: string; coId: string; status: string }) =>
       api.put(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`, { status }),
@@ -147,7 +147,7 @@ export function BudgetChangeOrders() {
     },
   })
 
-  // Delete CO
+  // CO মুছে ফেলা
   const deleteMutation = useMutation({
     mutationFn: ({ budgetId, coId }: { budgetId: string; coId: string }) =>
       api.del(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`),
@@ -170,7 +170,7 @@ export function BudgetChangeOrders() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budget Change Orders</h1>
@@ -196,7 +196,7 @@ export function BudgetChangeOrders() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -222,7 +222,7 @@ export function BudgetChangeOrders() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           {coLoading ? (
@@ -311,7 +311,7 @@ export function BudgetChangeOrders() {
         </CardContent>
       </Card>
 
-      {/* Create CO Dialog */}
+      {/* CO তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -326,7 +326,7 @@ export function BudgetChangeOrders() {
         </DialogContent>
       </Dialog>
 
-      {/* Detail Dialog */}
+      {/* বিস্তারিত ডায়ালগ */}
       <Dialog open={!!detailCO} onOpenChange={() => setDetailCO(null)}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -372,7 +372,7 @@ export function BudgetChangeOrders() {
 
               <Separator />
 
-              {/* Before/After Comparison */}
+              {/* পূর্বে/পরে তুলনা */}
               <div>
                 <p className="text-sm font-semibold mb-2 flex items-center gap-1">
                   <GitCompareArrows className="h-4 w-4" /> Line Item Changes
@@ -414,7 +414,7 @@ export function BudgetChangeOrders() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -436,7 +436,7 @@ export function BudgetChangeOrders() {
   )
 }
 
-// ─── Create CO Form ───
+// ─── CO তৈরির ফর্ম ───
 function CreateCOForm({ lineItems, onSubmit, isLoading }: { lineItems: LineItemOption[]; onSubmit: (data: any) => void; isLoading: boolean }) {
   const [title, setTitle] = useState('')
   const [reason, setReason] = useState('')
@@ -486,7 +486,7 @@ function CreateCOForm({ lineItems, onSubmit, isLoading }: { lineItems: LineItemO
 
       <Separator />
 
-      {/* Line Item Updates */}
+      {/* লাইন আইটেম আপডেট */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <Label className="text-sm">Line Item Adjustments</Label>

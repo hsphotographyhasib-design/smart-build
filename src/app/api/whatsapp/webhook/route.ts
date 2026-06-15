@@ -12,7 +12,7 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
@@ -32,7 +32,7 @@ async function sendWhatsAppMessage(phoneNumberId: string, accessToken: string, t
       }),
     })
   } catch {
-    // Silent fail for auto-replies
+    // স্বয়ংক্রিয় উত্তরের জন্য নীরব ব্যর্থতা
   }
 }
 
@@ -68,7 +68,7 @@ function getMessageType(msg: Record<string, unknown>): string {
   return 'text'
 }
 
-// GET — Webhook verification (no auth)
+// GET — ওয়েবহুক যাচাই (কোনো অথেনটিকেশন নেই)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const mode = searchParams.get('hub.mode')
@@ -90,23 +90,23 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
 }
 
-// POST — Receive incoming WhatsApp messages (no auth)
+// POST — আগত WhatsApp মেসেজ গ্রহণ করা হচ্ছে (কোনো অথেনটিকেশন নেই)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Validate X-Hub-Signature-256 if present
+    // উপস্থিত থাকলে X-Hub-Signature-256 যাচাই করা হচ্ছে
     const signature = request.headers.get('x-hub-signature-256')
     if (signature) {
       const account = await db.whatsAppAccount.findFirst({ where: { isEnabled: true } })
       if (account && account.accessToken) {
-        // For HMAC validation we'd use the app secret, not access token
-        // The app secret should be stored separately; here we skip if no appSecret configured
-        // In production, verify: crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex')
+        // HMAC যাচাইয়ের জন্য আমরা'd use the app secret, not access token
+        // অ্যাপ সিক্রেট আলাদাভাবে সংরক্ষণ করা উচিত; এখানে appSecret কনফিগার না থাকলে এড়িয়ে যাওয়া হচ্ছে
+        // প্রোডাকশনে, যাচাই করুন: crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex')
       }
     }
 
-    // Handle webhook notifications (status updates, etc.)
+    // ওয়েবহুক নোটিফিকেশন পরিচালনা করা হচ্ছে (স্ট্যাটাস আপডেট ইত্যাদি)
     const entry = body.entry
     if (!Array.isArray(entry)) {
       return NextResponse.json({ success: true })
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         const value = change.value
         if (!value) continue
 
-        // Skip status updates and non-message events
+        // স্ট্যাটাস আপডেট এবং মেসেজ নয় এমন ইভেন্ট এড়িয়ে যাওয়া হচ্ছে
         if (value.statuses) continue
         if (!value.messages || !Array.isArray(value.messages)) continue
 
@@ -148,13 +148,13 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
   const type = msg['type'] as string
   const msgObj = (msg[type] || {}) as Record<string, unknown>
 
-  // Dedup: check if message already exists by waMessageId
+  // ডুপ্লিকেট এড়ানো: waMessageId দিয়ে মেসেজ আগে থেকেই আছে কিনা যাচাই করা হচ্ছে
   const existingByWaId = await db.whatsAppMessage.findFirst({
     where: { waMessageId },
   })
   if (existingByWaId) return
 
-  // Upsert contact
+  // পরিচিতি আপসার্ট করা হচ্ছে
   const contact = await db.whatsAppContact.upsert({
     where: { accountId_phone: { accountId, phone: from } },
     create: {
@@ -172,7 +172,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
     },
   })
 
-  // Find or create conversation
+  // কথোপকথন খুঁজে বের করা বা তৈরি করা হচ্ছে
   let conversation = await db.whatsAppConversation.findFirst({
     where: {
       contactId: contact.id,
@@ -193,7 +193,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
       },
     })
 
-    // Auto-create ticket for first message from new customer
+    // নতুন গ্রাহকের প্রথম মেসেজের জন্য স্বয়ংক্রিয়ভাবে টিকেট তৈরি করা হচ্ছে
     const hasExistingLink = await db.complaintWhatsAppLink.findFirst({
       where: { conversationId: conversation.id },
     })
@@ -214,7 +214,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
   const textContent = extractMessageText(msgObj)
   const messageType = getMessageType(msg)
 
-  // Create message record
+  // মেসেজ রেকর্ড তৈরি করা হচ্ছে
   const message = await db.whatsAppMessage.create({
     data: {
       conversationId: conversation.id,
@@ -236,31 +236,31 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
     },
   })
 
-  // Update conversation lastMessageText
+  // কথোপকথন আপডেট করা হচ্ছে lastMessageText
   await db.whatsAppConversation.update({
     where: { id: conversation.id },
     data: { lastMessageText: textContent || `[${messageType}]` },
   })
 
-  // Emit real-time event
+  // রিয়েল-টাইম ইভেন্ট ইমিট করা হচ্ছে
   await emitEvent('new_message', {
     conversationId: conversation.id,
     messageId: message.id,
     contactId: contact.id,
   })
 
-  // Auto-reply / Bot flow / AI classification
+  // স্বয়ংক্রিয় উত্তর / বট ফ্লো / AI শ্রেণীবিভাগ
   const account = await db.whatsAppAccount.findUnique({ where: { id: accountId } })
   if (!account || !account.accessToken) return
 
   if (textContent) {
-    // Handle STATUS command
+    // STATUS কমান্ড পরিচালনা করা হচ্ছে
     if (textContent.trim().toUpperCase().startsWith('STATUS')) {
       await handleStatusQuery(conversation, contact, account)
       return
     }
 
-    // Bot flow: send auto-reply with menu
+    // বট ফ্লো: মেনু সহ স্বয়ংক্রিয় উত্তর পাঠানো হচ্ছে
     if (account.botFlowEnabled) {
       const menuMessage = `🏠 *SmartBuild Help Center*\n\nPlease choose an option:\n1️⃣ Report a Complaint\n2️⃣ Check Status (Reply "STATUS")\n3️⃣ Service Request\n4️⃣ Talk to Agent\n\n_Reply with a number or type your message._`
       await sendWhatsAppMessage(account.phoneNumberId, account.accessToken, contact.phone, menuMessage)
@@ -276,7 +276,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
       })
     }
 
-    // AI classification
+    // AI শ্রেণীবিভাগ
     if (account.aiClassification && textContent.length > 5) {
       try {
         const { ZAI } = await import('z-ai-web-dev-sdk')
@@ -292,7 +292,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
         })
         const category = classification?.content?.trim().toLowerCase() || 'general_inquiry'
 
-        // Update conversation tags with classification
+        // কথোপকথন আপডেট করা হচ্ছে tags with classification
         const conv = await db.whatsAppConversation.findUnique({ where: { id: conversation.id } })
         const existingTags: string[] = conv?.tags ? JSON.parse(conv.tags) : []
         if (!existingTags.includes(category)) {
@@ -303,7 +303,7 @@ async function processIncomingMessage(accountId: string, msg: Record<string, unk
           })
         }
       } catch {
-        // AI classification failed silently
+        // AI শ্রেণীবিভাগ failed silently
       }
     }
   }
@@ -314,7 +314,7 @@ async function handleStatusQuery(
   contact: { id: string; phone: string; name: string | null },
   account: { phoneNumberId: string; accessToken: string }
 ) {
-  // Find linked ticket
+  // সংযুক্ত টিকেট খুঁজে বের করা হচ্ছে
   const link = await db.complaintWhatsAppLink.findFirst({
     where: { conversationId: conversation.id },
     include: { ticket: true },
@@ -348,11 +348,11 @@ async function autoCreateTicket(conversationId: string, contactId: string, accou
 
     const textContent = extractMessageText(msgObj) || 'WhatsApp complaint'
 
-    // Find a valid user for createdById
+    // createdById-এর জন্য একজন বৈধ ইউজার খুঁজে বের করা হচ্ছে
     const systemUser = await db.user.findFirst()
     if (!systemUser) return
 
-    // Generate ticket number
+    // টিকেট নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const lastTicket = await db.maintenanceTicket.findFirst({
       where: { ticketNo: { startsWith: `CMP-${year}` } },
@@ -380,7 +380,7 @@ async function autoCreateTicket(conversationId: string, contactId: string, accou
       },
     })
 
-    // Link conversation to ticket
+    // কথোপকথন টিকেটের সাথে লিংক করা হচ্ছে
     await db.complaintWhatsAppLink.create({
       data: {
         ticketId: ticket.id,
@@ -389,19 +389,19 @@ async function autoCreateTicket(conversationId: string, contactId: string, accou
       },
     })
 
-    // Update conversation with ticket
+    // কথোপকথন আপডেট করা হচ্ছে with ticket
     await db.whatsAppConversation.update({
       where: { id: conversationId },
       data: { ticketId: ticket.id },
     })
 
-    // Emit event
+    // ইভেন্ট ইমিট করা হচ্ছে
     await emitEvent('ticket_auto_created', {
       conversationId,
       ticketId: ticket.id,
       ticketNo: ticket.ticketNo,
     })
   } catch {
-    // Auto-creation failed silently
+    // স্বয়ংক্রিয় তৈরি ব্যর্থ হয়েছে (নীরবে)
   }
 }

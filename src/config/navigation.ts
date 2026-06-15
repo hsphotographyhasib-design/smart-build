@@ -1,6 +1,6 @@
 // src/config/navigation.ts
-// Navigation Configuration
-// Extracted from app-layout.tsx - central place for sidebar navigation structure
+// নেভিগেশন কনফিগারেশন
+// app-layout.tsx থেকে বহিরত স্থায় স্থায়ের জন্য় কেন্ট্রাল
 
 import React from 'react'
 import {

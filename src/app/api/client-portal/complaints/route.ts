@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const where: any = {}
     if (user.role === 'client') {
-      // For client role, filter by projects belonging to them
+      // ক্লায়েন্ট ভূমিকার জন্য, তাদের নিজের প্রজেক্ট দিয়ে ফিল্টার করা হচ্ছে
       where.project = { clientId: user.id }
     }
     if (status) where.status = status
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
-    // For client role, verify the project belongs to them
+    // ক্লায়েন্ট ভূমিকার জন্য, প্রজেক্টটি তাদের নিজের কিনা যাচাই করা হচ্ছে
     if (user.role === 'client') {
       const project = await db.project.findUnique({
         where: { id: projectId },

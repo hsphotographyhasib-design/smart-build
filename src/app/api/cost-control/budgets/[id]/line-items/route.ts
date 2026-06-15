@@ -61,7 +61,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       include: { costCode: true },
     })
 
-    // Update budget totals
+    // বাজেট আপডেট করা হচ্ছে totals
     const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
     const newTotal = allItems.reduce((s, li) => s + li.originalBudget, 0)
     await db.budget.update({

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // ---------------------------------------------------------------------------
-// Types
+// ধরন (Types)
 // ---------------------------------------------------------------------------
 
 interface RateLimitEntry {
@@ -11,22 +11,22 @@ interface RateLimitEntry {
 }
 
 export interface RateLimitConfig {
-  maxRequests: number       // max requests allowed in the window
-  windowMs: number          // time window in milliseconds
-  blockDurationMs?: number  // how long to block after exceeding (defaults to windowMs)
+  maxRequests: number       // উইন্ডোতে অনুমোদিত সর্বোচ্চ অনুরোধ সংখ্যা
+  windowMs: number          // মিলিসেকেন্ডে সময় উইন্ডো
+  blockDurationMs?: number  // সীমা অতিক্রমের পর কতক্ষণ ব্লক করা হবে (ডিফল্ট: windowMs)
 }
 
 export interface RateLimitResult {
   success: boolean
   remaining: number
   resetTime: number
-  retryAfter?: number       // only present when the request is blocked
+  retryAfter?: number       // শুধুমাত্র অনুরোধ ব্লক থাকলে উপস্থিত থাকে
 }
 
 // ---------------------------------------------------------------------------
-// RateLimiter – in-memory sliding-window rate limiter
-// For production deployments with multiple server instances, replace the Map
-// store with a Redis-backed implementation.
+// RateLimiter – ইন-মেমরি স্লাইডিং-উইন্ডো হার সীমাবদ্ধকারী
+// একাধিক সার্ভার ইনস্ট্যান্স সহ প্রোডাকশন ডিপ্লয়মেন্টের জন্য, Map
+// স্টোর Redis-সমর্থিত বাস্তবায়ন দিয়ে প্রতিস্থাপন করুন।
 // ---------------------------------------------------------------------------
 
 class RateLimiter {
@@ -35,14 +35,14 @@ class RateLimiter {
   constructor() {
     this.store = new Map()
 
-    // Periodically clean up expired entries every 60 s
+    // প্রতি 60 সেকেন্ডে মেয়াদোত্তীর্ণ এন্ট্রি নিয়মিত পরিষ্কার করা হচ্ছে
     if (typeof setInterval !== 'undefined') {
       setInterval(() => this.cleanup(), 60_000)
     }
   }
 
   /**
-   * Check whether a request identified by `key` should be allowed.
+   * `key` দ্বারা চিহ্নিত অনুরোধটি অনুমোদিত কিনা পরীক্ষা করা হচ্ছে।
    */
   check(key: string, config: RateLimitConfig): RateLimitResult {
     const now = Date.now()
@@ -50,7 +50,7 @@ class RateLimiter {
 
     const entry = this.store.get(key)
 
-    // No existing entry – first request in the window
+    // কোনো বিদ্যমান এন্ট্রি নেই – উইন্ডোতে প্রথম অনুরোধ
     if (!entry || now > entry.resetTime) {
       this.store.set(key, {
         count: 1,
@@ -64,7 +64,7 @@ class RateLimiter {
       }
     }
 
-    // Currently blocked
+    // বর্তমানে ব্লক করা হয়েছে
     if (entry.blockUntil && now < entry.blockUntil) {
       return {
         success: false,
@@ -74,7 +74,7 @@ class RateLimiter {
       }
     }
 
-    // Window expired while blocked – allow through with a fresh window
+    // ব্লক থাকাকালীন উইন্ডোর মেয়াদ শেষ – নতুন উইন্ডো দিয়ে অনুমতি দেওয়া হচ্ছে
     if (entry.blockUntil && now >= entry.blockUntil) {
       this.store.set(key, {
         count: 1,
@@ -88,11 +88,11 @@ class RateLimiter {
       }
     }
 
-    // Within the window – increment counter
+    // উইন্ডোর মধ্যে – কাউন্টার বৃদ্ধি করা হচ্ছে
     entry.count++
 
     if (entry.count > config.maxRequests) {
-      // Block the key
+      // কী ব্লক করা হচ্ছে
       entry.blockUntil = now + blockDuration
 
       return {
@@ -111,7 +111,7 @@ class RateLimiter {
   }
 
   /**
-   * Remove expired entries to prevent unbounded memory growth.
+   * সীমাহীন মেমরি বৃদ্ধি রোধে মেয়াদোত্তীর্ণ এন্ট্রি সরানো হচ্ছে।
    */
   cleanup(): void {
     const now = Date.now()
@@ -130,44 +130,44 @@ class RateLimiter {
 }
 
 // ---------------------------------------------------------------------------
-// Singleton instance
+// সিঙ্গলটন ইনস্ট্যান্স
 // ---------------------------------------------------------------------------
 
 const limiter = new RateLimiter()
 
 // ---------------------------------------------------------------------------
-// Pre-configured rate limit configs
+// পূর্ব-কনফিগার করা হার সীমাবদ্ধতার কনফিগ
 // ---------------------------------------------------------------------------
 
 export const rateLimiters = {
-  // Login: 5 attempts per minute, block for 5 minutes
+  // লগইন: প্রতি মিনিটে 5টি প্রচেষ্টা, 5 মিনিটের জন্য ব্লক
   login: {
     maxRequests: 5,
     windowMs: 60_000,
     blockDurationMs: 300_000,
   } satisfies RateLimitConfig,
 
-  // OTP: 5 per minute, block for 5 minutes
+  // OTP: প্রতি মিনিটে 5টি, 5 মিনিটের জন্য ব্লক
   otp: {
     maxRequests: 5,
     windowMs: 60_000,
     blockDurationMs: 300_000,
   } satisfies RateLimitConfig,
 
-  // Password reset: 3 per hour, block for 15 minutes
+  // পাসওয়ার্ড রিসেট: প্রতি ঘণ্টায় 3টি, 15 মিনিটের জন্য ব্লক
   passwordReset: {
     maxRequests: 3,
     windowMs: 3_600_000,
     blockDurationMs: 900_000,
   } satisfies RateLimitConfig,
 
-  // Search: 30 per minute
+  // অনুসন্ধান: প্রতি মিনিটে 30টি
   search: {
     maxRequests: 30,
     windowMs: 60_000,
   } satisfies RateLimitConfig,
 
-  // General API: 100 per minute
+  // সাধারণ API: প্রতি মিনিটে 100টি
   general: {
     maxRequests: 100,
     windowMs: 60_000,
@@ -175,12 +175,12 @@ export const rateLimiters = {
 } as const
 
 // ---------------------------------------------------------------------------
-// Helper functions
+// সহায়ক ফাংশন
 // ---------------------------------------------------------------------------
 
 /**
- * Derive a rate-limit key from the request (IP-based by default).
- * A `keyPrefix` can be supplied to namespace keys per route.
+ * অনুরোধ থেকে একটি হার-সীমাবদ্ধতার কী প্রাপ্ত করা হচ্ছে (ডিফল্ট: IP-ভিত্তিক)।
+ * প্রতি রাউটে কী নেমস্পেস করতে একটি `keyPrefix` দেওয়া যেতে পারে।
  */
 function deriveKey(request: NextRequest, keyPrefix?: string): string {
   const ip =
@@ -192,8 +192,8 @@ function deriveKey(request: NextRequest, keyPrefix?: string): string {
 }
 
 /**
- * Check a rate limit for the given request and config.
- * Returns a `RateLimitResult` with `success: false` when blocked.
+ * প্রদত্ত অনুরোধ এবং কনফিগের জন্য হার সীমাবদ্ধতা পরীক্ষা করা হচ্ছে।
+ * ব্লক থাকলে `success: false` সহ `RateLimitResult` প্রদান করে।
  */
 export function checkRateLimit(
   request: NextRequest,
@@ -205,14 +205,14 @@ export function checkRateLimit(
 }
 
 /**
- * Middleware-style function for Next.js route handlers.
- * Returns `null` if the request is allowed, or a 429 `NextResponse` if blocked.
+ * Next.js রাউট হ্যান্ডলারের জন্য মিডলওয়্যার-স্টাইল ফাংশন।
+ * অনুরোধ অনুমোদিত হলে `null` প্রদান করে, অন্যথায় 429 `NextResponse` প্রদান করে।
  *
- * Usage:
+ * ব্যবহার:
  *   export async function POST(request: NextRequest) {
  *     const blocked = withRateLimit(rateLimiters.login, 'login')(request)
  *     if (blocked) return blocked
- *     // ... handle request
+ *     // ... অনুরোধ প্রক্রিয়া করুন
  *   }
  */
 export function withRateLimit(

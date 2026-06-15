@@ -29,7 +29,7 @@ import {
   Image as ImageIcon, DollarSign, CreditCard,
 } from 'lucide-react'
 
-// ─── Shared Constants ───
+// ─── যৌথ ধ্রুবক ───
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
   emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
   high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
@@ -128,7 +128,7 @@ const TIMELINE_ACTION_ICONS: Record<string, React.ElementType> = {
   ticket_closed: XCircle,
 }
 
-// ─── SLA Countdown ───
+// ─── SLA কাউন্টডাউন ───
 function SLACountdown({ deadline }: { deadline: string }) {
   const [remaining, setRemaining] = useState('')
 
@@ -168,7 +168,7 @@ function SLACountdown({ deadline }: { deadline: string }) {
   )
 }
 
-// ─── Progress Stepper ───
+// ─── অগ্রগতি স্টেপার ───
 function ProgressStepper({ status }: { status: string }) {
   const currentStep = STATUS_CONFIG[status]?.step ?? -1
 
@@ -219,7 +219,7 @@ function ProgressStepper({ status }: { status: string }) {
   )
 }
 
-// ─── Star Rating Component ───
+// ─── তারকা রেটিং উপাদান ───
 function StarRating({ value, onChange, readonly = false }: { value: number; onChange?: (v: number) => void; readonly?: boolean }) {
   return (
     <div className="flex gap-1">
@@ -240,13 +240,13 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
   )
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function TicketDetail({ ticketId }: { ticketId: string }) {
   const { navigate } = useAppStore()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Dialogs
+  // ডায়ালগসমূহ
   const [assignOpen, setAssignOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [woOpen, setWoOpen] = useState(false)
@@ -255,7 +255,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   const [reviewOpen, setReviewOpen] = useState(false)
   const [completionOpen, setCompletionOpen] = useState(false)
 
-  // Form states
+  // ফর্ম অবস্থা
   const [selectedTechId, setSelectedTechId] = useState('')
   const [newStatus, setNewStatus] = useState('')
   const [noteText, setNoteText] = useState('')
@@ -269,7 +269,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   const [completionPhotos, setCompletionPhotos] = useState('')
   const [completionMaterials, setCompletionMaterials] = useState('')
 
-  // Real-time socket integration
+  // রিয়েল-টাইম সকেট ইন্টিগ্রেশন
   const { joinRoom, leaveRoom } = useMaintenanceSocket({
     onTicketStatusChanged: useCallback(() => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
@@ -290,21 +290,21 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     }
   }, [ticketId, joinRoom, leaveRoom])
 
-  // Fetch ticket
+  // টিকেট আনা
   const { data, isLoading } = useQuery({
     queryKey: ['maintenance-ticket', ticketId],
     queryFn: () => api.get(`/api/maintenance/tickets/${ticketId}`),
     enabled: !!ticketId,
   })
 
-  // Fetch timeline
+  // টাইমলাইন আনা
   const { data: timelineData } = useQuery({
     queryKey: ['maintenance-ticket-timeline', ticketId],
     queryFn: () => api.get(`/api/maintenance/tickets/${ticketId}/timeline`),
     enabled: !!ticketId,
   })
 
-  // Fetch technicians for assignment
+  // বরাদ্দের জন্য প্রযুক্তিবিদ আনা
   const { data: techsData } = useQuery({
     queryKey: ['maintenance-technicians'],
     queryFn: () => api.get('/api/maintenance/technicians'),
@@ -315,7 +315,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   const timeline = (timelineData?.data || []) as any[]
   const technicians = (techsData?.data || []) as any[]
 
-  // Assign mutation
+  // বরাদ্দ মিউটেশন
   const assignMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/assign`, { technicianId: selectedTechId }),
     onSuccess: () => {
@@ -328,7 +328,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to assign', variant: 'destructive' }),
   })
 
-  // Update status mutation
+  // স্ট্যাটাস আপডেট মিউটেশন
   const statusMutation = useMutation({
     mutationFn: () => api.put(`/api/maintenance/tickets/${ticketId}`, { status: newStatus }),
     onSuccess: () => {
@@ -341,7 +341,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update', variant: 'destructive' }),
   })
 
-  // Add timeline note mutation
+  // টাইমলাইন নোট যোগ মিউটেশন
   const noteMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/timeline`, {
       action: 'note',
@@ -356,7 +356,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to add note', variant: 'destructive' }),
   })
 
-  // Customer approval mutation
+  // গ্রাহক অনুমোদন মিউটেশন
   const approvalMutation = useMutation({
     mutationFn: () => api.put(`/api/maintenance/tickets/${ticketId}`, {
       status: 'completed',
@@ -374,7 +374,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to approve', variant: 'destructive' }),
   })
 
-  // Create work order mutation
+  // ওয়ার্ক অর্ডার তৈরি মিউটেশন
   const woMutation = useMutation({
     mutationFn: () => api.post('/api/maintenance/work-orders', { ticketId }),
     onSuccess: () => {
@@ -386,7 +386,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create work order', variant: 'destructive' }),
   })
 
-  // Review ticket mutation
+  // টিকেট পর্যালোচনা মিউটেশন
   const reviewMutation = useMutation({
     mutationFn: ({ action, note }: { action: 'approve' | 'reject' | 'request_info'; note?: string }) =>
       api.post(`/api/maintenance/tickets/${ticketId}/review`, { action, note }),
@@ -401,7 +401,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Review failed', variant: 'destructive' }),
   })
 
-  // Accept assignment mutation
+  // বরাদ্দ গ্রহণ মিউটেশন
   const acceptMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/accept`, {}),
     onSuccess: () => {
@@ -412,7 +412,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to accept', variant: 'destructive' }),
   })
 
-  // Reject assignment mutation
+  // বরাদ্দ প্রত্যাখ্যান মিউটেশন
   const rejectAssignmentMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/reject-assignment`, {}),
     onSuccess: () => {
@@ -423,7 +423,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to reject assignment', variant: 'destructive' }),
   })
 
-  // Start work mutation
+  // কাজ শুরু মিউটেশন
   const startWorkMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/start`, {}),
     onSuccess: () => {
@@ -434,7 +434,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to start work', variant: 'destructive' }),
   })
 
-  // Complete work mutation
+  // কাজ সম্পন্ন মিউটেশন
   const completeWorkMutation = useMutation({
     mutationFn: (body: { completionNotes?: string; labourHours?: string; photoUrls?: string; materialsUsed?: string }) =>
       api.post(`/api/maintenance/tickets/${ticketId}/complete`, body),
@@ -451,7 +451,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to complete work', variant: 'destructive' }),
   })
 
-  // Customer verification (approve/reject/rework) mutation
+  // গ্রাহক যাচাইকরণ (অনুমোদন/প্রত্যাখ্যান/পুনর্কাজ) মিউটেশন
   const customerVerifyMutation = useMutation({
     mutationFn: ({ action, rating, feedback }: { action: 'approve' | 'reject' | 'rework'; rating?: number; feedback?: string }) =>
       api.post(`/api/maintenance/tickets/${ticketId}/customer-verify`, { action, rating, feedback }),
@@ -465,7 +465,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Verification failed', variant: 'destructive' }),
   })
 
-  // Close ticket mutation
+  // টিকেট বন্ধ মিউটেশন
   const closeMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/close`, {}),
     onSuccess: () => {
@@ -476,7 +476,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to close ticket', variant: 'destructive' }),
   })
 
-  // Create invoice mutation
+  // ইনভয়েস তৈরি মিউটেশন
   const createInvoiceMutation = useMutation({
     mutationFn: () => api.post(`/api/maintenance/invoices`, { ticketId }),
     onSuccess: () => {
@@ -507,18 +507,18 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   const pri = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.medium
   const stat = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.new
 
-  // Material requests
+  // উপাদান অনুরোধ
   const materialRequests = ticket.materialRequests || []
-  // Work orders
+  // ওয়ার্ক অর্ডার
   const workOrders = ticket.workOrders || []
 
-  // Determine available next statuses
+  // পরবর্তী উপলব্ধ স্ট্যাটাস নির্ধারণ
   const currentStep = stat.step
   const availableStatuses = STATUS_WORKFLOW.filter((_, idx) => idx > currentStep && idx <= currentStep + 2)
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button size="icon" variant="ghost" onClick={() => navigate('maintenance-service-requests')}>
@@ -543,19 +543,19 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </div>
       </div>
 
-      {/* Progress Stepper */}
+      {/* অগ্রগতি স্টেপার */}
       <Card className="bg-rose-50/50 dark:bg-rose-950/10">
         <CardContent className="p-4">
           <ProgressStepper status={ticket.status} />
         </CardContent>
       </Card>
 
-      {/* SLA Countdown */}
+      {/* SLA কাউন্টডাউন */}
       {ticket.slaDeadline && <SLACountdown deadline={ticket.slaDeadline} />}
 
-      {/* Two-Column Details */}
+      {/* দুই-কলাম বিবরণ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Ticket Details */}
+        {/* বাম: টিকেটের বিবরণ */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -583,7 +583,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
           </CardContent>
         </Card>
 
-        {/* Right: Customer, Site, Equipment, Contact Info */}
+        {/* ডান: গ্রাহক, সাইট, সরঞ্জাম, যোগাযোগের তথ্য */}
         <div className="space-y-6">
           <Card>
             <CardHeader className="pb-3">
@@ -637,7 +637,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </div>
       </div>
 
-      {/* Timeline */}
+      {/* টাইমলাইন */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -662,7 +662,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
                 const ActionIcon = TIMELINE_ACTION_ICONS[entry.action] || MessageSquare
                 return (
                   <div key={entry.id || idx} className="flex gap-3 pb-6 last:pb-0">
-                    {/* Timeline line + dot */}
+                    {/* টাইমলাইন রেখা + বিন্দু */}
                     <div className="flex flex-col items-center">
                       <div className={cn('h-5 w-5 rounded-full mt-1 shrink-0 flex items-center justify-center', actionColor)}>
                         <ActionIcon className="h-3 w-3 text-white" />
@@ -671,7 +671,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
                         <div className="w-px flex-1 bg-border mt-1" />
                       )}
                     </div>
-                    {/* Content */}
+                    {/* বিষয়বস্তু */}
                     <div className="flex-1 -mt-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium capitalize">
@@ -715,7 +715,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </CardContent>
       </Card>
 
-      {/* Work Orders */}
+      {/* ওয়ার্ক অর্ডার */}
       {workOrders.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
@@ -740,7 +740,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </Card>
       )}
 
-      {/* Material Requests */}
+      {/* উপাদান অনুরোধ */}
       {materialRequests.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
@@ -776,7 +776,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </Card>
       )}
 
-      {/* Customer Approval Section - Enhanced with full verification */}
+      {/* গ্রাহক অনুমোদন বিভাগ - সম্পূর্ণ যাচাইকরণসহ উন্নত */}
       {ticket.status === 'pending_customer' && (
         <Card className="border-cyan-200 dark:border-cyan-900 bg-cyan-50/50 dark:bg-cyan-950/20">
           <CardHeader className="pb-3">
@@ -812,7 +812,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </Card>
       )}
 
-      {/* Invoice Section */}
+      {/* ইনভয়েস বিভাগ */}
       {ticket.invoice && (
         <Card className="border-emerald-200 dark:border-emerald-900">
           <CardHeader className="pb-3">
@@ -856,7 +856,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </Card>
       )}
 
-      {/* Actions Section - Workflow-aware */}
+      {/* কার্যকলাপ বিভাগ - ওয়ার্কফ্লো সচেতন */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -865,7 +865,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {/* Status-based workflow actions */}
+            {/* স্ট্যাটাস-ভিত্তিক ওয়ার্কফ্লো কার্যকলাপ */}
             {ticket.status === 'new' && (
               <Button
                 className="gap-1.5 bg-sky-600 hover:bg-sky-700"
@@ -934,7 +934,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
               </Button>
             )}
 
-            {/* Invoice creation if WO exists but no invoice */}
+            {/* WO থাকলে কিন্তু ইনভয়েস না থাকলে ইনভয়েস তৈরি */}
             {workOrders.length > 0 && !ticket.invoice && ticket.status !== 'new' && ticket.status !== 'under_review' && (
               <Button
                 variant="outline"
@@ -948,7 +948,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
 
             <Separator orientation="vertical" className="h-8 mx-1 hidden sm:block" />
 
-            {/* Universal actions */}
+            {/* সার্বজনীন কার্যকলাপ */}
             <Button
               variant="outline"
               className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
@@ -988,9 +988,9 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </CardContent>
       </Card>
 
-      {/* ─── DIALOGS ─── */}
+      {/* ─── ডায়ালগসমূহ ─── */}
 
-      {/* Assign Technician Dialog */}
+      {/* প্রযুক্তিবিদ বরাদ্দ ডায়ালগ */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1029,7 +1029,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Update Status Dialog */}
+      {/* স্ট্যাটাস আপডেট ডায়ালগ */}
       <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1071,7 +1071,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Create Work Order Dialog */}
+      {/* ওয়ার্ক অর্ডার তৈরির ডায়ালগ */}
       <Dialog open={woOpen} onOpenChange={setWoOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1098,7 +1098,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Add Note Dialog */}
+      {/* নোট যোগ ডায়ালগ */}
       <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1130,7 +1130,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Customer Approval Dialog - Enhanced */}
+      {/* গ্রাহক অনুমোদন ডায়ালগ - উন্নত */}
       <Dialog open={approvalOpen} onOpenChange={setApprovalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -1197,7 +1197,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Review Ticket Dialog */}
+      {/* টিকেট পর্যালোচনা ডায়ালগ */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1254,7 +1254,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Complete Work Dialog */}
+      {/* কাজ সম্পন্ন ডায়ালগ */}
       <Dialog open={completionOpen} onOpenChange={setCompletionOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -1324,7 +1324,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   )
 }
 
-// ─── Detail Row Helper ───
+// ─── বিস্তারিত সারি সহায়ক ───
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>

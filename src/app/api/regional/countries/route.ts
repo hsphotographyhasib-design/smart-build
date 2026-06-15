@@ -42,7 +42,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: formatted })
   } catch (error) {
-    console.error('Get countries error:', error)
+    console.error('দেশের তালিকা পাওয়া হচ্ছে error:', error)
     return NextResponse.json({ error: 'Failed to get countries' }, { status: 500 })
   }
 }

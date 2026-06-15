@@ -31,7 +31,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Material not found' }, { status: 404 })
     }
 
-    // Calculate new stock
+    // নতুন স্টক হিসাব করা হচ্ছে
     let newStock = material.currentStock
     if (type === 'in' || type === 'adjustment') {
       newStock += Math.abs(quantity)
@@ -42,7 +42,7 @@ export async function POST(
       }
     }
 
-    // Create stock movement and update material in transaction
+    // ট্রানজ্যাকশনে স্টক মুভমেন্ট তৈরি করা এবং ম্যাটেরিয়াল আপডেট করা হচ্ছে
     const result = await db.$transaction(async (tx) => {
       const movement = await tx.stockMovement.create({
         data: {

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Extract token from Authorization header to find the current session
+    // বর্তমান সেশন খুঁজে পেতে Authorization হেডার থেকে টোকেন বের করা হচ্ছে
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
 
@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build update data
+    // আপডেট ডেটা তৈরি করা হচ্ছে
     const updateData: Record<string, unknown> = {
       lastActivityAt: new Date(),
     }
 
-    // If session was idle, reactivate it
+    // সেশন নিষ্ক্রিয় থাকলে পুনরায় সক্রিয় করা হচ্ছে
     if (session.status === 'idle') {
       updateData.status = 'active'
     }

@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface PauseBody {
@@ -55,7 +55,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Work order must be in 'in_progress' status to pause, current status: ${workOrder.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!workOrder.assignedTechnicianId) {
       return NextResponse.json({ success: false, error: 'No technician assigned to this work order' }, { status: 400 })
     }
@@ -65,7 +65,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Only the assigned technician can pause this work order' }, { status: 403 })
     }
 
-    // WO status stays in_progress — just add timeline entry
+    // ওয়ার্ক অর্ডারের স্ট্যাটাস in_progress থাকছে — শুধু টাইমলাইন এন্ট্রি যোগ করা হচ্ছে
     if (workOrder.ticket) {
       await db.maintenanceTimeline.create({
         data: {

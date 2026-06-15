@@ -5,19 +5,19 @@ import { useAppStore } from '@/lib/store'
 import { usePermission } from '@/hooks/use-permissions'
 
 // ──────────────────────────────────────────────
-// PermissionGuard — Reusable wrapper component
+// PermissionGuard — পুনরায় ব্যবহারযোগ্য র‍্যাপার কম্পোনেন্ট
 // ──────────────────────────────────────────────
 
 interface PermissionGuardProps {
-  /** RBAC module name, e.g. "finance" */
+  /** RBAC মডিউলের নাম, যেমন "finance" */
   module: string
-  /** RBAC feature name, e.g. "invoices" */
+  /** RBAC ফিচারের নাম, যেমন "invoices" */
   feature: string
-  /** RBAC action name, e.g. "create", "edit", "delete" */
+  /** RBAC অ্যাকশনের নাম, যেমন "create", "edit", "delete" */
   action: string
-  /** Content to render when permission is granted */
+  /** অনুমতি দেওয়া হলে রেন্ডার করার বিষয়বস্তু */
   children: React.ReactNode
-  /** Optional content to render when permission is denied (defaults to null) */
+  /** অনুমতি অস্বীকৃত হলে রেন্ডার করার ঐচ্ছিক বিষয়বস্তু (ডিফল্ট null) */
   fallback?: React.ReactNode
 }
 
@@ -47,7 +47,7 @@ export function PermissionGuard({
 }
 
 // ──────────────────────────────────────────────
-// ModuleGuard — Hide entire module sections
+// ModuleGuard — সম্পূর্ণ মডিউল সেকশন লুকান
 // ──────────────────────────────────────────────
 
 interface ModuleGuardProps {
@@ -55,7 +55,7 @@ interface ModuleGuardProps {
   module: string
   /** Content to render when user has ANY permission in this module */
   children: React.ReactNode
-  /** Optional content to render when user has no access (defaults to null) */
+  /** ব্যবহারকারীর অ্যাক্সেস না থাকলে রেন্ডার করার ঐচ্ছিক বিষয়বস্তু (ডিফল্ট null) */
   fallback?: React.ReactNode
 }
 

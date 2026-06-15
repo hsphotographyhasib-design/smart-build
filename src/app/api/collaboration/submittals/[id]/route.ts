@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
     if (notes !== undefined) updateData.notes = notes
 
-    // Handle status transitions
+    // অবস্থা রূপান্তর পরিচালনা করা হচ্ছে
     if (action === 'submit' && existing.status === 'draft') {
       updateData.status = 'submitted'
     } else if (action === 'review' && existing.status === 'submitted') {

@@ -159,7 +159,7 @@ export function TenderPackagesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bid Packages</h1>
@@ -170,7 +170,7 @@ export function TenderPackagesPage() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -198,7 +198,7 @@ export function TenderPackagesPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           {listLoading ? (
@@ -307,7 +307,7 @@ export function TenderPackagesPage() {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-xs text-muted-foreground">
@@ -327,7 +327,7 @@ export function TenderPackagesPage() {
         </CardContent>
       </Card>
 
-      {/* ─── Create Bid Package Dialog ─── */}
+      {/* ─── বিড প্যাকেজ তৈরির ডায়ালগ ─── */}
       <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) resetForm() }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

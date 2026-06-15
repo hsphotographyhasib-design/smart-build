@@ -27,7 +27,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Labour {
@@ -49,7 +49,7 @@ interface LabourGroup {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -57,7 +57,7 @@ function formatCurrency(amount: number) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function CardsSkeleton() {
@@ -77,7 +77,7 @@ function CardsSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create Group Dialog
+// দল তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function CreateGroupDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -132,7 +132,7 @@ function CreateGroupDialog({ open, onClose }: { open: boolean; onClose: () => vo
 }
 
 // ──────────────────────────────────────────
-// Add Member Dialog
+// সদস্য যোগ ডায়ালগ
 // ──────────────────────────────────────────
 
 function AddMemberDialog({ groupId, groupName, open, onClose }: { groupId: string; groupName: string; open: boolean; onClose: () => void }) {
@@ -199,7 +199,7 @@ function AddMemberDialog({ groupId, groupName, open, onClose }: { groupId: strin
 }
 
 // ──────────────────────────────────────────
-// Group Card
+// দল কার্ড
 // ──────────────────────────────────────────
 
 function GroupCard({ group, onAddMember, onToggleMember, onDeleteMember, onDeleteGroup }: {
@@ -324,7 +324,7 @@ function GroupCard({ group, onAddMember, onToggleMember, onDeleteMember, onDelet
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function LabourGroupsPage() {
@@ -377,7 +377,7 @@ export function LabourGroupsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Labour Groups</h1>
@@ -391,7 +391,7 @@ export function LabourGroupsPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* অনুসন্ধান */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -402,7 +402,7 @@ export function LabourGroupsPage() {
         />
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <CardsSkeleton />
       ) : error ? (
@@ -436,10 +436,10 @@ export function LabourGroupsPage() {
         </div>
       )}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <CreateGroupDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 
-      {/* Add Member Dialog */}
+      {/* সদস্য যোগ ডায়ালগ */}
       <AddMemberDialog
         groupId={addMemberGroup?.id || ''}
         groupName={addMemberGroup?.name || ''}
@@ -447,7 +447,7 @@ export function LabourGroupsPage() {
         onClose={() => setAddMemberGroup(null)}
       />
 
-      {/* Delete Group Confirmation */}
+      {/* দল মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteGroupId} onOpenChange={() => setDeleteGroupId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -469,7 +469,7 @@ export function LabourGroupsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Member Confirmation */}
+      {/* সদস্য মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteMemberId} onOpenChange={() => setDeleteMemberId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

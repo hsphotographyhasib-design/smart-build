@@ -43,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
-    // Update the discussion's updatedAt
+    // আলোচনার আপডেটেডএট আপডেট করা হচ্ছে
     await db.discussion.update({
       where: { id: discussionId },
       data: { updatedAt: new Date() },

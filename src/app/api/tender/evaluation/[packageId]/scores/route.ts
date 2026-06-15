@@ -18,7 +18,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'bidId and scores array are required' }, { status: 400 })
     }
 
-    // Ensure evaluation exists
+    // মূল্যায়ন বিদ্যমান কিনা নিশ্চিত করা হচ্ছে
     const evaluation = await db.tenderEvaluation.upsert({
       where: { bidId },
       update: {},
@@ -55,7 +55,7 @@ export async function POST(
       savedScores.push(score)
     }
 
-    // Recalculate evaluation scores
+    // মূল্যায়ন স্কোর পুনরায় হিসাব করা হচ্ছে
     const allScores = await db.tenderEvaluationScore.findMany({
       where: { evaluationId: evaluation.id },
       include: { criteria: true },

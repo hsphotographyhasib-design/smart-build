@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 export function SettingsPage() {
   const { user, theme, setTheme, navigate } = useAppStore()
 
-  // Company info form
+  // কোম্পানি তথ্য ফর্ম
   const [companyForm, setCompanyForm] = useState({
     name: 'SmartBuild Constructions Pvt. Ltd.',
     address: '123, Construction Lane, Bangalore, Karnataka 560001',
@@ -22,7 +22,7 @@ export function SettingsPage() {
     email: 'info@smartbuild.in',
   })
 
-  // Profile form
+  // প্রোফাইল ফর্ম
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
     email: user?.email || '',

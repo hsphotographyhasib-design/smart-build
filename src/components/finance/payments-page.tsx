@@ -49,7 +49,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Payment {
@@ -79,7 +79,7 @@ interface InvoiceOption {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -118,7 +118,7 @@ function formatDate(dateStr: string | null) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loader
+// স্কেলেটন লোডার
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -139,7 +139,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create Payment Dialog
+// অর্থ প্রদান তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function AddPaymentDialog({ projects }: { projects: ProjectOption[] }) {
@@ -155,7 +155,7 @@ function AddPaymentDialog({ projects }: { projects: ProjectOption[] }) {
   })
   const queryClient = useQueryClient()
 
-  // Fetch invoices for selected project
+  // নির্বাচিত প্রকল্পের জন্য ইনভয়েস আনা
   const { data: invoices = [] } = useQuery({
     queryKey: ['project-invoices', form.projectId],
     queryFn: () => api.get(`/api/invoices?projectId=${form.projectId}&status=approved,submitted,overdue`).then((r) => r.data as InvoiceOption[]),
@@ -288,7 +288,7 @@ function AddPaymentDialog({ projects }: { projects: ProjectOption[] }) {
 }
 
 // ──────────────────────────────────────────
-// Delete Confirmation
+// মুছে ফেলার নিশ্চিতকরণ
 // ──────────────────────────────────────────
 
 function DeletePaymentDialog({ paymentId, paymentNo }: { paymentId: string; paymentNo: string }) {
@@ -329,7 +329,7 @@ function DeletePaymentDialog({ paymentId, paymentNo }: { paymentId: string; paym
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function PaymentsPage() {
@@ -362,7 +362,7 @@ export function PaymentsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
@@ -373,7 +373,7 @@ export function PaymentsPage() {
         <AddPaymentDialog projects={projectOptions} />
       </div>
 
-      {/* Toolbar */}
+      {/* টুলবার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -408,7 +408,7 @@ export function PaymentsPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (

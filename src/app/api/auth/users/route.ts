@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 
-// GET - List all users (admin only)
+// GET - সকল ব্যবহারকারীর তালিকা (শুধুমাত্র প্রশাসক)
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await verifyAuth(request)
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create new user (admin only)
+// POST - নতুন ব্যবহারকারী তৈরি (শুধুমাত্র প্রশাসক)
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await verifyAuth(request)
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update user (admin only)
+// PUT - ব্যবহারকারী আপডেট (শুধুমাত্র প্রশাসক)
 export async function PUT(request: NextRequest) {
   try {
     const currentUser = await verifyAuth(request)
@@ -281,7 +281,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Deactivate user (admin only)
+// DELETE - ব্যবহারকারী নিষ্ক্রিয় (শুধুমাত্র প্রশাসক)
 export async function DELETE(request: NextRequest) {
   try {
     const currentUser = await verifyAuth(request)
@@ -317,13 +317,13 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Revoke all sessions for the user
+    // ব্যবহারকারীর সকল সেশন বাতিল করা হচ্ছে
     await db.session.updateMany({
       where: { userId: id, revokedAt: null },
       data: { revokedAt: new Date() },
     })
 
-    // Deactivate the user
+    // ব্যবহারকারী নিষ্ক্রিয় করা হচ্ছে
     const user = await db.user.update({
       where: { id },
       data: { isActive: false },

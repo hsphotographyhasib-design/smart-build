@@ -40,7 +40,7 @@ export function ClientInvoices() {
   const [expandedRow, setExpandedRow] = React.useState<string | null>(null)
   const [hasInitialized, setHasInitialized] = React.useState(false)
 
-  // Fetch projects
+  // প্রকল্প আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['client-portal-projects-invoices'],
     queryFn: () => api.get('/api/client-portal/projects'),
@@ -54,7 +54,7 @@ export function ClientInvoices() {
     }
   }, [projects, hasInitialized])
 
-  // Fetch invoices
+  // চালান আনা হচ্ছে
   const { data, isLoading } = useQuery({
     queryKey: ['client-portal-invoices', selectedProjectId],
     queryFn: () => api.get(`/api/client-portal/projects/${selectedProjectId}/invoices`),
@@ -64,7 +64,7 @@ export function ClientInvoices() {
   const invoices = data?.data?.invoices || []
   const summary = data?.data?.summary || { totalAmount: 0, totalPaid: 0, totalOutstanding: 0, overdueAmount: 0, count: 0 }
 
-  // Filter
+  // ফিল্টার
   const filteredInvoices = invoices.filter((inv: any) => {
     if (statusFilter !== 'all' && inv.status !== statusFilter) return false
     if (searchQuery) {

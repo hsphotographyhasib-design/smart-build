@@ -27,7 +27,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function formatCurrency(val: number) {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
   if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
@@ -41,7 +41,7 @@ const statusColor: Record<string, string> = {
   closed: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
 }
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface Budget {
   id: string
   projectId: string
@@ -104,13 +104,13 @@ export function BudgetManagement() {
   const [editLineItem, setEditLineItem] = useState<LineItem | null>(null)
   const [selectedProject, setSelectedProject] = useState('')
 
-  // Fetch budgets
+  // বাজেট আনা
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['cost-control-budgets', statusFilter],
     queryFn: () => api.get<Budget[]>(`/api/cost-control/budgets?status=${statusFilter}`).then(r => r.data!),
   })
 
-  // Fetch projects without budgets
+  // বাজেটবিহীন প্রকল্প আনা
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-no-budget'],
     queryFn: () => api.get<Project[]>('/api/projects').then(r => {
@@ -120,20 +120,20 @@ export function BudgetManagement() {
     }),
   })
 
-  // Fetch cost codes (leaf level)
+  // খরচ কোড আনা (প্রান্তিক স্তর)
   const { data: costCodes = [] } = useQuery({
     queryKey: ['cost-codes-leaf'],
     queryFn: () => api.get<CostCode[]>('/api/cost-control/cost-codes?includeUsage=true').then(r => r.data || []),
   })
 
-  // Fetch detail for expanded budget
+  // প্রসারিত বাজেটের জন্য বিবরণ আনা
   const { data: budgetDetail } = useQuery({
     queryKey: ['budget-detail', expandedBudget],
     queryFn: () => api.get<any>(`/api/cost-control/budgets/${expandedBudget}`).then(r => r.data),
     enabled: !!expandedBudget,
   })
 
-  // Create budget mutation
+  // বাজেট তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/cost-control/budgets', body),
     onSuccess: () => {
@@ -143,13 +143,13 @@ export function BudgetManagement() {
     },
   })
 
-  // Update budget status
+  // বাজেট স্ট্যাটাস আপডেট
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/cost-control/budgets/${id}`, { status }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] }),
   })
 
-  // Delete budget
+  // বাজেট মুছে ফেলা
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.del(`/api/cost-control/budgets/${id}`),
     onSuccess: () => {
@@ -158,7 +158,7 @@ export function BudgetManagement() {
     },
   })
 
-  // Add line item
+  // লাইন আইটেম যোগ
   const addLineItemMutation = useMutation({
     mutationFn: ({ budgetId, ...body }: any) => api.post(`/api/cost-control/budgets/${budgetId}/line-items`, body),
     onSuccess: () => {
@@ -168,7 +168,7 @@ export function BudgetManagement() {
     },
   })
 
-  // Update line item
+  // লাইন আইটেম আপডেট
   const updateLineItemMutation = useMutation({
     mutationFn: ({ budgetId, itemId, ...body }: any) => api.put(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`, body),
     onSuccess: () => {
@@ -178,7 +178,7 @@ export function BudgetManagement() {
     },
   })
 
-  // Delete line item
+  // লাইন আইটেম মুছে ফেলা
   const deleteLineItemMutation = useMutation({
     mutationFn: ({ budgetId, itemId }: { budgetId: string; itemId: string }) => api.del(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`),
     onSuccess: () => {
@@ -191,7 +191,7 @@ export function BudgetManagement() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budget Management</h1>
@@ -216,7 +216,7 @@ export function BudgetManagement() {
         </div>
       </div>
 
-      {/* Budget Table */}
+      {/* বাজেট টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -293,7 +293,7 @@ export function BudgetManagement() {
                         </div>
                       </TableCell>
                     </TableRow>
-                    {/* Expanded Detail */}
+                    {/* প্রসারিত বিবরণ */}
                     {expandedBudget === b.id && (
                       <TableRow key={`${b.id}-detail`}>
                         <TableCell colSpan={9} className="bg-muted/20 p-0">
@@ -363,7 +363,7 @@ export function BudgetManagement() {
                                         </TableRow>
                                       )
                                     })}
-                                    {/* Totals row */}
+                                    {/* মোট সারি */}
                                     <TableRow className="bg-muted/50 font-semibold">
                                       <TableCell className="text-xs">TOTAL</TableCell>
                                       <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.originalBudget, 0))}</TableCell>
@@ -394,7 +394,7 @@ export function BudgetManagement() {
         </CardContent>
       </Card>
 
-      {/* Create Budget Dialog */}
+      {/* বাজেট তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -431,7 +431,7 @@ export function BudgetManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Line Item Dialog */}
+      {/* লাইন আইটেম যোগ ডায়ালগ */}
       <Dialog open={!!addLineItemDialog} onOpenChange={() => setAddLineItemDialog(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -446,7 +446,7 @@ export function BudgetManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Line Item Dialog */}
+      {/* লাইন আইটেম সম্পাদনা ডায়ালগ */}
       <Dialog open={!!editLineItem} onOpenChange={() => setEditLineItem(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -466,7 +466,7 @@ export function BudgetManagement() {
   )
 }
 
-// ─── Sub-Components ───
+// ─── সাব-উপাদান ───
 
 function AddLineItemForm({ costCodes, onSubmit, isLoading }: { costCodes: CostCode[]; onSubmit: (data: any) => void; isLoading: boolean }) {
   const [costCodeId, setCostCodeId] = useState('')

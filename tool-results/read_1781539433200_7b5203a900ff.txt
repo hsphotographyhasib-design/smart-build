@@ -1,0 +1,745 @@
+     1→'use client'
+     2→
+     3→import { useState } from 'react'
+     4→import { useAppStore, api, getRoleBasedHomePage } from '@/lib/store'
+     5→import { useForm } from 'react-hook-form'
+     6→import { zodResolver } from '@hookform/resolvers/zod'
+     7→import { z } from 'zod'
+     8→import { toast } from 'sonner'
+     9→import { motion, AnimatePresence } from 'framer-motion'
+    10→import {
+    11→  X,
+    12→  Eye,
+    13→  EyeOff,
+    14→  Loader2,
+    15→  Mail,
+    16→  MessageSquare,
+    17→  Phone,
+    18→  Lock,
+    19→  ArrowRight,
+    20→  CheckCircle2,
+    21→  SquareIcon,
+    22→  Shield,
+    23→  HardHat,
+    24→  BarChart3,
+    25→  Building2,
+    26→  ChevronRight,
+    27→  Users,
+    28→  Construction,
+    29→  Wrench,
+    30→} from 'lucide-react'
+    31→import { Button } from '@/components/ui/button'
+    32→import { Input } from '@/components/ui/input'
+    33→import { Label } from '@/components/ui/label'
+    34→import { Separator } from '@/components/ui/separator'
+    35→import {
+    36→  InputOTP,
+    37→  InputOTPGroup,
+    38→  InputOTPSlot,
+    39→} from '@/components/ui/input-otp'
+    40→import { useFormat } from '@/hooks/use-format'
+    41→
+    42→const loginSchema = z.object({
+    43→  email: z.string().min(1, 'Email is required').email('Please enter a valid email'),
+    44→  password: z.string().min(1, 'Password is required').min(6, 'Password must be at least 6 characters'),
+    45→})
+    46→
+    47→type LoginFormData = z.infer<typeof loginSchema>
+    48→
+    49→const roleBadges = [
+    50→  { role: 'Admin', icon: Shield, color: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },
+    51→  { role: 'Supervisor', icon: HardHat, color: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20' },
+    52→  { role: 'Client', icon: Building2, color: 'bg-orange-500/15 text-orange-600 border-orange-500/20' },
+    53→  { role: 'Accountant', icon: BarChart3, color: 'bg-purple-500/15 text-purple-600 border-purple-500/20' },
+    54→]
+    55→
+    56→const overlayFeatures = [
+    57→  { icon: Building2, label: 'Project Management' },
+    58→  { icon: Wrench, label: 'Maintenance Management' },
+    59→  { icon: Construction, label: 'Facility Management' },
+    60→  { icon: Users, label: 'Resource Management' },
+    61→]
+    62→
+    63→// ═══════════════════════════════════════════════════════════════════
+    64→// ANIMATION VARIANTS
+    65→// ═══════════════════════════════════════════════════════════════════
+    66→
+    67→const backdropVariants = {
+    68→  initial: { opacity: 0 },
+    69→  animate: { opacity: 1, transition: { duration: 0.3 } },
+    70→  exit: { opacity: 0, transition: { duration: 0.2, delay: 0.1 } },
+    71→}
+    72→
+    73→const dialogVariants = {
+    74→  initial: { opacity: 0, scale: 0.85, y: 40, filter: 'blur(8px)' },
+    75→  animate: {
+    76→    opacity: 1,
+    77→    scale: 1,
+    78→    y: 0,
+    79→    filter: 'blur(0px)',
+    80→    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    81→  },
+    82→  exit: {
+    83→    opacity: 0,
+    84→    scale: 0.9,
+    85→    y: 30,
+    86→    filter: 'blur(4px)',
+    87→    transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+    88→  },
+    89→}
+    90→
+    91→const staggerContainer = {
+    92→  animate: {
+    93→    transition: {
+    94→      staggerChildren: 0.07,
+    95→      delayChildren: 0.15,
+    96→    },
+    97→  },
+    98→}
+    99→
+   100→const staggerItem = {
+   101→  initial: { opacity: 0, y: 18, filter: 'blur(4px)' },
+   102→  animate: {
+   103→    opacity: 1,
+   104→    y: 0,
+   105→    filter: 'blur(0px)',
+   106→    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+   107→  },
+   108→}
+   109→
+   110→const tabContentVariants = {
+   111→  initial: { opacity: 0, y: 10, filter: 'blur(3px)' },
+   112→  animate: {
+   113→    opacity: 1,
+   114→    y: 0,
+   115→    filter: 'blur(0px)',
+   116→    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+   117→  },
+   118→  exit: {
+   119→    opacity: 0,
+   120→    y: -8,
+   121→    filter: 'blur(3px)',
+   122→    transition: { duration: 0.2 },
+   123→  },
+   124→}
+   125→
+   126→// ═══════════════════════════════════════════════════════════════════
+   127→// LOGIN DIALOG
+   128→// ═══════════════════════════════════════════════════════════════════
+   129→
+   130→export function LoginDialog() {
+   131→  const { showLoginDialog, setShowLoginDialog, setToken, setUser, navigate } = useAppStore()
+   132→  const { getCallingCode, getPhonePlaceholder } = useFormat()
+   133→  const [showPassword, setShowPassword] = useState(false)
+   134→  const [isSubmitting, setIsSubmitting] = useState(false)
+   135→
+   136→  // Tab state: 'email' or 'whatsapp'
+   137→  const [loginTab, setLoginTab] = useState<'email' | 'whatsapp'>('email')
+   138→
+   139→  // WhatsApp OTP state
+   140→  const [phoneNumber, setPhoneNumber] = useState('')
+   141→  const [otpSent, setOtpSent] = useState(false)
+   142→  const [otpValue, setOtpValue] = useState('')
+   143→  const [otpLoading, setOtpLoading] = useState(false)
+   144→  const [otpVerifyLoading, setOtpVerifyLoading] = useState(false)
+   145→  const [resendTimer, setResendTimer] = useState(0)
+   146→  const [otpError, setOtpError] = useState('')
+   147→
+   148→  const {
+   149→    register,
+   150→    handleSubmit,
+   151→    formState: { errors },
+   152→  } = useForm<LoginFormData>({
+   153→    resolver: zodResolver(loginSchema),
+   154→    defaultValues: { email: '', password: '' },
+   155→  })
+   156→
+   157→  const onSubmit = async (data: LoginFormData) => {
+   158→    setIsSubmitting(true)
+   159→    try {
+   160→      const res = await api.post('/api/auth/login', data)
+   161→      if (res.success && res.data) {
+   162→        setToken(res.data.token)
+   163→        setUser(res.data.user)
+   164→        setShowLoginDialog(false)
+   165→        toast.success('Welcome back!', {
+   166→          description: `Logged in as ${res.data.user?.name || res.data.user?.email}`,
+   167→        })
+   168→        const roleHome = getRoleBasedHomePage(res.data.user?.role || 'labour')
+   169→        navigate(roleHome)
+   170→      } else {
+   171→        toast.error('Login failed', {
+   172→          description: res.error || 'Invalid email or password',
+   173→        })
+   174→      }
+   175→    } catch {
+   176→      toast.error('Login failed', {
+   177→        description: 'An unexpected error occurred. Please try again.',
+   178→      })
+   179→    } finally {
+   180→      setIsSubmitting(false)
+   181→    }
+   182→  }
+   183→
+   184→  const handleSendOtp = () => {
+   185→    if (!phoneNumber.trim()) {
+   186→      setOtpError('Please enter your phone number')
+   187→      return
+   188→    }
+   189→    setOtpLoading(true)
+   190→    setOtpError('')
+   191→    setTimeout(() => {
+   192→      setOtpSent(true)
+   193→      setOtpLoading(false)
+   194→      setResendTimer(60)
+   195→    }, 1500)
+   196→  }
+   197→
+   198→  const handleVerifyOtp = () => {
+   199→    if (otpValue.length !== 6) {
+   200→      setOtpError('Please enter the complete 6-digit code')
+   201→      return
+   202→    }
+   203→    setOtpVerifyLoading(true)
+   204→    setOtpError('')
+   205→    setTimeout(() => {
+   206→      setOtpVerifyLoading(false)
+   207→      setOtpError('WhatsApp OTP login is coming soon. Please use email login.')
+   208→    }, 1500)
+   209→  }
+   210→
+   211→  const handleResendOtp = () => {
+   212→    setResendTimer(60)
+   213→    setOtpValue('')
+   214→    setOtpError('')
+   215→  }
+   216→
+   217→  return (
+   218→    <AnimatePresence>
+   219→      {showLoginDialog && (
+   220→        <>
+   221→          {/* Backdrop */}
+   222→          <motion.div
+   223→            variants={backdropVariants}
+   224→            initial="initial"
+   225→            animate="animate"
+   226→            exit="exit"
+   227→            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+   228→            onClick={() => setShowLoginDialog(false)}
+   229→          />
+   230→
+   231→          {/* Dialog Container */}
+   232→          <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
+   233→            <motion.div
+   234→              variants={dialogVariants}
+   235→              initial="initial"
+   236→              animate="animate"
+   237→              exit="exit"
+   238→              className="relative w-full max-w-[820px] rounded-3xl overflow-hidden"
+   239→              style={{
+   240→                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.1), 0 0 100px -20px rgba(245, 158, 11, 0.2)',
+   241→              }}
+   242→              onClick={(e) => e.stopPropagation()}
+   243→            >
+   244→              {/* ═══ GLASS EFFECT BASE ═══ */}
+   245→              <div className="absolute inset-0 bg-white/[0.98] backdrop-blur-2xl" />
+   246→
+   247→              {/* ═══════════════════════════════════════════════
+   248→                  LEFT PANEL — Branded info panel
+   249→              ═══════════════════════════════════════════════ */}
+   250→              <div
+   251→                className="absolute inset-y-0 left-0 w-[42%] z-10 hidden md:block"
+   252→                style={{
+   253→                  background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+   254→                }}
+   255→              >
+   256→                {/* Grid pattern */}
+   257→                <div
+   258→                  className="absolute inset-0 opacity-[0.04]"
+   259→                  style={{
+   260→                    backgroundImage: `
+   261→                      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px),
+   262→                      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px)
+   263→                    `,
+   264→                  }}
+   265→                />
+   266→
+   267→                {/* Floating shapes */}
+   268→                <motion.div
+   269→                  className="absolute w-28 h-28 rounded-full bg-white/[0.04] blur-sm"
+   270→                  style={{ top: '8%', right: '8%' }}
+   271→                  animate={{ y: [0, -15, 0], scale: [1, 1.1, 1] }}
+   272→                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+   273→                />
+   274→                <motion.div
+   275→                  className="absolute w-20 h-20 rounded-full bg-amber-500/[0.06]"
+   276→                  style={{ bottom: '12%', left: '12%' }}
+   277→                  animate={{ y: [0, 12, 0], scale: [1, 0.9, 1] }}
+   278→                  transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+   279→                />
+   280→
+   281→                {/* Radial glow */}
+   282→                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-amber-500/[0.08] rounded-full blur-[80px] pointer-events-none" />
+   283→
+   284→                {/* Content */}
+   285→                <div className="relative z-10 flex flex-col items-center justify-center h-full px-8 text-center">
+   286→                  <motion.div
+   287→                    initial={{ opacity: 0, scale: 0.7, y: 15 }}
+   288→                    animate={{ opacity: 1, scale: 1, y: 0 }}
+   289→                    transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+   290→                    className="mb-5"
+   291→                  >
+   292→                    <motion.div
+   293→                      className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20 mb-3 mx-auto"
+   294→                      animate={{ rotate: [0, 2, -2, 0] }}
+   295→                      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+   296→                    >
+   297→                      <SquareIcon className="w-7 h-7 text-white fill-white" strokeWidth={0} />
+   298→                    </motion.div>
+   299→                    <h3 className="text-xl font-extrabold text-white">SmartBuild</h3>
+   300→                    <p className="text-white/40 text-[9px] font-medium tracking-[0.25em] uppercase">Construction ERP</p>
+   301→                  </motion.div>
+   302→
+   303→                  <motion.h4
+   304→                    initial={{ opacity: 0, y: 12 }}
+   305→                    animate={{ opacity: 1, y: 0 }}
+   306→                    transition={{ delay: 0.3, duration: 0.5 }}
+   307→                    className="text-lg font-bold text-white mb-2"
+   308→                  >
+   309→                    Welcome Back
+   310→                  </motion.h4>
+   311→                  <motion.p
+   312→                    initial={{ opacity: 0, y: 10 }}
+   313→                    animate={{ opacity: 1, y: 0 }}
+   314→                    transition={{ delay: 0.35, duration: 0.5 }}
+   315→                    className="text-white/60 text-xs leading-relaxed mb-6"
+   316→                  >
+   317→                    Sign in to manage your projects, maintenance, and operations
+   318→                  </motion.p>
+   319→
+   320→                  {/* Features */}
+   321→                  <motion.div
+   322→                    initial={{ opacity: 0 }}
+   323→                    animate={{ opacity: 1 }}
+   324→                    transition={{ delay: 0.45, duration: 0.5 }}
+   325→                    className="space-y-2.5 w-full max-w-[180px]"
+   326→                  >
+   327→                    {overlayFeatures.map((feat, i) => {
+   328→                      const Icon = feat.icon
+   329→                      return (
+   330→                        <motion.div
+   331→                          key={feat.label}
+   332→                          initial={{ opacity: 0, x: -15 }}
+   333→                          animate={{ opacity: 1, x: 0 }}
+   334→                          transition={{ delay: 0.5 + i * 0.08, duration: 0.4 }}
+   335→                          className="flex items-center gap-2.5 text-white/70 text-xs"
+   336→                        >
+   337→                          <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+   338→                            <Icon className="w-3.5 h-3.5" />
+   339→                          </div>
+   340→                          <span>{feat.label}</span>
+   341→                        </motion.div>
+   342→                      )
+   343→                    })}
+   344→                  </motion.div>
+   345→
+   346→                  {/* Role badges */}
+   347→                  <motion.div
+   348→                    initial={{ opacity: 0 }}
+   349→                    animate={{ opacity: 1 }}
+   350→                    transition={{ delay: 0.7, duration: 0.5 }}
+   351→                    className="mt-6 pt-4 border-t border-white/10 w-full"
+   352→                  >
+   353→                    <p className="text-[10px] text-white/30 text-center mb-2.5">Role-based access</p>
+   354→                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+   355→                      {roleBadges.map(({ role, icon: Icon }) => (
+   356→                        <div
+   357→                          key={role}
+   358→                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/10 text-white/60 border border-white/10"
+   359→                        >
+   360→                          <Icon className="w-2.5 h-2.5" />
+   361→                          {role}
+   362→                        </div>
+   363→                      ))}
+   364→                    </div>
+   365→                  </motion.div>
+   366→                </div>
+   367→              </div>
+   368→
+   369→              {/* ═══════════════════════════════════════════════
+   370→                  RIGHT PANEL — Login form
+   371→              ═══════════════════════════════════════════════ */}
+   372→              <div className="relative z-10 md:pl-[42%]">
+   373→                {/* Close button */}
+   374→                <motion.button
+   375→                  initial={{ opacity: 0, scale: 0.8 }}
+   376→                  animate={{ opacity: 1, scale: 1 }}
+   377→                  transition={{ delay: 0.3, duration: 0.3 }}
+   378→                  onClick={() => setShowLoginDialog(false)}
+   379→                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors z-20"
+   380→                >
+   381→                  <X className="w-4 h-4" />
+   382→                </motion.button>
+   383→
+   384→                {/* Form content */}
+   385→                <div className="p-6 sm:p-8">
+   386→                  <motion.div
+   387→                    variants={staggerContainer}
+   388→                    initial="initial"
+   389→                    animate="animate"
+   390→                    className="space-y-1"
+   391→                  >
+   392→                    {/* Logo (mobile only) */}
+   393→                    <motion.div className="flex items-center gap-2.5 mb-4 md:hidden" variants={staggerItem}>
+   394→                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+   395→                        <SquareIcon className="w-4.5 h-4.5 text-white fill-white" strokeWidth={0} />
+   396→                      </div>
+   397→                      <div>
+   398→                        <span className="text-base font-extrabold tracking-tight text-slate-900">SmartBuild</span>
+   399→                        <span className="block text-[8px] font-medium tracking-[0.2em] uppercase text-amber-600">Construction ERP</span>
+   400→                      </div>
+   401→                    </motion.div>
+   402→
+   403→                    {/* Heading */}
+   404→                    <motion.h2 className="text-xl font-bold text-slate-900" variants={staggerItem}>
+   405→                      Welcome to SmartBuild
+   406→                    </motion.h2>
+   407→                    <motion.p className="text-sm text-slate-500 mb-4" variants={staggerItem}>
+   408→                      Sign in to access your construction workspace
+   409→                    </motion.p>
+   410→
+   411→                    {/* Tab switcher */}
+   412→                    <motion.div
+   413→                      className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4"
+   414→                      variants={staggerItem}
+   415→                    >
+   416→                      <button
+   417→                        onClick={() => setLoginTab('email')}
+   418→                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
+   419→                          loginTab === 'email'
+   420→                            ? 'bg-white text-slate-900 shadow-sm'
+   421→                            : 'text-slate-500 hover:text-slate-700'
+   422→                        }`}
+   423→                      >
+   424→                        <Mail className="w-4 h-4" />
+   425→                        Email
+   426→                      </button>
+   427→                      <button
+   428→                        onClick={() => setLoginTab('whatsapp')}
+   429→                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
+   430→                          loginTab === 'whatsapp'
+   431→                            ? 'bg-white text-slate-900 shadow-sm'
+   432→                            : 'text-slate-500 hover:text-slate-700'
+   433→                        }`}
+   434→                      >
+   435→                        <MessageSquare className="w-4 h-4" />
+   436→                        WhatsApp OTP
+   437→                      </button>
+   438→                    </motion.div>
+   439→                  </motion.div>
+   440→
+   441→                  <AnimatePresence mode="wait">
+   442→                    {loginTab === 'email' ? (
+   443→                      <motion.form
+   444→                        key="email-tab"
+   445→                        onSubmit={handleSubmit(onSubmit)}
+   446→                        variants={tabContentVariants}
+   447→                        initial="initial"
+   448→                        animate="animate"
+   449→                        exit="exit"
+   450→                        className="space-y-4"
+   451→                        noValidate
+   452→                      >
+   453→                        {/* Email */}
+   454→                        <div className="space-y-1.5">
+   455→                          <Label htmlFor="dialog-email" className="text-sm font-medium text-slate-700">
+   456→                            Email Address
+   457→                          </Label>
+   458→                          <div className="relative">
+   459→                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+   460→                            <Input
+   461→                              id="dialog-email"
+   462→                              type="email"
+   463→                              placeholder="admin@smartbuild.com"
+   464→                              autoComplete="email"
+   465→                              disabled={isSubmitting}
+   466→                              className={`h-11 pl-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all duration-300 ${
+   467→                                errors.email
+   468→                                  ? 'border-red-400 focus-visible:ring-red-200 bg-red-50/50'
+   469→                                  : 'focus-visible:border-amber-400 focus-visible:ring-amber-400/20 focus:bg-white'
+   470→                              }`}
+   471→                              {...register('email')}
+   472→                            />
+   473→                          </div>
+   474→                          {errors.email && (
+   475→                            <motion.p
+   476→                              initial={{ opacity: 0, y: -5 }}
+   477→                              animate={{ opacity: 1, y: 0 }}
+   478→                              className="text-red-500 text-xs mt-1"
+   479→                            >
+   480→                              {errors.email.message}
+   481→                            </motion.p>
+   482→                          )}
+   483→                        </div>
+   484→
+   485→                        {/* Password */}
+   486→                        <div className="space-y-1.5">
+   487→                          <Label htmlFor="dialog-password" className="text-sm font-medium text-slate-700">
+   488→                            Password
+   489→                          </Label>
+   490→                          <div className="relative">
+   491→                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+   492→                            <Input
+   493→                              id="dialog-password"
+   494→                              type={showPassword ? 'text' : 'password'}
+   495→                              placeholder="Enter your password"
+   496→                              autoComplete="current-password"
+   497→                              disabled={isSubmitting}
+   498→                              className={`h-11 pl-11 pr-11 rounded-xl border-slate-200 bg-slate-50/50 transition-all duration-300 ${
+   499→                                errors.password
+   500→                                  ? 'border-red-400 focus-visible:ring-red-200 bg-red-50/50'
+   501→                                  : 'focus-visible:border-amber-400 focus-visible:ring-amber-400/20 focus:bg-white'
+   502→                              }`}
+   503→                              {...register('password')}
+   504→                            />
+   505→                            <button
+   506→                              type="button"
+   507→                              onClick={() => setShowPassword(!showPassword)}
+   508→                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   509→                              tabIndex={-1}
+   510→                            >
+   511→                              <motion.div whileTap={{ scale: 0.85 }}>
+   512→                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   513→                              </motion.div>
+   514→                            </button>
+   515→                          </div>
+   516→                          {errors.password && (
+   517→                            <motion.p
+   518→                              initial={{ opacity: 0, y: -5 }}
+   519→                              animate={{ opacity: 1, y: 0 }}
+   520→                              className="text-red-500 text-xs mt-1"
+   521→                            >
+   522→                              {errors.password.message}
+   523→                            </motion.p>
+   524→                          )}
+   525→                        </div>
+   526→
+   527→                        {/* Submit */}
+   528→                        <motion.div whileTap={{ scale: 0.98 }}>
+   529→                          <Button
+   530→                            type="submit"
+   531→                            disabled={isSubmitting}
+   532→                            className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   533→                          >
+   534→                            {isSubmitting ? (
+   535→                              <span className="flex items-center gap-2">
+   536→                                <Loader2 className="w-5 h-5 animate-spin" />
+   537→                                Signing in...
+   538→                              </span>
+   539→                            ) : (
+   540→                              <span className="flex items-center justify-center gap-2">
+   541→                                Sign In
+   542→                                <ArrowRight className="w-4 h-4" />
+   543→                              </span>
+   544→                            )}
+   545→                          </Button>
+   546→                        </motion.div>
+   547→                      </motion.form>
+   548→                    ) : (
+   549→                      <motion.div
+   550→                        key="whatsapp-tab"
+   551→                        variants={tabContentVariants}
+   552→                        initial="initial"
+   553→                        animate="animate"
+   554→                        exit="exit"
+   555→                        className="space-y-4"
+   556→                      >
+   557→                        {otpError && (
+   558→                          <motion.div
+   559→                            initial={{ opacity: 0, y: -5, scale: 0.96 }}
+   560→                            animate={{ opacity: 1, y: 0, scale: 1 }}
+   561→                            className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2"
+   562→                          >
+   563→                            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   564→                              <span className="text-red-500 text-xs font-bold">!</span>
+   565→                            </div>
+   566→                            {otpError}
+   567→                          </motion.div>
+   568→                        )}
+   569→
+   570→                        {!otpSent ? (
+   571→                          <>
+   572→                            <div className="space-y-1.5">
+   573→                              <Label htmlFor="dialog-phone" className="text-sm font-medium text-slate-700">
+   574→                                Phone Number
+   575→                              </Label>
+   576→                              <div className="flex gap-2">
+   577→                                <div className="flex items-center gap-1.5 px-3 h-11 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-600 shrink-0 font-medium">
+   578→                                  <Phone className="w-4 h-4 text-slate-400" />
+   579→                                  <span>{getCallingCode()}</span>
+   580→                                </div>
+   581→                                <Input
+   582→                                  id="dialog-phone"
+   583→                                  type="tel"
+   584→                                  placeholder={getPhonePlaceholder()}
+   585→                                  value={phoneNumber}
+   586→                                  onChange={(e) => { setPhoneNumber(e.target.value); setOtpError('') }}
+   587→                                  className="flex-1 h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors"
+   588→                                />
+   589→                              </div>
+   590→                            </div>
+   591→
+   592→                            <motion.div whileTap={{ scale: 0.98 }}>
+   593→                              <Button
+   594→                                onClick={handleSendOtp}
+   595→                                disabled={otpLoading}
+   596→                                className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   597→                              >
+   598→                                {otpLoading ? (
+   599→                                  <span className="flex items-center gap-2">
+   600→                                    <Loader2 className="w-5 h-5 animate-spin" />
+   601→                                    Sending OTP...
+   602→                                  </span>
+   603→                                ) : (
+   604→                                  <span className="flex items-center justify-center gap-2">
+   605→                                    Send OTP Code
+   606→                                    <ArrowRight className="w-4 h-4" />
+   607→                                  </span>
+   608→                                )}
+   609→                              </Button>
+   610→                            </motion.div>
+   611→                          </>
+   612→                        ) : (
+   613→                          <>
+   614→                            <div className="text-center space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
+   615→                              <p className="text-sm text-slate-500">Enter the 6-digit code sent to</p>
+   616→                              <p className="text-sm font-semibold text-slate-900">{getCallingCode()} {phoneNumber}</p>
+   617→                            </div>
+   618→
+   619→                            <div className="flex justify-center py-2">
+   620→                              <InputOTP
+   621→                                maxLength={6}
+   622→                                value={otpValue}
+   623→                                onChange={(val) => { setOtpValue(val); setOtpError('') }}
+   624→                              >
+   625→                                <InputOTPGroup>
+   626→                                  <InputOTPSlot index={0} className="h-14 w-12 rounded-lg" />
+   627→                                  <InputOTPSlot index={1} className="h-14 w-12 rounded-lg" />
+   628→                                  <InputOTPSlot index={2} className="h-14 w-12 rounded-lg" />
+   629→                                </InputOTPGroup>
+   630→                                <div className="w-3 flex items-center justify-center text-slate-300 text-xl font-bold">-</div>
+   631→                                <InputOTPGroup>
+   632→                                  <InputOTPSlot index={3} className="h-14 w-12 rounded-lg" />
+   633→                                  <InputOTPSlot index={4} className="h-14 w-12 rounded-lg" />
+   634→                                  <InputOTPSlot index={5} className="h-14 w-12 rounded-lg" />
+   635→                                </InputOTPGroup>
+   636→                              </InputOTP>
+   637→                            </div>
+   638→
+   639→                            <motion.div whileTap={{ scale: 0.98 }}>
+   640→                              <Button
+   641→                                onClick={handleVerifyOtp}
+   642→                                disabled={otpVerifyLoading}
+   643→                                className="w-full h-12 bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:via-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer text-[15px]"
+   644→                              >
+   645→                                {otpVerifyLoading ? (
+   646→                                  <span className="flex items-center gap-2">
+   647→                                    <Loader2 className="w-5 h-5 animate-spin" />
+   648→                                    Verifying...
+   649→                                  </span>
+   650→                                ) : (
+   651→                                  <span className="flex items-center justify-center gap-2">
+   652→                                    Verify & Login
+   653→                                    <CheckCircle2 className="w-4 h-4" />
+   654→                                  </span>
+   655→                                )}
+   656→                              </Button>
+   657→                            </motion.div>
+   658→
+   659→                            <div className="text-center">
+   660→                              {resendTimer > 0 ? (
+   661→                                <p className="text-sm text-slate-500">
+   662→                                  Resend code in <span className="font-semibold text-amber-600">{resendTimer}s</span>
+   663→                                </p>
+   664→                              ) : (
+   665→                                <button
+   666→                                  onClick={handleResendOtp}
+   667→                                  className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors cursor-pointer"
+   668→                                >
+   669→                                  Resend OTP Code
+   670→                                </button>
+   671→                              )}
+   672→                            </div>
+   673→                          </>
+   674→                        )}
+   675→                      </motion.div>
+   676→                    )}
+   677→                  </AnimatePresence>
+   678→
+   679→                  {/* Divider */}
+   680→                  <div className="relative my-5">
+   681→                    <Separator className="bg-slate-200" />
+   682→                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-400 uppercase tracking-wider">
+   683→                      or continue with
+   684→                    </span>
+   685→                  </div>
+   686→
+   687→                  {/* Social Login */}
+   688→                  <div className="grid grid-cols-2 gap-3">
+   689→                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+   690→                      <Button
+   691→                        variant="outline"
+   692→                        className="w-full h-10 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+   693→                        type="button"
+   694→                      >
+   695→                        <svg className="w-4 h-4" viewBox="0 0 24 24">
+   696→                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+   697→                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+   698→                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+   699→                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+   700→                        </svg>
+   701→                        Google
+   702→                      </Button>
+   703→                    </motion.div>
+   704→                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+   705→                      <Button
+   706→                        variant="outline"
+   707→                        className="w-full h-10 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+   708→                        type="button"
+   709→                      >
+   710→                        <svg className="w-4 h-4" viewBox="0 0 24 24">
+   711→                          <rect x="1" y="1" width="10" height="10" fill="#F25022" />
+   712→                          <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
+   713→                          <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
+   714→                          <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+   715→                        </svg>
+   716→                        Microsoft
+   717→                      </Button>
+   718→                    </motion.div>
+   719→                  </div>
+   720→
+   721→                  {/* Footer */}
+   722→                  <motion.p
+   723→                    initial={{ opacity: 0 }}
+   724→                    animate={{ opacity: 1 }}
+   725→                    transition={{ delay: 0.6 }}
+   726→                    className="text-[11px] text-slate-400 text-center mt-5"
+   727→                  >
+   728→                    Secure enterprise access. Contact your administrator for credentials.
+   729→                  </motion.p>
+   730→                </div>
+   731→              </div>
+   732→
+   733→              {/* ═══ CARD BORDER ═══ */}
+   734→              <div className="absolute inset-0 rounded-3xl pointer-events-none z-40">
+   735→                <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
+   736→                <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/[0.06]" />
+   737→              </div>
+   738→            </motion.div>
+   739→          </div>
+   740→        </>
+   741→      )}
+   742→    </AnimatePresence>
+   743→  )
+   744→}
+   745→

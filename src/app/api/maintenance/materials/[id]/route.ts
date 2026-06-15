@@ -57,7 +57,7 @@ export async function PUT(
     if (totalCost !== undefined) updateData.totalCost = totalCost
     if (notes !== undefined) updateData.notes = notes
 
-    // Handle approval workflow
+    // অনুমোদন ওয়ার্কফ্লো পরিচালনা করা হচ্ছে
     if (status !== undefined && status !== existing.status) {
       updateData.status = status
 

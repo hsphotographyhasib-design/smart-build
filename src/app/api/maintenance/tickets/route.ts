@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Category, subject and description are required' }, { status: 400 })
     }
 
-    // Auto-generate ticket number
+    // স্বয়ংক্রিয়ভাবে টিকেট নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'CMP'
     const count = await db.maintenanceTicket.count({
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     })
     const ticketNo = `${prefix}-${year}-${String(count + 1).padStart(6, '0')}`
 
-    // Get SLA template for priority
+    // অগ্রাধিকার অনুযায়ী SLA টেমপ্লেট নেওয়া হচ্ছে
     const sla = await db.sLATemplate.findUnique({
       where: { priority: priority || 'medium' },
     })
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     const ticket = await db.maintenanceTicket.create({ data: ticketData as any })
 
-    // Create initial timeline entry
+    // প্রাথমিক টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     await db.maintenanceTimeline.create({
       data: {
         ticketId: ticket.id,

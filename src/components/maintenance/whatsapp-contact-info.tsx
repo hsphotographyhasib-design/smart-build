@@ -68,7 +68,7 @@ export function WhatsAppContactInfo({ contact, onNavigateToCustomer }: WhatsAppC
 
   return (
     <div className="space-y-4">
-      {/* Profile card */}
+      {/* প্রোফাইল কার্ড */}
       <div className="flex flex-col items-center text-center py-4">
         <Avatar className="h-20 w-20 mb-3 ring-2 ring-gray-100 dark:ring-gray-700">
           {contact.profilePicUrl ? (
@@ -94,7 +94,7 @@ export function WhatsAppContactInfo({ contact, onNavigateToCustomer }: WhatsAppC
 
       <Separator />
 
-      {/* Linked customer */}
+      {/* সংযুক্ত গ্রাহক */}
       {contact.customerId && contact.customer && (
         <div className="px-1">
           <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
@@ -117,7 +117,7 @@ export function WhatsAppContactInfo({ contact, onNavigateToCustomer }: WhatsAppC
         </div>
       )}
 
-      {/* Tags */}
+      {/* ট্যাগসমূহ */}
       {parsedTags.length > 0 && (
         <div className="px-1">
           <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
@@ -138,7 +138,7 @@ export function WhatsAppContactInfo({ contact, onNavigateToCustomer }: WhatsAppC
         </div>
       )}
 
-      {/* Notes */}
+      {/* নোটসমূহ */}
       {contact.notes && (
         <div className="px-1">
           <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">

@@ -68,7 +68,7 @@ const departmentColors: Record<string, string> = {
 export default function CareersPage() {
   return (
     <div className="bg-white min-h-screen">
-      {/* Hero */}
+      {/* হিরো */}
       <section className="bg-gradient-to-b from-stone-100 to-white py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
@@ -84,7 +84,7 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* Why SmartBuild */}
+      {/* কেন SmartBuild? */}
       <section className="max-w-4xl mx-auto px-4 py-12">
         <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-8 text-center">Why SmartBuild?</h2>
         <div className="grid sm:grid-cols-2 gap-6">

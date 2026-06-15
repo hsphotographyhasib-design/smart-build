@@ -52,7 +52,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Supplier {
@@ -72,7 +72,7 @@ interface Supplier {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -84,7 +84,7 @@ function formatDate(dateStr: string) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -104,7 +104,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create/Edit Dialog
+// তৈরি/সম্পাদনা ডায়ালগ
 // ──────────────────────────────────────────
 
 function SupplierFormDialog({ supplier, open, onClose }: { supplier: Supplier | null; open: boolean; onClose: () => void }) {
@@ -198,7 +198,7 @@ function SupplierFormDialog({ supplier, open, onClose }: { supplier: Supplier | 
 }
 
 // ──────────────────────────────────────────
-// View Dialog
+// দেখার ডায়ালগ
 // ──────────────────────────────────────────
 
 function ViewSupplierDialog({ supplier, open, onClose }: { supplier: Supplier | null; open: boolean; onClose: () => void }) {
@@ -272,7 +272,7 @@ function ViewSupplierDialog({ supplier, open, onClose }: { supplier: Supplier | 
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function SuppliersPage() {
@@ -305,7 +305,7 @@ export function SuppliersPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Suppliers</h1>
@@ -319,7 +319,7 @@ export function SuppliersPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* অনুসন্ধান */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -330,7 +330,7 @@ export function SuppliersPage() {
         />
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -411,16 +411,16 @@ export function SuppliersPage() {
         </Card>
       ) : null}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <SupplierFormDialog supplier={null} open={createOpen} onClose={() => setCreateOpen(false)} />
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <SupplierFormDialog supplier={editSupplier} open={!!editSupplier} onClose={() => setEditSupplier(null)} />
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <ViewSupplierDialog supplier={viewSupplier} open={!!viewSupplier} onClose={() => setViewSupplier(null)} />
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

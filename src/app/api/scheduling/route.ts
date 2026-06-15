@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
 
-    // Build where clause
+    // where ধারা তৈরি করা হচ্ছে
     const taskWhere: Record<string, unknown> = {}
     if (status && status !== 'all') {
       taskWhere.status = status
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       projectWhere.id = projectId
     }
 
-    // Fetch all projects with their tasks
+    // সমস্ত প্রকল্প তাদের কাজসহ আনা হচ্ছে
     const projects = await db.project.findMany({
       where: projectWhere,
       orderBy: { name: 'asc' },

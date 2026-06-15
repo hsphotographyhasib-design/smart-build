@@ -1,6 +1,6 @@
 // src/modules/ai/components/index.ts
-// AI Module - Components Barrel Export
-// Re-exports all AI-related components for clean imports
+// AI মডিউল - কম্পোনেন্ট ব্যারেল এক্সপোর্ট
+// পরিষ্কার ইম্পোর্টের জন্য সমস্ত AI-সম্পর্কিত কম্পোনেন্ট রি-এক্সপোর্ট করা হয়েছে
 
 export { AiDashboard } from '@/components/ai/ai-dashboard'
 export { AiInsights } from '@/components/ai/ai-insights'

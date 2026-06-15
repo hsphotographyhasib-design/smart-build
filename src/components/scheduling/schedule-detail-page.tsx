@@ -52,7 +52,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface ScheduleDetail {
   id: string
   scheduleNo: string
@@ -174,7 +174,7 @@ interface CommentRow {
   createdAt: string
 }
 
-// ─── Constants ───
+// ─── ধ্রুবক ───
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700' },
   published: { label: 'Published', className: 'bg-amber-50 text-amber-700' },
@@ -229,7 +229,7 @@ const TASK_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
   approval: { label: 'Approval', className: 'bg-rose-50 text-rose-700' },
 }
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function formatDate(dateStr: string | null) {
   if (!dateStr) return '—'
   return format(parseISO(dateStr), 'dd MMM yyyy')
@@ -272,7 +272,7 @@ function buildGanttDependencies(deps: DependencyRow[]): GanttDependency[] {
   }))
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 interface ScheduleDetailPageProps {
   scheduleId: string
 }
@@ -282,7 +282,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const queryClient = useQueryClient()
 
-  // Fetch schedule detail
+  // সময়সূচির বিস্তারিত আনা
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.scheduleDetail(scheduleId),
     queryFn: () => api.get<ScheduleDetailResponse>(`/api/schedules/${scheduleId}`).then((r) => r.data!),
@@ -298,7 +298,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
   const snapshots = data?.snapshots || []
   const comments = data?.comments || []
 
-  // Gantt data
+  // গ্যান্ট তথ্য
   const ganttActivities = useMemo(() => buildGanttActivities(activities), [activities])
   const ganttDependencies = useMemo(() => buildGanttDependencies(dependencies), [dependencies])
 
@@ -337,7 +337,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* ─── Header ─── */}
+      {/* ─── হেডার ─── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-4">
           <div>
@@ -371,7 +371,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
         </div>
       </div>
 
-      {/* ─── KPI Summary Row ─── */}
+      {/* ─── KPI সারসংক্ষেপ সারি ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="rounded-xl p-3.5 border">
           <CardContent className="p-0">
@@ -419,7 +419,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
         </Card>
       </div>
 
-      {/* ─── Tabs ─── */}
+      {/* ─── ট্যাবসমূহ ─── */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start overflow-x-auto bg-muted/50 p-1 h-auto flex-wrap gap-1 rounded-lg">
           <TabsTrigger value="overview" className="text-xs px-3">Overview</TabsTrigger>
@@ -437,7 +437,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           <TabsTrigger value="reports" className="text-xs px-3">Reports</TabsTrigger>
         </TabsList>
 
-        {/* ─── Overview Tab ─── */}
+        {/* ─── পরিচিতি ট্যাব ─── */}
         <TabsContent value="overview" className="mt-4 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="rounded-xl">
@@ -501,7 +501,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </div>
         </TabsContent>
 
-        {/* ─── Gantt View Tab ─── */}
+        {/* ─── গ্যান্ট দৃশ্য ট্যাব ─── */}
         <TabsContent value="gantt" className="mt-4">
           <ScheduleGanttChart
             activities={ganttActivities}
@@ -512,7 +512,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           />
         </TabsContent>
 
-        {/* ─── Activities Tab ─── */}
+        {/* ─── কার্যকলাপ ট্যাব ─── */}
         <TabsContent value="activities" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -604,7 +604,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Milestones Tab ─── */}
+        {/* ─── মাইলফলক ট্যাব ─── */}
         <TabsContent value="milestones" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -667,7 +667,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Dependencies Tab ─── */}
+        {/* ─── নির্ভরতা ট্যাব ─── */}
         <TabsContent value="dependencies" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -720,7 +720,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Resources Tab ─── */}
+        {/* ─── সম্পদ ট্যাব ─── */}
         <TabsContent value="resources" className="mt-4">
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
@@ -732,7 +732,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Delays Tab ─── */}
+        {/* ─── বিলম্ব ট্যাব ─── */}
         <TabsContent value="delays" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -804,7 +804,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Calendars Tab ─── */}
+        {/* ─── ক্যালেন্ডার ট্যাব ─── */}
         <TabsContent value="calendars" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -852,7 +852,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Snapshots Tab ─── */}
+        {/* ─── স্ন্যাপশট ট্যাব ─── */}
         <TabsContent value="snapshots" className="mt-4">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="pb-3">
@@ -887,7 +887,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Comments Tab ─── */}
+        {/* ─── মন্তব্য ট্যাব ─── */}
         <TabsContent value="comments" className="mt-4">
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
@@ -925,7 +925,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* ─── Reports Tab ─── */}
+        {/* ─── প্রতিবেদন ট্যাব ─── */}
         <TabsContent value="reports" className="mt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <ReportCard
@@ -971,7 +971,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
   )
 }
 
-// ─── Sub-components ───
+// ─── সাব-উপাদানসমূহ ───
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>

@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update invoice paid amount if linked
+    // ইনভয়েস আপডেট করা হচ্ছে paid amount if linked
     if (invoiceId) {
       const invoice = await db.invoice.findUnique({ where: { id: invoiceId } })
       if (invoice) {

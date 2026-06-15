@@ -67,7 +67,7 @@ export async function PUT(
     if (paidAmount !== undefined) updateData.paidAmount = paidAmount
     if (notes !== undefined) updateData.notes = notes
 
-    // Recalculate total if cost fields changed
+    // খরচের ক্ষেত্র পরিবর্তন হলে মোট পরিমাণ পুনরায় হিসাব করা হচ্ছে
     if (labourCost !== undefined || materialCost !== undefined || transportCost !== undefined || serviceCharges !== undefined || tax !== undefined || discount !== undefined) {
       const lC = labourCost !== undefined ? labourCost : existing.labourCost
       const mC = materialCost !== undefined ? materialCost : existing.materialCost

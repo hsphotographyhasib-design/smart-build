@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if code already exists
+    // কোড ইতিমধ্যে বিদ্যমান কিনা পরীক্ষা করা হচ্ছে
     const existing = await db.project.findUnique({ where: { code } })
     if (existing) {
       return NextResponse.json({ success: false, error: 'Project code already exists' }, { status: 400 })
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Add creator as manager
+    // সৃষ্টিকর্তাকে পরিচালক হিসেবে যোগ করা হচ্ছে
     await db.projectMember.create({
       data: {
         projectId: project.id,

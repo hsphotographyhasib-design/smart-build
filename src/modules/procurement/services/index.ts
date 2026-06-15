@@ -1,3 +1,3 @@
 // src/modules/procurement/services/index.ts
-// Procurement Module - Services Barrel Export
-// API service functions for procurement will be added here
+// প্রকিউরমেন্ট মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// প্রকিউরমেন্টের API সার্ভিস ফাংশন এখানে যোগ করা হবে

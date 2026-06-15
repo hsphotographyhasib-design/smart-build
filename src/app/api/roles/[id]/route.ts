@@ -5,8 +5,8 @@ import { verifyAuth, logPermissionAudit } from '@/lib/auth'
 type RouteContext = { params: Promise<{ id: string }> }
 
 /**
- * GET /api/roles/[id] — Get a single role with all its permissions
- * Admin and super_admin can access.
+ * GET /api/roles/[id] — সকল অনুমতিসহ একটি ভূমিকা সংগ্রহ করা হচ্ছে
+ * প্রশাসক এবং super_admin অ্যাক্সেস করতে পারবেন।
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
@@ -70,8 +70,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * PUT /api/roles/[id] — Update a role's name/description/isActive
- * Only super_admin can update. Cannot modify system roles.
+ * PUT /api/roles/[id] — একটি ভূমিকার নাম/বিবরণ/isActive আপডেট করা হচ্ছে
+ * শুধুমাত্র super_admin আপডেট করতে পারবেন। সিস্টেম ভূমিকা পরিবর্তন করা যাবে না।
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
@@ -102,7 +102,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Validate name uniqueness if changing
+    // পরিবর্তন করলে নামের অনন্যতা যাচাই করা হচ্ছে
     if (name && name !== existing.name) {
       const duplicate = await db.role.findUnique({ where: { name } })
       if (duplicate) {
@@ -147,8 +147,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * DELETE /api/roles/[id] — Delete a role
- * Only super_admin can delete. Cannot delete system roles or roles with assigned users.
+ * DELETE /api/roles/[id] — একটি ভূমিকা মুছে ফেলা হচ্ছে
+ * শুধুমাত্র super_admin মুছতে পারবেন। সিস্টেম ভূমিকা বা ব্যবহারকারী-নির্ধারিত ভূমিকা মুছে ফেলা যাবে না।
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
@@ -177,7 +177,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Check if any users have this role
+    // কোনো ব্যবহারকারী এই ভূমিকায় আছে কিনা যাচাই করা হচ্ছে
     const usersWithRole = await db.user.count({
       where: { role: existing.code },
     })

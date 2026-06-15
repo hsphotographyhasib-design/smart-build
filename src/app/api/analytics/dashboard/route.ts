@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const twelveMonthsAgo = new Date()
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
 
-    // ===== KPIs =====
+    // ===== মূল কর্মক্ষমতা সূচক =====
     const [
       activeProjects,
       completedProjects,
@@ -38,13 +38,13 @@ export async function GET(request: NextRequest) {
       db.resourceAssignment.count({ where: { status: 'active' } }),
     ])
 
-    // Revenue from paid invoices
+    // পরিশোধিত চালান থেকে আয়
     const revenueAgg = await db.invoice.aggregate({
       _sum: { total: true, paidAmount: true },
       where: { type: 'sales' },
     })
 
-    // Expenses total
+    // মোট ব্যয়
     const expenseAgg = await db.expense.aggregate({
       _sum: { amount: true },
     })
@@ -54,16 +54,16 @@ export async function GET(request: NextRequest) {
     const totalExpenses = expenseAgg._sum.amount || 0
     const netProfit = totalRevenue - totalExpenses
 
-    // Active project budget totals
+    // সক্রিয় প্রকল্পের বাজেট সমষ্টি
     const activeBudgetAgg = await db.project.aggregate({
       _sum: { budget: true },
       where: { status: 'active' },
     })
 
-    // Resource utilization
+    // সম্পদ ব্যবহার
     const resourceUtilization = totalAssignments > 0 ? Math.round((activeAssignments / totalAssignments) * 100) : 0
 
-    // Average project margin
+    // গড় প্রকল্প মার্জিন
     const projectsWithBudgets = await db.project.findMany({
       where: { status: { in: ['active', 'completed'] } },
       select: { id: true, budget: true, invoices: { select: { total: true, type: true } }, expenses: { select: { amount: true } } },
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     }
     const avgMargin = marginCount > 0 ? Math.round(totalMargin / marginCount) : 0
 
-    // ===== MONTHLY TRENDS (last 12 months) =====
+    // ===== মাসিক প্রবণতা (গত ১২ মাস) =====
     const monthlyInvoices = await db.invoice.findMany({
       where: { type: 'sales', issueDate: { gte: twelveMonthsAgo } },
       select: { issueDate: true, total: true },
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       profit: m.revenue - m.expenses,
     })).sort((a, b) => a.month.localeCompare(b.month))
 
-    // ===== TOP PROJECTS BY REVENUE =====
+    // ===== আয় অনুযায়ী শীর্ষ প্রকল্পসমূহ =====
     const topProjects = await db.project.findMany({
       where: { status: { in: ['active', 'completed'] } },
       select: {
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       }))
       .sort((a, b) => b.revenue - a.revenue)
 
-    // ===== DEPARTMENT BREAKDOWN =====
+    // ===== বিভাগ বিশ্লেষণ =====
     const expenseBreakdown = await db.expense.groupBy({
       by: ['category'],
       _sum: { amount: true },
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
       orderBy: { _sum: { amount: 'desc' } },
     })
 
-    // ===== BUDGET HEALTH =====
+    // ===== বাজেট স্বাস্থ্য =====
     const budgets = await db.budget.findMany({
       where: { status: 'approved' },
       include: {

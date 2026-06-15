@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
     }
 
-    // Check if profile already exists
+    // প্রোফাইল আগে থেকেই আছে কিনা যাচাই করা হচ্ছে
     const existing = await db.technicianProfile.findUnique({ where: { userId } })
     if (existing) {
       return NextResponse.json({ success: false, error: 'Technician profile already exists for this user' }, { status: 400 })

@@ -32,7 +32,7 @@ import { format, parseISO, differenceInDays } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ══════════════════════════════════════════════════════════════════
-// PROPS & TYPES
+// প্রপস ও প্রকারভেদ
 // ══════════════════════════════════════════════════════════════════
 
 interface ProjectDetailPageProps {
@@ -43,7 +43,7 @@ interface ProjectDetailPageProps {
 const fmt = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
 
-// ─── Status color helpers ──────────────────────────────────────
+// ─── স্ট্যাটাস রঙ সহায়ক ──────────────────────────────────────
 
 const openItemStatusColors: Record<string, string> = {
   open: 'bg-amber-100 text-amber-800',
@@ -91,7 +91,7 @@ const milestoneStatusColors: Record<string, string> = {
 
 const CHART_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#f97316', '#06b6d4']
 
-// ─── Shared skeleton components ────────────────────────────────
+// ─── যৌথ স্কেলেটন উপাদান ────────────────────────────────
 
 function KpiSkeleton() {
   return (
@@ -139,7 +139,7 @@ function EmptyCard({ icon: Icon, title, description, action }: { icon: React.Ele
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 1 — OVERVIEW
+// ট্যাব ১ — পরিচিতি
 // ══════════════════════════════════════════════════════════════════
 
 function OverviewTab({ projectId }: { projectId: string }) {
@@ -188,7 +188,7 @@ function OverviewTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
+      {/* KPI কার্ড */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -229,7 +229,7 @@ function OverviewTab({ projectId }: { projectId: string }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Budget Health */}
+        {/* বাজেট স্বাস্থ্য */}
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Budget Health</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -257,7 +257,7 @@ function OverviewTab({ projectId }: { projectId: string }) {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* সাম্প্রতিক কার্যকলাপ */}
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Recent Activity</CardTitle></CardHeader>
           <CardContent>
@@ -292,7 +292,7 @@ function OverviewTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 2 — TASKS
+// ট্যাব ২ — কাজসমূহ
 // ══════════════════════════════════════════════════════════════════
 
 function TasksTab({ projectId }: { projectId: string }) {
@@ -393,7 +393,7 @@ function TasksTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 3 — TIMELINE
+// ট্যাব ৩ — টাইমলাইন
 // ══════════════════════════════════════════════════════════════════
 
 function TimelineTab({ projectId }: { projectId: string }) {
@@ -415,7 +415,7 @@ function TimelineTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       <div className="relative">
-        {/* Horizontal timeline line */}
+        {/* অনুভূমিক টাইমলাইন রেখা */}
         <div className="absolute top-6 left-0 right-0 h-0.5 bg-amber-200 hidden md:block" />
 
         <ScrollArea className="w-full">
@@ -426,7 +426,7 @@ function TimelineTab({ projectId }: { projectId: string }) {
               return (
                 <Card key={m.id} className="shrink-0 w-48">
                   <CardContent className="p-4 pt-6">
-                    {/* Dot on timeline */}
+                    {/* টাইমলাইনে বিন্দু */}
                     <div className={cn(
                       'h-3 w-3 rounded-full border-2 border-white shadow -mt-9 mb-3 mx-auto',
                       isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-red-500' : 'bg-amber-500'
@@ -446,7 +446,7 @@ function TimelineTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 4 — OPEN ITEMS
+// ট্যাব ৪ — উন্মুক্ত আইটেম
 // ══════════════════════════════════════════════════════════════════
 
 const OPEN_ITEM_CATEGORIES = ['rfi', 'site_issue', 'safety_issue', 'material_request', 'client_request', 'approval_required', 'change_request']
@@ -594,7 +594,7 @@ function OpenItemsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 5 — RFIs (Request for Information)
+// ট্যাব ৫ — RFI (তথ্যের জন্য অনুরোধ)
 // ══════════════════════════════════════════════════════════════════
 
 const RFI_CATEGORIES = ['general', 'technical', 'commercial', 'design']
@@ -712,7 +712,7 @@ function RfisTab({ projectId }: { projectId: string }) {
         </Card>
       )}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>New RFI</DialogTitle></DialogHeader>
@@ -734,7 +734,7 @@ function RfisTab({ projectId }: { projectId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail Dialog */}
+      {/* বিস্তারিত ডায়ালগ */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -782,7 +782,7 @@ function RfisTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 6 — CHANGE EVENTS
+// ট্যাব ৬ — পরিবর্তন ইভেন্ট
 // ══════════════════════════════════════════════════════════════════
 
 const CE_CATEGORIES = ['scope', 'design', 'schedule', 'commercial', 'quality']
@@ -898,7 +898,7 @@ function ChangeEventsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 7 — CHANGE ORDERS
+// ট্যাব ৭ — পরিবর্তন অর্ডার
 // ══════════════════════════════════════════════════════════════════
 
 function ChangeOrdersTab({ projectId }: { projectId: string }) {
@@ -1012,7 +1012,7 @@ function ChangeOrdersTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 8 — TEAM
+// ট্যাব ৮ — দল
 // ══════════════════════════════════════════════════════════════════
 
 const TEAM_ROLES = ['project_manager', 'site_engineer', 'supervisor', 'consultant', 'architect', 'qs', 'contractor', 'subcontractor', 'client_rep']
@@ -1107,7 +1107,7 @@ function TeamTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 9 — COMMITMENTS
+// ট্যাব ৯ — প্রতিশ্রুতি
 // ══════════════════════════════════════════════════════════════════
 
 const COMMITMENT_TYPES = ['purchase_order', 'subcontract', 'material_order', 'labour_contract']
@@ -1144,7 +1144,7 @@ function CommitmentsTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Summary cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground mb-1">Total Value</div><p className="text-lg font-semibold">{fmt(totalValue)}</p></CardContent></Card>
         <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground mb-1">Committed</div><p className="text-lg font-semibold text-amber-600">{fmt(totalCommitted)}</p></CardContent></Card>
@@ -1218,7 +1218,7 @@ function CommitmentsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 10 — DIRECT COSTS
+// ট্যাব ১০ — প্রত্যক্ষ খরচ
 // ══════════════════════════════════════════════════════════════════
 
 const COST_CATEGORIES = ['labour', 'materials', 'equipment', 'fuel', 'transportation', 'accommodation', 'rental', 'subcontractor', 'miscellaneous']
@@ -1242,7 +1242,7 @@ function DirectCostsTab({ projectId }: { projectId: string }) {
     onError: (e: any) => toast.error(e.error || 'Failed'),
   })
 
-  // Summary by category
+  // বিভাগ অনুযায়ী সারসংক্ষেপ
   const categorySummary = costs.reduce((acc: Record<string, number>, c: any) => {
     acc[c.category] = (acc[c.category] || 0) + (c.amount || 0)
     return acc
@@ -1255,7 +1255,7 @@ function DirectCostsTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Summary by category */}
+      {/* বিভাগ অনুযায়ী সারসংক্ষেপ */}
       {Object.keys(categorySummary).length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {Object.entries(categorySummary).map(([cat, total]) => (
@@ -1332,7 +1332,7 @@ function DirectCostsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 11 — DOCUMENTS
+// ট্যাব ১১ — নথিপত্র
 // ══════════════════════════════════════════════════════════════════
 
 const DOC_TYPES = ['drawing', 'contract', 'photo', 'report', 'other']
@@ -1441,7 +1441,7 @@ function DocumentsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 12 — DAILY NOTES
+// ট্যাব ১২ — দৈনিক নোট
 // ══════════════════════════════════════════════════════════════════
 
 const WEATHER_OPTIONS = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy']
@@ -1545,7 +1545,7 @@ function DailyNotesTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TAB 13 — INSIGHTS (Analytics)
+// ট্যাব ১৩ — অন্তর্দৃষ্টি (বিশ্লেষণ)
 // ══════════════════════════════════════════════════════════════════
 
 function InsightsTab({ projectId }: { projectId: string }) {
@@ -1580,7 +1580,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
   const budgetPct = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0
   const commitmentsTotal = insights.totalCommitments ?? 0
 
-  // Open items summary
+  // উন্মুক্ত আইটেম সারসংক্ষেপ
   const openItemsSummary = insights.openItemsSummary ?? {}
   const oiData = [
     { name: 'Open', value: openItemsSummary.open ?? 0, fill: '#f59e0b' },
@@ -1590,7 +1590,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
     { name: 'Closed', value: openItemsSummary.closed ?? 0, fill: '#94a3b8' },
   ].filter(d => d.value > 0)
 
-  // RFI status breakdown
+  // RFI স্ট্যাটাস বিশ্লেষণ
   const rfiBreakdown = insights.rfiBreakdown ?? {}
   const rfiData = [
     { name: 'Draft', value: rfiBreakdown.draft ?? 0, fill: '#94a3b8' },
@@ -1600,16 +1600,16 @@ function InsightsTab({ projectId }: { projectId: string }) {
     { name: 'Closed', value: rfiBreakdown.closed ?? 0, fill: '#10b981' },
   ].filter(d => d.value > 0)
 
-  // Direct costs by category
+  // বিভাগ অনুযায়ী প্রত্যক্ষ খরচ
   const costsByCategory = insights.costsByCategory ?? []
   const hasChartData = costsByCategory.length > 0
 
-  // Change events summary
+  // পরিবর্তন ইভেন্ট সারসংক্ষেপ
   const ceSummary = insights.changeEventsSummary ?? {}
 
   return (
     <div className="space-y-6">
-      {/* Budget Health */}
+      {/* বাজেট স্বাস্থ্য */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Budget Health</CardTitle></CardHeader>
         <CardContent>
@@ -1638,7 +1638,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Open Items Summary */}
+        {/* উন্মুক্ত আইটেম সারসংক্ষেপ */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Open Items Summary</CardTitle>
@@ -1674,7 +1674,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
           </CardContent>
         </Card>
 
-        {/* RFI Status Breakdown */}
+        {/* RFI স্ট্যাটাস বিশ্লেষণ */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">RFI Status Breakdown</CardTitle>
@@ -1711,7 +1711,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
         </Card>
       </div>
 
-      {/* Direct Costs by Category - Bar Chart */}
+      {/* বিভাগ অনুযায়ী প্রত্যক্ষ খরচ - বার চার্ট */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Direct Costs by Category</CardTitle></CardHeader>
         <CardContent>
@@ -1738,7 +1738,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
         </CardContent>
       </Card>
 
-      {/* Change Events Summary */}
+      {/* পরিবর্তন ইভেন্ট সারসংক্ষেপ */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Change Events Summary</CardTitle></CardHeader>
         <CardContent>
@@ -1771,24 +1771,24 @@ function InsightsTab({ projectId }: { projectId: string }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// MAIN COMPONENT — PROJECT DETAIL PAGE
+// প্রধান উপাদান — প্রকল্পের বিস্তারিত পৃষ্ঠা
 // ══════════════════════════════════════════════════════════════════
 
 export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPageProps) {
   const { navigate, pageParams } = useAppStore()
   const [tab, setTab] = useState(activeTab || 'overview')
 
-  // Use projectId from props or from store pageParams
+  // প্রপস বা স্টোর pageParams থেকে projectId ব্যবহার
   const effectiveProjectId = projectId || pageParams?.id
 
-  // Fetch project for breadcrumb
+  // ব্রেডক্রাম্বের জন্য প্রকল্প আনা
   const { data: project } = useQuery({
     queryKey: ['project', effectiveProjectId],
     queryFn: () => api.get(`/api/projects/${effectiveProjectId}`).then(r => r.data),
     enabled: !!effectiveProjectId,
   })
 
-  // Set breadcrumbs
+  // ব্রেডক্রাম্ব সেট করা
   useEffect(() => {
     if (project?.name) {
       useAppStore.getState().setBreadcrumbs([
@@ -1798,14 +1798,14 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
     }
   }, [project?.name])
 
-  // Sync tab from prop changes
+  // প্রপ পরিবর্তন থেকে ট্যাব সিঙ্ক
   const [prevActiveTab, setPrevActiveTab] = useState(activeTab)
   if (activeTab && activeTab !== prevActiveTab) {
     setTab(activeTab)
     setPrevActiveTab(activeTab)
   }
 
-  // No project ID — show empty state
+  // কোনো প্রকল্প আইডি নেই — ফাঁকা অবস্থা দেখানো হবে
   if (!effectiveProjectId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -1821,7 +1821,7 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
     )
   }
 
-  // Project loading state
+  // প্রকল্প লোডিং অবস্থা
   if (project === undefined) {
     return (
       <div className="space-y-6 p-1">
@@ -1835,7 +1835,7 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
     )
   }
 
-  // Project error state
+  // প্রকল্প ত্রুটি অবস্থা
   if (project === null || (project as any)?.error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -1860,7 +1860,7 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('projects')} className="text-muted-foreground -ml-2">
@@ -1883,7 +1883,7 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
         </div>
       </div>
 
-      {/* Tab Navigation */}
+      {/* ট্যাব নেভিগেশন */}
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
         <ScrollArea className="w-full">
           <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-muted/50 p-1">
@@ -1929,7 +1929,7 @@ export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPagePro
           </TabsList>
         </ScrollArea>
 
-        {/* Tab Contents */}
+        {/* ট্যাব বিষয়বস্তু */}
         <TabsContent value="overview"><OverviewTab projectId={effectiveProjectId} /></TabsContent>
         <TabsContent value="tasks"><TasksTab projectId={effectiveProjectId} /></TabsContent>
         <TabsContent value="timeline"><TimelineTab projectId={effectiveProjectId} /></TabsContent>

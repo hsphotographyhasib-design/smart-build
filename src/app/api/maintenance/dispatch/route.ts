@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Unassigned tickets
+    // অ্যাসাইন করা হয়নি এমন টিকেট
     const unassignedTickets = await db.maintenanceTicket.findMany({
       where: {
         assignedTechnicianId: null,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       take: 50,
     })
 
-    // Emergency tickets
+    // জরুরি টিকেট
     const emergencyTickets = await db.maintenanceTicket.findMany({
       where: {
         priority: 'emergency',
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     })
 
-    // Overdue tickets
+    // অতিরিক্ত সময় অতিক্রান্ত টিকেট
     const overdueTickets = await db.maintenanceTicket.findMany({
       where: {
         status: { not: 'closed' },
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     })
 
-    // Available technicians with locations
+    // অবস্থান সহ উপলব্ধ টেকনিশিয়ান
     const technicians = await db.technicianProfile.findMany({
       where: { availabilityStatus: 'available' },
       include: {

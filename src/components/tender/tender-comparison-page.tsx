@@ -19,12 +19,12 @@ import {
   ArrowLeft, Download, Trophy, TrendingDown, TrendingUp, Star, Target, Award, Eye, DollarSign,
 } from 'lucide-react'
 
-// ─── Props ───
+// ─── প্রপস ───
 interface TenderComparisonPageProps {
   packageId: string
 }
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface VendorBid {
   vendorId: string
   vendorName: string
@@ -60,7 +60,7 @@ interface ComparisonData {
   bestValueVendorId: string
 }
 
-// ─── Component ───
+// ─── উপাদান ───
 export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
   const { navigate } = useAppStore()
   const { formatCurrency } = useFormat()
@@ -76,17 +76,17 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
   const handleExport = () => {
     if (!comparison) return
     toast.info('Exporting comparison data...')
-    // CSV export logic
+    // CSV রপ্তানি যুক্তি
     const vendors = comparison.vendors || []
     const items = comparison.items || []
 
     const headers = ['Criteria', ...vendors.map(v => v.vendorName)]
     const rows: string[][] = []
 
-    // Header row
+    // হেডার সারি
     rows.push(headers)
 
-    // Bid amounts per item
+    // প্রতিটি আইটেমের জন্য দরপত্রের পরিমাণ
     items.forEach(item => {
       const row: string[] = [item.description]
       vendors.forEach(v => {
@@ -96,7 +96,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
       rows.push(row)
     })
 
-    // Summary rows
+    // সারসংক্ষেপ সারিসমূহ
     const summaryRows = [
       { label: 'Bid Amount', key: 'bidAmount', format: true },
       { label: 'Technical Score', key: 'technicalScore', format: false },
@@ -130,7 +130,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
     toast.success('Comparison exported successfully')
   }
 
-  // Computed highlights
+  // গণনাকৃত হাইলাইট
   const vendors = comparison?.vendors || []
   const items = comparison?.items || []
 
@@ -165,7 +165,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-3">
           <Button variant="outline" size="icon" className="mt-0.5" onClick={() => navigate('tender-detail', { packageId })}>
@@ -199,9 +199,9 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
         </Card>
       ) : (
         <>
-          {/* ─── Summary Cards ─── */}
+          {/* ─── সারসংক্ষেপ কার্ড ─── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Lowest Bid */}
+            {/* সর্বনিম্ন দরপত্র */}
             <Card className="border-emerald-200 bg-emerald-50/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -215,7 +215,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
               </CardContent>
             </Card>
 
-            {/* Highest Score */}
+            {/* সর্বোচ্চ স্কোর */}
             <Card className="border-amber-200 bg-amber-50/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -229,7 +229,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
               </CardContent>
             </Card>
 
-            {/* Best Value */}
+            {/* সেরা মূল্য */}
             <Card className="border-violet-200 bg-violet-50/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -244,7 +244,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
             </Card>
           </div>
 
-          {/* ─── Item-by-Item Comparison ─── */}
+          {/* ─── আইটেম-ভিত্তিক তুলনা ─── */}
           {items.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
@@ -268,7 +268,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                       </TableHeader>
                       <TableBody>
                         {items.map((item) => {
-                          // Find lowest total for this item
+                          // এই আইটেমের জন্য সর্বনিম্ন মোট খুঁজুন
                           const itemPrices = vendors.map(v => item.totals?.[v.vendorId] ?? Infinity).filter(p => p !== Infinity)
                           const itemLowest = itemPrices.length > 0 ? Math.min(...itemPrices) : Infinity
 
@@ -289,7 +289,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                             </TableRow>
                           )
                         })}
-                        {/* Item Totals Row */}
+                        {/* আইটেম মোট সারি */}
                         <TableRow className="bg-muted/30 font-bold">
                           <TableCell className="text-xs sticky left-0 bg-muted/30">Item Total</TableCell>
                           <TableCell />
@@ -312,7 +312,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
             </Card>
           )}
 
-          {/* ─── Overall Comparison Matrix ─── */}
+          {/* ─── সামগ্রিক তুলনা ম্যাট্রিক্স ─── */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Overall Comparison Matrix</CardTitle>
@@ -332,7 +332,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {/* Bid Amount */}
+                      {/* দরপত্রের পরিমাণ */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium flex items-center gap-1.5">
                           <DollarSign className="h-3.5 w-3.5 text-muted-foreground" /> Bid Amount
@@ -350,7 +350,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Technical Score */}
+                      {/* প্রযুক্তিগত স্কোর */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium flex items-center gap-1.5">
                           <Target className="h-3.5 w-3.5 text-muted-foreground" /> Technical Score
@@ -368,7 +368,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Commercial Score */}
+                      {/* বাণিজ্যিক স্কোর */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium flex items-center gap-1.5">
                           <DollarSign className="h-3.5 w-3.5 text-muted-foreground" /> Commercial Score
@@ -386,7 +386,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Combined Score */}
+                      {/* সম্মিলিত স্কোর */}
                       <TableRow className="bg-amber-50/30">
                         <TableCell className="text-xs sticky left-0 bg-amber-50/30 font-bold flex items-center gap-1.5">
                           <Award className="h-3.5 w-3.5 text-amber-600" /> Combined Score
@@ -406,7 +406,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
 
                       <Separator className="col-span-full" />
 
-                      {/* Lead Time */}
+                      {/* লিড টাইম */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium">Lead Time</TableCell>
                         {vendors.map(v => {
@@ -419,7 +419,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Warranty */}
+                      {/* ওয়ারেন্টি */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium">Warranty</TableCell>
                         {vendors.map(v => (
@@ -427,7 +427,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         ))}
                       </TableRow>
 
-                      {/* Experience Rating */}
+                      {/* অভিজ্ঞতা রেটিং */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium flex items-center gap-1.5">
                           <Star className="h-3.5 w-3.5 text-amber-500" /> Experience Rating
@@ -450,7 +450,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Compliance Score */}
+                      {/* সম্মতি স্কোর */}
                       <TableRow>
                         <TableCell className="text-xs sticky left-0 bg-background font-medium">Compliance Score</TableCell>
                         {vendors.map(v => {
@@ -468,7 +468,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
 
                       <Separator className="col-span-full" />
 
-                      {/* Ranking */}
+                      {/* র‍্যাংকিং */}
                       <TableRow className="bg-violet-50/30">
                         <TableCell className="text-xs sticky left-0 bg-violet-50/30 font-bold flex items-center gap-1.5">
                           <Trophy className="h-3.5 w-3.5 text-violet-600" /> Ranking
@@ -494,7 +494,7 @@ export function TenderComparisonPage({ packageId }: TenderComparisonPageProps) {
                         })}
                       </TableRow>
 
-                      {/* Budget Comparison */}
+                      {/* বাজেট তুলনা */}
                       <TableRow className="bg-muted/20">
                         <TableCell className="text-xs sticky left-0 bg-muted/20 font-medium">
                           Budget Variance

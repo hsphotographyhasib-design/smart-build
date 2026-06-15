@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { projectId, retentionPercent = 10, lineItems = [] } = body
 
-    // Check budget doesn't already exist for this project
+    // এই প্রজেক্টের জন্য ইতিমধ্যে বাজেট আছে কিনা যাচাই করা হচ্ছে
     const existing = await db.budget.findUnique({ where: { projectId } })
     if (existing) {
       return NextResponse.json({ success: false, error: 'Budget already exists for this project' }, { status: 400 })

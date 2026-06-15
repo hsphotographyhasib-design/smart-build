@@ -101,7 +101,7 @@ export function WhatsAppMessageBubble({ message, onReply, onStar, onImageClick }
             : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-md border border-gray-100 dark:border-gray-700'
         )}
       >
-        {/* Sender name for agent messages */}
+        {/* এজেন্ট বার্তার জন্য প্রেরকের নাম */}
         {!isOutgoing && message.senderType === 'agent' && message.sentBy && (
           <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 mb-0.5">
             {message.sentBy.name} (Agent)
@@ -113,7 +113,7 @@ export function WhatsAppMessageBubble({ message, onReply, onStar, onImageClick }
           </p>
         )}
 
-        {/* Reply context */}
+        {/* উত্তরের প্রেক্ষাপট */}
         {replyToMessage && (
           <div className={cn(
             'mb-1.5 px-2.5 py-1.5 rounded-lg border-l-2 text-xs cursor-pointer',
@@ -132,10 +132,10 @@ export function WhatsAppMessageBubble({ message, onReply, onStar, onImageClick }
           </div>
         )}
 
-        {/* Message content */}
+        {/* বার্তার বিষয়বস্তু */}
         {renderMessageContent(message, onImageClick)}
 
-        {/* Footer: time, status, star */}
+        {/* ফুটার: সময়, স্ট্যাটাস, তারকা */}
         <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
           <span className="text-[10px] text-gray-500 dark:text-gray-400">
             {formatTime(message.createdAt)}
@@ -156,7 +156,7 @@ export function WhatsAppMessageBubble({ message, onReply, onStar, onImageClick }
           )}
         </div>
 
-        {/* Hover actions */}
+        {/* হোভার কার্যকলাপ */}
         <div className={cn(
           'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5',
           isOutgoing ? 'left-0 -translate-x-full mr-1.5' : 'right-0 translate-x-full ml-1.5'

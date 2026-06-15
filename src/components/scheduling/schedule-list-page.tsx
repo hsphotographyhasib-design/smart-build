@@ -46,7 +46,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface Schedule {
   id: string
   scheduleNo: string
@@ -81,7 +81,7 @@ interface ScheduleListResponse {
   pageSize: number
 }
 
-// ─── Constants ───
+// ─── ধ্রুবক ───
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
   published: { label: 'Published', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -106,7 +106,7 @@ const STATUS_TABS = [
 
 const PAGE_SIZE = 12
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function getHealthColor(score: number): string {
   if (score >= 80) return 'bg-emerald-500'
   if (score >= 60) return 'bg-amber-500'
@@ -119,7 +119,7 @@ function formatDate(dateStr: string | null) {
   return format(parseISO(dateStr), 'dd MMM yyyy')
 }
 
-// ─── Create Schedule Dialog ───
+// ─── সময়সূচি তৈরির ডায়ালগ ───
 function CreateScheduleDialog({ projects }: { projects: ProjectOption[] }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -238,7 +238,7 @@ function CreateScheduleDialog({ projects }: { projects: ProjectOption[] }) {
   )
 }
 
-// ─── Schedule Card View ───
+// ─── সময়সূচি কার্ড দৃশ্য ───
 function ScheduleCard({ schedule, onView, onEdit, onDelete, onPublish, onArchive }: {
   schedule: Schedule
   onView: () => void
@@ -290,7 +290,7 @@ function ScheduleCard({ schedule, onView, onEdit, onDelete, onPublish, onArchive
         </div>
       </div>
 
-      {/* Health Score */}
+      {/* স্বাস্থ্য স্কোর */}
       <div className="mb-3">
         <div className="flex items-center justify-between text-xs mb-1">
           <span className="text-muted-foreground">Health Score</span>
@@ -301,7 +301,7 @@ function ScheduleCard({ schedule, onView, onEdit, onDelete, onPublish, onArchive
         </div>
       </div>
 
-      {/* Completion */}
+      {/* সম্পন্নতা */}
       <div className="mb-3">
         <div className="flex items-center justify-between text-xs mb-1">
           <span className="text-muted-foreground">Completion</span>
@@ -318,7 +318,7 @@ function ScheduleCard({ schedule, onView, onEdit, onDelete, onPublish, onArchive
         </div>
       </div>
 
-      {/* Actions */}
+      {/* কার্যকলাপ */}
       <div className="flex items-center gap-1 pt-2 border-t">
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onView}>
           <Eye className="h-3.5 w-3.5 mr-1" />View
@@ -344,7 +344,7 @@ function ScheduleCard({ schedule, onView, onEdit, onDelete, onPublish, onArchive
   )
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function ScheduleListPage() {
   const { navigate } = useAppStore()
   const [searchQuery, setSearchQuery] = useState('')
@@ -357,7 +357,7 @@ export function ScheduleListPage() {
 
   const queryClient = useQueryClient()
 
-  // Fetch schedules
+  // সময়সূচি আনা
   const { data, isLoading } = useQuery({
     queryKey: [...queryKeys.scheduleList, { search: searchQuery, status: statusFilter, type: typeFilter, project: projectFilter, page }],
     queryFn: () => {
@@ -372,7 +372,7 @@ export function ScheduleListPage() {
     },
   })
 
-  // Fetch projects for dropdowns
+  // ড্রপডাউনের জন্য প্রকল্প আনা
   const { data: projectsData } = useQuery({
     queryKey: ['projects-list-for-schedules'],
     queryFn: () => api.get<ProjectOption[]>('/api/projects?select=id,name,code').then((r) => r.data || []),
@@ -383,7 +383,7 @@ export function ScheduleListPage() {
   const totalPages = Math.ceil(totalSchedules / PAGE_SIZE)
   const projects = projectsData || []
 
-  // Delete mutation
+  // মুছে ফেলা মিউটেশন
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.del(`/api/schedules/${id}`),
     onSuccess: () => {
@@ -394,7 +394,7 @@ export function ScheduleListPage() {
     onError: () => toast.error('Failed to delete schedule'),
   })
 
-  // Publish mutation
+  // প্রকাশ মিউটেশন
   const publishMutation = useMutation({
     mutationFn: (id: string) => api.put(`/api/schedules/${id}`, { status: 'published' }),
     onSuccess: () => {
@@ -404,7 +404,7 @@ export function ScheduleListPage() {
     onError: () => toast.error('Failed to publish schedule'),
   })
 
-  // Archive mutation
+  // আর্কাইভ মিউটেশন
   const archiveMutation = useMutation({
     mutationFn: (id: string) => api.put(`/api/schedules/${id}`, { status: 'archived' }),
     onSuccess: () => {
@@ -416,7 +416,7 @@ export function ScheduleListPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* ─── Header ─── */}
+      {/* ─── হেডার ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Schedules</h1>
@@ -427,9 +427,9 @@ export function ScheduleListPage() {
         <CreateScheduleDialog projects={projects} />
       </div>
 
-      {/* ─── Toolbar ─── */}
+      {/* ─── টুলবার ─── */}
       <div className="space-y-4">
-        {/* Status Tabs */}
+        {/* স্ট্যাটাস ট্যাব */}
         <div className="flex items-center gap-1 bg-muted rounded-lg p-1 overflow-x-auto">
           {STATUS_TABS.map((tab) => (
             <button
@@ -445,7 +445,7 @@ export function ScheduleListPage() {
           ))}
         </div>
 
-        {/* Filters */}
+        {/* ফিল্টারসমূহ */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -496,7 +496,7 @@ export function ScheduleListPage() {
         </div>
       </div>
 
-      {/* ─── Content ─── */}
+      {/* ─── বিষয়বস্তু ─── */}
       {isLoading ? (
         <div className={cn('grid gap-4', viewMode === 'card' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : '')}>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -531,7 +531,7 @@ export function ScheduleListPage() {
             ))}
           </div>
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
@@ -641,7 +641,7 @@ export function ScheduleListPage() {
             </Table>
           </Card>
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
@@ -669,7 +669,7 @@ export function ScheduleListPage() {
         </>
       )}
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

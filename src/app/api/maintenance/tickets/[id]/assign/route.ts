@@ -32,12 +32,12 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Technician is ${technician.availabilityStatus}` }, { status: 400 })
     }
 
-    // Check if technician has capacity
+    // টেকনিশিয়ানের ধারণক্ষমতা আছে কিনা যাচাই করা হচ্ছে
     if (technician.totalActiveJobs >= technician.maxJobsPerDay) {
       return NextResponse.json({ success: false, error: 'Technician has reached maximum jobs capacity' }, { status: 400 })
     }
 
-    // Update ticket
+    // টিকেট আপডেট করা হচ্ছে
     const updatedTicket = await db.maintenanceTicket.update({
       where: { id },
       data: {
@@ -55,13 +55,13 @@ export async function POST(
       },
     })
 
-    // Update technician active jobs
+    // টেকনিশিয়ানের সক্রিয় কাজ আপডেট করা হচ্ছে
     await db.technicianProfile.update({
       where: { id: technicianId },
       data: { totalActiveJobs: { increment: 1 } },
     })
 
-    // Create timeline entry
+    // টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     await db.maintenanceTimeline.create({
       data: {
         ticketId: id,

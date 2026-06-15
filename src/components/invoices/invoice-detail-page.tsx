@@ -33,7 +33,7 @@ import {
   MessageSquare, GitBranch, CreditCard, Banknote, ChevronRight,
 } from 'lucide-react'
 
-// ─── Config Maps ───
+// ─── কনফিগারেশন ম্যাপ ───
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
   pending_review: { label: 'Pending Review', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -67,7 +67,7 @@ const actionIcons: Record<string, React.ElementType> = {
   submitted: Send, approved: CheckCircle, rejected: XCircle, returned: RotateCcw, escalated: ArrowUpCircle,
 }
 
-// ─── Component ───
+// ─── উপাদান ───
 export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
   const { navigate, user } = useAppStore()
   const { formatCurrency, formatDate, formatDateTime } = useFormat()
@@ -86,14 +86,14 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
   const [delegateUserId, setDelegateUserId] = useState('')
   const [comment, setComment] = useState('')
 
-  // Payment form
+  // অর্থ প্রদান ফর্ম
   const [payForm, setPayForm] = useState({ amount: 0, method: 'bank_transfer', reference: '', bankReference: '', chequeNumber: '' })
-  // Retention form
+  // ধারণ সংরক্ষণ ফর্ম
   const [retForm, setRetForm] = useState({ amount: 0, reference: '' })
-  // Document form
+  // নথি ফর্ম
   const [docForm, setDocForm] = useState({ fileName: '', fileType: '', fileSize: '', category: 'invoice', fileUrl: '' })
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const { data: invData, isLoading } = useQuery({
     queryKey: queryKeys.invoiceDetail(invoiceId),
     queryFn: () => api.get<any>(`/api/invoicing/${invoiceId}`),
@@ -122,7 +122,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
   const comments = commentsData?.data || []
   const documents = docsData?.data || []
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const submitMutation = useMutation({
     mutationFn: () => api.post(`/api/invoicing/${invoiceId}/submit`),
     onSuccess: () => { toast.success('Invoice submitted for approval'); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
@@ -214,7 +214,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-3">
           <Button variant="ghost" size="icon" className="mt-0.5" onClick={() => navigate('invoice-management')}>
@@ -260,7 +260,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap">
           <TabsTrigger value="details">Details</TabsTrigger>
@@ -271,9 +271,9 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           <TabsTrigger value="documents">Documents ({documents.length})</TabsTrigger>
         </TabsList>
 
-        {/* ─── Details Tab ─── */}
+        {/* ─── বিস্তারিত ট্যাব ─── */}
         <TabsContent value="details" className="space-y-6 mt-4">
-          {/* Invoice Info */}
+          {/* ইনভয়েস তথ্য */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Invoice Information</CardTitle>
@@ -296,7 +296,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
             </CardContent>
           </Card>
 
-          {/* Financial Summary */}
+          {/* আর্থিক সারসংক্ষেপ */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Financial Summary</CardTitle>
@@ -314,7 +314,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                 </div>
               </div>
 
-              {/* Progress billing table */}
+              {/* অগ্রগতি বিলিং টেবিল */}
               {inv.type === 'progress_claim' && inv.progressBilling && (
                 <div className="mt-6 rounded-lg border overflow-hidden">
                   <Table>
@@ -348,7 +348,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
             </CardContent>
           </Card>
 
-          {/* Line Items */}
+          {/* লাইন আইটেমসমূহ */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Line Items</CardTitle>
@@ -403,7 +403,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           </Card>
         </TabsContent>
 
-        {/* ─── Payments Tab ─── */}
+        {/* ─── অর্থ প্রদান ট্যাব ─── */}
         <TabsContent value="payments" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -442,7 +442,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           </Card>
         </TabsContent>
 
-        {/* ─── Retention Tab ─── */}
+        {/* ─── ধারণ সংরক্ষণ ট্যাব ─── */}
         <TabsContent value="retention" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card>
@@ -482,7 +482,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           </Card>
         </TabsContent>
 
-        {/* ─── Approval History Tab ─── */}
+        {/* ─── অনুমোদন ইতিহাস ট্যাব ─── */}
         <TabsContent value="approval" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -498,7 +498,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                     const IconComp = actionIcons[step.action] || Clock
                     return (
                       <div key={step.id || idx} className="flex gap-4 pb-6">
-                        {/* Line + icon */}
+                        {/* রেখা + আইকন */}
                         <div className="flex flex-col items-center">
                           <div className={cn(
                             'p-2 rounded-full z-10',
@@ -511,7 +511,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                           </div>
                           {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
                         </div>
-                        {/* Content */}
+                        {/* বিষয়বস্তু */}
                         <div className="flex-1 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm">{step.action?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
@@ -540,7 +540,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           </Card>
         </TabsContent>
 
-        {/* ─── Comments Tab ─── */}
+        {/* ─── মন্তব্য ট্যাব ─── */}
         <TabsContent value="comments" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -563,7 +563,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                             <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
                           </div>
                           <p className="text-sm mt-1">{c.content || c.text || c.body || ''}</p>
-                          {/* Replies */}
+                          {/* উত্তরসমূহ */}
                           {c.replies && c.replies.length > 0 && (
                             <div className="ml-4 mt-3 space-y-3 border-l-2 border-muted pl-3">
                               {c.replies.map((r: any, ri: number) => (
@@ -586,7 +586,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                   </div>
                 )}
               </ScrollArea>
-              {/* Add comment */}
+              {/* মন্তব্য যোগ */}
               <div className="flex gap-2 pt-2">
                 <Input value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." className="flex-1" onKeyDown={e => e.key === 'Enter' && comment.trim() && addCommentMutation.mutate({ content: comment })} />
                 <Button onClick={() => comment.trim() && addCommentMutation.mutate({ content: comment })} disabled={addCommentMutation.isPending || !comment.trim()}>Send</Button>
@@ -595,7 +595,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
           </Card>
         </TabsContent>
 
-        {/* ─── Documents Tab ─── */}
+        {/* ─── নথিপত্র ট্যাব ─── */}
         <TabsContent value="documents" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -630,7 +630,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
                 </Table>
               )}
 
-              {/* Quick add document (metadata only) */}
+              {/* দ্রুত নথি যোগ (শুধুমাত্র মেটাডেটা) */}
               <Separator className="my-4" />
               <h4 className="text-sm font-semibold mb-3">Add Document Reference</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -654,7 +654,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </TabsContent>
       </Tabs>
 
-      {/* ─── Reject Dialog ─── */}
+      {/* ─── প্রত্যাখ্যান ডায়ালগ ─── */}
       <Dialog open={rejectDialog} onOpenChange={setRejectDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Reject Invoice</DialogTitle><DialogDescription>Provide a reason for rejection.</DialogDescription></DialogHeader>
@@ -666,7 +666,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Return Dialog ─── */}
+      {/* ─── ফেরত ডায়ালগ ─── */}
       <Dialog open={returnDialog} onOpenChange={setReturnDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Return for Revision</DialogTitle><DialogDescription>Provide instructions for revision.</DialogDescription></DialogHeader>
@@ -678,7 +678,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Delegate Dialog ─── */}
+      {/* ─── প্রতিনিধি ডায়ালগ ─── */}
       <Dialog open={delegateDialog} onOpenChange={setDelegateDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Delegate Invoice</DialogTitle><DialogDescription>Assign this invoice to another user for review.</DialogDescription></DialogHeader>
@@ -693,7 +693,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Record Payment Dialog ─── */}
+      {/* ─── অর্থ প্রদান রেকর্ড ডায়ালগ ─── */}
       <Dialog open={paymentDialog} onOpenChange={setPaymentDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Record Payment</DialogTitle><DialogDescription>Record a payment for this invoice.</DialogDescription></DialogHeader>
@@ -739,7 +739,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Release Retention Dialog ─── */}
+      {/* ─── ধারণ সংরক্ষণ মুক্তি ডায়ালগ ─── */}
       <Dialog open={retentionDialog} onOpenChange={setRetentionDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Release Retention</DialogTitle><DialogDescription>Release retention amount for this invoice.</DialogDescription></DialogHeader>
@@ -761,7 +761,7 @@ export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Delete Dialog ─── */}
+      {/* ─── মুছে ফেলার ডায়ালগ ─── */}
       <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

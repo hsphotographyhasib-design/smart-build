@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     switch (type) {
       case 'project-pl': {
-        // Project P&L
+        // প্রকল্প P&L
         const projects = await db.project.findMany({
           where: { status: { in: ['active', 'completed'] } },
           include: {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'income-expense': {
-        // Income & Expense summary
+        // আয় ও ব্যয় সারসংক্ষেপ
         const payments = await db.payment.findMany({
           where: { date: { gte: startDate, lte: endDate }, status: 'completed' },
         })
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'labour': {
-        // Labour Report
+        // শ্রমিক প্রতিবেদন
         const groups = await db.labourGroup.findMany({
           where: { isActive: true },
           include: {
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'attendance': {
-        // Attendance Report
+        // উপস্থিতি প্রতিবেদন
         const attendance = await db.attendance.findMany({
           where: { date: { gte: startDate, lte: endDate } },
           include: {
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'material': {
-        // Material Report
+        // উপকরণ প্রতিবেদন
         const materials = await db.material.findMany({
           include: {
             stockMovements: {
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'supplier': {
-        // Supplier Report
+        // সরবরাহকারী প্রতিবেদন
         const suppliers = await db.supplier.findMany({
           include: {
             _count: { select: { purchaseOrders: true } },
@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'asset': {
-        // Asset Report
+        // সম্পদ প্রতিবেদন
         const assets = await db.asset.findMany({
           include: {
             _count: { select: { issues: true, maintenance: true } },

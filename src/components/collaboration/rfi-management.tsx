@@ -45,13 +45,13 @@ export function RFIManagement() {
   const [detailId, setDetailId] = useState<string | null>(null)
   const [createForm, setCreateForm] = useState({ projectId: '', title: '', description: '', category: 'general', priority: 'medium', dueDate: '' })
 
-  // Fetch projects for create form
+  // তৈরি ফর্মের জন্য প্রকল্প আনা হচ্ছে
   const { data: projects } = useQuery({
     queryKey: ['projects-list'],
     queryFn: () => api.get('/api/projects'),
   })
 
-  // Fetch all RFIs across projects
+  // সকল প্রকল্প জুড়ে RFI আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['projects-all'],
     queryFn: () => api.get('/api/projects'),
@@ -59,7 +59,7 @@ export function RFIManagement() {
 
   const projectList = projectsData?.data || []
 
-  // Fetch RFIs for each project (we'll combine them)
+  // প্রতিটি প্রকল্পের জন্য RFI আনা হচ্ছে (আমরা সেগুলো সমন্বিত করব)
   const { data: allRfis, isLoading } = useQuery({
     queryKey: ['rfis-all', statusFilter, categoryFilter, search],
     queryFn: async () => {
@@ -88,7 +88,7 @@ export function RFIManagement() {
     enabled: projectList.length > 0,
   })
 
-  // Fetch detail
+  // বিস্তারিত আনা হচ্ছে
   const { data: detailRfi } = useQuery({
     queryKey: ['rfi-detail', detailId],
     queryFn: () => {
@@ -98,7 +98,7 @@ export function RFIManagement() {
     enabled: !!detailId,
   })
 
-  // Get project ID for the detail RFI
+  // বিস্তারিত RFI-এর জন্য প্রকল্প ID প্রাপ্ত হচ্ছে
   const [detailRfiProjectId, setDetailRfiProjectId] = useState<string | null>(null)
 
   const handleOpenDetail = (rfi: any) => {
@@ -106,7 +106,7 @@ export function RFIManagement() {
     setDetailId(rfi.id)
   }
 
-  // Fetch comments
+  // মন্তব্য আনা হচ্ছে
   const { data: rfiComments } = useQuery({
     queryKey: ['rfi-comments', detailId],
     queryFn: () => {

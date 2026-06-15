@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get the current session token
+    // বর্তমান সেশন টোকেন সংগ্রহ করা হচ্ছে
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const now = new Date()
 
     if (allOthers) {
-      // Revoke all sessions for this user except the current one
+      // বর্তমান সেশন ব্যতীত এই ব্যবহারকারীর সকল সেশন বাতিল করা হচ্ছে
       const result = await db.session.updateMany({
         where: {
           userId: user.id,
@@ -64,12 +64,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Revoke specific session IDs (must belong to this user)
+    // নির্দিষ্ট সেশন ID বাতিল করা হচ্ছে (এই ব্যবহারকারীর হতে হবে)
     const result = await db.session.updateMany({
       where: {
         id: { in: sessionIds },
         userId: user.id,
-        token: { not: token }, // Don't allow revoking own current session
+        token: { not: token }, // নিজের বর্তমান সেশন বাতিল করতে দেওয়া হবে না
         revokedAt: null,
       },
       data: {

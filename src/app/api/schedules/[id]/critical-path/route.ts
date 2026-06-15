@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Schedule not found' }, { status: 404 })
     }
 
-    // Fetch all non-summary activities with dependencies
+    // সমস্ত অ-সারসংক্ষেপ কার্যক্রম নির্ভরতাসহ আনা হচ্ছে
     const activities = await db.scheduleActivity.findMany({
       where: { scheduleId: id, taskType: { not: 'summary' } },
       include: {
@@ -56,7 +56,7 @@ export async function GET(
       })
     }
 
-    // Build activity map
+    // কার্যক্রম মানচিত্র তৈরি করা হচ্ছে
     const activityMap = new Map<string, ActivityNode>()
     for (const a of activities) {
       activityMap.set(a.id, {
@@ -86,14 +86,14 @@ export async function GET(
       })
     }
 
-    // Helper: add working days to a date
+    // সহায়ক: একটি তারিখে কার্যদিবস যোগ করা হচ্ছে
     function addDays(date: Date, days: number): Date {
       const result = new Date(date)
       result.setDate(result.getDate() + days)
       return result
     }
 
-    // Helper: max date from array
+    // সহায়ক: অ্যারে থেকে সর্বোচ্চ তারিখ
     function maxDate(dates: Array<Date | null>): Date | null {
       const valid = dates.filter((d): d is Date => d !== null)
       if (valid.length === 0) return null
@@ -106,8 +106,8 @@ export async function GET(
       return valid.reduce((a, b) => (a < b ? a : b))
     }
 
-    // === FORWARD PASS ===
-    // Topological sort using Kahn's algorithm
+    // === সম্মুখগামী পথ ===
+    // কানের অ্যালগরিদম ব্যবহার করে টপোলজিক্যাল সর্ট
     const inDegree = new Map<string, number>()
     for (const [actId] of activityMap) {
       inDegree.set(actId, 0)
@@ -119,7 +119,7 @@ export async function GET(
       }
     }
 
-    // Find start nodes (no predecessors)
+    // প্রারম্ভিক নোড খুঁজে বের করা হচ্ছে (কোনো পূর্বসূরী নেই)
     const startNodes: string[] = []
     for (const [actId, node] of activityMap) {
       if (node.predecessors.length === 0) {
@@ -127,17 +127,17 @@ export async function GET(
       }
     }
 
-    // Set earliest start date
+    // প্রাচীনতম শুরুর তারিখ নির্ধারণ করা হচ্ছে
     const projectStart = schedule.startDate || new Date()
 
-    // Initialize start nodes
+    // প্রারম্ভিক নোড আরম্ভ করা হচ্ছে
     for (const nodeId of startNodes) {
       const node = activityMap.get(nodeId)!
       node.earlyStart = node.startDate || new Date(projectStart)
       node.earlyFinish = addDays(node.earlyStart, node.duration)
     }
 
-    // BFS topological sort for forward pass
+    // সম্মুখগামী পথের জন্য BFS টপোলজিক্যাল সর্ট
     const queue = [...startNodes]
     const visited = new Set<string>()
     for (const n of startNodes) visited.add(n)
@@ -151,16 +151,16 @@ export async function GET(
         const succNode = activityMap.get(succId)
         if (!succNode) continue
 
-        // Calculate constraint based on dependency type
+        // নির্ভরতার ধরন অনুযায়ী সীমাবদ্ধতা গণনা করা হচ্ছে
         let constraintStart: Date | null = null
         switch (succRel.depType) {
-          case 'FS': // Finish-to-Start
+          case 'FS': // সমাপ্তি-থেকে-শুরু
             constraintStart = addDays(currentNode.earlyFinish!, succRel.lagDays)
             break
-          case 'SS': // Start-to-Start
+          case 'SS': // শুরু-থেকে-শুরু
             constraintStart = addDays(currentNode.earlyStart!, succRel.lagDays)
             break
-          case 'FF': // Finish-to-Finish
+          case 'FF': // সমাপ্তি-থেকে-সমাপ্তি
             if (succNode.earlyFinish !== null) {
               const ffConstraint = addDays(currentNode.earlyFinish!, succRel.lagDays)
               const currentDuration = succNode.duration
@@ -168,7 +168,7 @@ export async function GET(
               constraintStart = impliedStart
             }
             break
-          case 'SF': // Start-to-Finish
+          case 'SF': // শুরু-থেকে-সমাপ্তি
             if (succNode.earlyFinish !== null) {
               const sfConstraint = addDays(currentNode.earlyStart!, succRel.lagDays)
               const currentDuration = succNode.duration
@@ -178,7 +178,7 @@ export async function GET(
             break
         }
 
-        // Take the latest of all predecessor constraints
+        // সমস্ত পূর্বসূরী সীমাবদ্ধতার মধ্যে সর্বশেষটি গ্রহণ করা হচ্ছে
         if (constraintStart && succNode.earlyStart) {
           if (constraintStart > succNode.earlyStart) {
             succNode.earlyStart = constraintStart
@@ -187,7 +187,7 @@ export async function GET(
           succNode.earlyStart = constraintStart
         }
 
-        // Recalculate early finish
+        // প্রাচীনতম সমাপ্তি পুনঃগণনা করা হচ্ছে
         if (succNode.earlyStart) {
           succNode.earlyFinish = addDays(succNode.earlyStart, succNode.duration)
         }
@@ -199,14 +199,14 @@ export async function GET(
       }
     }
 
-    // Ensure all nodes have early start/finish
+    // সমস্ত নোডের প্রাচীনতম শুরু/সমাপ্তি নিশ্চিত করা হচ্ছে
     for (const [, node] of activityMap) {
       if (!node.earlyStart) node.earlyStart = node.startDate || new Date(projectStart)
       if (!node.earlyFinish) node.earlyFinish = addDays(node.earlyStart, node.duration)
     }
 
-    // === BACKWARD PASS ===
-    // Find project end (latest early finish)
+    // === পশ্চাৎগামী পথ ===
+    // প্রকল্পের সমাপ্তি খুঁজে বের করা হচ্ছে (সর্বশেষ প্রাচীনতম সমাপ্তি)
     let projectEnd = new Date(0)
     for (const [, node] of activityMap) {
       if (node.earlyFinish && node.earlyFinish > projectEnd) {
@@ -214,7 +214,7 @@ export async function GET(
       }
     }
 
-    // Find end nodes (no successors)
+    // চূড়ান্ত নোড খুঁজে বের করা হচ্ছে (কোনো উত্তরসূরী নেই)
     const endNodes: string[] = []
     for (const [actId, node] of activityMap) {
       if (node.successors.length === 0) {
@@ -222,14 +222,14 @@ export async function GET(
       }
     }
 
-    // Initialize end nodes
+    // চূড়ান্ত নোড আরম্ভ করা হচ্ছে
     for (const nodeId of endNodes) {
       const node = activityMap.get(nodeId)!
       node.lateFinish = new Date(projectEnd)
       node.lateStart = addDays(node.lateFinish, -node.duration)
     }
 
-    // Reverse BFS for backward pass
+    // পশ্চাৎগামী পথের জন্য বিপরীত BFS
     const reverseQueue = [...endNodes]
     const reverseVisited = new Set<string>()
     for (const n of endNodes) reverseVisited.add(n)
@@ -243,7 +243,7 @@ export async function GET(
         const predNode = activityMap.get(predId)
         if (!predNode) continue
 
-        // Calculate constraint based on dependency type
+        // নির্ভরতার ধরন অনুযায়ী সীমাবদ্ধতা গণনা করা হচ্ছে
         let constraintFinish: Date | null = null
         switch (predRel.depType) {
           case 'FS':
@@ -260,7 +260,7 @@ export async function GET(
             break
         }
 
-        // Take the earliest of all successor constraints
+        // সমস্ত উত্তরসূরী সীমাবদ্ধতার মধ্যে সর্বপ্রাচীনটি গ্রহণ করা হচ্ছে
         if (constraintFinish && predNode.lateFinish) {
           if (constraintFinish < predNode.lateFinish) {
             predNode.lateFinish = constraintFinish
@@ -269,7 +269,7 @@ export async function GET(
           predNode.lateFinish = constraintFinish
         }
 
-        // Recalculate late start
+        // সর্বশেষ শুরু পুনঃগণনা করা হচ্ছে
         if (predNode.lateFinish) {
           predNode.lateStart = addDays(predNode.lateFinish, -predNode.duration)
         }
@@ -281,13 +281,13 @@ export async function GET(
       }
     }
 
-    // Ensure all nodes have late start/finish
+    // সমস্ত নোডের সর্বশেষ শুরু/সমাপ্তি নিশ্চিত করা হচ্ছে
     for (const [, node] of activityMap) {
       if (!node.lateFinish) node.lateFinish = new Date(projectEnd)
       if (!node.lateStart) node.lateStart = addDays(node.lateFinish, -node.duration)
     }
 
-    // === CALCULATE FLOAT & MARK CRITICAL PATH ===
+    // === ফ্লোট গণনা ও সমালোচনামূলক পথ চিহ্নিতকরণ ===
     let totalProjectDuration = 0
     const criticalPath: Array<{
       id: string
@@ -302,11 +302,11 @@ export async function GET(
     }> = []
 
     for (const [actId, node] of activityMap) {
-      // Total float = Late Start - Early Start (in days)
+      // মোট ফ্লোট = সর্বশেষ শুরু - প্রাচীনতম শুরু (দিনে)
       const floatMs = node.lateStart!.getTime() - node.earlyStart!.getTime()
       node.totalFloat = Math.round(floatMs / (1000 * 60 * 60 * 24) * 100) / 100
 
-      // Free float = minimum(Early Start of successors - Early Finish of this - lag)
+      // মুক্ত ফ্লোট = সর্বনিম্ন(উত্তরসূরীদের প্রাচীনতম শুরু - এর প্রাচীনতম সমাপ্তি - বিলম্ব)
       let minFreeFloat = Infinity
       for (const succRel of node.successors) {
         const succNode = activityMap.get(succRel.successorId)
@@ -327,7 +327,7 @@ export async function GET(
       }
       node.freeFloat = minFreeFloat === Infinity ? node.totalFloat : Math.round(minFreeFloat * 100) / 100
 
-      // Mark critical path (totalFloat <= 0, with small tolerance)
+      // সমালোচনামূলক পথ চিহ্নিত করা হচ্ছে (totalFloat <= ০, সামান্য সহনশীলতাসহ)
       node.isOnCriticalPath = node.totalFloat <= 0.5
 
       if (node.earlyFinish && node.earlyFinish > new Date(projectStart.getTime() + totalProjectDuration * 24 * 60 * 60 * 1000)) {
@@ -335,7 +335,7 @@ export async function GET(
       }
     }
 
-    // Build ordered critical path
+    // ক্রমান্বিত সমালোচনামূলক পথ তৈরি করা হচ্ছে
     for (const [, node] of activityMap) {
       if (node.isOnCriticalPath) {
         criticalPath.push({
@@ -352,10 +352,10 @@ export async function GET(
       }
     }
 
-    // Sort critical path by early start
+    // প্রাচীনতম শুরু অনুযায়ী সমালোচনামূলক পথ সর্ট করা হচ্ছে
     criticalPath.sort((a, b) => a.earlyStart.getTime() - b.earlyStart.getTime())
 
-    // Update all activities in the database with calculated values
+    // গণনাকৃত মানসহ ডাটাবেসে সমস্ত কার্যক্রম আপডেট করা হচ্ছে
     const updatePromises: Promise<unknown>[] = []
     for (const [actId, node] of activityMap) {
       updatePromises.push(
@@ -376,7 +376,7 @@ export async function GET(
     }
     await Promise.all(updatePromises)
 
-    // Update schedule total duration
+    // সময়সূচির মোট সময়কাল আপডেট করা হচ্ছে
     if (totalProjectDuration > 0) {
       await db.schedule.update({
         where: { id },
@@ -384,7 +384,7 @@ export async function GET(
       })
     }
 
-    // All activities summary
+    // সমস্ত কার্যক্রমের সারসংক্ষেপ
     const allActivitiesSummary = Array.from(activityMap.values()).map((n) => ({
       id: n.id,
       activityId: n.activityId,

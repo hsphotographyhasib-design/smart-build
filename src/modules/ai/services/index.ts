@@ -1,3 +1,3 @@
 // src/modules/ai/services/index.ts
-// AI Module - Services Barrel Export
-// API service functions for AI will be added here
+// AI মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// AI-এর API সার্ভিস ফাংশন এখানে যোগ করা হবে

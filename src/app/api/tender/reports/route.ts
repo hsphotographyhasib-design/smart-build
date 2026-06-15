@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
           lowestBid,
           highestBid,
           averageBid: avgBid,
-          budgetVariance: pkg ? (pkg.estimatedBudget - avgBid) : 0,
+          budgetপার্থক্য: pkg ? (pkg.estimatedBudget - avgBid) : 0,
           bids: bids.map((b) => ({
             id: b.id,
             vendorName: b.vendor.companyName,

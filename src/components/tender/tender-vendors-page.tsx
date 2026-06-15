@@ -159,7 +159,7 @@ export function TenderVendorsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Vendor Database</h1>
@@ -170,7 +170,7 @@ export function TenderVendorsPage() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -211,7 +211,7 @@ export function TenderVendorsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -302,7 +302,7 @@ export function TenderVendorsPage() {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* পেজিনেশন */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-xs text-muted-foreground">
@@ -322,7 +322,7 @@ export function TenderVendorsPage() {
         </CardContent>
       </Card>
 
-      {/* ─── Add Vendor Dialog ─── */}
+      {/* ─── ভেন্ডর যোগ ডায়ালগ ─── */}
       <Dialog open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) setForm(emptyVendorForm()) }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -416,7 +416,7 @@ export function TenderVendorsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── View Vendor Dialog ─── */}
+      {/* ─── ভেন্ডর দেখার ডায়ালগ ─── */}
       <Dialog open={!!viewVendor} onOpenChange={open => { if (!open) setViewVendor(null) }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -429,7 +429,7 @@ export function TenderVendorsPage() {
 
           {detailVendor && (
             <div className="space-y-6">
-              {/* Vendor Info Grid */}
+              {/* ভেন্ডর তথ্য গ্রিড */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -487,7 +487,7 @@ export function TenderVendorsPage() {
 
               <Separator />
 
-              {/* Past Bids */}
+              {/* পূর্ববর্তী দরপত্র */}
               <div>
                 <h3 className="font-semibold text-sm mb-3">Past Bids</h3>
                 {(detailVendor.pastBids || []).length > 0 ? (
@@ -526,7 +526,7 @@ export function TenderVendorsPage() {
                 )}
               </div>
 
-              {/* Awards */}
+              {/* পুরস্কার */}
               <div>
                 <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                   <Trophy className="h-4 w-4 text-amber-500" /> Awards Won ({detailVendor.awards?.length || 0})

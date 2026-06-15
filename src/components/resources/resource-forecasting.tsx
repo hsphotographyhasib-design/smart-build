@@ -18,7 +18,7 @@ import { Users, Wrench, Truck, AlertTriangle, TrendingUp, TrendingDown, ArrowUp,
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Assignment {
@@ -51,7 +51,7 @@ interface ForecastRow {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -65,7 +65,7 @@ function addDays(date: Date, days: number): Date {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function ResourceForecasting() {
@@ -91,32 +91,32 @@ export function ResourceForecasting() {
 
   const forecastDate = useMemo(() => addDays(new Date(), forecastDays), [forecastDays])
 
-  // Calculate forecasts client-side
+  // ক্লায়েন্ট-সাইডে পূর্বাভাস হিসাব করা হচ্ছে
   const forecast = useMemo(() => {
     const activeAssignments = assignments.filter((a) => a.status === 'active')
     const activeProjects = projects.filter((p) => p.status === 'active')
 
-    // Labour
+    // শ্রম
     const labourAssigned = activeAssignments.filter((a) => a.resourceType === 'labour').length
     const labourTotal = labourAssigned + Math.max(5, Math.floor(labourAssigned * 0.3))
     const labourDemand = Math.ceil(labourTotal * (1 + activeProjects.length * 0.1))
 
-    // Equipment
+    // সরঞ্জাম
     const equipmentAssigned = activeAssignments.filter((a) => a.resourceType === 'equipment').length
     const equipmentTotal = equipmentAssigned + Math.max(3, Math.floor(equipmentAssigned * 0.25))
     const equipmentDemand = Math.ceil(equipmentTotal * (1 + activeProjects.length * 0.05))
 
-    // Vehicle
+    // যানবাহন
     const vehicleAssigned = activeAssignments.filter((a) => a.resourceType === 'vehicle').length
     const vehicleTotal = vehicleAssigned + Math.max(2, Math.floor(vehicleAssigned * 0.2))
     const vehicleDemand = Math.ceil(vehicleTotal * (1 + activeProjects.length * 0.03))
 
-    // Tool
+    // সরঞ্জাম
     const toolAssigned = activeAssignments.filter((a) => a.resourceType === 'tool').length
     const toolTotal = toolAssigned + Math.max(10, Math.floor(toolAssigned * 0.5))
     const toolDemand = Math.ceil(toolTotal * (1 + activeProjects.length * 0.04))
 
-    // Subcontractor
+    // উপ-চুক্তিদাতা
     const subAssigned = activeAssignments.filter((a) => a.resourceType === 'subcontractor').length
     const subTotal = subAssigned + Math.max(2, Math.floor(subAssigned * 0.2))
     const subDemand = Math.ceil(subTotal * (1 + activeProjects.length * 0.06))
@@ -177,7 +177,7 @@ export function ResourceForecasting() {
     return rows
   }, [assignments, projects])
 
-  // Demand cards
+  // চাহিদা কার্ড
   const demandCards = useMemo(() => {
     const labourDemand = forecast.find((f) => f.resourceType === 'Labour')
     const equipDemand = forecast.find((f) => f.resourceType === 'Equipment')

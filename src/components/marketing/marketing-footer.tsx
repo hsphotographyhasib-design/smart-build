@@ -57,9 +57,9 @@ export function MarketingFooter() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        {/* Main grid - 5 columns on lg, stacked on mobile */}
+        {/* মূল গ্রিড - lg তে ৫ কলাম, মোবাইলে স্তূপাকৃত */}
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
-          {/* Brand column */}
+          {/* ব্র্যান্ড কলাম */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">
               <div className="relative w-8 h-8 rounded-md bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
@@ -99,7 +99,7 @@ export function MarketingFooter() {
             </div>
           </div>
 
-          {/* Products - desktop */}
+          {/* পণ্য - ডেস্কটপ */}
           <div className="hidden lg:block">
             <h4 className="text-sm font-semibold text-white">Products</h4>
             <ul className="mt-4 space-y-2.5">
@@ -116,7 +116,7 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* Solutions - desktop */}
+          {/* সমাধান - ডেস্কটপ */}
           <div className="hidden lg:block">
             <h4 className="text-sm font-semibold text-white">Solutions</h4>
             <ul className="mt-4 space-y-2.5">
@@ -133,7 +133,7 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* Resources - desktop */}
+          {/* সম্পদ - ডেস্কটপ */}
           <div className="hidden lg:block">
             <h4 className="text-sm font-semibold text-white">Resources</h4>
             <ul className="mt-4 space-y-2.5">
@@ -150,7 +150,7 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* Company - desktop */}
+          {/* কোম্পানি - ডেস্কটপ */}
           <div className="hidden lg:block">
             <h4 className="text-sm font-semibold text-white">Company</h4>
             <ul className="mt-4 space-y-2.5">
@@ -167,7 +167,7 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* Mobile collapsible sections */}
+          {/* মোবাইল সঙ্কুচিত বিভাগ */}
           {mobileSections.map((section) => (
             <div key={section.title} className="lg:hidden">
               <button
@@ -199,7 +199,7 @@ export function MarketingFooter() {
           ))}
         </div>
 
-        {/* Newsletter */}
+        {/* নিউজলেটার */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-8 sm:flex-row">
           <p className="text-sm text-gray-400">
             Subscribe to our newsletter for the latest updates.
@@ -222,7 +222,7 @@ export function MarketingFooter() {
           </form>
         </div>
 
-        {/* Bottom bar */}
+        {/* নিচের বার */}
         <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-8 text-sm text-gray-500 sm:flex-row">
           <p>&copy; 2025 SmartBuild. All rights reserved.</p>
           <div className="flex items-center gap-4">

@@ -41,13 +41,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: 'Comment content is required' }, { status: 400 })
     }
 
-    // Validate invoice exists
+    // ইনভয়েস বিদ্যমান কিনা যাচাই করা হচ্ছে
     const invoice = await db.invoice.findUnique({ where: { id } })
     if (!invoice) {
       return NextResponse.json({ success: false, error: 'Invoice not found' }, { status: 404 })
     }
 
-    // Validate parent comment exists if provided
+    // প্রদান করা হলে প্যারেন্ট মন্তব্য বিদ্যমান কিনা যাচাই করা হচ্ছে
     if (parentId) {
       const parent = await db.invoiceComment.findUnique({
         where: { id: parentId },

@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 /**
- * Debounces a value by the given delay in milliseconds.
- * Only updates the returned value after the delay has passed
- * without the value changing.
+ * প্রদত্ত মিলিসেকেন্ড পর্যন্ত মান ডিবাউন্স করে।
+ * মান পরিবর্তন না হলে প্রদত্ত মান প্রদান করে না।
  */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
@@ -22,9 +21,9 @@ export function useDebounce<T>(value: T, delay: number): T {
 }
 
 /**
- * Returns a debounced version of the given callback.
- * The callback will only fire after the specified delay
- * has elapsed since the last invocation.
+ * প্রদত্ত কলব্যাকের একটি ডিবাউন্সড সংস্করণ প্রদান করা হচ্ছে।
+ * কলব্যাকটি শুধুমাত্র নির্দিষ্ট ডিলে অতিবাহিত হওয়ার
+ * পরে চলানোর পর আগে ফায়ার হবে।
  */
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
@@ -34,12 +33,12 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   const lastArgsRef = useRef<Parameters<T> | null>(null)
   const callbackRef = useRef(callback)
 
-  // Keep callback ref fresh
+  // কলব্যাক রেফ সতেজ রাখা হচ্ছে
   useEffect(() => {
     callbackRef.current = callback
   }, [callback])
 
-  // Cleanup on unmount
+  // আনমাউন্টের সময় পরিষ্কার করা হচ্ছে
   useEffect(() => {
     return () => {
       if (timerRef.current !== null) {

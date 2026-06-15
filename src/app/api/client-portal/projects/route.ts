@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
 
     const where: any = {}
     if (user.role === 'client') {
-      // Client role: ALWAYS filter by their own ID, ignore query param
+      // ক্লায়েন্ট ভূমিকা: সবসময় তাদের নিজের ID দিয়ে ফিল্টার করুন, কুয়েরি প্যারামিটার উপেক্ষা করুন
       where.clientId = user.id
     } else {
-      // Admin/super_admin: allow clientId query param for support purposes
+      // অ্যাডমিন/super_admin: সাপোর্টের জন্য clientId কুয়েরি প্যারামিটার অনুমোদন করুন
       if (clientId) where.clientId = clientId
     }
     if (status) where.status = status
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     })
 
-    // Enrich with computed stats
+    // গণনা করা পরিসংখ্যান সহ সমৃদ্ধ করা হচ্ছে
     const enriched = await Promise.all(
       projects.map(async (project) => {
         const completedTasks = await db.projectTask.count({

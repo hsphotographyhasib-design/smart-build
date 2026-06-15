@@ -30,7 +30,7 @@ import { Search, Users, Eye, Plus, Star, HardHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Labour {
@@ -82,7 +82,7 @@ interface WorkerSkill {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -97,7 +97,7 @@ const proficiencyColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function LabourResources() {
@@ -109,7 +109,7 @@ export function LabourResources() {
   const [viewWorker, setViewWorker] = useState<WorkerWithAssignment | null>(null)
   const [workerSkills, setWorkerSkills] = useState<WorkerSkill[]>([])
 
-  // Skill matching
+  // দক্ষতা মিলান
   const [skillSearch, setSkillSearch] = useState('')
   const [allSkills, setAllSkills] = useState<Skill[]>([])
   const [allWorkerSkills, setAllWorkerSkills] = useState<WorkerSkill[]>([])
@@ -146,7 +146,7 @@ export function LabourResources() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Load skills data
+  // দক্ষতা ডেটা লোড করা হচ্ছে
   useEffect(() => {
     Promise.all([
       api.get<Skill[]>('/api/resources/skills').catch(() => ({ success: false, data: [] })),
@@ -213,7 +213,7 @@ export function LabourResources() {
           toast.success('Skill added!')
           setAddSkillOpen(false)
           setSkillForm({ workerId: '', skillId: '', proficiency: 'intermediate' })
-          // Refresh
+          // রিফ্রেশ
           api.get<WorkerSkill[]>('/api/resources/worker-skills').then((wsRes) => {
             if (wsRes.success && wsRes.data) setAllWorkerSkills(wsRes.data)
           })
@@ -515,7 +515,7 @@ export function LabourResources() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Skill Dialog */}
+      {/* দক্ষতা যোগ ডায়ালগ */}
       <Dialog open={addSkillOpen} onOpenChange={setAddSkillOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Add Worker Skill</DialogTitle></DialogHeader>

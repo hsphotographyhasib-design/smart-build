@@ -131,7 +131,7 @@ export function WhatsAppAssignDialog({
         )}
 
         <div className="space-y-4">
-          {/* Search */}
+          {/* অনুসন্ধান */}
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -142,7 +142,7 @@ export function WhatsAppAssignDialog({
             />
           </div>
 
-          {/* Agent list */}
+          {/* এজেন্ট তালিকা */}
           <ScrollArea className="max-h-60">
             {agentsLoading ? (
               <div className="space-y-2 py-2">
@@ -185,7 +185,7 @@ export function WhatsAppAssignDialog({
             )}
           </ScrollArea>
 
-          {/* Transfer note */}
+          {/* হস্তান্তর নোট */}
           {isTransfer && (
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">Transfer Note (optional)</Label>
@@ -199,7 +199,7 @@ export function WhatsAppAssignDialog({
             </div>
           )}
 
-          {/* Actions */}
+          {/* কার্যকলাপ */}
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSubmitting}>
               Cancel

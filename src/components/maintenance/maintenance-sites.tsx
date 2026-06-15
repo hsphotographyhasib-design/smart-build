@@ -26,7 +26,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useFormat } from '@/hooks/use-format'
 
-// ─── Status helpers ───
+// ─── স্ট্যাটাস সহায়ক ───
 const statusConfig = {
   active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
   inactive: { label: 'Inactive', color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
@@ -58,12 +58,12 @@ export function MaintenanceSites() {
   const [editingSite, setEditingSite] = useState<any>(null)
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null)
 
-  // Filters
+  // ফিল্টারসমূহ
   const [search, setSearch] = useState('')
   const [filterCustomer, setFilterCustomer] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
 
-  // Fetch sites
+  // সাইট আনা
   const { data: sitesData, isLoading } = useQuery({
     queryKey: ['maintenance-sites', search, filterCustomer, filterStatus],
     queryFn: () => {
@@ -77,21 +77,21 @@ export function MaintenanceSites() {
   })
   const sites = sitesData?.data || []
 
-  // Fetch customers for dropdown
+  // ড্রপডাউনের জন্য গ্রাহক আনা
   const { data: customersData } = useQuery({
     queryKey: ['customers'],
     queryFn: () => api.get('/api/customers'),
   })
   const customers = customersData?.data || []
 
-  // Fetch site detail when viewing details
+  // বিস্তারিত দেখার সময় সাইটের বিবরণ আনা
   const { data: siteDetail, isLoading: detailLoading } = useQuery({
     queryKey: ['maintenance-site-detail', selectedSiteId],
     queryFn: () => api.get(`/api/maintenance/sites/${selectedSiteId}`),
     enabled: !!selectedSiteId && detailOpen,
   })
 
-  // Fetch AMC contracts for the customer when viewing details
+  // বিস্তারিত দেখার সময় গ্রাহকের AMC চুক্তি আনা
   const customerOfSite = siteDetail?.data?.customer?.id
   const { data: amcData } = useQuery({
     queryKey: ['maintenance-amc-for-site', customerOfSite],
@@ -105,7 +105,7 @@ export function MaintenanceSites() {
   })
   const amcContracts = amcData?.data || []
 
-  // KPI Stats
+  // KPI পরিসংখ্যান
   const stats = useMemo(() => {
     const total = sites.length
     const active = sites.filter((s: any) => s.isActive).length
@@ -114,7 +114,7 @@ export function MaintenanceSites() {
     return { total, active, withTickets, totalTickets }
   }, [sites])
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/sites', body),
     onSuccess: () => {
@@ -125,7 +125,7 @@ export function MaintenanceSites() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create site', variant: 'destructive' }),
   })
 
-  // Update mutation
+  // আপডেট মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/sites/${id}`, body),
     onSuccess: () => {
@@ -138,7 +138,7 @@ export function MaintenanceSites() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update site', variant: 'destructive' }),
   })
 
-  // Toggle active mutation
+  // সক্রিয় টগল মিউটেশন
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => api.put(`/api/maintenance/sites/${id}`, { isActive }),
     onSuccess: () => {
@@ -160,7 +160,7 @@ export function MaintenanceSites() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Maintenance Sites</h1>
@@ -186,7 +186,7 @@ export function MaintenanceSites() {
         </Dialog>
       </div>
 
-      {/* KPI Stats */}
+      {/* KPI পরিসংখ্যান */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
@@ -242,7 +242,7 @@ export function MaintenanceSites() {
         )}
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -286,7 +286,7 @@ export function MaintenanceSites() {
         </CardContent>
       </Card>
 
-      {/* Sites Table */}
+      {/* সাইট টেবিল */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -408,7 +408,7 @@ export function MaintenanceSites() {
         </CardContent>
       </Card>
 
-      {/* Edit Site Dialog */}
+      {/* সাইট সম্পাদনা ডায়ালগ */}
       <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setEditingSite(null) }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -425,7 +425,7 @@ export function MaintenanceSites() {
         </DialogContent>
       </Dialog>
 
-      {/* Site Details Dialog */}
+      {/* সাইট বিবরণ ডায়ালগ */}
       <Dialog open={detailOpen} onOpenChange={(open) => { setDetailOpen(open); if (!open) setSelectedSiteId(null) }}>
         <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden">
           <DialogHeader>
@@ -453,7 +453,7 @@ export function MaintenanceSites() {
   )
 }
 
-// ─── Create Site Form ───
+// ─── সাইট তৈরির ফর্ম ───
 function CreateSiteForm({ customers, onSubmit, loading }: {
   customers: any[]
   onSubmit: (data: any) => void
@@ -598,7 +598,7 @@ function CreateSiteForm({ customers, onSubmit, loading }: {
   )
 }
 
-// ─── Edit Site Form ───
+// ─── সাইট সম্পাদনার ফর্ম ───
 function EditSiteForm({ site, onSubmit, loading }: {
   site: any
   onSubmit: (data: any) => void
@@ -733,7 +733,7 @@ function EditSiteForm({ site, onSubmit, loading }: {
   )
 }
 
-// ─── Site Details Panel ───
+// ─── সাইট বিবরণ প্যানেল ───
 function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any[] }) {
   const { formatCurrency } = useFormat()
   const tickets = site.tickets || []
@@ -741,7 +741,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
   const totalTickets = site._count?.tickets ?? 0
   const totalPM = site._count?.pmSchedules ?? 0
 
-  // Extract unique assets from tickets
+  // টিকেট থেকে অনন্য সম্পদ বের করা
   const assets = useMemo(() => {
     const assetMap = new Map<string, any>()
     tickets.forEach((t: any) => {
@@ -762,7 +762,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
           <TabsTrigger value="amc" className="flex-1">AMC</TabsTrigger>
         </TabsList>
 
-        {/* Site Info Tab */}
+        {/* সাইট তথ্য ট্যাব */}
         <TabsContent value="info" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InfoField icon={<MapPin className="h-3.5 w-3.5" />} label="Site Code" value={site.code} />
@@ -801,7 +801,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
             </div>
           )}
 
-          {/* Equipment/Assets at Site */}
+          {/* সাইটে সরঞ্জাম/সম্পদ */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
@@ -842,7 +842,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
           </Card>
         </TabsContent>
 
-        {/* Active Tickets Tab */}
+        {/* সক্রিয় টিকেট ট্যাব */}
         <TabsContent value="tickets" className="space-y-4 mt-4">
           {tickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -890,7 +890,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
             </div>
           )}
 
-          {/* Summary stats */}
+          {/* সারসংক্ষেপ পরিসংখ্যান */}
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-3 text-center">
               <p className="text-xs text-muted-foreground">Open</p>
@@ -913,7 +913,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
           </div>
         </TabsContent>
 
-        {/* PM Schedules Tab */}
+        {/* PM সময়সূচি ট্যাব */}
         <TabsContent value="pm" className="space-y-4 mt-4">
           {pmSchedules.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -965,7 +965,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
           )}
         </TabsContent>
 
-        {/* AMC Contracts Tab */}
+        {/* AMC চুক্তি ট্যাব */}
         <TabsContent value="amc" className="space-y-4 mt-4">
           {amcContracts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -1026,7 +1026,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
   )
 }
 
-// ─── Info Field ───
+// ─── তথ্য ক্ষেত্র ───
 function InfoField({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2">

@@ -7,11 +7,11 @@ export interface ParsedUserAgent {
 }
 
 /**
- * Parse a User-Agent string into structured browser, device, and OS info.
+ * User-Agent স্ট্রিং থেকে কাঠামোবদ্ধ ব্রাউজার, ডিভাইস এবং OS তথ্য পার্স করা হচ্ছে।
  *
- * Browser detection order matters: more specific patterns first to avoid
- * false matches (e.g., "Edg/" must be checked before "Chrome/" since Edge
- * includes "Chrome" in its UA string).
+ * ব্রাউজার সনাক্তকরণের ক্রম গুরুত্বপূর্ণ: মিথ্যা মিল এড়াতে প্রথমে নির্দিষ্ট প্যাটার্ন ব্যবহার করতে হবে
+ * (যেমন, "Edg/" কে "Chrome/" এর আগে পরীক্ষা করতে হবে কারণ Edge
+ * এর UA স্ট্রিংয়ে "Chrome" অন্তর্ভুক্ত করে)।
  */
 export function parseUserAgent(ua: string): ParsedUserAgent {
   if (!ua) {
@@ -34,17 +34,17 @@ export function parseUserAgent(ua: string): ParsedUserAgent {
 }
 
 function detectBrowser(ua: string): string {
-  // Samsung Browser must be checked before Chrome (its UA contains "Chrome")
+  // Samsung Browser কে Chrome এর আগে পরীক্ষা করতে হবে (এর UA-তে "Chrome" আছে)
   if (/SamsungBrowser\//i.test(ua)) return 'Samsung Browser'
-  // Edge (Chromium-based) contains "Edg/"
+  // Edge (Chromium-ভিত্তিক) এ "Edg/" আছে
   if (/Edg\//i.test(ua)) return 'Edge'
   // Opera / OPR
   if (/OPR\/|Opera/i.test(ua)) return 'Opera'
   // Firefox
   if (/Firefox\//i.test(ua)) return 'Firefox'
-  // Chrome (must be after Edge/Opera/Samsung which also contain "Chrome")
+  // Chrome (Edge/Opera/Samsung এর পরে হতে হবে যেগুলোতেও "Chrome" আছে)
   if (/Chrome\//i.test(ua)) return 'Chrome'
-  // Safari (must be after Chrome which also contains "Safari")
+  // Safari (Chrome এর পরে হতে হবে যেখানেও "Safari" আছে)
   if (/Safari\//i.test(ua)) return 'Safari'
 
   return 'Unknown'
@@ -70,12 +70,12 @@ function extractBrowserVersion(ua: string): string {
 }
 
 function detectDeviceType(ua: string): 'desktop' | 'mobile' | 'tablet' {
-  // Tablet check (before mobile since tablets may also contain "Mobile")
+  // ট্যাবলেট পরীক্ষা (মোবাইলের আগে কারণ ট্যাবলেটেও "Mobile" থাকতে পারে)
   if (/iPad|Tablet/i.test(ua)) return 'tablet'
-  // Android without "Mobile" is typically a tablet
+  // বিনা "Mobile" সহ Android সাধারণত একটি ট্যাবলেট
   if (/Android(?!.*Mobile)/i.test(ua)) return 'tablet'
 
-  // Mobile
+  // মোবাইল
   if (/Mobile|iPhone|iPod|BlackBerry|IEMobile|Windows Phone/i.test(ua)) {
     return 'mobile'
   }
@@ -99,7 +99,7 @@ function detectOS(ua: string): string {
 }
 
 function extractOSVersion(ua: string): string {
-  // Windows version
+  // Windows সংস্করণ
   const winMatch = ua.match(/Windows NT (\d+[\.\d]*)/i)
   if (winMatch) {
     const versionMap: Record<string, string> = {
@@ -113,19 +113,19 @@ function extractOSVersion(ua: string): string {
     return versionMap[winMatch[1]] || winMatch[1]
   }
 
-  // macOS version
+  // macOS সংস্করণ
   const macMatch = ua.match(/Mac OS X (\d+[._]\d+[._]?\d*)/i)
   if (macMatch) return macMatch[1].replace(/_/g, '.')
 
-  // iOS version
+  // iOS সংস্করণ
   const iosMatch = ua.match(/OS (\d+[._]\d+[._]?\d*)/i)
   if (iosMatch) return iosMatch[1].replace(/_/g, '.')
 
-  // Android version
+  // Android সংস্করণ
   const androidMatch = ua.match(/Android (\d+[\.\d]*)/i)
   if (androidMatch) return androidMatch[1]
 
-  // Linux (no reliable version in UA)
+  // Linux (UA-তে নির্ভরযোগ্য সংস্করণ নেই)
   const linuxMatch = ua.match(/Linux ([^\s;)]+)/i)
   if (linuxMatch) return linuxMatch[1]
 

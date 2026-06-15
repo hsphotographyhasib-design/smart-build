@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/tooltip'
 
 // ─────────────────────────────────────────────────────────────────────
-// STATUS CONFIG
+// স্ট্যাটাস কনফিগারেশন
 // ─────────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
@@ -43,7 +43,7 @@ const STATUS_CONFIG = {
 } as const
 
 // ─────────────────────────────────────────────────────────────────────
-// COMPONENT
+// কম্পোনেন্ট
 // ─────────────────────────────────────────────────────────────────────
 
 export function SessionTimerBadge() {
@@ -61,7 +61,7 @@ export function SessionTimerBadge() {
 
   return (
     <>
-      {/* Desktop badge */}
+      {/* ডেস্কটপ ব্যাজ */}
       <Tooltip>
         <TooltipTrigger asChild>
           <div
@@ -71,7 +71,7 @@ export function SessionTimerBadge() {
               cfg.hover
             )}
           >
-            {/* Status dot */}
+            {/* স্ট্যাটাস ডট */}
             <span className="relative flex h-2 w-2 shrink-0">
               {cfg.pulse && (
                 <span
@@ -89,10 +89,10 @@ export function SessionTimerBadge() {
               />
             </span>
 
-            {/* Clock icon */}
+            {/* ঘড়ি আইকন */}
             <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
 
-            {/* Label + time */}
+            {/* লেবেল + সময় */}
             <span className="text-xs font-mono tracking-tight whitespace-nowrap">
               {cfg.label} {formattedTime}
             </span>
@@ -114,7 +114,7 @@ export function SessionTimerBadge() {
         </TooltipContent>
       </Tooltip>
 
-      {/* Mobile compact badge — dot + time only */}
+      {/* মোবাইল কম্প্যাক্ট ব্যাজ — শুধুমাত্র ডট + সময় */}
       <Tooltip>
         <TooltipTrigger asChild>
           <div
@@ -161,7 +161,7 @@ export function SessionTimerBadge() {
         </TooltipContent>
       </Tooltip>
 
-      {/* ── Idle warning dialog (non-blocking overlay) ──────────── */}
+      {/* ── নিষ্ক্রিয়তা সতর্কতা ডায়ালগ (অ-অবরোধকারী ওভারলে) ──────────── */}
       {showWarning && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-xl border border-orange-200 bg-white p-6 shadow-2xl dark:border-orange-800 dark:bg-zinc-900">

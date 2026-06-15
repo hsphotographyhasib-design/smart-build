@@ -252,7 +252,7 @@ export function SalesInvoicesPage() {
         </Card>
       ) : null}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>New Sales Invoice</DialogTitle></DialogHeader>
@@ -277,7 +277,7 @@ export function SalesInvoicesPage() {
               </div>
             </div>
 
-            {/* Line Items */}
+            {/* লাইন আইটেমসমূহ */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Items</Label>
@@ -333,7 +333,7 @@ export function SalesInvoicesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <Dialog open={!!viewItem} onOpenChange={() => setViewItem(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

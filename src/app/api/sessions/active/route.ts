@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Count active sessions (not revoked, not expired)
+    // সক্রিয় সেশন গণনা করা হচ্ছে (বাতিল নয়, মেয়াদোত্তীর্ণ নয়)
     const [activeCount, idleCount] = await Promise.all([
       db.session.count({
         where: {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Get last 10 login sessions with user info
+    // ব্যবহারকারী তথ্যসহ সর্বশেষ ১০টি লগইন সেশন সংগ্রহ করা হচ্ছে
     const recentLogins = await db.session.findMany({
       where: {
         revokedAt: null,

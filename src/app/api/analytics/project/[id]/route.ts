@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const now = new Date()
 
-    // ===== BUDGET VS ACTUAL =====
+    // ===== বাজেট বনাম প্রকৃত =====
     const budget = project.projectBudget
     const lineItems = budget?.lineItems || []
     const totalBudget = lineItems.reduce((s, li) => s + li.originalBudget, 0) || project.budget
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         : 0,
     }
 
-    // ===== COST BREAKDOWN BY CATEGORY =====
+    // ===== বিভাগ অনুযায়ী খরচ বিশ্লেষণ =====
     const costByCategory: Record<string, number> = {}
     for (const exp of project.expenses) {
       const cat = exp.category || 'Uncategorized'
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
       .sort((a, b) => b.amount - a.amount)
 
-    // Budget by cost code
+    // কস্ট কোড অনুযায়ী বাজেট
     const budgetByCode = lineItems.map(li => ({
       code: li.costCode?.name || 'Uncategorized',
       budget: Math.round(li.originalBudget),
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       variance: Math.round(li.originalBudget - li.actualCost),
     })).sort((a, b) => b.budget - a.budget)
 
-    // ===== TIMELINE PERFORMANCE =====
+    // ===== সময়সূচি কর্মক্ষমতা =====
     const completedTasks = project.tasks.filter(t => t.status === 'completed')
     const overdueTasks = project.tasks.filter(t =>
       t.status !== 'completed' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < now
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       m.status !== 'completed' && m.dueDate && new Date(m.dueDate) < now
     )
 
-    // On-time completion rate
+    // সময়মতো সমাপ্তির হার
     const totalDone = completedTasks.length
     const onTimeDone = completedTasks.filter(t => t.endDate && t.startDate && new Date(t.endDate) <= now).length
     const onTimeRate = totalDone > 0 ? Math.round((onTimeDone / totalDone) * 100) : 100
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       daysRemaining: project.endDate ? Math.max(0, Math.floor((new Date(project.endDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0,
     }
 
-    // ===== RESOURCE UTILIZATION =====
+    // ===== সম্পদ ব্যবহার =====
     const activeAssignments = project.resourceAssignments.filter(ra => ra.status === 'active')
     const resourceUtilization = {
       totalAssignments: project.resourceAssignments.length,
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         : 0,
     }
 
-    // ===== FINANCIAL HEALTH =====
+    // ===== আর্থিক স্বাস্থ্য =====
     const salesInvoices = project.invoices.filter(i => i.type === 'sales')
     const totalInvoiced = salesInvoices.reduce((s, i) => s + i.total, 0)
     const totalCollected = salesInvoices.reduce((s, i) => s + i.paidAmount, 0)
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const grossProfit = totalInvoiced - totalProjectExpenses
     const margin = totalInvoiced > 0 ? Math.round((grossProfit / totalInvoiced) * 100) : 0
 
-    // Financial health score (0-100)
+    // আর্থিক স্বাস্থ্য স্কোর (০-১০০)
     let healthScore = 50
     if (margin > 20) healthScore += 15
     else if (margin > 10) healthScore += 10
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       healthLabel: healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : healthScore >= 40 ? 'Fair' : 'At Risk',
     }
 
-    // ===== RISK INDICATORS =====
+    // ===== ঝুঁকি সূচক =====
     const risks: { type: string; severity: string; description: string; value: number }[] = []
     if (budgetVsActual.burnRate > 90) risks.push({ type: 'budget', severity: 'critical', description: 'Budget burn rate exceeds 90%', value: budgetVsActual.burnRate })
     else if (budgetVsActual.burnRate > 75) risks.push({ type: 'budget', severity: 'warning', description: 'Budget burn rate above 75%', value: budgetVsActual.burnRate })

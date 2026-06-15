@@ -41,7 +41,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface DashboardData {
@@ -104,7 +104,7 @@ interface DashboardData {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number): string {
@@ -144,7 +144,7 @@ function formatLabel(str: string): string {
 }
 
 // ──────────────────────────────────────────
-// Custom Tooltip for Chart
+// চার্টের জন্য কাস্টম টুলটিপ
 // ──────────────────────────────────────────
 
 function ChartTooltip({ active, payload, label }: any) {
@@ -162,7 +162,7 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 // ──────────────────────────────────────────
-// KPI Card
+// KPI কার্ড
 // ──────────────────────────────────────────
 
 interface KpiCardProps {
@@ -203,7 +203,7 @@ function KpiCard({ label, value, icon: Icon, iconBg, iconColor, suffix, subtext,
 }
 
 // ──────────────────────────────────────────
-// Loading Skeletons
+// লোডিং স্কেলিটন
 // ──────────────────────────────────────────
 
 function KpiGridSkeleton() {
@@ -264,7 +264,7 @@ function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number })
 }
 
 // ──────────────────────────────────────────
-// Main Dashboard Page
+// প্রধান ড্যাশবোর্ড পৃষ্ঠা
 // ──────────────────────────────────────────
 
 export function DashboardPage() {
@@ -280,7 +280,7 @@ export function DashboardPage() {
 
   const dashboardData = response?.success ? response.data : null
 
-  // Transform chart data for Recharts
+  // Recharts-এর জন্য চার্ট ডেটা রূপান্তর করা হচ্ছে
   const chartFormatted = useMemo(() => {
     if (!dashboardData?.chartData) return []
     const { months, revenue, expenses } = dashboardData.chartData
@@ -291,7 +291,7 @@ export function DashboardPage() {
     }))
   }, [dashboardData?.chartData])
 
-  // ─── Error State ───
+  // ─── ত্রুটি অবস্থা ───
   if (isError || (response && !response.success)) {
     return (
       <div className="p-6">

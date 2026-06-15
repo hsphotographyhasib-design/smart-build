@@ -61,7 +61,7 @@ const overlayFeatures = [
 ]
 
 // ═══════════════════════════════════════════════════════════════════
-// ANIMATION VARIANTS
+// অ্যানিমেশন ভ্যারিয়্যান্টসমূহ
 // ═══════════════════════════════════════════════════════════════════
 
 const backdropVariants = {
@@ -124,7 +124,7 @@ const tabContentVariants = {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// LOGIN DIALOG
+// লগইন ডায়ালগ
 // ═══════════════════════════════════════════════════════════════════
 
 export function LoginDialog() {
@@ -133,10 +133,10 @@ export function LoginDialog() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Tab state: 'email' or 'whatsapp'
+  // ট্যাব অবস্থা: 'email' অথবা 'whatsapp'
   const [loginTab, setLoginTab] = useState<'email' | 'whatsapp'>('email')
 
-  // WhatsApp OTP state
+  // WhatsApp OTP অবস্থা
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [otpValue, setOtpValue] = useState('')
@@ -218,7 +218,7 @@ export function LoginDialog() {
     <AnimatePresence>
       {showLoginDialog && (
         <>
-          {/* Backdrop */}
+          {/* ব্যাকড্রপ */}
           <motion.div
             variants={backdropVariants}
             initial="initial"
@@ -228,7 +228,7 @@ export function LoginDialog() {
             onClick={() => setShowLoginDialog(false)}
           />
 
-          {/* Dialog Container */}
+          {/* ডায়ালগ কন্টেইনার */}
           <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
             <motion.div
               variants={dialogVariants}
@@ -241,11 +241,11 @@ export function LoginDialog() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* ═══ GLASS EFFECT BASE ═══ */}
+              {/* ═══ গ্লাস ইফেক্ট বেস ═══ */}
               <div className="absolute inset-0 bg-white/[0.98] backdrop-blur-2xl" />
 
               {/* ═══════════════════════════════════════════════
-                  LEFT PANEL — Branded info panel
+                  বাম প্যানেল — ব্র্যান্ডেড তথ্য প্যানেল
               ═══════════════════════════════════════════════ */}
               <div
                 className="absolute inset-y-0 left-0 w-[42%] z-10 hidden md:block"
@@ -253,7 +253,7 @@ export function LoginDialog() {
                   background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
                 }}
               >
-                {/* Grid pattern */}
+                {/* গ্রিড প্যাটার্ন */}
                 <div
                   className="absolute inset-0 opacity-[0.04]"
                   style={{
@@ -264,7 +264,7 @@ export function LoginDialog() {
                   }}
                 />
 
-                {/* Floating shapes */}
+                {/* ভাসমান আকৃতিসমূহ */}
                 <motion.div
                   className="absolute w-28 h-28 rounded-full bg-white/[0.04] blur-sm"
                   style={{ top: '8%', right: '8%' }}
@@ -278,10 +278,10 @@ export function LoginDialog() {
                   transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
                 />
 
-                {/* Radial glow */}
+                {/* রেডিয়াল ঝলক */}
                 <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-amber-500/[0.08] rounded-full blur-[80px] pointer-events-none" />
 
-                {/* Content */}
+                {/* বিষয়বস্তু */}
                 <div className="relative z-10 flex flex-col items-center justify-center h-full px-8 text-center">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.7, y: 15 }}
@@ -317,7 +317,7 @@ export function LoginDialog() {
                     Sign in to manage your projects, maintenance, and operations
                   </motion.p>
 
-                  {/* Features */}
+                  {/* বৈশিষ্ট্যসমূহ */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -343,7 +343,7 @@ export function LoginDialog() {
                     })}
                   </motion.div>
 
-                  {/* Role badges */}
+                  {/* ভূমিকা ব্যাজসমূহ */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -367,10 +367,10 @@ export function LoginDialog() {
               </div>
 
               {/* ═══════════════════════════════════════════════
-                  RIGHT PANEL — Login form
+                  ডান প্যানেল — লগইন ফর্ম
               ═══════════════════════════════════════════════ */}
               <div className="relative z-10 md:pl-[42%]">
-                {/* Close button */}
+                {/* বন্ধ বাটন */}
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -381,7 +381,7 @@ export function LoginDialog() {
                   <X className="w-4 h-4" />
                 </motion.button>
 
-                {/* Form content */}
+                {/* ফর্ম বিষয়বস্তু */}
                 <div className="p-6 sm:p-8">
                   <motion.div
                     variants={staggerContainer}
@@ -389,7 +389,7 @@ export function LoginDialog() {
                     animate="animate"
                     className="space-y-1"
                   >
-                    {/* Logo (mobile only) */}
+                    {/* লোগো (শুধুমাত্র মোবাইলে) */}
                     <motion.div className="flex items-center gap-2.5 mb-4 md:hidden" variants={staggerItem}>
                       <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
                         <SquareIcon className="w-4.5 h-4.5 text-white fill-white" strokeWidth={0} />
@@ -400,7 +400,7 @@ export function LoginDialog() {
                       </div>
                     </motion.div>
 
-                    {/* Heading */}
+                    {/* শিরোনাম */}
                     <motion.h2 className="text-xl font-bold text-slate-900" variants={staggerItem}>
                       Welcome to SmartBuild
                     </motion.h2>
@@ -408,7 +408,7 @@ export function LoginDialog() {
                       Sign in to access your construction workspace
                     </motion.p>
 
-                    {/* Tab switcher */}
+                    {/* ট্যাব সুইচার */}
                     <motion.div
                       className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4"
                       variants={staggerItem}
@@ -450,7 +450,7 @@ export function LoginDialog() {
                         className="space-y-4"
                         noValidate
                       >
-                        {/* Email */}
+                        {/* ইমেইল */}
                         <div className="space-y-1.5">
                           <Label htmlFor="dialog-email" className="text-sm font-medium text-slate-700">
                             Email Address
@@ -482,7 +482,7 @@ export function LoginDialog() {
                           )}
                         </div>
 
-                        {/* Password */}
+                        {/* পাসওয়ার্ড */}
                         <div className="space-y-1.5">
                           <Label htmlFor="dialog-password" className="text-sm font-medium text-slate-700">
                             Password
@@ -524,7 +524,7 @@ export function LoginDialog() {
                           )}
                         </div>
 
-                        {/* Submit */}
+                        {/* জমা দিন */}
                         <motion.div whileTap={{ scale: 0.98 }}>
                           <Button
                             type="submit"
@@ -676,7 +676,7 @@ export function LoginDialog() {
                     )}
                   </AnimatePresence>
 
-                  {/* Divider */}
+                  {/* বিভাজক */}
                   <div className="relative my-5">
                     <Separator className="bg-slate-200" />
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-400 uppercase tracking-wider">
@@ -684,7 +684,7 @@ export function LoginDialog() {
                     </span>
                   </div>
 
-                  {/* Social Login */}
+                  {/* সোশ্যাল লগইন */}
                   <div className="grid grid-cols-2 gap-3">
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Button
@@ -718,7 +718,7 @@ export function LoginDialog() {
                     </motion.div>
                   </div>
 
-                  {/* Footer */}
+                  {/* ফুটার */}
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -730,7 +730,7 @@ export function LoginDialog() {
                 </div>
               </div>
 
-              {/* ═══ CARD BORDER ═══ */}
+              {/* ═══ কার্ড বর্ডার ═══ */}
               <div className="absolute inset-0 rounded-3xl pointer-events-none z-40">
                 <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
                 <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/[0.06]" />

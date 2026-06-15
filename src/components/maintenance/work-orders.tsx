@@ -32,7 +32,7 @@ import {
   ClipboardList, Eye, RefreshCw, Trash2, CalendarDays,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface WorkOrder {
   id: string
   woNo: string
@@ -75,7 +75,7 @@ interface UnworkedTicket {
   status: string
 }
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const statusConfig: Record<string, { label: string; color: string; step: number; icon: any }> = {
   draft: { label: 'Draft', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', step: 0, icon: FileText },
   pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 1, icon: Clock },
@@ -106,7 +106,7 @@ function formatCurrency(val: number) {
   return `$${val.toFixed(0)}`
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function WorkOrders() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -123,7 +123,7 @@ export function WorkOrders() {
   const [statusUpdateOpen, setStatusUpdateOpen] = useState(false)
   const [newStatus, setNewStatus] = useState('')
 
-  // Fetch work orders
+  // ওয়ার্ক অর্ডার আনা
   const { data, isLoading } = useQuery({
     queryKey: ['maintenance-work-orders', statusFilter, customerFilter, technicianFilter, dateFilter],
     queryFn: () => {
@@ -136,7 +136,7 @@ export function WorkOrders() {
     },
   })
 
-  // Fetch un-work-ordered tickets for creation
+  // তৈরির জন্য ওয়ার্ক অর্ডারবিহীন টিকেট আনা
   const { data: ticketsData } = useQuery({
     queryKey: ['unworked-tickets'],
     queryFn: () => api.get<UnworkedTicket[]>('/api/maintenance/tickets?hasWorkOrder=false&status=assigned,accepted,in_progress,completed,verified').then(r => r.data || []),
@@ -145,7 +145,7 @@ export function WorkOrders() {
   const workOrders = data || []
   const unworkedTickets = ticketsData || []
 
-  // Create work order mutation
+  // ওয়ার্ক অর্ডার তৈরি মিউটেশন
   const createWOMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/work-orders', body),
     onSuccess: () => {
@@ -159,7 +159,7 @@ export function WorkOrders() {
     },
   })
 
-  // Update work order mutation
+  // ওয়ার্ক অর্ডার আপডেট মিউটেশন
   const updateWOMutation = useMutation({
     mutationFn: ({ id, ...body }: { id: string; [key: string]: any }) =>
       api.put(`/api/maintenance/work-orders/${id}`, body),
@@ -173,7 +173,7 @@ export function WorkOrders() {
     },
   })
 
-  // Stats
+  // পরিসংখ্যান
   const stats = useMemo(() => {
     const total = workOrders.length
     const pending = workOrders.filter(wo => wo.status === 'pending' || wo.status === 'draft').length
@@ -183,7 +183,7 @@ export function WorkOrders() {
     return { total, pending, inProgress, completed, totalCost }
   }, [workOrders])
 
-  // Unique customers/technicians for filters
+  // ফিল্টারের জন্য অনন্য গ্রাহক/প্রযুক্তিবিদ
   const uniqueCustomers = useMemo(() => {
     const map = new Map<string, string>()
     workOrders.forEach(wo => {
@@ -204,7 +204,7 @@ export function WorkOrders() {
     return Array.from(map.entries())
   }, [workOrders])
 
-  // Search filter
+  // অনুসন্ধান ফিল্টার
   const filtered = useMemo(() => {
     if (!searchQuery) return workOrders
     const q = searchQuery.toLowerCase()
@@ -230,7 +230,7 @@ export function WorkOrders() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -259,7 +259,7 @@ export function WorkOrders() {
         </Dialog>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -328,7 +328,7 @@ export function WorkOrders() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -389,7 +389,7 @@ export function WorkOrders() {
         </CardContent>
       </Card>
 
-      {/* Work Orders Table */}
+      {/* ওয়ার্ক অর্ডার টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -466,12 +466,12 @@ export function WorkOrders() {
                           </TableCell>
                         </TableRow>
 
-                        {/* Expanded Row */}
+                        {/* প্রসারিত সারি */}
                         {isExpanded && (
                           <TableRow>
                             <TableCell colSpan={10} className="bg-muted/20 px-6 py-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {/* Service Info */}
+                                {/* সেবার তথ্য */}
                                 <div>
                                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Info</h4>
                                   <div className="space-y-2 text-sm">
@@ -492,7 +492,7 @@ export function WorkOrders() {
                                   </div>
                                 </div>
 
-                                {/* Service Notes */}
+                                {/* সেবার নোট */}
                                 <div>
                                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Notes</h4>
                                   <p className="text-xs text-muted-foreground max-h-24 overflow-y-auto">
@@ -500,7 +500,7 @@ export function WorkOrders() {
                                   </p>
                                 </div>
 
-                                {/* Cost Summary */}
+                                {/* খরচ সারসংক্ষেপ */}
                                 <div>
                                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Cost Summary</h4>
                                   <div className="space-y-1.5 text-xs">
@@ -524,11 +524,11 @@ export function WorkOrders() {
                                   </div>
                                 </div>
 
-                                {/* Links & Materials */}
+                                {/* লিংক ও উপাদান */}
                                 <div>
                                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Related</h4>
                                   <div className="space-y-2">
-                                    {/* Material Requests */}
+                                    {/* উপাদান অনুরোধ */}
                                     {wo.materialRequests && wo.materialRequests.length > 0 && (
                                       <div>
                                         <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -550,7 +550,7 @@ export function WorkOrders() {
                                       </div>
                                     )}
 
-                                    {/* Photos */}
+                                    {/* ছবিসমূহ */}
                                     {wo.photos && wo.photos.length > 0 && (
                                       <div>
                                         <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -559,7 +559,7 @@ export function WorkOrders() {
                                       </div>
                                     )}
 
-                                    {/* Invoice */}
+                                    {/* ইনভয়েস */}
                                     {wo.invoice && (
                                       <div className="flex items-center gap-1.5 text-xs">
                                         <ExternalLink className="h-3 w-3" />
@@ -586,7 +586,7 @@ export function WorkOrders() {
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
+      {/* বিস্তারিত ডায়ালগ */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh]">
           <DialogHeader>
@@ -600,7 +600,7 @@ export function WorkOrders() {
           {selectedWO && (
             <ScrollArea className="max-h-[60vh] pr-4">
               <div className="space-y-6">
-                {/* Ticket Info */}
+                {/* টিকেট তথ্য */}
                 <div>
                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Ticket Information</h4>
                   <div className="p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
@@ -637,13 +637,13 @@ export function WorkOrders() {
                   </div>
                 </div>
 
-                {/* Service Notes */}
+                {/* সেবার নোট */}
                 <div>
                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Notes</h4>
                   <p className="text-sm">{selectedWO.serviceNotes || 'No service notes recorded'}</p>
                 </div>
 
-                {/* Completion Notes */}
+                {/* সম্পন্নতার নোট */}
                 {selectedWO.completionNotes && (
                   <div>
                     <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Completion Notes</h4>
@@ -653,7 +653,7 @@ export function WorkOrders() {
                   </div>
                 )}
 
-                {/* Cost Breakdown */}
+                {/* খরচ বিশ্লেষণ */}
                 <div>
                   <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Cost Breakdown</h4>
                   <div className="p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
@@ -677,7 +677,7 @@ export function WorkOrders() {
                   </div>
                 </div>
 
-                {/* Material Requests */}
+                {/* উপাদান অনুরোধ */}
                 {selectedWO.materialRequests && selectedWO.materialRequests.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Material Requests</h4>
@@ -697,7 +697,7 @@ export function WorkOrders() {
                   </div>
                 )}
 
-                {/* Photos */}
+                {/* ছবিসমূহ */}
                 {selectedWO.photos && selectedWO.photos.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Photos ({selectedWO.photos.length})</h4>
@@ -711,7 +711,7 @@ export function WorkOrders() {
                   </div>
                 )}
 
-                {/* Invoice */}
+                {/* ইনভয়েস */}
                 {selectedWO.invoice && (
                   <div>
                     <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Invoice</h4>
@@ -743,7 +743,7 @@ export function WorkOrders() {
         </DialogContent>
       </Dialog>
 
-      {/* Status Update Dialog */}
+      {/* স্ট্যাটাস আপডেট ডায়ালগ */}
       <Dialog open={statusUpdateOpen} onOpenChange={setStatusUpdateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -812,7 +812,7 @@ export function WorkOrders() {
   )
 }
 
-// ─── Create Work Order Form ───
+// ─── ওয়ার্ক অর্ডার তৈরির ফর্ম ───
 function CreateWOForm({
   tickets,
   onSubmit,

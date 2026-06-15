@@ -128,7 +128,7 @@ export function TenderDashboard() {
     <div className="space-y-0">
       <h2 className="sr-only">Tender & Bid Management Dashboard</h2>
 
-      {/* ── Top bar ── */}
+      {/* ── শীর্ষ বার ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-[20px] font-medium text-foreground m-0">Dashboard</p>
@@ -154,7 +154,7 @@ export function TenderDashboard() {
         </div>
       ) : (
         <>
-          {/* ═══════ KPI CARDS ═══════ */}
+          {/* ═══════ KPI কার্ড ═══════ */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
             {kpis.map((k) => (
               <div
@@ -179,9 +179,9 @@ export function TenderDashboard() {
             ))}
           </div>
 
-          {/* ═══════ SECTION ROW 1: Pipeline + Activity ═══════ */}
+          {/* ═══════ বিভাগ সারি ১: পাইপলাইন + কার্যকলাপ ═══════ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            {/* ── Tender Pipeline ── */}
+            {/* ── টেন্ডার পাইপলাইন ── */}
             <Card className="border-border/50 bg-card">
               <CardHeader className="p-4 pb-3.5">
                 <CardTitle className="text-[13px] font-medium text-foreground m-0 flex items-center gap-1.5">
@@ -209,7 +209,7 @@ export function TenderDashboard() {
                   )}
                 </div>
 
-                {/* Mini bar chart */}
+                {/* মিনি বার চার্ট */}
                 {(dash?.pipeline?.some((p) => p.count > 0)) && (
                   <div className="flex items-end gap-1 mt-4 h-20 overflow-hidden">
                     {dash.pipeline.map((p, idx) => (
@@ -229,7 +229,7 @@ export function TenderDashboard() {
               </CardContent>
             </Card>
 
-            {/* ── Recent Activity ── */}
+            {/* ── সাম্প্রতিক কার্যকলাপ ── */}
             <Card className="border-border/50 bg-card">
               <CardHeader className="p-4 pb-3.5">
                 <CardTitle className="text-[13px] font-medium text-foreground m-0 flex items-center gap-1.5">
@@ -259,9 +259,9 @@ export function TenderDashboard() {
             </Card>
           </div>
 
-          {/* ═══════ SECTION ROW 2: Upcoming Deadlines + Categories ═══════ */}
+          {/* ═══════ বিভাগ সারি ২: আসন্ন সময়সীমা + বিভাগ ═══════ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            {/* ── Upcoming Deadlines ── */}
+            {/* ── আসন্ন সময়সীমা ── */}
             <Card className="border-border/50 bg-card">
               <CardHeader className="p-4 pb-3.5 flex flex-row items-center justify-between">
                 <CardTitle className="text-[13px] font-medium text-foreground m-0 flex items-center gap-1.5">
@@ -302,7 +302,7 @@ export function TenderDashboard() {
               </CardContent>
             </Card>
 
-            {/* ── Work Categories (Trade breakdown) ── */}
+            {/* ── কাজের বিভাগ (বাণিজ্য বিশ্লেষণ) ── */}
             <Card className="border-border/50 bg-card">
               <CardHeader className="p-4 pb-3.5">
                 <CardTitle className="text-[13px] font-medium text-foreground m-0 flex items-center gap-1.5">
@@ -334,7 +334,7 @@ export function TenderDashboard() {
                   )}
                 </div>
 
-                {/* Vendor stats */}
+                {/* ভেন্ডর পরিসংখ্যান */}
                 <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                   <span className="text-[12px] text-muted-foreground">
                     {dash?.totalVendors ?? 0} vendors · {dash?.vendorParticipationRate ?? 0}% participation
@@ -347,7 +347,7 @@ export function TenderDashboard() {
             </Card>
           </div>
 
-          {/* ═══════ RECENT TENDERS TABLE ═══════ */}
+          {/* ═══════ সাম্প্রতিক টেন্ডার টেবিল ═══════ */}
           <Card className="border-border/50 bg-card">
             <CardHeader className="p-4 pb-3.5 flex flex-row items-center justify-between">
               <CardTitle className="text-[13px] font-medium text-foreground m-0 flex items-center gap-1.5">

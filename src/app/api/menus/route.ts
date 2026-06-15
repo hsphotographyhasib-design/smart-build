@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role') || user.role
 
-    // Fetch groups with items and sub-children, filtered by role
+    // ভূমিকা দ্বারা ফিল্টার করে আইটেম এবং সাব-চাইল্ডসহ গোষ্ঠী সংগ্রহ করা হচ্ছে
     const groups = await db.menuGroup.findMany({
       where: {
         isActive: true,
-        // If not admin, filter by role permissions
+        // প্রশাসক না হলে, ভূমিকা অনুমতি দ্বারা ফিল্টার করা হচ্ছে
         ...(role !== 'admin'
           ? {
               roleAccess: {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       orderBy: { sortOrder: 'asc' },
     })
 
-    // Transform to tree structure
+    // ট্রি কাঠামোতে রূপান্তর করা হচ্ছে
     const tree = groups.map((group) => ({
       id: group.id,
       code: group.code,

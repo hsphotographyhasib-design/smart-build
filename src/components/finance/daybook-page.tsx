@@ -41,7 +41,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface DaybookEntry {
@@ -57,7 +57,7 @@ interface DaybookEntry {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -91,7 +91,7 @@ function formatCategory(cat: string) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loaders
+// স্কেলেটন লোডারসমূহ
 // ──────────────────────────────────────────
 
 function SummarySkeleton() {
@@ -122,7 +122,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create Entry Dialog
+// এন্ট্রি তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function AddEntryDialog() {
@@ -226,7 +226,7 @@ function AddEntryDialog() {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function DaybookPage() {
@@ -246,7 +246,7 @@ export function DaybookPage() {
     },
   })
 
-  // Compute summary from entries
+  // এন্ট্রি থেকে সারসংক্ষেপ গণনা
   const summary = useMemo(() => {
     if (!entries) return { totalIncome: 0, totalExpense: 0, net: 0 }
     const totalIncome = entries.filter((e) => e.type === 'income').reduce((s, e) => s + e.amount, 0)
@@ -256,7 +256,7 @@ export function DaybookPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Day Book</h1>
@@ -267,7 +267,7 @@ export function DaybookPage() {
         <AddEntryDialog />
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       {isLoading ? (
         <SummarySkeleton />
       ) : (
@@ -316,7 +316,7 @@ export function DaybookPage() {
         </div>
       )}
 
-      {/* Toolbar */}
+      {/* টুলবার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -347,7 +347,7 @@ export function DaybookPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -408,7 +408,7 @@ export function DaybookPage() {
                     <TableCell className="hidden md:table-cell">{getStatusBadge(entry.status)}</TableCell>
                   </TableRow>
                 ))}
-                {/* Totals Row */}
+                {/* মোট সারি */}
                 {entries && entries.length > 0 && (
                   <TableRow className="bg-muted/50 font-bold">
                     <TableCell colSpan={4} className="text-right text-sm">Net</TableCell>

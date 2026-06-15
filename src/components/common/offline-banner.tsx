@@ -7,7 +7,7 @@ export function OfflineBanner() {
   const [isOffline, setIsOffline] = useState<boolean | null>(null)
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Subscribe to online/offline events; set state only in event callbacks
+  // অনলাইন/অফলাইন ইভেন্টে সাবস্ক্রাইব করা হচ্ছে; শুধুমাত্র ইভেন্ট কলব্যাকে অবস্থা সেট করা হচ্ছে
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false)
@@ -21,8 +21,8 @@ export function OfflineBanner() {
       setIsOffline(true)
     }
 
-    // Set initial state via the current navigator value passed through a timer
-    // to avoid synchronous setState in the effect body
+    // একটি টাইমারের মাধ্যমে বর্তমান নেভিগেটর মান দিয়ে প্রাথমিক অবস্থা সেট করা হচ্ছে
+    // ইফেক্ট বডিতে সিঙ্ক্রোনাস setState এড়াতে
     const initTimer = setTimeout(() => {
       setIsOffline(!navigator.onLine)
     }, 0)
@@ -40,7 +40,7 @@ export function OfflineBanner() {
     }
   }, [])
 
-  // Don't render anything while initializing or when online
+  // ইনিশিয়ালাইজ করার সময় বা অনলাইন থাকলে কিছুই রেন্ডার করবেন না
   if (isOffline === null || !isOffline) return null
 
   return (

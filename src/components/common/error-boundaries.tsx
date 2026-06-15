@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 // ---------------------------------------------------------------------------
-// Types
+// ধরন
 // ---------------------------------------------------------------------------
 
 interface ErrorBoundaryProps {
@@ -23,10 +23,10 @@ interface ErrorBoundaryState {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ---------------------------------------------------------------------------
 
-/** Strip anything that looks like a file path or internal detail from error messages. */
+/** ত্রুটি বার্তা থেকে ফাইল পাথ বা অভ্যন্তরীণ বিবরণের মতো যেকোনো কিছু সরিয়ে ফেলা হচ্ছে। */
 function sanitizeError(message: string): string {
   return message
     .replace(/at\s+[\w$]+.*\n?/g, '')
@@ -36,7 +36,7 @@ function sanitizeError(message: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// 1. ErrorBoundary – Generic class-component wrapper
+// ১. ErrorBoundary – সাধারণ ক্লাস-কম্পোনেন্ট র‍্যাপার
 // ---------------------------------------------------------------------------
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback takes priority
+      // কাস্টম ফলব্যাক অগ্রাধিকার পায়
       if (this.props.fallback) {
         return this.props.fallback
       }
@@ -106,14 +106,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 // ---------------------------------------------------------------------------
-// 2. PageErrorBoundary – Full-page centered error UI
+// ২. PageErrorBoundary – পূর্ণ পৃষ্ঠা কেন্দ্রিক ত্রুটি UI
 // ---------------------------------------------------------------------------
 
 export function PageErrorBoundary({ children }: { children: ReactNode }) {
   return <PageErrorBoundaryClass>{children}</PageErrorBoundaryClass>
 }
 
-// Re-export the class as a named component for direct usage with full-page UI
+// সরাসরি পূর্ণ পৃষ্ঠা UI ব্যবহারের জন্য ক্লাসটি নামীয় কম্পোনেন্ট হিসেবে পুনরায় রপ্তানি করা হচ্ছে
 export class PageErrorBoundaryClass extends Component<
   { children: ReactNode },
   ErrorBoundaryState
@@ -175,7 +175,7 @@ export class PageErrorBoundaryClass extends Component<
 }
 
 // ---------------------------------------------------------------------------
-// 3. SectionErrorBoundary – Compact error card within a section/panel
+// ৩. SectionErrorBoundary – সেকশন/প্যানেলের মধ্যে কমপ্যাক্ট ত্রুটি কার্ড
 // ---------------------------------------------------------------------------
 
 export class SectionErrorBoundary extends Component<
@@ -200,9 +200,9 @@ export class SectionErrorBoundary extends Component<
   }
 
   private handleRetry = () => {
-    // If the consumer provided an onRetry (e.g. refetch data), call it first
+    // যদি ব্যবহারকারী একটি onRetry প্রদান করে (যেমন ডেটা রিফেচ), প্রথমে সেটি কল করুন
     this.props.onRetry?.()
-    // Then reset the boundary state so React re-renders children
+    // তারপর বাউন্ডারি অবস্থা রিসেট করুন যাতে React চাইল্ড্রেন পুনরায় রেন্ডার করে
     this.setState({ hasError: false, error: null })
   }
 

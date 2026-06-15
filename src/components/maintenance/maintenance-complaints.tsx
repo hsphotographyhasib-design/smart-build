@@ -47,7 +47,7 @@ function getStatusBadge(status: string) {
 export function MaintenanceComplaints() {
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* পৃষ্ঠা হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Complaints</h1>
@@ -65,7 +65,7 @@ export function MaintenanceComplaints() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Open', value: '12', color: 'text-blue-600' },
@@ -82,7 +82,7 @@ export function MaintenanceComplaints() {
         ))}
       </div>
 
-      {/* Complaints Table */}
+      {/* অভিযোগ টেবিল */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -1,3 +1,3 @@
 // src/modules/assets/services/index.ts
-// Assets Module - Services Barrel Export
-// API service functions for assets will be added here
+// অ্যাসেট মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// অ্যাসেটের API সার্ভিস ফাংশন এখানে যোগ করা হবে

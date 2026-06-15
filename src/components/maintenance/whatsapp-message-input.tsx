@@ -33,7 +33,7 @@ export function WhatsAppMessageInput({
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastTypingEmit = useRef<number>(0)
 
-  // Auto-resize textarea
+  // টেক্সটএরিয়া স্বয়ংক্রিয়ভাবে আকার পরিবর্তন
   useEffect(() => {
     const ta = textareaRef.current
     if (ta) {
@@ -42,7 +42,7 @@ export function WhatsAppMessageInput({
     }
   }, [text])
 
-  // Focus when replying
+  // উত্তর দেওয়ার সময় ফোকাস
   useEffect(() => {
     if (replyingTo) {
       textareaRef.current?.focus()
@@ -98,7 +98,7 @@ export function WhatsAppMessageInput({
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Max 16MB
+    // সর্বোচ্চ 16MB
     if (file.size > 16 * 1024 * 1024) {
       return
     }
@@ -122,7 +122,7 @@ export function WhatsAppMessageInput({
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2">
-      {/* Reply indicator */}
+      {/* উত্তর সূচক */}
       {replyingTo && (
         <div className="flex items-center gap-2 mb-2 ml-8 pl-2 border-l-2 border-emerald-500 py-1">
           <div className="flex-1 min-w-0">
@@ -139,7 +139,7 @@ export function WhatsAppMessageInput({
         </div>
       )}
 
-      {/* File attachment preview */}
+      {/* ফাইল সংযুক্তি প্রিভিউ */}
       {attachedFile && (
         <div className="flex items-center gap-2 mb-2 ml-8 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           {attachedFile.preview ? (
@@ -159,9 +159,9 @@ export function WhatsAppMessageInput({
         </div>
       )}
 
-      {/* Input row */}
+      {/* ইনপুট সারি */}
       <div className="flex items-end gap-1.5">
-        {/* Attachment button */}
+        {/* সংযুক্তি বাটন */}
         <input
           ref={fileInputRef}
           type="file"
@@ -179,7 +179,7 @@ export function WhatsAppMessageInput({
           <Paperclip className="h-5 w-5" />
         </Button>
 
-        {/* Textarea + send */}
+        {/* টেক্সটএরিয়া + পাঠানো */}
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
@@ -197,7 +197,7 @@ export function WhatsAppMessageInput({
               'max-h-[120px] transition-all'
             )}
           />
-          {/* Send button inside textarea */}
+          {/* টেক্সটএরিয়ার ভেতরে পাঠানো বাটন */}
           <Button
             size="icon"
             onClick={handleSend}
@@ -214,7 +214,7 @@ export function WhatsAppMessageInput({
         </div>
       </div>
 
-      {/* Character count */}
+      {/* অক্ষর গণনা */}
       {text.length > MAX_CHARS * 0.8 && (
         <div className={cn(
           'text-[10px] mt-1 text-right',

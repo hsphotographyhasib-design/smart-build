@@ -36,7 +36,7 @@ export async function POST(
     const snapshotName = body.name || `Snapshot ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`
     const snapshotType = body.snapshotType || 'manual'
 
-    // Serialize current state
+    // বর্তমান অবস্থা সিরিয়ালাইজ করা হচ্ছে
     const snapshotData = {
       schedule: {
         name: schedule.name,
@@ -91,7 +91,7 @@ export async function POST(
       takenBy: authUser.name,
     }
 
-    // Serialize dependencies separately
+    // নির্ভরতাগুলো আলাদাভাবে সিরিয়ালাইজ করা হচ্ছে
     const deps = await db.scheduleDependency.findMany({
       where: { scheduleId: id },
     })

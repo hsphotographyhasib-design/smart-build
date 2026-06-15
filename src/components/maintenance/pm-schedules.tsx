@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const typeLabels: Record<string, string> = {
   monthly: 'Monthly',
   quarterly: 'Quarterly',
@@ -65,7 +65,7 @@ export function PMSchedules() {
   const [editingPM, setEditingPM] = useState<any>(null)
   const [tab, setTab] = useState('active')
 
-  // Fetch PM schedules
+  // PM সময়সূচি আনা
   const { data: pmData, isLoading } = useQuery({
     queryKey: ['maintenance-pm-schedules', tab],
     queryFn: () => {
@@ -76,7 +76,7 @@ export function PMSchedules() {
   })
   const schedules = pmData?.data || []
 
-  // Fetch dropdown data
+  // ড্রপডাউন তথ্য আনা
   const { data: customersData } = useQuery({
     queryKey: ['customers-pm'],
     queryFn: () => api.get('/api/customers'),
@@ -95,7 +95,7 @@ export function PMSchedules() {
   })
   const technicians = techsData?.data || []
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/pm-schedules', body),
     onSuccess: () => {
@@ -106,7 +106,7 @@ export function PMSchedules() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create', variant: 'destructive' }),
   })
 
-  // Update mutation
+  // আপডেট মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/pm-schedules/${id}`, body),
     onSuccess: () => {
@@ -118,7 +118,7 @@ export function PMSchedules() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update', variant: 'destructive' }),
   })
 
-  // Deactivate mutation
+  // নিষ্ক্রিয় মিউটেশন
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => api.put(`/api/maintenance/pm-schedules/${id}`, { status: 'deactivated' }),
     onSuccess: () => {
@@ -128,7 +128,7 @@ export function PMSchedules() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Compute stats
+  // পরিসংখ্যান গণনা
   const allSchedules = pmData?.data || []
   const activePMs = allSchedules.filter((s: any) => s.status === 'active').length
   const now = new Date()
@@ -149,7 +149,7 @@ export function PMSchedules() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Preventive Maintenance Schedules</h1>
@@ -177,7 +177,7 @@ export function PMSchedules() {
         </Dialog>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="border-cyan-200 dark:border-cyan-800">
           <CardContent className="p-4">
@@ -217,7 +217,7 @@ export function PMSchedules() {
         </Card>
       </div>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="flex items-center justify-between">
           <TabsList>
@@ -312,7 +312,7 @@ export function PMSchedules() {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -335,7 +335,7 @@ export function PMSchedules() {
   )
 }
 
-// ─── Create PM Form ───
+// ─── PM তৈরির ফর্ম ───
 function CreatePMForm({ customers, sites, technicians, onSubmit, loading }: {
   customers: any[]; sites: any[]; technicians: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {
@@ -440,7 +440,7 @@ function CreatePMForm({ customers, sites, technicians, onSubmit, loading }: {
   )
 }
 
-// ─── Edit PM Form ───
+// ─── PM সম্পাদনার ফর্ম ───
 function EditPMForm({ pm, customers, sites, technicians, onSubmit, loading }: {
   pm: any; customers: any[]; sites: any[]; technicians: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {

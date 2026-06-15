@@ -12,9 +12,9 @@ export function useFormat() {
   const decimalDigits = currency?.decimalDigits ?? 2
   const currencyLocale = (currency as any)?.locale ?? 'en'
 
-  // Full currency formatting: B$ 1,500.00
+  // সম্পূর্ণ মুদ্রা ফরম্যাটিং: B$ 1,500.00
   const formatCurrency = useCallback((amount: number, overrideCode?: string): string => {
-    // Handle null/undefined/NaN gracefully
+    // null/undefined/NaN নিয় গ্রেসফুলি হ্যান্ডেল হলে পরিচাল
     const safeAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0
     const code = overrideCode || currencyCode
     const cur = currency && !overrideCode ? currency : null
@@ -38,18 +38,18 @@ export function useFormat() {
 
     const { symbolNative, decimalDigits: dd } = cur
 
-    // IDR: no decimals, dot thousands separator
+    // ওভাররাইড কোডের জন্য চেষ্টা করা হচ্ছে – ডট হাজার বিভাজক ব্যবহার
     if (code === 'IDR') {
       return `${symbolNative} ${Math.round(safeAmount).toLocaleString('id-ID')}`
     }
 
-    // VND, THB: no decimals
+    // VND, THB: দশমিক নেই
     if (code === 'VND' || code === 'THB') {
       return `${symbolNative} ${Math.round(safeAmount).toLocaleString()}`
     }
 
-    // Use Intl.NumberFormat for number formatting, then prepend our custom symbol
-    // (Intl's narrowSymbol strips prefixes like "B" from "B$", so we use our own symbol)
+    // Intl.NumberFormat দিয় সংখ্যা ফরম্যাটিং ব্যবহার, তারপর কাস্টম সিম্বল ব্যবহার
+    // (Intl-এর narrowSymbol "B" কে "B$" স্ট্রিপ করে, তাইম আমাদের নিজে সিম্বল ব্যবহার করা হচ্ছে)
     try {
       const formatted = new Intl.NumberFormat(cur.locale || 'en', {
         minimumFractionDigits: dd,
@@ -64,7 +64,7 @@ export function useFormat() {
     }
   }, [currency, currencyCode])
 
-  // Compact currency formatting: B$1.5M, S$245K, Rp560K
+  // কম্প্যাক্ট মুদ্রা ফরম্যাটিং: B$1.5M, S$245K, Rp560K
   const formatCurrencyCompact = useCallback((amount: number): string => {
     if (amount >= 1_000_000_000) {
       const val = amount / 1_000_000_000
@@ -81,56 +81,56 @@ export function useFormat() {
     return `${currencySymbol}${Math.round(amount).toLocaleString()}`
   }, [currencySymbol])
 
-  // Convert pricing from base BND to user's local currency
+  // বেস BND থেকে ব্যবহারীর স্থানীয় মুদ্রা রূপান্ট
   const convertAndFormat = useCallback((bndAmount: number): string => {
     if (currencyCode === 'BND') return formatCurrency(bndAmount)
     const converted = convertCurrency(bndAmount, 'BND', currencyCode)
     return formatCurrency(converted)
   }, [currencyCode, formatCurrency])
 
-  // Convert + compact format for pricing display
+  // রূপান্ট + কম্যাক্ট ফরম্যাট প্রাইসিং প্রদর্শনের জন্য
   const convertAndFormatCompact = useCallback((bndAmount: number): string => {
     if (currencyCode === 'BND') return formatCurrencyCompact(bndAmount)
     const converted = convertCurrency(bndAmount, 'BND', currencyCode)
     return formatCurrencyCompact(converted)
   }, [currencyCode, formatCurrencyCompact])
 
-  // Just the currency symbol
+  // শুধুমাত্র মুদ্রা প্রতীক
   const getCurrencySymbol = useCallback((): string => {
     return currencySymbol
   }, [currencySymbol])
 
-  // Just the currency code
+  // শুধুমাত্র মুদ্রা কোড
   const getCurrencyCode = useCallback((): string => {
     return currencyCode
   }, [currencyCode])
 
-  // Get phone placeholder for detected country
+  // সনাকেত দেশের জন্য ফোন প্লেসহোল্ডার প্রদান করা হচ্ছে
   const getPhonePlaceholder = useCallback((): string => {
     return phonePlaceholder ?? '+673 7123456'
   }, [phonePlaceholder])
 
-  // Get calling code
+  // কলিং কোড প্রদান করা হচ্ছে
   const getCallingCode = useCallback((): string => {
     return country?.callingCode ?? '+673'
   }, [country])
 
-  // Get country flag emoji
+  // দেশের পতাকা ইমোজি প্রদান করা হচ্ছে
   const getCountryFlag = useCallback((): string => {
     return country?.flagEmoji ?? '🇧🇳'
   }, [country])
 
-  // Get country name
+  // দেশের নাম প্রদান করা হচ্ছে
   const getCountryName = useCallback((): string => {
     return country?.name ?? 'Brunei'
   }, [country])
 
-  // Full country label for selectors: 🇧🇳 Brunei (BND)
+  // সিলেক্টর জন্য দেশের লেবেল: 🇧🇳 ব্রুনাই (BND)
   const getCountryLabel = useCallback((): string => {
     return `${getCountryFlag()} ${getCountryName()} (${currencyCode})`
   }, [getCountryFlag, getCountryName, currencyCode])
 
-  const formatDate = useCallback((date: Date | string): string => {
+  // তারিখ ও স্ট্রিং ফরম্যাট করা হচ্ছে
     const d = typeof date === 'string' ? new Date(date) : date
     if (isNaN(d.getTime())) return ''
 
@@ -153,8 +153,8 @@ export function useFormat() {
     const d = typeof date === 'string' ? new Date(date) : date
     if (isNaN(d.getTime())) return ''
 
-    // Use locale-aware time formatting
-    const locale = country?.code === 'US' ? 'en-US' : 'en-GB'
+    // দৈনিক-সময় ফরম্যাট ফরম্যাট ব্যবহার করা হচ্ছে
+    // লোকেল-সচেব সচেয়া সময় ফরম্যাট করা হচ্ছে
     const time = d.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
@@ -162,25 +162,25 @@ export function useFormat() {
     return `${formatDate(date)} ${time}`
   }, [dateFormat, formatDate, country])
 
-  const formatPhone = useCallback((phone: string): string => {
+  // ফোন নম্বর ফরম্যাট করা হচ্ছে
     if (!country) return phone
     const cleaned = phone.replace(/^0+/, '')
     return `${country.callingCode} ${cleaned}`
   }, [country])
 
-  const formatTax = useCallback((amount: number): string => {
+  // কর হর নিয়ম ফরম্যাট করা হচ্ছে
     if (!taxRules || taxRules.rate === 0) return 'No tax'
     const taxAmount = amount * taxRules.rate
     return `${taxRules.name} (${(taxRules.rate * 100).toFixed(0)}%): ${formatCurrency(taxAmount)}`
   }, [taxRules, formatCurrency])
 
-  // Get dynamic tax registration label (e.g. "GST No." for India, "Tax Reg. No." for Brunei)
+  // ডায়নামিক ট্যাক রেজিস্ট্রেশন লেবেল (যেমন "GST No." ভারত, ব্রুনাই "Tax Reg. No." হবে)
   const getTaxName = useCallback((): string => {
     if (!taxRules || taxRules.rate === 0) return 'Tax Reg. No.'
     return `${taxRules.name} No.`
   }, [taxRules])
 
-  // Short tax name for column headers (e.g. "GST", "SST", "Tax" for zero-tax)
+  // কলাম হেডারের জন্য লেবেল (যেমন "GST", "SST", শূন্য করের জন্য)
   const getTaxShortName = useCallback((): string => {
     if (!taxRules || taxRules.rate === 0) return 'Tax'
     return taxRules.name
@@ -204,7 +204,7 @@ export function useFormat() {
     formatTax,
     getTaxName,
     getTaxShortName,
-    // Raw values
+    // কাঁচ মান প্রদান করা হচ্ছে
     currency,
     currencyCode,
     currencySymbol,

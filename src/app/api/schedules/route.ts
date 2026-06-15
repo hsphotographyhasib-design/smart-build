@@ -74,13 +74,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Name and projectId are required' }, { status: 400 })
     }
 
-    // Verify project exists
+    // প্রকল্প বিদ্যমান কিনা যাচাই করা হচ্ছে
     const project = await db.project.findUnique({ where: { id: projectId } })
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
     }
 
-    // Auto-generate schedule number: SCH-YYYY-NNNNNNN
+    // স্বয়ংক্রিয়ভাবে সময়সূচি নম্বর তৈরি করা হচ্ছে: SCH-YYYY-NNNNNNN
     const year = new Date().getFullYear()
     const prefix = 'SCH'
     const count = await db.schedule.count({
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     })
     const scheduleNo = `${prefix}-${year}-${String(count + 1).padStart(7, '0')}`
 
-    // Calculate total duration if dates provided
+    // তারিখ প্রদান করা হলে মোট সময়কাল গণনা করা হচ্ছে
     let totalDuration = 0
     if (startDate && endDate) {
       const start = new Date(startDate)

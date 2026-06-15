@@ -76,7 +76,7 @@ export async function PUT(
       weight, order, actualCost,
     } = body
 
-    // Auto-calculate finish date if duration changed and start exists
+    // সময়কাল পরিবর্তন হলে ও শুরু বিদ্যমান থাকলে স্বয়ংক্রিয়ভাবে সমাপ্তি তারিখ গণনা করা হচ্ছে
     let calculatedFinish = finishDate !== undefined ? (finishDate ? new Date(finishDate) : null) : existing.finishDate
     if (startDate && duration !== undefined && !finishDate) {
       calculatedFinish = new Date(new Date(startDate).getTime() + duration * 24 * 60 * 60 * 1000)
@@ -104,7 +104,7 @@ export async function PUT(
       },
     })
 
-    // Auto-recalculate schedule completion if progress-relevant fields changed
+    // অগ্রগতি-সংশ্লিষ্ট ক্ষেত্র পরিবর্তিত হলে সময়সূচির সম্পন্নের শতাংশ স্বয়ংক্রিয়ভাবে পুনঃগণনা করা হচ্ছে
     if (duration !== undefined || startDate || finishDate) {
       const stats = await db.scheduleActivity.aggregate({
         where: { scheduleId: existing.scheduleId, taskType: { not: 'summary' } },
@@ -161,7 +161,7 @@ export async function DELETE(
 
     await db.scheduleActivity.delete({ where: { id } })
 
-    // Update schedule total activities count
+    // সময়সূচির মোট কার্যক্রম সংখ্যা আপডেট করা হচ্ছে
     const totalActivities = await db.scheduleActivity.count({ where: { scheduleId } })
     const stats = await db.scheduleActivity.aggregate({
       where: { scheduleId, taskType: { not: 'summary' } },

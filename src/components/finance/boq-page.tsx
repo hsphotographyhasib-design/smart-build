@@ -35,7 +35,7 @@ import {
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface BoqItem {
@@ -55,7 +55,7 @@ interface ProjectOption {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -63,7 +63,7 @@ function formatCurrency(amount: number) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loader
+// স্কেলেটন লোডার
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -84,7 +84,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Add BOQ Item Dialog
+// BOQ আইটেম যোগ ডায়ালগ
 // ──────────────────────────────────────────
 
 function AddBoqItemDialog({ projectId }: { projectId: string }) {
@@ -187,7 +187,7 @@ function AddBoqItemDialog({ projectId }: { projectId: string }) {
 }
 
 // ──────────────────────────────────────────
-// Delete BOQ Item
+// BOQ আইটেম মুছে ফেলা
 // ──────────────────────────────────────────
 
 function DeleteBoqItemDialog({ projectId, itemId, itemDesc }: { projectId: string; itemId: string; itemDesc: string }) {
@@ -232,19 +232,19 @@ function DeleteBoqItemDialog({ projectId, itemId, itemDesc }: { projectId: strin
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function BoqPage() {
   const [projectFilter, setProjectFilter] = useState('')
 
-  // Fetch projects for selector
+  // নির্বাচকের জন্য প্রকল্প আনা
   const { data: projects = [] } = useQuery({
     queryKey: queryKeys.projects,
     queryFn: () => api.get('/api/projects').then((r) => r.data as ProjectOption[]),
   })
 
-  // Fetch BOQ items for selected project
+  // নির্বাচিত প্রকল্পের জন্য BOQ আইটেম আনা
   const { data: boqItems, isLoading, error } = useQuery({
     queryKey: queryKeys.boq(projectFilter),
     queryFn: () => api.get(`/api/boq/${projectFilter}`).then((r) => r.data as BoqItem[]),
@@ -258,7 +258,7 @@ export function BoqPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bill of Quantities</h1>
@@ -267,7 +267,7 @@ export function BoqPage() {
         {projectFilter && <AddBoqItemDialog projectId={projectFilter} />}
       </div>
 
-      {/* Project Selector */}
+      {/* প্রকল্প নির্বাচক */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Select value={projectFilter} onValueChange={setProjectFilter}>
           <SelectTrigger className="w-full sm:w-[300px]">
@@ -281,7 +281,7 @@ export function BoqPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {!projectFilter ? (
         <Card>
           <CardContent className="p-12 text-center">
@@ -357,7 +357,7 @@ export function BoqPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {/* Total Row */}
+                  {/* মোট সারি */}
                   {boqItems && boqItems.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
                       <TableCell colSpan={5} className="text-right text-sm">Grand Total</TableCell>

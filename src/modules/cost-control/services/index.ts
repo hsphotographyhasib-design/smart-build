@@ -1,3 +1,3 @@
 // src/modules/cost-control/services/index.ts
-// Cost Control Module - Services Barrel Export
-// API service functions for cost control will be added here
+// কস্ট কন্ট্রোল মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// কস্ট কন্ট্রোলের API সার্ভিস ফাংশন এখানে যোগ করা হবে

@@ -45,7 +45,7 @@ function monthsAgo(months: number): Date {
 async function main() {
   console.log('🌱 Seeding SMARTBUILD Construction Management ERP...')
 
-  // Clean up existing data (in correct order to respect FK constraints)
+  // বিদ্যমান ডেটা পরিষ্কার করা হচ্ছে (FK সীমাবদ্ধতা মান্য রেখে সঠিক ক্রমে)
   console.log('🧹 Cleaning existing data...')
   await prisma.notificationPreference.deleteMany()
   await prisma.notification.deleteMany()
@@ -91,7 +91,7 @@ async function main() {
   await prisma.auditLog.deleteMany()
   await prisma.user.deleteMany()
 
-  // ============ USERS ============
+  // ============ ব্যবহারকারী ============
   console.log('👤 Creating users...')
   const adminPassword = await hashPassword('admin123')
   const userPassword = await hashPassword('password123')
@@ -162,7 +162,7 @@ async function main() {
     },
   })
 
-  // ============ PROJECTS ============
+  // ============ প্রজেক্ট ============
   console.log('🏗️ Creating projects...')
   const project1 = await prisma.project.create({
     data: {
@@ -206,7 +206,7 @@ async function main() {
     },
   })
 
-  // ============ PROJECT MEMBERS ============
+  // ============ প্রজেক্ট সদস্য ============
   console.log('👥 Adding project members...')
   await prisma.projectMember.createMany({
     data: [
@@ -219,7 +219,7 @@ async function main() {
     ],
   })
 
-  // ============ SUPPLIERS ============
+  // ============ সরবরাহকারী ============
   console.log('🏭 Creating suppliers...')
   const suppliers = await Promise.all([
     prisma.supplier.create({
@@ -272,7 +272,7 @@ async function main() {
     }),
   ])
 
-  // ============ MATERIALS ============
+  // ============ উপাদান ============
   console.log('🧱 Creating materials...')
   const materials = await Promise.all([
     prisma.material.create({
@@ -433,7 +433,7 @@ async function main() {
     }),
   ])
 
-  // ============ LABOUR GROUPS & LABOUR ============
+  // ============ শ্রমিক দল ও শ্রমিক ============
   console.log('👷 Creating labour groups and labour...')
   const labourGroups = await Promise.all([
     prisma.labourGroup.create({ data: { name: 'Mason', rate: 900, isActive: true } }),
@@ -476,14 +476,14 @@ async function main() {
     )
   )
 
-  // ============ ATTENDANCE ============
+  // ============ উপস্থিতি ============
   console.log('📋 Creating attendance records...')
   const attendanceData = []
   const todayDate = today()
 
   for (let dayOffset = 1; dayOffset <= 5; dayOffset++) {
     const date = daysAgo(dayOffset)
-    // Pick a subset of labours for each project
+    // প্রতিটি প্রজেক্টের জন্য শ্রমিকদের একটি উপসেট নির্বাচন করা হচ্ছে
     const projectLabours1 = labours.slice(0, 10)
     const projectLabours2 = labours.slice(6, 18)
 
@@ -516,7 +516,7 @@ async function main() {
     }
   }
 
-  // Today's attendance for project 1
+  // প্রজেক্ট ১-এর জন্য আজকের উপস্থিতি
   for (const labour of labours.slice(0, 12)) {
     attendanceData.push({
       projectId: project1.id,
@@ -526,7 +526,7 @@ async function main() {
       hoursWorked: 8,
     })
   }
-  // Today's attendance for project 2
+  // প্রজেক্ট ২-এর জন্য আজকের উপস্থিতি
   for (const labour of labours.slice(5, 16)) {
     attendanceData.push({
       projectId: project2.id,
@@ -537,7 +537,7 @@ async function main() {
     })
   }
 
-  // Create attendance - deduplicate by (projectId, labourId, date)
+  // উপস্থিতি তৈরি করা হচ্ছে - (projectId, labourId, date) অনুযায়ী অনুলিপি অপসারণ করা হচ্ছে
   const uniqueAttendance = new Map<string, typeof attendanceData[0]>()
   for (const a of attendanceData) {
     const key = `${a.projectId}-${a.labourId}-${a.date.toISOString().slice(0, 10)}`
@@ -553,7 +553,7 @@ async function main() {
     })
   }
 
-  // ============ DAILY NOTES ============
+  // ============ দৈনিক নোট ============
   console.log('📝 Creating daily notes...')
   await prisma.dailyNote.createMany({
     data: [
@@ -610,7 +610,7 @@ async function main() {
     ],
   })
 
-  // ============ INVOICES ============
+  // ============ চালান ============
   console.log('💰 Creating invoices and payments...')
   const inv1 = await prisma.invoice.create({
     data: {
@@ -737,7 +737,7 @@ async function main() {
     ],
   })
 
-  // More recent payment
+  // সাম্প্রতিক পেমেন্ট
   await prisma.payment.create({
     data: {
       projectId: project2.id,
@@ -766,7 +766,7 @@ async function main() {
     },
   })
 
-  // ============ EXPENSES ============
+  // ============ ব্যয় ============
   console.log('💸 Creating expenses...')
   await prisma.expense.createMany({
     data: [
@@ -841,7 +841,7 @@ async function main() {
     ],
   })
 
-  // ============ PURCHASE REQUESTS ============
+  // ============ ক্রয় অনুরোধ ============
   console.log('📦 Creating purchase requests...')
   const pr1 = await prisma.purchaseRequest.create({
     data: {
@@ -915,7 +915,7 @@ async function main() {
     ],
   })
 
-  // ============ PURCHASE ORDERS ============
+  // ============ ক্রয় অর্ডার ============
   console.log('📋 Creating purchase orders...')
   await prisma.purchaseOrder.create({
     data: {
@@ -948,7 +948,7 @@ async function main() {
     },
   })
 
-  // ============ ASSETS ============
+  // ============ সম্পদ ============
   console.log('🔧 Creating assets...')
   const assets = await Promise.all([
     prisma.asset.create({
@@ -1031,7 +1031,7 @@ async function main() {
     }),
   ])
 
-  // Asset issues
+  // সম্পদ সমস্যা
   await prisma.assetIssue.createMany({
     data: [
       { assetId: assets[0].id, issuedTo: 'Site - Skyline Tower', issuedById: storeManagerUser.id, issuedDate: daysAgo(30), status: 'issued' },
@@ -1041,7 +1041,7 @@ async function main() {
     ],
   })
 
-  // ============ PRODUCT CATEGORIES & PRODUCTS ============
+  // ============ পণ্য বিভাগ ও পণ্য ============
   console.log('🏷️ Creating product categories and products...')
   const cat1 = await prisma.productCategory.create({ data: { name: 'Cement & Binding', isActive: true } })
   const cat2 = await prisma.productCategory.create({ data: { name: 'Steel & Metals', isActive: true } })
@@ -1066,7 +1066,7 @@ async function main() {
     ],
   })
 
-  // ============ CUSTOMERS ============
+  // ============ গ্রাহক ============
   console.log('🤝 Creating customers...')
   await prisma.customer.createMany({
     data: [
@@ -1109,7 +1109,7 @@ async function main() {
     ],
   })
 
-  // ============ PROJECT TASKS ============
+  // ============ প্রজেক্ট কার্য ============
   console.log('✅ Creating project tasks...')
   const task1 = await prisma.projectTask.create({
     data: {
@@ -1186,7 +1186,7 @@ async function main() {
     },
   })
 
-  // ============ STOCK MOVEMENTS ============
+  // ============ স্টক চলাচল ============
   console.log('📊 Creating stock movements...')
   await prisma.stockMovement.createMany({
     data: [
@@ -1198,7 +1198,7 @@ async function main() {
     ],
   })
 
-  // ============ NOTIFICATIONS ============
+  // ============ বিজ্ঞপ্তি ============
   console.log('🔔 Creating notifications...')
   await prisma.notification.createMany({
     data: [
@@ -1251,7 +1251,7 @@ async function main() {
     ],
   })
 
-  // ============ NOTIFICATION PREFERENCES ============
+  // ============ বিজ্ঞপ্তি পছন্দ ============
   console.log('⚙️ Creating notification preferences...')
   for (const user of [adminUser, supervisorUser, hrUser, accountantUser, storeManagerUser, clientUser]) {
     await prisma.notificationPreference.create({
@@ -1264,7 +1264,7 @@ async function main() {
     })
   }
 
-  // ============ AUDIT LOGS ============
+  // ============ অডিট লগ ============
   console.log('📋 Creating audit logs...')
   await prisma.auditLog.createMany({
     data: [

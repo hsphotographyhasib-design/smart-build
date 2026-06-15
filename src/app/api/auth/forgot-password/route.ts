@@ -11,7 +11,7 @@ const forgotPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    // হার সীমাবদ্ধতা প্রয়োগ করা হচ্ছে
     const rateLimit = checkRateLimit(request, rateLimiters.passwordReset, 'forgot-password')
     if (!rateLimit.success) {
       return NextResponse.json(
@@ -23,29 +23,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validation
+    // যাচাইকরণ
     const body = await request.json()
     const validation = validateBody(forgotPasswordSchema, body)
     if (validation.error) return validation.error
 
     const { email } = validation.data
 
-    // Look up user – always return success to avoid email enumeration
+    // ব্যবহারকারী খোঁজা হচ্ছে – ইমেইল গণনা এড়াতে সর্বদা সফলতা প্রদান করা হচ্ছে
     const user = await db.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     })
 
     if (user) {
-      // Generate a reset token and store it
+      // একটি রিসেট টোকেন তৈরি করে সংরক্ষণ করা হচ্ছে
       const resetToken = crypto.randomUUID()
       const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + 1) // 1 hour expiry
+      expiresAt.setHours(expiresAt.getHours() + 1) // ১ ঘণ্টার মেয়াদ
 
-      // TODO: Store the reset token in the database (e.g. a PasswordReset table)
-      // TODO: Send the reset link email with the token
+      // TODO: রিসেট টোকেন ডাটাবেজে সংরক্ষণ করুন (যেমন একটি PasswordReset টেবিল)
+      // TODO: টোকেনসহ রিসেট লিংক ইমেইল পাঠান
     }
 
-    // Always return success to prevent email enumeration
+    // ইমেইল গণনা প্রতিরোধ করতে সর্বদা সফলতা প্রদান করা হচ্ছে
     return NextResponse.json({
       success: true,
       message: 'If an account exists with that email, a reset link has been sent.',

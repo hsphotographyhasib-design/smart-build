@@ -20,7 +20,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface LeaveRequest {
@@ -57,7 +57,7 @@ interface Employee {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -93,7 +93,7 @@ function loanStatusBadge(status: string) {
 const LEAVE_TYPES = ['Casual Leave', 'Sick Leave', 'Earned Leave', 'Maternity Leave', 'Paternity Leave', 'Compensatory Off', 'Loss of Pay']
 
 // ──────────────────────────────────────────
-// Skeletons
+// স্কেলেটনসমূহ
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -114,7 +114,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Apply Leave Dialog
+// ছুটির আবেদন ডায়ালগ
 // ──────────────────────────────────────────
 
 function ApplyLeaveDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -133,7 +133,7 @@ function ApplyLeaveDialog({ open, onClose }: { open: boolean; onClose: () => voi
     queryFn: () => api.get<{ success: boolean; data: Employee[] }>('/api/employees?status=active').then((r) => r.data),
   })
 
-  // Auto-calculate days
+  // স্বয়ংক্রিয়ভাবে দিন গণনা
   const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
     const updated = { ...form, [field]: value }
     if (updated.startDate && updated.endDate) {
@@ -237,7 +237,7 @@ function ApplyLeaveDialog({ open, onClose }: { open: boolean; onClose: () => voi
 }
 
 // ──────────────────────────────────────────
-// Create Loan Dialog
+// ঋণ তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function CreateLoanDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -338,7 +338,7 @@ function CreateLoanDialog({ open, onClose }: { open: boolean; onClose: () => voi
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function LeavePage() {
@@ -350,7 +350,7 @@ export function LeavePage() {
   const [createLoanOpen, setCreateLoanOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  // Leave Requests Query
+  // ছুটির অনুরোধ কুয়েরি
   const { data: leaveRequests, isLoading: leaveLoading, error: leaveError } = useQuery({
     queryKey: [...queryKeys.leaveRequests, { status: leaveStatus }],
     queryFn: () => {
@@ -362,7 +362,7 @@ export function LeavePage() {
     enabled: activeTab === 'leave',
   })
 
-  // Loans Query
+  // ঋণ কুয়েরি
   const { data: loans, isLoading: loanLoading, error: loanError } = useQuery({
     queryKey: ['loans', { status: loanStatus }],
     queryFn: () => {
@@ -389,7 +389,7 @@ export function LeavePage() {
     )
   }, [loans, searchQuery])
 
-  // Mutations
+  // মিউটেশনসমূহ
   const approveMutation = useMutation({
     mutationFn: (id: string) => api.post(`/api/leave-requests/${id}/approve`),
     onSuccess: () => {
@@ -410,7 +410,7 @@ export function LeavePage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Leave Management</h1>
@@ -432,16 +432,16 @@ export function LeavePage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="leave">Leave Requests</TabsTrigger>
           <TabsTrigger value="loans">Loans</TabsTrigger>
         </TabsList>
 
-        {/* ─── Leave Requests Tab ─── */}
+        {/* ─── ছুটির অনুরোধ ট্যাব ─── */}
         <TabsContent value="leave" className="space-y-4 mt-4">
-          {/* Filters */}
+          {/* ফিল্টারসমূহ */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -554,9 +554,9 @@ export function LeavePage() {
           )}
         </TabsContent>
 
-        {/* ─── Loans Tab ─── */}
+        {/* ─── ঋণ ট্যাব ─── */}
         <TabsContent value="loans" className="space-y-4 mt-4">
-          {/* Filters */}
+          {/* ফিল্টারসমূহ */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -637,10 +637,10 @@ export function LeavePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Apply Leave Dialog */}
+      {/* ছুটির আবেদন ডায়ালগ */}
       <ApplyLeaveDialog open={applyLeaveOpen} onClose={() => setApplyLeaveOpen(false)} />
 
-      {/* Create Loan Dialog */}
+      {/* ঋণ তৈরি ডায়ালগ */}
       <CreateLoanDialog open={createLoanOpen} onClose={() => setCreateLoanOpen(false)} />
     </div>
   )

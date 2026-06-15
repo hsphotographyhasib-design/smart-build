@@ -96,7 +96,7 @@ export function AdvancedReports() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600">
@@ -110,7 +110,7 @@ export function AdvancedReports() {
         {report && <ExportButtons />}
       </div>
 
-      {/* Report Config */}
+      {/* প্রতিবেদন কনফিগারেশন */}
       <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex flex-wrap items-end gap-3">
@@ -156,7 +156,7 @@ export function AdvancedReports() {
         </CardContent>
       </Card>
 
-      {/* Report Content */}
+      {/* প্রতিবেদন বিষয়বস্তু */}
       <div id="report-content">
         {isLoading ? (
           <div className="space-y-3">
@@ -174,7 +174,7 @@ export function AdvancedReports() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {/* Report Header */}
+            {/* প্রতিবেদন হেডার */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -188,10 +188,10 @@ export function AdvancedReports() {
               </Badge>
             </div>
 
-            {/* Project P&L */}
+            {/* প্রকল্প P&L */}
             {reportType === 'project-pl' && report.projects && (
               <>
-                {/* Totals Row */}
+                {/* মোট সারি */}
                 {report.totals && (
                   <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                     <Card className="border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/20 dark:to-gray-900">
@@ -244,7 +244,7 @@ export function AdvancedReports() {
                   </CardContent>
                 </Card>
 
-                {/* Table */}
+                {/* টেবিল */}
                 <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
                   <CardContent className="p-0">
                     <div className="max-h-96 overflow-y-auto">
@@ -282,7 +282,7 @@ export function AdvancedReports() {
               </>
             )}
 
-            {/* Labour Summary */}
+            {/* শ্রম সারসংক্ষেপ */}
             {reportType === 'labour-summary' && (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -327,7 +327,7 @@ export function AdvancedReports() {
               </>
             )}
 
-            {/* Cost Variance */}
+            {/* খরচ তারতম্য */}
             {reportType === 'cost-variance' && report.projects && (
               <>
                 <div className="grid grid-cols-1 gap-4">
@@ -381,7 +381,7 @@ export function AdvancedReports() {
               </>
             )}
 
-            {/* Resource Utilization */}
+            {/* সম্পদ ব্যবহার */}
             {reportType === 'resource-utilization' && (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -409,7 +409,7 @@ export function AdvancedReports() {
               </>
             )}
 
-            {/* Financial Health */}
+            {/* আর্থিক স্বাস্থ্য */}
             {reportType === 'financial-health' && report.projects && (
               <>
                 {report.totals && (

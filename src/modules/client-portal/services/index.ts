@@ -1,3 +1,3 @@
 // src/modules/client-portal/services/index.ts
-// Client Portal Module - Services Barrel Export
-// API service functions for client portal will be added here
+// ক্লায়েন্ট পোর্টাল মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// ক্লায়েন্ট পোর্টালের API সার্ভিস ফাংশন এখানে যোগ করা হবে

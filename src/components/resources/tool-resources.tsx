@@ -29,7 +29,7 @@ import { Search, Wrench, Eye, ArrowDownToLine, ArrowUpFromLine, QrCode } from 'l
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Asset {
@@ -52,7 +52,7 @@ interface Assignment {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusColors: Record<string, string> = {
@@ -63,7 +63,7 @@ const statusColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function ToolResources() {
@@ -120,7 +120,7 @@ export function ToolResources() {
       toast.error('Please enter who the tool is issued to')
       return
     }
-    // Update asset status to issued
+    // সম্পদের অবস্থা প্রদানকৃত হিসেবে হালনাগাদ করা হচ্ছে
     api.put(`/api/assets/${selectedTool.id}`, { status: 'issued', location: issueForm.location })
       .then((res) => {
         if (res.success) {

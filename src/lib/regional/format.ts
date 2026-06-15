@@ -1,10 +1,10 @@
-// ============ REGIONAL FORMATTING UTILITIES ============
+// ============ আঞ্চলিক ফরম্যাটিং সহায়ক সামগ্রী ============
 
 import { CURRENCIES, COUNTRIES } from './regional-config'
 
 /**
- * Format a number as currency
- * Examples: B$ 1,500.00 | S$ 2,340.50 | Rp 1.500.000 | ฿ 25,130
+ * সংখ্যাকে মুদ্রা হিসেবে ফরম্যাট করা হচ্ছে
+ * উদাহরণ: B$ 1,500.00 | S$ 2,340.50 | Rp 1.500.000 | ฿ 25,130
  */
 export function formatCurrency(amount: number, currencyCode: string): string {
   const currency = CURRENCIES[currencyCode.toUpperCase()]
@@ -12,13 +12,13 @@ export function formatCurrency(amount: number, currencyCode: string): string {
 
   const { code, symbolNative, decimalDigits, locale } = currency
 
-  // Special handling for IDR - uses dot as thousands separator
+  // IDR-এর জন্য বিশেষ প্রক্রিয়াকরণ - হাজার বিভাজক হিসেবে ডট ব্যবহৃত হয়
   if (code === 'IDR') {
     const formatted = Math.round(amount).toLocaleString('id-ID')
     return `${symbolNative} ${formatted}`
   }
 
-  // Special handling for VND - no decimals, comma thousands
+  // VND-এর জন্য বিশেষ প্রক্রিয়াকরণ - দশমিক নেই, কমা হাজার বিভাজক
   if (code === 'VND') {
     const formatted = Math.round(amount).toLocaleString('vi-VN')
     return `${symbolNative} ${formatted}`
@@ -33,7 +33,7 @@ export function formatCurrency(amount: number, currencyCode: string): string {
       currencyDisplay: 'narrowSymbol',
     }).format(amount)
   } catch {
-    // Fallback for unsupported Intl currency
+    // অসমর্থিত Intl মুদ্রার জন্য বিকল্প
     return `${symbolNative} ${amount.toLocaleString(undefined, {
       minimumFractionDigits: decimalDigits,
       maximumFractionDigits: decimalDigits,
@@ -42,15 +42,15 @@ export function formatCurrency(amount: number, currencyCode: string): string {
 }
 
 /**
- * Get just the currency symbol
+ * শুধুমাত্র মুদ্রা প্রতীক প্রদান করা হচ্ছে
  */
 export function getCurrencySymbol(code: string): string {
   return CURRENCIES[code.toUpperCase()]?.symbolNative ?? code
 }
 
 /**
- * Format a date string based on the specified format
- * Supports: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
+ * নির্দিষ্ট ফরম্যাট অনুযায়ী তারিখ স্ট্রিং ফরম্যাট করা হচ্ছে
+ * সমর্থিত: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
  */
 export function formatDate(date: Date | string, format: string = 'DD/MM/YYYY'): string {
   const d = typeof date === 'string' ? new Date(date) : date
@@ -72,7 +72,7 @@ export function formatDate(date: Date | string, format: string = 'DD/MM/YYYY'): 
 }
 
 /**
- * Format a date with time
+ * সময়সহ তারিখ ফরম্যাট করা হচ্ছে
  */
 export function formatDateTime(date: Date | string, format: string = 'DD/MM/YYYY'): string {
   const d = typeof date === 'string' ? new Date(date) : d
@@ -83,33 +83,33 @@ export function formatDateTime(date: Date | string, format: string = 'DD/MM/YYYY
 }
 
 /**
- * Format a phone number with country calling code
+ * দেশের কলিং কোড সহ ফোন নম্বর ফরম্যাট করা হচ্ছে
  */
 export function formatPhone(phone: string, countryCode: string): string {
   const country = COUNTRIES[countryCode.toUpperCase()]
   if (!country) return phone
 
-  // Strip leading 0 or country code if present
+  // প্রাথমিক ০ বা দেশের কোড থাকলে সরানো হচ্ছে
   const cleaned = phone.replace(/^0+/, '').replace(/^\+?\d{1,3}/, '')
   return `${country.callingCode} ${cleaned}`
 }
 
 /**
- * Get country flag emoji
+ * দেশের পতাকা ইমোজি প্রদান করা হচ্ছে
  */
 export function getCountryFlag(code: string): string {
   return COUNTRIES[code.toUpperCase()]?.flagEmoji ?? ''
 }
 
 /**
- * Get country name
+ * দেশের নাম প্রদান করা হচ্ছে
  */
 export function getCountryName(code: string): string {
   return COUNTRIES[code.toUpperCase()]?.name ?? code
 }
 
 /**
- * Parse a date string into a Date object based on format
+ * ফরম্যাট অনুযায়ী তারিখ স্ট্রিং থেকে Date অবজেক্ট পার্স করা হচ্ছে
  */
 export function parseDate(dateStr: string, format: string): Date | null {
   if (!dateStr) return null
@@ -142,7 +142,7 @@ export function parseDate(dateStr: string, format: string): Date | null {
 }
 
 /**
- * Format an address for the given country
+ * প্রদত্ত দেশের জন্য ঠিকানা ফরম্যাট করা হচ্ছে
  */
 export function formatAddress(
   address: {
@@ -171,7 +171,7 @@ export function formatAddress(
 }
 
 /**
- * Format a relative time (e.g., "2 hours ago", "3 days ago")
+ * আপেক্ষিক সময় ফরম্যাট করা হচ্ছে (যেমন, "2 hours ago", "3 days ago")
  */
 export function formatRelativeTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date

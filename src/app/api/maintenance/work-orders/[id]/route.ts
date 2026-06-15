@@ -77,7 +77,7 @@ export async function PUT(
     if (completionNotes !== undefined) updateData.completionNotes = completionNotes
     if (photos !== undefined) updateData.photos = JSON.stringify(photos)
 
-    // Recalculate total
+    // মোট পরিমাণ পুনরায় হিসাব করা হচ্ছে
     if (labourHours !== undefined || materialCost !== undefined || serviceCost !== undefined) {
       const lH = labourHours !== undefined ? labourHours : existing.labourHours
       const mC = materialCost !== undefined ? materialCost : existing.materialCost
@@ -85,7 +85,7 @@ export async function PUT(
       updateData.totalCost = (lH * 200) + mC + sC
     }
 
-    // Handle completion
+    // সমাপ্তি পরিচালনা করা হচ্ছে
     if (status === 'completed' && !existing.actualCompletionDate) {
       updateData.actualCompletionDate = new Date()
     }
@@ -98,7 +98,7 @@ export async function PUT(
       },
     })
 
-    // Update ticket costs when work order is completed
+    // ওয়ার্ক অর্ডার সম্পন্ন হলে টিকেটের খরচ আপডেট করা হচ্ছে
     if (status === 'completed' && existing.ticketId) {
       await db.maintenanceTicket.update({
         where: { id: existing.ticketId },

@@ -32,7 +32,7 @@ function hoursFromNow(hours: number): Date {
 async function main() {
   console.log('🔧 Seeding MAINTENANCE MANAGEMENT SYSTEM...')
 
-  // ============ SLA TEMPLATES ============
+  // ============ SLA টেমপ্লেট ============
   console.log('📋 Creating SLA templates...')
   const existingSLA = await prisma.sLATemplate.findFirst()
   if (!existingSLA) {
@@ -47,11 +47,11 @@ async function main() {
     console.log('  ✅ 4 SLA templates created')
   }
 
-  // ============ CUSTOMERS (ensure we have at least 5) ============
+  // ============ গ্রাহক (নিশ্চিত করতে কমপক্ষে ৫টি আছে) ============
   console.log('👥 Ensuring customers exist...')
   let customers = await prisma.customer.findMany()
   if (customers.length < 5) {
-    // Delete and recreate to ensure proper data
+    // সঠিক ডেটা নিশ্চিত করতে মুছে এবং পুনরায় তৈরি করা হচ্ছে
     const existingCustomerNames = customers.map(c => c.name)
     const customerData = [
       { name: 'Al Haramain Properties', email: 'info@alharamain.com', phone: '+966 12 123 4567', address: 'King Fahd Road, Jeddah', gstNo: 'GST-001', balance: 0, isActive: true },
@@ -69,7 +69,7 @@ async function main() {
     console.log(`  ✅ ${customers.length} customers available`)
   }
 
-  // ============ MAINTENANCE SITES ============
+  // ============ রক্ষণাবেক্ষণ সাইট ============
   console.log('🏗️ Creating maintenance sites...')
   const existingSites = await prisma.maintenanceSite.count()
   if (existingSites === 0) {
@@ -90,7 +90,7 @@ async function main() {
 
   const sites = await prisma.maintenanceSite.findMany()
 
-  // ============ TECHNICIAN USERS & PROFILES ============
+  // ============ টেকনিশিয়ান ব্যবহারকারী ও প্রোফাইল ============
   console.log('🔧 Creating technician users and profiles...')
   const techUser1 = await prisma.user.findFirst({ where: { email: 'tech.ahmed@smartbuild.com' } })
   let techUsers: any[] = []
@@ -104,7 +104,7 @@ async function main() {
     const t5 = await prisma.user.create({ data: { email: 'tech.fahad@smartbuild.com', password: pass, name: 'Fahad Al Zahrani', phone: '+966 50 555 5555', role: 'technician', isActive: true } })
     techUsers = [t1, t2, t3, t4, t5]
 
-    // Create technician profiles
+    // টেকনিশিয়ান প্রোফাইল তৈরি করা হচ্ছে
     await prisma.technicianProfile.createMany({
       data: [
         { userId: t1.id, specializations: JSON.stringify(['air_conditioning', 'electrical']), certifications: JSON.stringify(['HVAC Certified', 'Electrical License']), availabilityStatus: 'available', latitude: 21.5433, longitude: 39.1728, currentLocation: 'Jeddah', maxJobsPerDay: 6, rating: 4.7, totalCompletedJobs: 156, totalActiveJobs: 2 },
@@ -121,7 +121,7 @@ async function main() {
 
   const techProfiles = await prisma.technicianProfile.findMany({ include: { user: true } })
 
-  // ============ ASSETS FOR MAINTENANCE ============
+  // ============ রক্ষণাবেক্ষণের জন্য সম্পদ ============
   console.log('🏭 Creating assets for maintenance...')
   const existingAssets = await prisma.asset.count()
   if (existingAssets === 0) {
@@ -140,7 +140,7 @@ async function main() {
 
   const assets = await prisma.asset.findMany()
 
-  // ============ MAINTENANCE TICKETS ============
+  // ============ রক্ষণাবেক্ষণ টিকেট ============
   console.log('🎫 Creating maintenance tickets...')
   const existingTickets = await prisma.maintenanceTicket.count()
   if (existingTickets === 0) {
@@ -152,25 +152,25 @@ async function main() {
     const year = new Date().getFullYear()
 
     const ticketsData = [
-      // Emergency tickets
+      // জরুরি টিকেট
       { ticketNo: `CMP-${year}-000001`, type: 'emergency', category: 'air_conditioning', priority: 'emergency', status: 'in_progress', subject: 'AC unit failure - Server Room', description: 'The main AC unit serving the server room has completely failed. Temperature is rising rapidly. Immediate attention required to prevent equipment damage.', customerId: customers[0].id, siteId: sites[0].id, building: 'Main Building', floor: 'Ground Floor', room: 'Server Room', equipmentId: assets[0].id, assignedTechnicianId: techProfiles[0]?.id, contactPerson: 'Ahmed Al Rashid', contactPhone: '+966 55 111 2233', location: 'Jeddah', responseDeadline: hoursFromNow(-1), resolutionDeadline: hoursFromNow(2), actualResponseMinutes: 45, slaBreached: false, labourHours: 3, materialCost: 500, serviceCost: 200, transportCost: 100, totalCost: 800, createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000002`, type: 'emergency', category: 'electrical', priority: 'emergency', status: 'assigned', subject: 'Power outage - Entire Building B', description: 'Complete power outage in Building B. Emergency lights are on but main power is down. Affecting all offices and operations.', customerId: customers[1].id, siteId: sites[2].id, building: 'Building B', floor: 'All Floors', assignedTechnicianId: techProfiles[2]?.id, contactPerson: 'Mohammed Al Faisal', contactPhone: '+966 50 333 4455', location: 'Riyadh', responseDeadline: hoursFromNow(1), resolutionDeadline: hoursFromNow(3), actualResponseMinutes: 30, slaBreached: false, createdById: techUsers[0]?.id || 'system' },
 
-      // High priority
+      // উচ্চ অগ্রাধিকার
       { ticketNo: `CMP-${year}-000003`, type: 'complaint', category: 'plumbing', priority: 'high', status: 'in_progress', subject: 'Water leak in executive office', description: 'Major water leak from ceiling in the executive suite on floor 12. Water damage spreading to adjacent offices. Urgent repair needed.', customerId: customers[0].id, siteId: sites[1].id, building: 'Al Haramain Tower', floor: 'Floor 12', room: 'Executive Suite', equipmentId: assets[4].id, assignedTechnicianId: techProfiles[1]?.id, contactPerson: 'Fatima Hassan', contactPhone: '+966 55 222 3344', responseDeadline: hoursFromNow(-2), resolutionDeadline: hoursFromNow(18), actualResponseMinutes: 90, labourHours: 5, materialCost: 1200, serviceCost: 500, totalCost: 1700, createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000004`, type: 'work_request', category: 'fire_protection', priority: 'high', status: 'under_review', subject: 'Fire alarm system inspection', description: 'Annual fire alarm system inspection and testing required for Building A. All floors need to be checked.', customerId: customers[2].id, siteId: sites[3].id, building: 'Main Mall', floor: 'All Floors', equipmentId: assets[2].id, contactPerson: 'Khalid Al Madani', contactPhone: '+966 50 444 5566', responseDeadline: hoursFromNow(2), resolutionDeadline: hoursFromNow(20), createdById: techUsers[0]?.id || 'system' },
 
-      // Medium priority
+      // মাঝারি অগ্রাধিকার
       { ticketNo: `CMP-${year}-000005`, type: 'complaint', category: 'electrical', priority: 'medium', status: 'pending_customer', subject: 'Flickering lights in parking area', description: 'LED lights in parking levels B1 and B2 are flickering intermittently. Some lights have completely failed.', customerId: customers[2].id, siteId: sites[3].id, building: 'Parking', floor: 'B1, B2', contactPerson: 'Khalid Al Madani', contactPhone: '+966 50 444 5566', responseDeadline: hoursFromNow(-8), resolutionDeadline: hoursFromNow(60), actualResponseMinutes: 180, actualResolutionMinutes: 1200, labourHours: 4, materialCost: 350, serviceCost: 200, totalCost: 550, customerApproved: false, assignedTechnicianId: techProfiles[2]?.id, createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000006`, type: 'work_request', category: 'cleaning', priority: 'medium', status: 'assigned', subject: 'Deep cleaning of lobby and reception', description: 'Quarterly deep cleaning of main lobby, reception area, and conference rooms. Include carpet shampooing and window cleaning.', customerId: customers[0].id, siteId: sites[0].id, building: 'Main Building', floor: 'Ground Floor', room: 'Lobby, Reception', contactPerson: 'Ahmed Al Rashid', contactPhone: '+966 55 111 2233', preferredVisitDate: daysFromNow(3), preferredVisitTime: '09:00', responseDeadline: hoursFromNow(-4), resolutionDeadline: hoursFromNow(65), actualResponseMinutes: 120, assignedTechnicianId: techProfiles[4]?.id, createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000007`, type: 'complaint', category: 'air_conditioning', priority: 'medium', status: 'in_progress', subject: 'AC not cooling properly in office 305', description: 'AC in office 305 is running but not cooling effectively. Temperature in room is 28°C despite AC being set to 22°C.', customerId: customers[3].id, siteId: sites[4].id, building: 'Main Building', floor: 'Floor 3', room: 'Office 305', equipmentId: assets[0].id, assignedTechnicianId: techProfiles[0]?.id, contactPerson: 'Sara Al Amri', contactPhone: '+966 50 555 6677', location: 'Red Sea Coast', responseDeadline: hoursFromNow(-12), resolutionDeadline: hoursFromNow(55), actualResponseMinutes: 240, labourHours: 2, materialCost: 200, serviceCost: 150, totalCost: 350, createdById: techUsers[0]?.id || 'system' },
 
-      // Low priority
+      // নিম্ন অগ্রাধিকার
       { ticketNo: `CMP-${year}-000008`, type: 'work_request', category: 'general_maintenance', priority: 'low', status: 'new', subject: 'Repaint parking area markings', description: 'Parking area line markings and directional arrows have faded and need repainting. Include handicap parking areas.', customerId: customers[1].id, siteId: sites[2].id, building: 'Parking', contactPerson: 'Mohammed Al Faisal', contactPhone: '+966 50 333 4455', preferredVisitDate: daysFromNow(14), createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000009`, type: 'inspection', category: 'mechanical', priority: 'low', status: 'new', subject: 'Elevator annual inspection', description: 'Annual safety inspection required for all 3 elevator units. Check cables, brakes, sensors, and emergency systems.', customerId: customers[0].id, siteId: sites[1].id, building: 'Al Haramain Tower', equipmentId: assets[3].id, contactPerson: 'Fatima Hassan', contactPhone: '+966 55 222 3344', preferredVisitDate: daysFromNow(21), createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000010`, type: 'quotation', category: 'it', priority: 'low', status: 'under_review', subject: 'Network upgrade quotation needed', description: 'Need quotation for upgrading the network infrastructure from 1Gbps to 10Gbps. Include new switches, cabling, and installation costs.', customerId: customers[4].id, siteId: sites[6].id, building: 'Admin Building', floor: 'Server Room', equipmentId: assets[5].id, contactPerson: 'Ali Al Dossari', contactPhone: '+966 50 777 8899', createdById: techUsers[0]?.id || 'system' },
 
-      // Completed tickets
+      // সম্পন্ন টিকেট
       { ticketNo: `CMP-${year}-000011`, type: 'complaint', category: 'plumbing', priority: 'high', status: 'closed', subject: 'Burst pipe in kitchen area', description: 'Burst pipe causing flooding in kitchen area of floor 3. Water spreading to corridor.', customerId: customers[2].id, siteId: sites[3].id, building: 'Food Court', floor: 'Floor 3', assignedTechnicianId: techProfiles[1]?.id, contactPerson: 'Khalid Al Madani', contactPhone: '+966 50 444 5566', responseDeadline: hoursAgo(-18), resolutionDeadline: hoursAgo(-10), actualResponseMinutes: 60, actualResolutionMinutes: 480, slaBreached: false, labourHours: 8, materialCost: 2500, serviceCost: 800, transportCost: 150, totalCost: 3450, customerApproved: true, customerApprovedAt: daysAgo(1), customerRating: 4, customerFeedback: 'Excellent work. Quick response and professional repair.', closedById: techUsers[0]?.id || 'system', closedAt: daysAgo(1), createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000012`, type: 'preventive_maintenance', category: 'air_conditioning', priority: 'preventive', status: 'closed', subject: 'Monthly AC filter cleaning', description: 'Monthly preventive maintenance: clean and replace AC filters in all 15 units.', customerId: customers[0].id, siteId: sites[0].id, building: 'Main Building', floor: 'All Floors', assignedTechnicianId: techProfiles[0]?.id, contactPerson: 'Ahmed Al Rashid', contactPhone: '+966 55 111 2233', labourHours: 6, materialCost: 450, serviceCost: 300, totalCost: 750, customerApproved: true, customerApprovedAt: daysAgo(5), customerRating: 5, customerFeedback: 'All units working perfectly after service.', closedById: techUsers[0]?.id || 'system', closedAt: daysAgo(5), createdById: techUsers[0]?.id || 'system' },
       { ticketNo: `CMP-${year}-000013`, type: 'complaint', category: 'security', priority: 'medium', status: 'closed', subject: 'CCTV camera offline - Gate 3', description: 'CCTV camera at Gate 3 is showing black screen. May be a connectivity issue or hardware failure.', customerId: customers[4].id, siteId: sites[6].id, building: 'Perimeter', equipmentId: assets[5].id, assignedTechnicianId: techProfiles[2]?.id, contactPerson: 'Ali Al Dossari', contactPhone: '+966 50 777 8899', labourHours: 3, materialCost: 800, serviceCost: 400, totalCost: 1200, customerApproved: true, customerApprovedAt: daysAgo(3), customerRating: 4, customerFeedback: 'Good repair. Camera is back online.', closedById: techUsers[0]?.id || 'system', closedAt: daysAgo(3), createdById: techUsers[0]?.id || 'system' },
@@ -181,7 +181,7 @@ async function main() {
     }
     console.log('  ✅ 13 maintenance tickets created')
 
-    // ============ TIMELINE ENTRIES ============
+    // ============ টাইমলাইন এন্ট্রি ============
     console.log('📊 Creating timeline entries...')
     const tickets = await prisma.maintenanceTicket.findMany()
 
@@ -209,7 +209,7 @@ async function main() {
     }
 
     for (const entry of timelineData) {
-      // Ensure performedById is a valid user
+      // performedById একটি বৈধ ব্যবহারকারী তা নিশ্চিত করা হচ্ছে
       const validUser = await prisma.user.findFirst({ where: { id: entry.performedById } })
       if (!validUser) {
         entry.performedById = techUsers.length > 0 ? techUsers[0].id : (await prisma.user.findFirst())?.id || ''
@@ -220,7 +220,7 @@ async function main() {
     }
     console.log(`  ✅ ${timelineData.length} timeline entries created`)
 
-    // ============ WORK ORDERS ============
+    // ============ ওয়ার্ক অর্ডার ============
     console.log('📋 Creating work orders...')
     const activeTickets = tickets.filter(t => ['in_progress', 'pending_customer', 'completed', 'closed'].includes(t.status) && t.assignedTechnicianId)
 
@@ -247,7 +247,7 @@ async function main() {
     }
     console.log(`  ✅ ${woData.length} work orders created`)
 
-    // ============ AMC CONTRACTS ============
+    // ============ AMC চুক্তি ============
     console.log('📄 Creating AMC contracts...')
     const existingAMC = await prisma.aMCContract.count()
     if (existingAMC === 0) {
@@ -261,7 +261,7 @@ async function main() {
       console.log('  ✅ 3 AMC contracts created')
     }
 
-    // ============ PM SCHEDULES ============
+    // ============ PM সময়সূচি ============
     console.log('📅 Creating PM schedules...')
     const existingPM = await prisma.pMSchedule.count()
     if (existingPM === 0) {
@@ -277,7 +277,7 @@ async function main() {
       console.log('  ✅ 5 PM schedules created')
     }
 
-    // ============ MATERIAL REQUESTS ============
+    // ============ উপাদান অনুরোধ ============
     console.log('📦 Creating material requests...')
     const existingMR = await prisma.materialRequest.count()
     if (existingMR === 0) {
@@ -291,7 +291,7 @@ async function main() {
       console.log('  ✅ 3 material requests created')
     }
 
-    // ============ SERVICE RATINGS ============
+    // ============ সেবা রেটিং ============
     console.log('⭐ Creating service ratings...')
     const closedTickets = tickets.filter(t => t.status === 'closed' && t.customerRating)
     for (const t of closedTickets) {
@@ -313,7 +313,7 @@ async function main() {
     }
     console.log(`  ✅ ${closedTickets.length} service ratings created`)
 
-    // ============ MAINTENANCE INVOICES ============
+    // ============ রক্ষণাবেক্ষণ চালান ============
     console.log('💰 Creating maintenance invoices...')
     const existingInvoices = await prisma.maintenanceInvoice.count()
     if (existingInvoices === 0) {

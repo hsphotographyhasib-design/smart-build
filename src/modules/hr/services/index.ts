@@ -1,3 +1,3 @@
 // src/modules/hr/services/index.ts
-// HR Module - Services Barrel Export
-// API service functions for HR will be added here
+// HR মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// HR-এর API সার্ভিস ফাংশন এখানে যোগ করা হবে

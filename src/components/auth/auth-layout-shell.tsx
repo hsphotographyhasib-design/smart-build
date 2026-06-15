@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { SquareIcon, ArrowRight, BarChart3, Users, Shield, Building2, HardHat } from 'lucide-react'
 
-// ──────────── Floating shapes for left panel ────────────
+// ──────────── বাম প্যানেলের ভাসমান আকৃতিসমূহ ────────────
 const floatingShapes = [
   { size: 80, top: '10%', left: '60%', delay: 0, duration: 8 },
   { size: 60, top: '70%', left: '10%', delay: 1.5, duration: 10 },
@@ -21,7 +21,7 @@ const statPills = [
   { label: 'Countries', value: '13', icon: Shield },
 ]
 
-// ──────────── Left panel content variants ────────────
+// ──────────── বাম প্যানেলের বিষয়বস্তু ভ্যারিয়্যান্টসমূহ ────────────
 const panelContent: Record<string, { title: string; description: string; cta: { label: string; href: string } }> = {
   login: {
     title: 'Welcome Back',
@@ -73,16 +73,16 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
   const pathname = usePathname()
   const { country } = useRegion()
 
-  // Auto-detect variant from pathname
+  // পাথ নাম থেকে স্বয়ংক্রিয়ভাবে ভ্যারিয়েন্ট সনাক্ত করা হচ্ছে
   const segment = pathname?.replace(/^\//, '').split('/')[0] ?? 'login'
   const variant = segment === '' ? 'login' : segment
   const content = panelContent[variant] ?? panelContent.login
 
   return (
     <div className="min-h-screen flex">
-      {/* ──── LEFT PANEL (Desktop only) ──── */}
+      {/* ──── বাম প্যানেল (শুধুমাত্র ডেস্কটপ) ──── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-orange-600 via-red-500 to-orange-700">
-        {/* Grid pattern overlay */}
+        {/* গ্রিড প্যাটার্ন ওভারলে */}
         <div
           className="absolute inset-0 opacity-[0.06]"
           style={{
@@ -93,7 +93,7 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
           }}
         />
 
-        {/* Floating shapes */}
+        {/* ভাসমান আকৃতিসমূহ */}
         {floatingShapes.map((shape, i) => (
           <motion.div
             key={i}
@@ -118,11 +118,11 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
           />
         ))}
 
-        {/* Radial glows */}
+        {/* রেডিয়াল ঝলক */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-orange-400/10 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Construction-themed icons */}
+        {/* নির্মাণ-থিমযুক্ত আইকন */}
         <div className="absolute top-16 right-16 opacity-20">
           <HardHat className="w-16 h-16 text-white" />
         </div>
@@ -130,9 +130,9 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
           <Building2 className="w-14 h-14 text-white" />
         </div>
 
-        {/* Content */}
+        {/* বিষয়বস্তু */}
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 py-16 w-full">
-          {/* Logo */}
+          {/* লোগো */}
           <div className="flex items-center gap-3 mb-10">
             <div className="relative w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
               <SquareIcon className="w-7 h-7 text-white fill-white" strokeWidth={0} />
@@ -144,7 +144,7 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
             </div>
           </div>
 
-          {/* Dynamic heading */}
+          {/* গতিশীল শিরোনাম */}
           <motion.h1
             key={variant + '-title'}
             initial={{ opacity: 0, y: 20 }}
@@ -166,7 +166,7 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
               : content.description}
           </motion.p>
 
-          {/* CTA button */}
+          {/* CTA বাটন */}
           <Link
             href={content.cta.href}
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-orange-600 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:bg-white/95 transition-all duration-200 hover:-translate-y-0.5 w-fit group"
@@ -175,7 +175,7 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
 
-          {/* Stat pills */}
+          {/* পরিসংখ্যান পিলসমূহ */}
           <div className="mt-12 flex flex-wrap gap-3">
             {statPills.map((stat) => {
               const Icon = stat.icon
@@ -199,9 +199,9 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
         </div>
       </div>
 
-      {/* ──── RIGHT PANEL (Form area) ──── */}
+      {/* ──── ডান প্যানেল (ফর্ম এলাকা) ──── */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-12 py-12 bg-white relative">
-        {/* Subtle bg pattern */}
+        {/* সূক্ষ্ম ব্যাকগ্রাউন্ড প্যাটার্ন */}
         <div
           className="absolute inset-0 opacity-[0.02] pointer-events-none"
           style={{
@@ -210,12 +210,12 @@ export function AuthLayoutShell({ children }: AuthLayoutShellProps) {
           }}
         />
 
-        {/* Subtle gradient accent in top-right */}
+        {/* উপরে-ডানে সূক্ষ্ম গ্রেডিয়েন্ট অ্যাকসেন্ট */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full blur-[100px] pointer-events-none opacity-50" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-50 rounded-full blur-[80px] pointer-events-none opacity-50" />
 
         <div className="w-full max-w-md relative z-10">
-          {/* Mobile-only: Logo */}
+          {/* শুধুমাত্র মোবাইলে: লোগো */}
           <div className="lg:hidden mb-8">
             <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-md">

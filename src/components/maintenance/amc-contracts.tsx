@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const amcStatusConfig: Record<string, { label: string; color: string }> = {
   active: { label: 'Active', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' },
   expired: { label: 'Expired', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' },
@@ -62,7 +62,7 @@ export function AMCContracts() {
   const [viewingAMC, setViewingAMC] = useState<any>(null)
   const [statusFilter, setStatusFilter] = useState('all')
 
-  // Fetch AMC contracts
+  // AMC চুক্তি আনা
   const { data: amcData, isLoading } = useQuery({
     queryKey: ['maintenance-amc', statusFilter],
     queryFn: () => {
@@ -73,14 +73,14 @@ export function AMCContracts() {
   })
   const contracts = amcData?.data || []
 
-  // Fetch customers
+  // গ্রাহক আনা
   const { data: customersData } = useQuery({
     queryKey: ['customers-amc'],
     queryFn: () => api.get('/api/customers'),
   })
   const customers = customersData?.data || []
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/amc', body),
     onSuccess: () => {
@@ -91,7 +91,7 @@ export function AMCContracts() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Update mutation
+  // আপডেট মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/amc/${id}`, body),
     onSuccess: () => {
@@ -103,7 +103,7 @@ export function AMCContracts() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Compute stats
+  // পরিসংখ্যান গণনা
   const now = new Date()
   const monthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
   const activeContracts = contracts.filter((c: any) => c.status === 'active').length
@@ -117,7 +117,7 @@ export function AMCContracts() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">AMC Contracts</h1>
@@ -143,7 +143,7 @@ export function AMCContracts() {
         </Dialog>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="border-emerald-200 dark:border-emerald-800">
           <CardContent className="p-4">
@@ -183,7 +183,7 @@ export function AMCContracts() {
         </Card>
       </div>
 
-      {/* Filter */}
+      {/* ফিল্টার */}
       <div className="flex gap-2">
         {['all', 'active', 'expiring', 'expired', 'cancelled', 'pending'].map((s) => (
           <Button
@@ -198,7 +198,7 @@ export function AMCContracts() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -272,7 +272,7 @@ export function AMCContracts() {
         </CardContent>
       </Card>
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -303,7 +303,7 @@ export function AMCContracts() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -324,7 +324,7 @@ export function AMCContracts() {
   )
 }
 
-// ─── Create AMC Form ───
+// ─── AMC তৈরির ফর্ম ───
 function CreateAMCForm({ customers, onSubmit, loading }: {
   customers: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {
@@ -436,7 +436,7 @@ function CreateAMCForm({ customers, onSubmit, loading }: {
   )
 }
 
-// ─── Edit AMC Form ───
+// ─── AMC সম্পাদনার ফর্ম ───
 function EditAMCForm({ amc, customers, onSubmit, loading }: {
   amc: any; customers: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {

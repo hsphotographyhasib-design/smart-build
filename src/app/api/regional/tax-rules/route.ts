@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: formatted })
   } catch (error) {
-    console.error('Get tax rules error:', error)
+    console.error('ট্যাক্স নিয়ম পাওয়া হচ্ছে error:', error)
     return NextResponse.json({ error: 'Failed to get tax rules' }, { status: 500 })
   }
 }

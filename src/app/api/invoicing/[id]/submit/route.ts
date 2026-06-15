@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: 'Invoice total must be greater than zero' }, { status: 400 })
     }
 
-    // Find or create workflow instance
+    // ওয়ার্কফ্লো ইনস্ট্যান্স খুঁজে বের করা বা তৈরি করা হচ্ছে
     let instanceId = invoice.workflowInstance?.id
 
     if (!instanceId) {
@@ -57,14 +57,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         instanceId = instance.id
       }
     } else {
-      // Restart the existing instance
+      // বিদ্যমান ইনস্ট্যান্স পুনরায় শুরু করা হচ্ছে
       await db.invoiceWorkflowInstance.update({
         where: { id: instanceId },
         data: { status: 'in_progress', completedAt: null },
       })
     }
 
-    // Create submitted action
+    // জমা দেওয়া অ্যাকশন তৈরি করা হচ্ছে
     if (instanceId) {
       const instance = await db.invoiceWorkflowInstance.findUnique({
         where: { id: instanceId },

@@ -18,7 +18,7 @@ const resetPasswordSchema = z
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    // হার সীমাবদ্ধতা প্রয়োগ করা হচ্ছে
     const rateLimit = checkRateLimit(request, rateLimiters.passwordReset, 'reset-password')
     if (!rateLimit.success) {
       return NextResponse.json(
@@ -30,20 +30,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validation
+    // যাচাইকরণ
     const body = await request.json()
     const validation = validateBody(resetPasswordSchema, body)
     if (validation.error) return validation.error
 
     const { token, password } = validation.data
 
-    // TODO: Look up the reset token in the database
-    // - Verify the token exists and hasn't expired
-    // - Hash the new password and update the user record
-    // - Delete the used reset token
-    // - Revoke all existing sessions for the user
+    // TODO: ডাটাবেজে রিসেট টোকেন খুঁজুন
+    // - টোকেন বিদ্যমান এবং মেয়াদ শেষ হয়নি তা যাচাই করুন
+    // - নতুন পাসওয়ার্ড হ্যাশ করে ব্যবহারকারী রেকর্ড আপডেট করুন
+    // - ব্যবহৃত রিসেট টোকেন মুছে ফেলুন
+    // - ব্যবহারকারীর সকল বিদ্যমান সেশন বাতিল করুন
 
-    // Placeholder: token validation not yet wired to DB
+    // স্থানধারক: টোকেন যাচাইকরণ এখনও ডাটাবেজের সাথে সংযুক্ত নয়
     return NextResponse.json(
       { success: false, error: 'Password reset not yet implemented' },
       { status: 501 }

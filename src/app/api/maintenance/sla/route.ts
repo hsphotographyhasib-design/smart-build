@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: `Priority must be one of: ${validPriorities.join(', ')}` }, { status: 400 })
     }
 
-    // Check uniqueness
+    // অনন্যতা যাচাই করা হচ্ছে
     const existing = await db.sLATemplate.findUnique({ where: { priority } })
     if (existing) {
       return NextResponse.json({ success: false, error: `SLA template for priority '${priority}' already exists` }, { status: 400 })

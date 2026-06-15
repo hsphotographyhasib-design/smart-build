@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Counts
+    // গণনা
     const [openRfis, pendingSubmittals, activeDiscussions, openItems, pendingChangeEvents] = await Promise.all([
       db.rFI.count({ where: { status: { in: ['submitted', 'under_review'] } } }),
       db.submittal.count({ where: { status: { in: ['submitted', 'under_review'] } } }),
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       db.changeEvent.count({ where: { status: { in: ['open', 'review'] } } }),
     ])
 
-    // Overdue items: RFIs, submittals, open items with dueDate < now and not resolved
+    // অতিক্রান্ত আইটেম: যেসব RFI, সাবমিটাল, উন্মুক্ত আইটেমের নির্ধারিত তারিখ < বর্তমান এবং সমাধান হয়নি
     const overdueRfis = await db.rFI.count({
       where: {
         dueDate: { lt: now },
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     })
     const totalOverdue = overdueRfis + overdueSubmittals + overdueOpenItems + overdueDiscussions
 
-    // Category breakdown
+    // বিভাগ অনুযায়ী বিভাজন
     const rfiCategories = await db.rFI.groupBy({ by: ['category'], _count: true })
     const discussionCategories = await db.discussion.groupBy({ by: ['category'], _count: true })
     const openItemCategories = await db.openItem.groupBy({ by: ['category'], _count: true })
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     for (const item of openItemCategories) categoryBreakdown[`Open Item: ${item.category}`] = item._count
     for (const item of submittalCategories) categoryBreakdown[`Submittal: ${item.category}`] = item._count
 
-    // Recent activity - collect from multiple tables
+    // সাম্প্রতিক কার্যকলাপ - একাধিক টেবিল থেকে সংগ্রহ করা হচ্ছে
     const [recentRfis, recentDiscussions, recentSubmittals, recentChangeEvents] = await Promise.all([
       db.rFI.findMany({
         take: 5,

@@ -10,14 +10,14 @@ export async function GET(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
 
     const { id } = await params
 
-    // For client role, verify the project belongs to them
+    // ক্লায়েন্ট ভূমিকার জন্য, প্রজেক্টটি তাদের নিজের কিনা যাচাই করা হচ্ছে
     if (user.role === 'client') {
       const ownershipCheck = await db.project.findUnique({
         where: { id },
@@ -48,7 +48,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
     }
 
-    // Task stats
+    // কাজের পরিসংখ্যান
     const [totalTasks, completedTasks, inProgressTasks, overdueTasks] = await Promise.all([
       db.projectTask.count({ where: { projectId: id } }),
       db.projectTask.count({ where: { projectId: id, status: 'completed' } }),
@@ -58,13 +58,13 @@ export async function GET(
       }),
     ])
 
-    // Milestones
+    // মাইলস্টোন
     const milestones = await db.projectMilestone.findMany({
       where: { projectId: id },
       orderBy: { dueDate: 'asc' },
     })
 
-    // Recent daily notes (last 10)
+    // সাম্প্রতিক দৈনিক নোট (শেষ ১০টি)
     const recentNotes = await db.dailyNote.findMany({
       where: { projectId: id },
       take: 10,
@@ -74,14 +74,14 @@ export async function GET(
       },
     })
 
-    // Photo documents
+    // ফটো ডকুমেন্ট
     const photos = await db.projectDocument.findMany({
       where: { projectId: id, type: 'photo' },
       orderBy: { createdAt: 'desc' },
       take: 20,
     })
 
-    // Progress timeline: compute monthly progress from daily notes and tasks
+    // অগ্রগতি টাইমলাইন: দৈনিক নোট এবং কাজ থেকে মাসিক অগ্রগতি হিসাব করা হচ্ছে
     const tasksByStatus = await db.projectTask.groupBy({
       by: ['status'],
       where: { projectId: id },

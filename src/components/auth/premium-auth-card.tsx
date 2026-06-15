@@ -42,7 +42,7 @@ import {
 } from 'lucide-react'
 
 // ═══════════════════════════════════════════════════════════════════
-// OVERLAY CONTENT DATA
+// ওভারলে বিষয়বস্তু ডেটা
 // ═══════════════════════════════════════════════════════════════════
 
 const features = [
@@ -53,7 +53,7 @@ const features = [
 ]
 
 // ═══════════════════════════════════════════════════════════════════
-// ANIMATION VARIANTS
+// অ্যানিমেশন ভ্যারিয়্যান্টসমূহ
 // ═══════════════════════════════════════════════════════════════════
 
 const staggerContainer = {
@@ -95,7 +95,7 @@ const formSlideVariants = {
   }),
 }
 
-// Overlay content variants
+// ওভারলে বিষয়বস্তু ভ্যারিয়্যান্টসমূহ
 const overlayContentVariants = {
   initial: (direction: number) => ({
     opacity: 0,
@@ -117,7 +117,7 @@ const overlayContentVariants = {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ANIMATED INPUT WRAPPER — floating label with icon & focus effects
+// অ্যানিমেটেড ইনপুট র‍্যাপার — আইকন ও ফোকাস ইফেক্ট সহ ভাসমান লেবেল
 // ═══════════════════════════════════════════════════════════════════
 
 function AnimatedInput({
@@ -190,7 +190,7 @@ function AnimatedInput({
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// LOGIN FORM (preserves ALL existing business logic)
+// লগইন ফর্ম (সকল বিদ্যমান ব্যবসায়িক যুক্তি সংরক্ষিত)
 // ═══════════════════════════════════════════════════════════════════
 
 function LoginFormContent() {
@@ -199,10 +199,10 @@ function LoginFormContent() {
   const { country } = useRegion()
   const { setToken, setUser } = useAppStore()
 
-  // Login tab state: 'email' or 'whatsapp'
+  // লগইন ট্যাব অবস্থা: 'email' অথবা 'whatsapp'
   const [loginTab, setLoginTab] = useState<'email' | 'whatsapp'>('email')
 
-  // Email login state
+  // ইমেইল লগইন অবস্থা
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -210,7 +210,7 @@ function LoginFormContent() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [loginError, setLoginError] = useState('')
 
-  // WhatsApp OTP state
+  // WhatsApp OTP অবস্থা
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [otpValue, setOtpValue] = useState('')
@@ -238,7 +238,7 @@ function LoginFormContent() {
     }
   }, [resendTimer])
 
-  // ──────── AUTH HANDLERS (preserved from original) ────────
+  // ──────── প্রমাণীকরণ হ্যান্ডলার (মূল থেকে সংরক্ষিত) ────────
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -305,7 +305,7 @@ function LoginFormContent() {
 
   return (
     <div className="space-y-1">
-      {/* Logo */}
+      {/* লোগো */}
       <motion.div
         className="flex items-center gap-2.5 mb-5"
         variants={staggerItem}
@@ -330,7 +330,7 @@ function LoginFormContent() {
         Sign in to your account to continue
       </motion.p>
 
-      {/* Tab switcher */}
+      {/* ট্যাব সুইচার */}
       <motion.div
         className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-4"
         variants={staggerItem}
@@ -387,7 +387,7 @@ function LoginFormContent() {
               </motion.div>
             )}
 
-            {/* Email field */}
+            {/* ইমেইল ফিল্ড */}
             <div className="space-y-1.5">
               <Label htmlFor="login-email" className="text-sm font-medium text-slate-700">
                 Email Address
@@ -405,7 +405,7 @@ function LoginFormContent() {
               />
             </div>
 
-            {/* Password field */}
+            {/* পাসওয়ার্ড ফিল্ড */}
             <div className="space-y-1.5">
               <Label htmlFor="login-password" className="text-sm font-medium text-slate-700">
                 Password
@@ -439,7 +439,7 @@ function LoginFormContent() {
               </div>
             </div>
 
-            {/* Remember me & forgot password */}
+            {/* আমাকে মনে রাখুন ও পাসওয়ার্ড ভুলে গেছি */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <Checkbox
@@ -459,7 +459,7 @@ function LoginFormContent() {
               </Link>
             </div>
 
-            {/* Submit button */}
+            {/* জমা বাটন */}
             <motion.div
               whileTap={{ scale: 0.98 }}
             >
@@ -609,7 +609,7 @@ function LoginFormContent() {
         )}
       </AnimatePresence>
 
-      {/* Divider */}
+      {/* বিভাজক */}
       <div className="relative my-5">
         <Separator className="bg-slate-200" />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-400 uppercase tracking-wider">
@@ -617,7 +617,7 @@ function LoginFormContent() {
         </span>
       </div>
 
-      {/* Social Login */}
+      {/* সোশ্যাল লগইন */}
       <div className="grid grid-cols-2 gap-3">
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
@@ -655,7 +655,7 @@ function LoginFormContent() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// REGISTER FORM (preserves ALL existing business logic)
+// নিবন্ধন ফর্ম (সকল বিদ্যমান ব্যবসায়িক যুক্তি সংরক্ষিত)
 // ═══════════════════════════════════════════════════════════════════
 
 function RegisterFormContent() {
@@ -663,7 +663,7 @@ function RegisterFormContent() {
   const { getCallingCode, getPhonePlaceholder } = useFormat()
   const { country } = useRegion()
 
-  // Register state
+  // নিবন্ধন অবস্থা
   const [regFirstName, setRegFirstName] = useState('')
   const [regLastName, setRegLastName] = useState('')
   const [regEmail, setRegEmail] = useState('')
@@ -714,7 +714,7 @@ function RegisterFormContent() {
 
   return (
     <div className="space-y-1">
-      {/* Logo */}
+      {/* লোগো */}
       <motion.div
         className="flex items-center gap-2.5 mb-5"
         variants={staggerItem}
@@ -757,7 +757,7 @@ function RegisterFormContent() {
           </motion.div>
         )}
 
-        {/* Name row */}
+        {/* নামের সারি */}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1">
             <Label htmlFor="reg-first" className="text-xs font-medium text-slate-700">First Name</Label>
@@ -783,7 +783,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Email */}
+        {/* ইমেইল */}
         <div className="space-y-1">
           <Label htmlFor="reg-email" className="text-xs font-medium text-slate-700">Email Address</Label>
           <div className="relative">
@@ -800,7 +800,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Phone */}
+        {/* ফোন */}
         <div className="space-y-1">
           <Label htmlFor="reg-phone" className="text-xs font-medium text-slate-700">Phone Number</Label>
           <div className="flex gap-2">
@@ -819,7 +819,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Company & Position */}
+        {/* কোম্পানি ও পদবি */}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1">
             <Label htmlFor="reg-company" className="text-xs font-medium text-slate-700">Company</Label>
@@ -849,7 +849,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Password */}
+        {/* পাসওয়ার্ড */}
         <div className="space-y-1">
           <Label htmlFor="reg-password" className="text-xs font-medium text-slate-700">Password</Label>
           <div className="relative">
@@ -874,7 +874,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Confirm Password */}
+        {/* পাসওয়ার্ড নিশ্চিতকরণ */}
         <div className="space-y-1">
           <Label htmlFor="reg-confirm" className="text-xs font-medium text-slate-700">Confirm Password</Label>
           <div className="relative">
@@ -891,7 +891,7 @@ function RegisterFormContent() {
           </div>
         </div>
 
-        {/* Terms */}
+        {/* শর্তাবলী */}
         <label className="flex items-start gap-2 cursor-pointer">
           <Checkbox className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 rounded mt-0.5" />
           <span className="text-xs text-slate-500 leading-relaxed">
@@ -902,7 +902,7 @@ function RegisterFormContent() {
           </span>
         </label>
 
-        {/* Submit button */}
+        {/* জমা বাটন */}
         <motion.div whileTap={{ scale: 0.98 }}>
           <Button
             type="submit"
@@ -928,7 +928,7 @@ function RegisterFormContent() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// OVERLAY PANEL CONTENT — Branded content that shows on the sliding panel
+// ওভারলে প্যানেল বিষয়বস্তু — স্লাইডিং প্যানেলে প্রদর্শিত ব্র্যান্ডেড বিষয়বস্তু
 // ═══════════════════════════════════════════════════════════════════
 
 function OverlayContent({
@@ -948,7 +948,7 @@ function OverlayContent({
       exit="exit"
       className="absolute inset-0 flex flex-col items-center justify-center px-10 xl:px-16 text-center"
     >
-      {/* Logo */}
+      {/* লোগো */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -980,7 +980,7 @@ function OverlayContent({
         </motion.p>
       </motion.div>
 
-      {/* Heading */}
+      {/* শিরোনাম */}
       <motion.h3
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1000,7 +1000,7 @@ function OverlayContent({
           : 'Already have an account? Sign in to continue managing your operations.'}
       </motion.p>
 
-      {/* Features */}
+      {/* বৈশিষ্ট্যসমূহ */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1030,20 +1030,20 @@ function OverlayContent({
         })}
       </motion.div>
 
-      {/* CTA Button */}
+      {/* CTA বাটন */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8, duration: 0.5 }}
       >
-        {/* This button is a no-op placeholder; the real switch is handled by the parent */}
+        {/* এই বাটনটি একটি নো-অপ প্লেসহোল্ডার; প্রকৃত সুইচ প্যারেন্ট দ্বারা পরিচালিত হয় */}
       </motion.div>
     </motion.div>
   )
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// MOBILE VIEW — Stacked single card layout
+// মোবাইল ভিউ — স্ট্যাকড একক কার্ড লেআউট
 // ═══════════════════════════════════════════════════════════════════
 
 function MobileAuthCard({ initialMode = 'login' }: { initialMode?: 'login' | 'register' }) {
@@ -1104,7 +1104,7 @@ function MobileAuthCard({ initialMode = 'login' }: { initialMode?: 'login' | 're
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// MAIN PREMIUM AUTH CARD — Desktop sliding panel + mobile stacked
+// প্রধান প্রিমিয়াম প্রমাণীকরণ কার্ড — ডেস্কটপ স্লাইডিং প্যানেল + মোবাইল স্ট্যাকড
 // ═══════════════════════════════════════════════════════════════════
 
 interface PremiumAuthCardProps {
@@ -1113,7 +1113,7 @@ interface PremiumAuthCardProps {
 
 export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps) {
   const [isLoginMode, setIsLoginMode] = useState(initialMode === 'login')
-  // direction: -1 = panel moving left (login -> register), 1 = panel moving right (register -> login)
+  // দিক: -1 = প্যানেল বামে সরছে (লগইন -> নিবন্ধন), 1 = প্যানেল ডানে সরছে (নিবন্ধন -> লগইন)
   const [direction, setDirection] = useState(0)
 
   const switchMode = () => {
@@ -1124,7 +1124,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center px-4 py-8 lg:py-0 relative">
-      {/* Desktop: Sliding Panel Card */}
+      {/* ডেস্কটপ: স্লাইডিং প্যানেল কার্ড */}
       <div className="hidden lg:block">
         <motion.div
           initial={{ opacity: 0, scale: 0.88, y: 40 }}
@@ -1135,10 +1135,10 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
             boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.06), 0 0 120px -20px rgba(245, 158, 11, 0.15)',
           }}
         >
-          {/* ═════ GLASS EFFECT BASE ═══════ */}
+          {/* ═════ গ্লাস ইফেক্ট বেস ═══════ */}
           <div className="absolute inset-0 bg-white/[0.97] backdrop-blur-2xl" />
 
-          {/* ═════ LEFT PANEL — Login Form (visible when isLoginMode) ═══════ */}
+          {/* ═════ বাম প্যানেল — লগইন ফর্ম (isLoginMode সক্রিয় থাকলে দৃশ্যমান) ═══════ */}
           <div className="absolute inset-y-0 left-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14">
             <div className="w-full max-w-[380px]">
               <AnimatePresence mode="wait" custom={direction}>
@@ -1160,7 +1160,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
             </div>
           </div>
 
-          {/* ═════ RIGHT PANEL — Register Form (visible when NOT isLoginMode) ═══════ */}
+          {/* ═════ ডান প্যানেল — নিবন্ধন ফর্ম (isLoginMode নিষ্ক্রিয় থাকলে দৃশ্যমান) ═══════ */}
           <div className="absolute inset-y-0 right-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14 overflow-hidden">
             <div className="w-full max-w-[380px]">
               <AnimatePresence mode="wait" custom={direction}>
@@ -1182,7 +1182,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
             </div>
           </div>
 
-          {/* ═════ SLIDING OVERLAY PANEL — Framer Motion driven ═══════ */}
+          {/* ═════ স্লাইডিং ওভারলে প্যানেল — Framer Motion পরিচালিত ═══════ */}
           <motion.div
             className="absolute inset-y-0 w-1/2 z-30 overflow-hidden"
             animate={{ left: isLoginMode ? '50%' : '0%' }}
@@ -1197,9 +1197,9 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
               willChange: 'left',
             }}
           >
-            {/* Decorative shapes inside overlay */}
+            {/* ওভারলের ভেতরে আলংকারিক আকৃতিসমূহ */}
             <div className="absolute inset-0 overflow-hidden">
-              {/* Grid pattern */}
+              {/* গ্রিড প্যাটার্ন */}
               <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
@@ -1210,7 +1210,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
                 }}
               />
 
-              {/* Floating circles with Framer Motion */}
+              {/* Framer Motion সহ ভাসমান বৃত্তসমূহ */}
               <motion.div
                 className="absolute w-40 h-40 rounded-full bg-white/[0.04]"
                 style={{ top: '8%', right: '8%' }}
@@ -1236,14 +1236,14 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
                 transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
               />
 
-              {/* Radial glow */}
+              {/* রেডিয়াল ঝলক */}
               <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-amber-500/[0.08] rounded-full blur-[100px] pointer-events-none" />
 
-              {/* Bottom glow */}
+              {/* নিচের ঝলক */}
               <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-white/[0.03] to-transparent pointer-events-none" />
             </div>
 
-            {/* ═════ OVERLAY CONTENT — Cross-fades when switching ═══════ */}
+            {/* ═════ ওভারলে বিষয়বস্তু — সুইচিংয়ের সময় ক্রস-ফেড ═══════ */}
             <AnimatePresence mode="wait" custom={direction}>
               {isLoginMode ? (
                 <OverlayContent key="overlay-login" mode="login" direction={direction} />
@@ -1252,7 +1252,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
               )}
             </AnimatePresence>
 
-            {/* CTA Button on Overlay */}
+            {/* ওভারলেতে CTA বাটন */}
             <div className="absolute bottom-12 left-0 right-0 flex justify-center">
               <AnimatePresence mode="wait">
                 <motion.button
@@ -1297,16 +1297,16 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
             </div>
           </motion.div>
 
-          {/* ═════ CENTER DIVIDER LINE ═══════ */}
+          {/* ═════ কেন্দ্রীয় বিভাজক রেখা ═══════ */}
           <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-slate-300/40 to-transparent z-20 pointer-events-none" />
 
-          {/* ═════ CARD BORDER GLOW ═══════ */}
+          {/* ═════ কার্ড বর্ডার ঝলক ═══════ */}
           <div className="absolute inset-0 rounded-3xl pointer-events-none z-40">
             <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
             <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/[0.04]" />
           </div>
 
-          {/* ═════ AMBIENT GLOW BEHIND CARD ═══════ */}
+          {/* ═════ কার্ডের পেছনে পরিবেশগত ঝলক ═══════ */}
           <div
             className="absolute -inset-4 rounded-[2rem] blur-2xl pointer-events-none opacity-30"
             style={{
@@ -1317,7 +1317,7 @@ export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps)
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          MOBILE: Stacked Single Card
+          মোবাইল: স্ট্যাকড একক কার্ড
       ═══════════════════════════════════════════════════════════ */}
       <div className="lg:hidden">
         <motion.div

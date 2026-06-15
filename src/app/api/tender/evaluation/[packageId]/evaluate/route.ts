@@ -19,7 +19,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Package not found' }, { status: 404 })
     }
 
-    // Get all submitted bids
+    // সব জমা দেওয়া বিড পাওয়া হচ্ছে
     const bids = await db.tenderBid.findMany({
       where: { packageId, status: 'submitted' },
       include: {
@@ -32,7 +32,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'No submitted bids to evaluate' }, { status: 400 })
     }
 
-    // Get evaluation criteria
+    // মূল্যায়ন মানদণ্ড পাওয়া হচ্ছে
     const criteriaList = await db.tenderEvaluationCriteria.findMany({
       where: { packageId },
       orderBy: { sortOrder: 'asc' },
@@ -49,7 +49,7 @@ export async function POST(
       .filter((c) => c.type === 'commercial')
       .reduce((sum, c) => sum + c.weight, 0)
 
-    // Find the lowest bid amount for commercial scoring
+    // বাণিজ্যিক স্কোরিংয়ের জন্য সবচেয়ে কম বিডের পরিমাণ খুঁজে বের করা হচ্ছে
     const lowestBidAmount = Math.min(...bids.map((b) => b.totalAmount))
     const highestBidAmount = Math.max(...bids.map((b) => b.totalAmount))
     const bidRange = highestBidAmount - lowestBidAmount || 1
@@ -57,10 +57,10 @@ export async function POST(
     const evaluations: Array<Awaited<ReturnType<typeof db.tenderEvaluation.update>>> = []
 
     for (const bid of bids) {
-      // Check if scores were provided, otherwise calculate defaults
+      // স্কোর প্রদান করা হয়েছে কিনা যাচাই করা হচ্ছে, না হলে ডিফল্ট হিসাব করা হচ্ছে
       const bidScores = scores?.filter((s: Record<string, unknown>) => s.bidId === bid.id) || []
 
-      // Upsert evaluation record
+      // মূল্যায়ন রেকর্ড আপসার্ট করা হচ্ছে
       const evaluation = await db.tenderEvaluation.upsert({
         where: { bidId: bid.id },
         update: {},
@@ -71,7 +71,7 @@ export async function POST(
         },
       })
 
-      // Save individual scores
+      // পৃথক স্কোর সংরক্ষণ করা হচ্ছে
       let technicalTotal = 0
       let technicalMax = 0
       let commercialTotal = 0
@@ -86,7 +86,7 @@ export async function POST(
         if (providedScore) {
           score = Math.min(100, Math.max(0, Number(providedScore.score) || 0))
         } else if (criteria.type === 'commercial') {
-          // Auto-calculate commercial score: lowest price gets 100
+          // স্বয়ংক্রিয়ভাবে বাণিজ্যিক স্কোর হিসাব করা হচ্ছে: সবচেয়ে কম মূল্য ১০০ পাচ্ছে
           if (highestBidAmount === lowestBidAmount) {
             score = 100
           } else {
@@ -122,7 +122,7 @@ export async function POST(
       const technicalScore = technicalMax > 0 ? Math.round((technicalTotal / technicalMax) * 100) : 0
       const commercialScore = commercialMax > 0 ? Math.round((commercialTotal / commercialMax) * 100) : 0
 
-      // Combined score using weighted average of technical and commercial
+      // প্রযুক্তি এবং বাণিজ্যিকের ওজন গড় ব্যবহার করে সম্মিলিত স্কোর
       const totalWeight = technicalWeight + commercialWeight || 100
       const combinedScore = Math.round(
         (technicalScore * (technicalWeight / totalWeight)) +
@@ -140,7 +140,7 @@ export async function POST(
       evaluations.push(updatedEval)
     }
 
-    // Auto-rank by combined score (descending)
+    // সম্মিলিত স্কোর অনুযায়ী স্বয়ংক্রিয়ভাবে র‍্যাংকিং (অবনতমান)
     const sorted = evaluations.sort((a, b) => b.combinedScore - a.combinedScore)
     for (let i = 0; i < sorted.length; i++) {
       await db.tenderEvaluation.update({
@@ -149,13 +149,13 @@ export async function POST(
       })
     }
 
-    // Update package status
+    // প্যাকেজ আপডেট করা হচ্ছে status
     await db.tenderBidPackage.update({
       where: { id: packageId },
       data: { status: 'under_evaluation' },
     })
 
-    // Get final evaluations with rankings
+    // র‍্যাংকিং সহ চূড়ান্ত মূল্যায়ন পাওয়া হচ্ছে
     const finalEvaluations = await db.tenderEvaluation.findMany({
       where: { packageId },
       include: {

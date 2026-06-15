@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: settings })
   } catch (error) {
-    console.error('Get regional settings error:', error)
+    console.error('আঞ্চলিক সেটিংস পাওয়া হচ্ছে error:', error)
     return NextResponse.json({ error: 'Failed to get settings' }, { status: 500 })
   }
 }

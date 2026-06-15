@@ -63,11 +63,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Project, issue date and at least one item are required' }, { status: 400 })
     }
 
-    // Calculate invoice number
+    // ইনভয়েস নম্বর হিসাব করা হচ্ছে
     const count = await db.invoice.count()
     const invoiceNo = `INV-${String(count + 1).padStart(4, '0')}`
 
-    // Calculate subtotal and total
+    // সাবটোটাল এবং মোট হিসাব করা হচ্ছে
     const subtotal = items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitPrice), 0)
     const taxAmount = subtotal * ((taxPercent || 0) / 100)
     const discountAmount = discount || 0

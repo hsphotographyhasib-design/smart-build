@@ -39,7 +39,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface SchedulingTask {
@@ -62,7 +62,7 @@ interface ProjectOption {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const taskStatusConfig: Record<string, { label: string; className: string }> = {
@@ -102,7 +102,7 @@ function formatDate(dateStr: string | null) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loader
+// স্কেলেটন লোডার
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -124,7 +124,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Add Task Dialog
+// কাজ যোগ ডায়ালগ
 // ──────────────────────────────────────────
 
 function AddTaskDialog({ projects }: { projects: ProjectOption[] }) {
@@ -243,7 +243,7 @@ function AddTaskDialog({ projects }: { projects: ProjectOption[] }) {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function SchedulingPage() {
@@ -264,7 +264,7 @@ export function SchedulingPage() {
     },
   })
 
-  // Derive unique projects from tasks
+  // কাজ থেকে অনন্য প্রকল্প উদ্ভাবন
   const projectOptions = useMemo(() => {
     if (!tasks) return []
     const map = new Map<string, ProjectOption>()
@@ -276,7 +276,7 @@ export function SchedulingPage() {
     return Array.from(map.values())
   }, [tasks])
 
-  // Group tasks by project
+  // প্রকল্প অনুযায়ী কাজ গোষ্ঠীবদ্ধ করা
   const groupedTasks = useMemo(() => {
     if (!tasks) return {}
     const filtered = projectFilter === 'all' ? tasks : tasks.filter((t) => t.project?.id === projectFilter)
@@ -296,7 +296,7 @@ export function SchedulingPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Scheduling</h1>
@@ -307,7 +307,7 @@ export function SchedulingPage() {
         <AddTaskDialog projects={projectOptions} />
       </div>
 
-      {/* Toolbar */}
+      {/* টুলবার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -354,7 +354,7 @@ export function SchedulingPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card>
           <CardContent className="p-0">

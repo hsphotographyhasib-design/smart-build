@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useFormat } from '@/hooks/use-format'
 
-/* ─────────────── Slide Data ─────────────── */
+/* ─────────────── স্লাইড ডেটা ─────────────── */
 interface HeroSlide {
   src: string
   alt: string
@@ -50,7 +50,7 @@ const slides: HeroSlide[] = [
   },
 ]
 
-/* ─────────────── Floating Card Data ─────────────── */
+/* ─────────────── ভাসমান কার্ড ডেটা ─────────────── */
 interface FloatingCard {
   icon: React.ElementType
   label: string
@@ -59,7 +59,7 @@ interface FloatingCard {
   position: string
   delay: number
   isCurrency?: boolean
-  currencyValue?: number  // Base BND value for conversion
+  currencyValue?: number  // রূপান্তরের জন্য ভিত্তি BND মান
 }
 
 const baseCards: Omit<FloatingCard, 'value'>[] = [
@@ -109,7 +109,7 @@ const baseCards: Omit<FloatingCard, 'value'>[] = [
   },
 ]
 
-/* ─────────────── Slide Progress Dots ─────────────── */
+/* ─────────────── স্লাইড অগ্রগতি ডট ─────────────── */
 function SlideDots({
   current,
   total,
@@ -137,7 +137,7 @@ function SlideDots({
   )
 }
 
-/* ─────────────── Floating Glassmorphism Card ─────────────── */
+/* ─────────────── ভাসমান গ্লাসমরফিজম কার্ড ─────────────── */
 function GlassCard({ card, isVisible }: { card: FloatingCard; isVisible: boolean }) {
   const Icon = card.icon
   return (
@@ -169,14 +169,14 @@ function GlassCard({ card, isVisible }: { card: FloatingCard; isVisible: boolean
           </div>
           <p className="text-white text-base font-bold leading-tight">{card.value}</p>
         </div>
-        {/* Subtle glow */}
+        {/* সূক্ষ্ম ঝলক */}
         <div className="absolute -inset-2 bg-white/5 rounded-2xl blur-xl -z-10" />
       </motion.div>
     </motion.div>
   )
 }
 
-/* ─────────────── Hero Visual Component ─────────────── */
+/* ─────────────── হিরো ভিজ্যুয়াল কম্পোনেন্ট ─────────────── */
 export function HeroVisual() {
   const { formatCurrencyCompact, convertAndFormatCompact, currencyCode } = useFormat()
   const [current, setCurrent] = useState(0)
@@ -200,7 +200,7 @@ export function HeroVisual() {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
   }, [])
 
-  // Auto-rotate every 6 seconds
+  // প্রতি ৬ সেকেন্ডে স্বয়ংক্রিয়ভাবে ঘোরানো হচ্ছে
   useEffect(() => {
     const timer = setInterval(next, 6000)
     return () => clearInterval(timer)
@@ -224,7 +224,7 @@ export function HeroVisual() {
     }),
   }
 
-  // Build cards with dynamic currency values
+  // গতিশীল মুদ্রা মান সহ কার্ড তৈরি করা হচ্ছে
   const floatingCards: FloatingCard[] = baseCards.map((card) => {
     if (card.isCurrency && card.currencyValue) {
       return {
@@ -232,7 +232,7 @@ export function HeroVisual() {
         value: convertAndFormatCompact(card.currencyValue),
       }
     }
-    // Default values for non-currency cards
+    // অ-মুদ্রা কার্ডের জন্য ডিফল্ট মান
     switch (card.label) {
       case 'Project Progress':
         return { ...card, value: '87%' }
@@ -251,17 +251,17 @@ export function HeroVisual() {
 
   return (
     <div className="relative w-full overflow-hidden">
-      {/* Image Carousel Container */}
+      {/* ইমেজ ক্যারোসেল কন্টেইনার */}
       <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
         className="relative w-full aspect-[16/10] lg:aspect-[16/11] rounded-2xl overflow-hidden shadow-2xl shadow-black/30"
       >
-        {/* Animated background gradient overlay behind image */}
+        {/* ইমেজের পেছনে অ্যানিমেটেড ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট ওভারলে */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-transparent to-orange-900/30 z-10 pointer-events-none" />
 
-        {/* Image slides */}
+        {/* ইমেজ স্লাইডসমূহ */}
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={current}
@@ -284,10 +284,10 @@ export function HeroVisual() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Bottom gradient overlay for slide label */}
+        {/* স্লাইড লেবেলের জন্য নিচের গ্রেডিয়েন্ট ওভারলে */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent z-20 pointer-events-none" />
 
-        {/* Slide label */}
+        {/* স্লাইড লেবেল */}
         <AnimatePresence mode="wait">
           <motion.div
             key={slides[current].label}
@@ -303,12 +303,12 @@ export function HeroVisual() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Floating glassmorphism cards */}
+        {/* ভাসমান গ্লাসমরফিজম কার্ডসমূহ */}
         {floatingCards.map((card, i) => (
           <GlassCard key={i} card={card} isVisible={true} />
         ))}
 
-        {/* Navigation arrows */}
+        {/* নেভিগেশন তীরচিহ্ন */}
         <button
           onClick={prev}
           className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/15 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/40 transition-all opacity-0 hover:opacity-100 focus:opacity-100"
@@ -324,11 +324,11 @@ export function HeroVisual() {
           <ChevronRight className="w-4 h-4" />
         </button>
 
-        {/* Decorative border */}
+        {/* আলংকারিক বর্ডার */}
         <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 z-20 pointer-events-none" />
       </motion.div>
 
-      {/* Slide controls */}
+      {/* স্লাইড নিয়ন্ত্রণ */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

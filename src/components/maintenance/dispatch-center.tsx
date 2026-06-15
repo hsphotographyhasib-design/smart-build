@@ -36,7 +36,7 @@ import {
   ShieldCheck, Eye, Wifi, WifiOff,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface DispatchTicket {
   id: string
   ticketNo: string
@@ -81,7 +81,7 @@ interface DispatchData {
   }
 }
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
   emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
   high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
@@ -134,7 +134,7 @@ function getSLAStatus(ticket: DispatchTicket): { label: string; color: string; i
   return { label: 'On Track', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', isBreach: false }
 }
 
-// ─── SLA Countdown Timer ───
+// ─── SLA কাউন্টডাউন টাইমার ───
 function SLACountdownTimer({ deadline }: { deadline: string }) {
   const [remaining, setRemaining] = useState('')
 
@@ -177,7 +177,7 @@ function SLACountdownTimer({ deadline }: { deadline: string }) {
   )
 }
 
-// ─── Response Timer ───
+// ─── প্রতিক্রিয়া টাইমার ───
 function ResponseTimer({ createdAt, priority }: { createdAt: string; priority: string }) {
   const [elapsed, setElapsed] = useState(0)
 
@@ -205,7 +205,7 @@ function ResponseTimer({ createdAt, priority }: { createdAt: string; priority: s
   )
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function DispatchCenter() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -221,7 +221,7 @@ export function DispatchCenter() {
   const [batchAssignOpen, setBatchAssignOpen] = useState(false)
   const [isLive, setIsLive] = useState(false)
 
-  // Real-time socket integration
+  // রিয়েল-টাইম সকেট ইন্টিগ্রেশন
   const { joinRoom, socket } = useMaintenanceSocket({
     onTicketCreated: useCallback(() => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-dispatch'] })
@@ -263,7 +263,7 @@ export function DispatchCenter() {
     }
   }, [socket])
 
-  // Fetch dispatch data
+  // ডিসপ্যাচ তথ্য আনা
   const { data, isLoading } = useQuery({
     queryKey: ['maintenance-dispatch'],
     queryFn: () => api.get<DispatchData>('/api/maintenance/dispatch').then(r => r.data!),
@@ -272,13 +272,13 @@ export function DispatchCenter() {
 
   const dispatch = data as DispatchData | undefined
 
-  // Fetch all technicians for map/schedule
+  // মানচিত্র/সময়সূচির জন্য সকল প্রযুক্তিবিদ আনা
   const { data: techData } = useQuery({
     queryKey: ['maintenance-technicians-all'],
     queryFn: () => api.get<Technician[]>('/api/maintenance/technicians').then(r => r.data || []),
   })
 
-  // Fetch tickets for schedule
+  // সময়সূচির জন্য টিকেট আনা
   const { data: allTicketsData } = useQuery({
     queryKey: ['maintenance-tickets-all'],
     queryFn: () => api.get<DispatchTicket[]>('/api/maintenance/tickets?status=assigned,in_progress').then(r => r.data || []),
@@ -287,7 +287,7 @@ export function DispatchCenter() {
   const technicians = techData || []
   const allTickets = allTicketsData || []
 
-  // Assign mutation
+  // বরাদ্দ মিউটেশন
   const assignMutation = useMutation({
     mutationFn: ({ ticketId, technicianId }: { ticketId: string; technicianId: string }) =>
       api.post(`/api/maintenance/tickets/${ticketId}/assign`, { technicianId }),
@@ -305,7 +305,7 @@ export function DispatchCenter() {
     },
   })
 
-  // Update ticket mutation
+  // টিকেট আপডেট মিউটেশন
   const updateTicketMutation = useMutation({
     mutationFn: ({ id, ...body }: { id: string; [key: string]: any }) =>
       api.put(`/api/maintenance/tickets/${id}`, body),
@@ -319,7 +319,7 @@ export function DispatchCenter() {
     },
   })
 
-  // Batch assign
+  // একসাথে বরাদ্দ
   const batchAssignMutation = useMutation({
     mutationFn: ({ ticketIds, technicianId }: { ticketIds: string[]; technicianId: string }) =>
       Promise.all(ticketIds.map(tid => api.post(`/api/maintenance/tickets/${tid}/assign`, { technicianId }))),
@@ -371,7 +371,7 @@ export function DispatchCenter() {
     updateTicketMutation.mutate({ id: ticket.id, status: 'rejected' })
   }
 
-  // Available technicians for assign dialog
+  // বরাদ্দ ডায়ালগের জন্য উপলব্ধ প্রযুক্তিবিদ
   const availableTechs = (dispatch?.availableTechnicians || []).filter(t => {
     if (techSearch) {
       const q = techSearch.toLowerCase()
@@ -380,7 +380,7 @@ export function DispatchCenter() {
     return true
   })
 
-  // Technician map filters
+  // প্রযুক্তিবিদ মানচিত্র ফিল্টার
   const uniqueLocations = useMemo(() => {
     const locs = new Set(technicians.map(t => t.location).filter(Boolean))
     return Array.from(locs)
@@ -394,7 +394,7 @@ export function DispatchCenter() {
     })
   }, [technicians, techFilter, techLocationFilter])
 
-  // Week days for schedule
+  // সময়সূচির জন্য সপ্তাহের দিন
   const weekDays = useMemo(() => {
     const today = new Date()
     const dayOfWeek = today.getDay()
@@ -407,7 +407,7 @@ export function DispatchCenter() {
     })
   }, [])
 
-  // Schedule data: map technician to day slots
+  // সময়সূচি তথ্য: প্রযুক্তিবিদকে দিনের স্লটে ম্যাপ করা
   const scheduleData = useMemo(() => {
     const techMap: Record<string, Technician> = {}
     technicians.forEach(t => { techMap[t.id] = t })
@@ -424,7 +424,7 @@ export function DispatchCenter() {
     })
   }, [filteredTechnicians, allTickets, weekDays])
 
-  // Loading state
+  // লোডিং অবস্থা
   if (isLoading || !dispatch) {
     return (
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
@@ -451,7 +451,7 @@ export function DispatchCenter() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -505,7 +505,7 @@ export function DispatchCenter() {
         </div>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="relative overflow-hidden">
@@ -532,7 +532,7 @@ export function DispatchCenter() {
         ))}
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="queue" className="gap-1.5 text-xs sm:text-sm">
@@ -559,7 +559,7 @@ export function DispatchCenter() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Ticket Queue */}
+        {/* ট্যাব ১: টিকেট সারি */}
         <TabsContent value="queue" className="mt-4">
           <Card>
             <CardContent className="p-0">
@@ -674,7 +674,7 @@ export function DispatchCenter() {
           </Card>
         </TabsContent>
 
-        {/* Tab 2: Technician Map (Grid) */}
+        {/* ট্যাব ২: প্রযুক্তিবিদ মানচিত্র (গ্রিড) */}
         <TabsContent value="technicians" className="mt-4 space-y-4">
           <Card>
             <CardContent className="p-4">
@@ -806,7 +806,7 @@ export function DispatchCenter() {
           )}
         </TabsContent>
 
-        {/* Tab 3: Schedule View */}
+        {/* ট্যাব ৩: সময়সূচি দৃশ্য */}
         <TabsContent value="schedule" className="mt-4">
           <Card>
             <CardContent className="p-0">
@@ -882,7 +882,7 @@ export function DispatchCenter() {
           </Card>
         </TabsContent>
 
-        {/* Tab 4: Emergency Board */}
+        {/* ট্যাব ৪: জরুরি বোর্ড */}
         <TabsContent value="emergency" className="mt-4">
           {dispatch.emergencyTickets.length === 0 ? (
             <Card>
@@ -945,7 +945,7 @@ export function DispatchCenter() {
         </TabsContent>
       </Tabs>
 
-      {/* Assign Dialog */}
+      {/* বরাদ্দ ডায়ালগ */}
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1038,7 +1038,7 @@ export function DispatchCenter() {
         </DialogContent>
       </Dialog>
 
-      {/* Batch Assign Dialog */}
+      {/* একসাথে বরাদ্দ ডায়ালগ */}
       <Dialog open={batchAssignOpen} onOpenChange={setBatchAssignOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

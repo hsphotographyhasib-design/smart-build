@@ -1,6 +1,6 @@
 // src/modules/cost-control/components/index.ts
-// Cost Control Module - Components Barrel Export
-// Re-exports all cost-control-related components for clean imports
+// কস্ট কন্ট্রোল মডিউল - কম্পোনেন্ট ব্যারেল এক্সপোর্ট
+// পরিষ্কার ইম্পোর্টের জন্য সমস্ত কস্ট-কন্ট্রোল-সম্পর্কিত কম্পোনেন্ট রি-এক্সপোর্ট করা হয়েছে
 
 export { CostControlDashboard } from '@/components/cost-control/cost-control-dashboard'
 export { BudgetManagement } from '@/components/cost-control/budget-management'

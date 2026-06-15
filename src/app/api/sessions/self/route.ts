@@ -12,22 +12,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get the current session token
+    // বর্তমান সেশন টোকেন সংগ্রহ করা হচ্ছে
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
 
-    // Fetch all sessions for this user, ordered by most recent first
+    // এই ব্যবহারকারীর সকল সেশন সর্বশেষ প্রথম ক্রমে সংগ্রহ করা হচ্ছে
     const allSessions = await db.session.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     })
 
-    // Find the current session
+    // বর্তমান সেশন খোঁজা হচ্ছে
     const currentSession = token
       ? allSessions.find((s) => s.token === token)
       : null
 
-    // Separate into other active/idle sessions and session history
+    // অন্যান্য সক্রিয়/নিষ্ক্রিয় সেশন এবং সেশন ইতিহাসে পৃথক করা হচ্ছে
     const otherSessions = allSessions.filter(
       (s) => s.id !== currentSession?.id && !s.revokedAt && new Date(s.expiresAt) > new Date()
     )

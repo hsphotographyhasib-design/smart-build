@@ -98,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       periodStartDate, periodEndDate,
     } = body
 
-    // Recalculate if items provided
+    // আইটেম প্রদান করা হলে পুনরায় হিসাব করা হচ্ছে
     let subtotal = existing.subtotal
     let tax = existing.tax
     let total = existing.total
@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       outstandingAmount = total - retentionAmount - existing.paidAmount
     }
 
-    // Replace items if provided
+    // আইটেম প্রদান করা হলে প্রতিস্থাপন করা হচ্ছে
     if (items && Array.isArray(items)) {
       await db.invoiceItem.deleteMany({ where: { invoiceId: id } })
       if (items.length > 0) {
@@ -157,7 +157,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         total,
         retentionAmount,
         outstandingAmount,
-        // Progress billing
+        // অগ্রগতি বিলিং
         ...(originalContractValue !== undefined ? { originalContractValue } : {}),
         ...(previousClaimsTotal !== undefined ? { previousClaimsTotal } : {}),
         ...(certifiedAmount !== undefined ? { certifiedAmount } : {}),

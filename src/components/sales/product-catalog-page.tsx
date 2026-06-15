@@ -247,7 +247,7 @@ export function ProductCatalogPage() {
         </Card>
       ) : null}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader><DialogTitle>Add Product</DialogTitle></DialogHeader>
@@ -311,7 +311,7 @@ export function ProductCatalogPage() {
         </DialogContent>
       </Dialog>
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <Dialog open={!!viewItem} onOpenChange={() => setViewItem(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -345,7 +345,7 @@ export function ProductCatalogPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog - simple toggle active */}
+      {/* সম্পাদনা ডায়ালগ - সরল সক্রিয় টগল */}
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>

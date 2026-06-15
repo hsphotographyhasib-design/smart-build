@@ -39,7 +39,7 @@ import {
   Truck, ArrowRight, RotateCcw, DollarSign, Ban, ShieldCheck,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface TechTicket {
   id: string
   ticketNo: string
@@ -108,7 +108,7 @@ interface PerformanceData {
   certifications: string[]
 }
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
   emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
   high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
@@ -152,7 +152,7 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`
 }
 
-// ─── Main Component ───
+// ─── প্রধান উপাদান ───
 export function TechnicianPortal() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -163,15 +163,15 @@ export function TechnicianPortal() {
   const [materialDialogOpen, setMaterialDialogOpen] = useState(false)
   const [selectedJobForMaterial, setSelectedJobForMaterial] = useState<TechTicket | null>(null)
 
-  // Confirmation dialog
+  // নিশ্চিতকরণ ডায়ালগ
   const [confirmAction, setConfirmAction] = useState<{ type: string; ticket: TechTicket } | null>(null)
 
-  // Pause dialog
+  // বিরতি ডায়ালগ
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false)
   const [pauseNote, setPauseNote] = useState('')
   const [pauseTicket, setPauseTicket] = useState<TechTicket | null>(null)
 
-  // Complete work dialog
+  // কাজ সম্পন্ন ডায়ালগ
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
   const [completeTicket, setCompleteTicket] = useState<TechTicket | null>(null)
   const [completionNotes, setCompletionNotes] = useState('')
@@ -179,38 +179,38 @@ export function TechnicianPortal() {
   const [serviceNotes, setServiceNotes] = useState('')
   const [usedMaterials, setUsedMaterials] = useState<Array<{ name: string; quantity: number; unit: string; cost: number }>>([])
 
-  // WO material request dialog
+  // ওয়ার্ক অর্ডার উপাদান অনুরোধ ডায়ালগ
   const [woMaterialDialogOpen, setWoMaterialDialogOpen] = useState(false)
   const [woMaterialTicket, setWoMaterialTicket] = useState<TechTicket | null>(null)
   const [woMaterialItems, setWoMaterialItems] = useState<Array<{ name: string; quantity: number; unit: string; estimatedCost: number }>>([])
   const [woMaterialNote, setWoMaterialNote] = useState('')
 
-  // Fetch my tickets (assigned/in_progress + pending states)
+  // আমার টিকেট আনা (বরাদ্দকৃত/চলমান + অপেক্ষমান অবস্থা)
   const { data: myJobsData, isLoading: myJobsLoading } = useQuery({
     queryKey: ['tech-my-jobs'],
     queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress,on_hold,pending_parts,pending_customer').then(r => r.data || []),
     refetchInterval: 30000,
   })
 
-  // Fetch completed tickets
+  // সম্পন্ন টিকেট আনা
   const { data: completedData, isLoading: completedLoading } = useQuery({
     queryKey: ['tech-completed-jobs'],
     queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=completed,verified,closed').then(r => r.data || []),
   })
 
-  // Fetch today's schedule (use assigned tickets for today)
+  // আজকের সময়সূচি আনা (আজকের বরাদ্দকৃত টিকেট ব্যবহার করা হবে)
   const { data: scheduleData, isLoading: scheduleLoading } = useQuery({
     queryKey: ['tech-schedule-today'],
     queryFn: () => api.get<ScheduleItem[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress&limit=20').then(r => r.data || []),
   })
 
-  // Fetch material requests
+  // উপাদান অনুরোধ আনা
   const { data: materialsData, isLoading: materialsLoading } = useQuery({
     queryKey: ['tech-materials'],
     queryFn: () => api.get<MaterialRequest[]>('/api/maintenance/materials').then(r => r.data || []),
   })
 
-  // Fetch performance data
+  // কর্মক্ষমতা তথ্য আনা
   const { data: perfData, isLoading: perfLoading } = useQuery({
     queryKey: ['tech-performance'],
     queryFn: () => api.get<PerformanceData>('/api/maintenance/reports?type=technician_performance').then(r => r.data!),
@@ -222,7 +222,7 @@ export function TechnicianPortal() {
   const materialRequests = materialsData || []
   const performance = perfData as PerformanceData | undefined
 
-  // ─── Socket Integration ───
+  // ─── সকেট ইন্টিগ্রেশন ───
   const refetchMyJobs = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
   }, [queryClient])
@@ -249,7 +249,7 @@ export function TechnicianPortal() {
     }
   }, [user?.technicianProfileId, joinRoom])
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const acceptMutation = useMutation({
     mutationFn: (ticketId: string) => api.post(`/api/maintenance/tickets/${ticketId}/accept`, {}),
     onSuccess: () => {
@@ -324,7 +324,7 @@ export function TechnicianPortal() {
     onError: (err: any) => toast({ title: 'Request Failed', description: err.error || 'Failed to request materials', variant: 'destructive' }),
   })
 
-  // Create material request mutation (legacy)
+  // উপাদান অনুরোধ তৈরি মিউটেশন (উত্তরাধিকার)
   const createMaterialMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/materials', body),
     onSuccess: () => {
@@ -337,7 +337,7 @@ export function TechnicianPortal() {
     },
   })
 
-  // ─── Handlers ───
+  // ─── হ্যান্ডলারসমূহ ───
   const handleJobAction = (ticket: TechTicket, action: string) => {
     switch (action) {
       case 'accept':
@@ -386,7 +386,7 @@ export function TechnicianPortal() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <Wrench className="h-6 w-6 text-rose-600" />
@@ -395,7 +395,7 @@ export function TechnicianPortal() {
         <p className="text-muted-foreground text-sm mt-1">Manage your assignments, schedule, and materials</p>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="my-jobs" className="gap-1.5 text-xs sm:text-sm">
@@ -420,7 +420,7 @@ export function TechnicianPortal() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: My Jobs */}
+        {/* ট্যাব ১: আমার কাজ */}
         <TabsContent value="my-jobs" className="mt-4 space-y-4">
           {myJobsLoading ? (
             <div className="space-y-3">
@@ -436,7 +436,7 @@ export function TechnicianPortal() {
             </Card>
           ) : (
             <>
-              {/* Urgent Jobs */}
+              {/* জরুরি কাজ */}
               {myJobsGrouped.urgent.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -457,7 +457,7 @@ export function TechnicianPortal() {
                 </div>
               )}
 
-              {/* High Priority */}
+              {/* উচ্চ অগ্রাধিকার */}
               {myJobsGrouped.high.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -478,7 +478,7 @@ export function TechnicianPortal() {
                 </div>
               )}
 
-              {/* Other Jobs */}
+              {/* অন্যান্য কাজ */}
               {myJobsGrouped.others.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ export function TechnicianPortal() {
           )}
         </TabsContent>
 
-        {/* Tab 2: Today's Schedule */}
+        {/* ট্যাব ২: আজকের সময়সূচি */}
         <TabsContent value="schedule" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -586,7 +586,7 @@ export function TechnicianPortal() {
           </Card>
         </TabsContent>
 
-        {/* Tab 3: Completed Jobs */}
+        {/* ট্যাব ৩: সম্পন্ন কাজ */}
         <TabsContent value="completed" className="mt-4">
           <Card>
             <CardContent className="p-0">
@@ -709,7 +709,7 @@ export function TechnicianPortal() {
           </Card>
         </TabsContent>
 
-        {/* Tab 4: Material Requests */}
+        {/* ট্যাব ৪: উপাদান অনুরোধ */}
         <TabsContent value="materials" className="mt-4 space-y-4">
           <div className="flex justify-end">
             <Dialog open={materialDialogOpen} onOpenChange={(open) => { setMaterialDialogOpen(open); if (!open) setSelectedJobForMaterial(null) }}>
@@ -799,7 +799,7 @@ export function TechnicianPortal() {
           )}
         </TabsContent>
 
-        {/* Tab 5: Performance */}
+        {/* ট্যাব ৫: কর্মক্ষমতা */}
         <TabsContent value="performance" className="mt-4 space-y-4">
           {perfLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -807,7 +807,7 @@ export function TechnicianPortal() {
             </div>
           ) : performance ? (
             <>
-              {/* Stat Cards */}
+              {/* পরিসংখ্যান কার্ড */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card>
                   <CardContent className="p-4">
@@ -871,7 +871,7 @@ export function TechnicianPortal() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Monthly Trend */}
+                {/* মাসিক ট্রেন্ড */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold">Monthly Trend</CardTitle>
@@ -912,7 +912,7 @@ export function TechnicianPortal() {
                   </CardContent>
                 </Card>
 
-                {/* Skills & Certifications */}
+                {/* দক্ষতা ও সার্টিফিকেশন */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold">Skills & Certifications</CardTitle>
@@ -974,7 +974,7 @@ export function TechnicianPortal() {
         </TabsContent>
       </Tabs>
 
-      {/* ─── Confirmation Dialog (Accept / Reject) ─── */}
+      {/* ─── নিশ্চিতকরণ ডায়ালগ (গ্রহণ / প্রত্যাখ্যান) ─── */}
       <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1007,7 +1007,7 @@ export function TechnicianPortal() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ─── Pause Dialog ─── */}
+      {/* ─── বিরতি ডায়ালগ ─── */}
       <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1042,7 +1042,7 @@ export function TechnicianPortal() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Complete Work Dialog ─── */}
+      {/* ─── কাজ সম্পন্ন ডায়ালগ ─── */}
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1157,7 +1157,7 @@ export function TechnicianPortal() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── WO Material Request Dialog ─── */}
+      {/* ─── ওয়ার্ক অর্ডার উপাদান অনুরোধ ডায়ালগ ─── */}
       <Dialog open={woMaterialDialogOpen} onOpenChange={setWoMaterialDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1249,7 +1249,7 @@ export function TechnicianPortal() {
   )
 }
 
-// ─── Job Card Sub-Component ───
+// ─── কাজের কার্ড সাব-উপাদান ───
 function JobCard({
   ticket,
   expanded,
@@ -1304,7 +1304,7 @@ function JobCard({
           </div>
 
           <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-            {/* ─── Status: assigned ─── */}
+            {/* ─── স্ট্যাটাস: বরাদ্দকৃত ─── */}
             {ticket.status === 'assigned' && (
               <>
                 <Button size="sm" className="h-7 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'accept') }}>
@@ -1316,14 +1316,14 @@ function JobCard({
               </>
             )}
 
-            {/* ─── Status: accepted ─── */}
+            {/* ─── স্ট্যাটাস: গৃহীত ─── */}
             {ticket.status === 'accepted' && (
               <Button size="sm" className="h-7 gap-1 text-xs bg-rose-600 hover:bg-rose-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'start') }}>
                 <Play className="h-3 w-3" /> Start Work
               </Button>
             )}
 
-            {/* ─── Status: in_progress ─── */}
+            {/* ─── স্ট্যাটাস: চলমান ─── */}
             {ticket.status === 'in_progress' && (
               <>
                 <Button size="sm" className="h-7 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'complete') }}>
@@ -1338,14 +1338,14 @@ function JobCard({
               </>
             )}
 
-            {/* ─── Status: pending_parts ─── */}
+            {/* ─── স্ট্যাটাস: যন্ত্রাংশের অপেক্ষমান ─── */}
             {ticket.status === 'pending_parts' && (
               <Button size="sm" className="h-7 gap-1 text-xs bg-rose-600 hover:bg-rose-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'start') }}>
                 <RotateCcw className="h-3 w-3" /> Resume
               </Button>
             )}
 
-            {/* ─── Status: pending_customer ─── */}
+            {/* ─── স্ট্যাটাস: গ্রাহকের অপেক্ষমান ─── */}
             {ticket.status === 'pending_customer' && (
               <div className="flex items-center gap-1.5 text-xs text-cyan-600 dark:text-cyan-400">
                 <Hourglass className="h-3.5 w-3.5" />
@@ -1353,7 +1353,7 @@ function JobCard({
               </div>
             )}
 
-            {/* ─── Status: completed ─── */}
+            {/* ─── স্ট্যাটাস: সম্পন্ন ─── */}
             {ticket.status === 'completed' && (
               <div className="space-y-1.5 sm:items-end">
                 {ticket.completionNotes && (
@@ -1429,7 +1429,7 @@ function JobCard({
   )
 }
 
-// ─── Material Request Form ───
+// ─── উপাদান অনুরোধ ফর্ম ───
 function MaterialRequestForm({
   ticketId,
   ticketNo,

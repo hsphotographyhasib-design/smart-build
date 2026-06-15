@@ -40,13 +40,13 @@ export async function POST(
       },
     })
 
-    // Update package status to awarded
+    // প্যাকেজ আপডেট করা হচ্ছে status to awarded
     await db.tenderBidPackage.update({
       where: { id: packageId },
       data: { status: 'awarded' },
     })
 
-    // Update vendor stats
+    // ভেন্ডর আপডেট করা হচ্ছে stats
     await db.tenderVendor.update({
       where: { id: award.vendorId },
       data: {

@@ -51,7 +51,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface POItem {
@@ -101,7 +101,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const poStatusConfig: Record<string, { label: string; className: string }> = {
@@ -122,7 +122,7 @@ function formatDate(dateStr: string | null) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -143,7 +143,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create PO Dialog
+// ক্রয় অর্ডার তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function CreatePODialog() {
@@ -302,7 +302,7 @@ function CreatePODialog() {
 
           <Separator />
 
-          {/* Items */}
+          {/* আইটেমসমূহ */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-base font-semibold">Items</Label>
@@ -363,7 +363,7 @@ function CreatePODialog() {
 }
 
 // ──────────────────────────────────────────
-// View PO Dialog
+// ক্রয় অর্ডার দেখার ডায়ালগ
 // ──────────────────────────────────────────
 
 function ViewPODialog({ po, open, onClose }: { po: PurchaseOrder | null; open: boolean; onClose: () => void }) {
@@ -459,7 +459,7 @@ function ViewPODialog({ po, open, onClose }: { po: PurchaseOrder | null; open: b
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function PurchaseOrdersPage() {
@@ -526,7 +526,7 @@ export function PurchaseOrdersPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Purchase Orders</h1>
@@ -537,7 +537,7 @@ export function PurchaseOrdersPage() {
         <CreatePODialog />
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex items-center gap-1.5 flex-wrap">
           {['all', 'draft', 'sent', 'partially_received', 'fully_received', 'billed'].map((s) => (
@@ -573,7 +573,7 @@ export function PurchaseOrdersPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -690,10 +690,10 @@ export function PurchaseOrdersPage() {
         </Card>
       ) : null}
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <ViewPODialog po={viewPO} open={!!viewPO} onClose={() => setViewPO(null)} />
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

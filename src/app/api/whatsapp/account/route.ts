@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth, createAuditLog } from '@/lib/auth'
 
-// GET — Get WhatsApp account settings (admin only)
+// GET — WhatsApp অ্যাকাউন্ট সেটিংস পাওয়া হচ্ছে (শুধুমাত্র অ্যাডমিন)
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: null })
     }
 
-    // Don't expose the full access token in GET response
+    // GET রেসপন্সে সম্পূর্ণ অ্যাক্সেস টোকেন প্রকাশ করা হচ্ছে না
     const { accessToken: _, ...safeData } = account
     const maskedToken = account.accessToken
       ? account.accessToken.substring(0, 8) + '...' + account.accessToken.slice(-4)
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST — Create/update WhatsApp account config
+// POST — WhatsApp অ্যাকাউন্ট কনফিগ তৈরি/আপডেট করা হচ্ছে
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if account exists
+    // অ্যাকাউন্ট আছে কিনা যাচাই করা হচ্ছে
     const existing = await db.whatsAppAccount.findFirst()
 
     let account
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT — Update account settings
+// PUT — অ্যাকাউন্ট সেটিংস আপডেট করা হচ্ছে
 export async function PUT(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)

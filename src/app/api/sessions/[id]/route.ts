@@ -43,7 +43,7 @@ export async function GET(
       )
     }
 
-    // Non-admin users can only view their own sessions
+    // প্রশাসক ছাড়া অন্যান্য ব্যবহারকারীরা শুধুমাত্র নিজেদের সেশন দেখতে পারবে
     if (!requireRole(user, ['admin']) && session.userId !== user.id) {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
@@ -51,7 +51,7 @@ export async function GET(
       )
     }
 
-    // Calculate session duration
+    // সেশনের সময়কাল হিসাব করা হচ্ছে
     const end =
       session.revokedAt ||
       (session.status === 'expired' ? session.expiresAt : null)
@@ -144,7 +144,7 @@ export async function DELETE(
       },
     })
 
-    // Create audit log
+    // অডিট লগ তৈরি করা হচ্ছে
     await createAuditLog({
       userId: user.id,
       action: 'FORCE_LOGOUT',

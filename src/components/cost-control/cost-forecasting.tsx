@@ -26,14 +26,14 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
-// ─── Helpers ───
+// ─── সহায়ক ফাংশনসমূহ ───
 function formatCurrency(val: number) {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
   if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
   return `$${val.toFixed(0)}`
 }
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface ForecastSummary {
   totalProjects: number
   totalOriginalBudget: number
@@ -110,14 +110,14 @@ export function CostForecasting() {
     queryFn: () => api.get<{ summary: ForecastSummary; projects: ForecastProject[] }>('/api/cost-control/forecast').then(r => r.data),
   })
 
-  // Fetch snapshots for trend chart
+  // ট্রেন্ড চার্টের জন্য স্ন্যাপশট আনা
   const { data: snapshots = [] } = useQuery({
     queryKey: ['forecast-snapshots', selectedBudgetForSnap],
     queryFn: () => api.get<Snapshot[]>(`/api/cost-control/budgets/${selectedBudgetForSnap}/snapshots`).then(r => r.data || []),
     enabled: !!selectedBudgetForSnap,
   })
 
-  // Create snapshot mutation
+  // স্ন্যাপশট তৈরি মিউটেশন
   const createSnapMutation = useMutation({
     mutationFn: (body: any) => api.post(`/api/cost-control/budgets/${selectedBudgetForSnap}/snapshots`, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['forecast-snapshots'] }),
@@ -138,7 +138,7 @@ export function CostForecasting() {
     )
   }
 
-  // Trend chart data from snapshots
+  // স্ন্যাপশট থেকে ট্রেন্ড চার্ট তথ্য
   const trendData = snapshots.map(s => ({
     date: format(new Date(s.createdAt), 'MMM d'),
     budget: s.totalBudget,
@@ -156,7 +156,7 @@ export function CostForecasting() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cost Forecasting</h1>
@@ -181,7 +181,7 @@ export function CostForecasting() {
         </div>
       </div>
 
-      {/* Summary KPIs */}
+      {/* সারসংক্ষেপ KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -248,7 +248,7 @@ export function CostForecasting() {
         </Card>
       </div>
 
-      {/* Budget Trend Chart */}
+      {/* বাজেট ট্রেন্ড চার্ট */}
       {selectedBudgetForSnap && trendData.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
@@ -275,7 +275,7 @@ export function CostForecasting() {
         </Card>
       )}
 
-      {/* Variance Bar Chart */}
+      {/* তারতম্য বার চার্ট */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold">Budget vs Actual vs EAC by Project</CardTitle>
@@ -306,7 +306,7 @@ export function CostForecasting() {
         </CardContent>
       </Card>
 
-      {/* Project-level Forecast Table */}
+      {/* প্রকল্প-স্তরের পূর্বাভাস টেবিল */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold">Project Forecast Summary</CardTitle>
@@ -369,7 +369,7 @@ export function CostForecasting() {
                         </Badge>
                       </TableCell>
                     </TableRow>
-                    {/* Expanded Line Items */}
+                    {/* প্রসারিত লাইন আইটেম */}
                     {expandedProject === p.budgetId && (
                       <TableRow key={`${p.budgetId}-detail`}>
                         <TableCell colSpan={10} className="bg-muted/20 p-0">

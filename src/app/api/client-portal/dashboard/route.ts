@@ -7,12 +7,12 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Client portal access control
+    // ক্লায়েন্ট পোর্টাল অ্যাক্সেস নিয়ন্ত্রণ
     if (!['client', 'super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
     }
 
-    // Build where clause with tenant isolation
+    // টেন্যান্ট আইসোলেশন সহ where ক্লজ তৈরি করা হচ্ছে
     const projectWhere: any = {
       status: { in: ['planning', 'active', 'on_hold'] },
     }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       projectWhere.clientId = user.id
     }
 
-    // Get projects (filtered by clientId for client role)
+    // প্রজেক্ট পাওয়া হচ্ছে (ক্লায়েন্ট ভূমিকার জন্য clientId দিয়ে ফিল্টার করা হচ্ছে)
     const projects = await db.project.findMany({
       where: projectWhere,
       select: {
@@ -37,15 +37,15 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     })
 
-    // Active projects count
+    // সক্রিয় প্রজেক্ট গণনা
     const activeProjects = projects.filter((p) => p.status === 'active').length
 
-    // Average progress across active projects
+    // সক্রিয় প্রজেক্টে গড় অগ্রগতি
     const avgProgress = activeProjects > 0
       ? Math.round(projects.filter((p) => p.status === 'active').reduce((sum, p) => sum + p.progress, 0) / activeProjects)
       : 0
 
-    // Pending invoices (sent, partial, overdue)
+    // বিলম্বিত ইনভয়েস (পাঠানো, আংশিক, বিলম্বিত)
     const projectIds = projects.map((p) => p.id)
     const pendingInvoices = await db.invoice.findMany({
       where: {
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const pendingInvoiceCount = pendingInvoices.length
     const pendingInvoiceTotal = pendingInvoices.reduce((sum, inv) => sum + (inv.total - inv.paidAmount), 0)
 
-    // Open complaints
+    // খোলা অভিযোগ
     const openComplaints = await db.clientComplaint.count({
       where: {
         projectId: { in: projectIds },
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Resolved complaints for satisfaction metric
+    // সন্তুষ্টি মেট্রিকের জন্য সমাধান করা অভিযোগ
     const resolvedComplaints = await db.clientComplaint.count({
       where: {
         projectId: { in: projectIds },
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     const totalComplaints = openComplaints + resolvedComplaints
     const satisfactionRate = totalComplaints > 0 ? Math.round((resolvedComplaints / totalComplaints) * 100) : 100
 
-    // Recent documents
+    // সাম্প্রতিক ডকুমেন্ট
     const recentDocuments = await db.projectDocument.findMany({
       where: { projectId: { in: projectIds } },
       take: 5,
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       include: { project: { select: { id: true, name: true } } },
     })
 
-    // Recent daily notes
+    // সাম্প্রতিক দৈনিক নোট
     const recentNotes = await db.dailyNote.findMany({
       where: { projectId: { in: projectIds } },
       take: 5,
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Recent complaints
+    // সাম্প্রতিক অভিযোগ
     const recentComplaints = await db.clientComplaint.findMany({
       where: { projectId: { in: projectIds } },
       take: 5,
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       include: { project: { select: { id: true, name: true } } },
     })
 
-    // Build activity feed
+    // কার্যকলাপ ফিড তৈরি করা হচ্ছে
     const activityFeed = [
       ...recentDocuments.map((d) => ({
         type: 'document' as const,

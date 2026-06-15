@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
       healthScoreStats,
       recentActivities,
     ] = await Promise.all([
-      // 1. Active schedules count
+      // ১. সক্রিয় সময়সূচির সংখ্যা
       db.schedule.count({ where: { status: 'active' } }),
 
-      // 2. Delayed tasks count
+      // ২. বিলম্বিত কাজের সংখ্যা
       db.scheduleActivity.count({ where: { status: 'delayed' } }),
 
-      // 3. Upcoming milestones (next 30 days)
+      // ৩. আসন্ন মাইলফলক (পরবর্তী ৩০ দিন)
       db.scheduleMilestone.findMany({
         where: {
           status: { in: ['pending', 'delayed'] },
@@ -43,19 +43,19 @@ export async function GET(request: NextRequest) {
         take: 20,
       }),
 
-      // 4. Critical activities count
+      // ৪. গুরুত্বপূর্ণ কার্যক্রমের সংখ্যা
       db.scheduleActivity.count({ where: { isCritical: true } }),
 
-      // 5. Completed activities count
+      // ৫. সম্পন্ন কার্যক্রমের সংখ্যা
       db.scheduleActivity.count({ where: { status: 'completed' } }),
 
-      // 6. Average project completion %
+      // ৬. গড় প্রকল্প সম্পন্নের শতাংশ
       db.schedule.aggregate({
         where: { status: { in: ['active', 'published'] } },
         _avg: { completionPct: true },
       }),
 
-      // 7. Lookahead activities (next 2 weeks)
+      // ৭. পূর্বরূপ কার্যক্রম (পরবর্তী ২ সপ্তাহ)
       db.scheduleActivity.findMany({
         where: {
           status: { in: ['not_started', 'in_progress'] },
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         take: 50,
       }),
 
-      // 8. Resource assignments (for conflict detection)
+      // ৮. সম্পদ বরাদ্দ (দ্বন্দ্ব সনাক্তকরণের জন্য)
       db.scheduleResourceAssignment.findMany({
         where: {
           startDate: { lte: twoWeeksFromNow },
@@ -84,13 +84,13 @@ export async function GET(request: NextRequest) {
         take: 200,
       }),
 
-      // 9. Average schedule health score
+      // ৯. গড় সময়সূচি স্বাস্থ্য স্কোর
       db.schedule.aggregate({
         where: { status: { in: ['active', 'published'] } },
         _avg: { healthScore: true },
       }),
 
-      // 10. Recent schedule activities
+      // ১০. সাম্প্রতিক সময়সূচি কার্যক্রম
       db.scheduleActivity.findMany({
         include: {
           schedule: { select: { id: true, name: true, scheduleNo: true } },
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Detect resource conflicts: same resource assigned to overlapping activities
+    // সম্পদ দ্বন্দ্ব সনাক্তকরণ: একই সম্পদ অতিক্রান্ত কার্যক্রমে বরাদ্দকৃত
     const resourceMap = new Map<string, typeof resourceAssignments[0][]>()
     for (const ra of resourceAssignments) {
       const key = `${ra.resourceType}:${ra.resourceId}`
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch critical activities list
+    // গুরুত্বপূর্ণ কার্যক্রমের তালিকা আনা হচ্ছে
     const criticalActivitiesList = await db.scheduleActivity.findMany({
       where: { isCritical: true, status: { in: ['in_progress', 'delayed', 'not_started'] } },
       include: {
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     })
 
-    // Map recent activities to the format expected by the dashboard
+    // সাম্প্রতিক কার্যক্রমগুলো ড্যাশবোর্ডের প্রত্যাশিত বিন্যাসে ম্যাপ করা হচ্ছে
     const recentActivityList = recentActivities.map((a: any) => ({
       id: a.id,
       text: a.name,
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       type: a.status || 'updated',
     }))
 
-    // Map milestones to the format expected by the dashboard
+    // মাইলফলকগুলো ড্যাশবোর্ডের প্রত্যাশিত বিন্যাসে ম্যাপ করা হচ্ছে
     const upcomingMilestoneList = upcomingMilestones.map((m: any) => ({
       id: m.id,
       name: m.name,
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
       daysRemaining: Math.ceil((new Date(m.date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
     }))
 
-    // Map critical activities to the format expected by the dashboard
+    // গুরুত্বপূর্ণ কার্যক্রমগুলো ড্যাশবোর্ডের প্রত্যাশিত বিন্যাসে ম্যাপ করা হচ্ছে
     const criticalActivityList = criticalActivitiesList.map((a: any) => ({
       id: a.id,
       name: a.name,
@@ -186,21 +186,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        // KPI values
+        // কর্মক্ষমতা সূচক (KPI) মান
         activeSchedules: activeSchedulesCount,
         delayedTasks: delayedTasksCount,
         upcomingMilestones: upcomingMilestones.length,
         criticalActivities: criticalActivitiesCount,
         avgCompletionPct: scheduleCompletionStats._avg.completionPct ?? 0,
         scheduleHealthScore: healthScoreStats._avg.healthScore ?? 100,
-        // Trend values (no historical data yet, default to 0)
+        // প্রবণতা মান (এখনও ঐতিহাসিক তথ্য নেই, ডিফল্ট ০)
         activeSchedulesChange: 0,
         delayedTasksChange: 0,
         upcomingMilestonesChange: 0,
         criticalActivitiesChange: 0,
         avgCompletionChange: 0,
         healthScoreChange: 0,
-        // List data
+        // তালিকা তথ্য
         upcomingMilestoneList,
         criticalActivityList,
         recentActivities: recentActivityList,

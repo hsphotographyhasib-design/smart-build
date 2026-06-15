@@ -12,13 +12,13 @@ const features = [
 ]
 
 // ═══════════════════════════════════════════════════════════════════
-// INFO PANEL — Left side branded panel for standalone auth pages
+// তথ্য প্যানেল — স্বতন্ত্র প্রমাণীকরণ পৃষ্ঠার জন্য বাম ব্র্যান্ডেড প্যানেল
 // ═══════════════════════════════════════════════════════════════════
 
 function InfoPanel({ title, description, backHref }: { title: string; description: string; backHref: string }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center px-10 xl:px-16 text-center overflow-hidden">
-      {/* Grid pattern */}
+      {/* গ্রিড প্যাটার্ন */}
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{
@@ -29,7 +29,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
         }}
       />
 
-      {/* Decorative floating shapes */}
+      {/* আলংকারিক ভাসমান আকৃতিসমূহ */}
       <motion.div
         className="absolute w-36 h-36 rounded-full bg-white/[0.04] blur-sm"
         style={{ top: '8%', right: '10%' }}
@@ -49,11 +49,11 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Radial glow */}
+      {/* রেডিয়াল ঝলক */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] bg-amber-500/[0.08] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10">
-        {/* Logo */}
+        {/* লোগো */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -71,7 +71,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
           <p className="text-white/40 text-[9px] font-medium tracking-[0.25em] uppercase">Construction ERP</p>
         </motion.div>
 
-        {/* Title */}
+        {/* শিরোনাম */}
         <motion.h2
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
           {title}
         </motion.h2>
 
-        {/* Description */}
+        {/* বিবরণ */}
         <motion.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
           {description}
         </motion.p>
 
-        {/* Features */}
+        {/* বৈশিষ্ট্যসমূহ */}
         <div className="space-y-3 mb-8 w-full max-w-[200px] mx-auto">
           {features.map((feat, i) => (
             <motion.div
@@ -112,7 +112,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
           ))}
         </div>
 
-        {/* Back button */}
+        {/* পূর্ববর্তী বাটন */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -131,7 +131,7 @@ function InfoPanel({ title, description, backHref }: { title: string; descriptio
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// AUTH FOOTER
+// প্রমাণীকরণ ফুটার
 // ═══════════════════════════════════════════════════════════════════
 
 function AuthFooter() {
@@ -151,7 +151,7 @@ function AuthFooter() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// PREMIUM STANDALONE CARD — For forgot-password, OTP, 2FA, etc.
+// প্রিমিয়াম স্বতন্ত্র কার্ড — পাসওয়ার্ড পুনরুদ্ধার, OTP, ২FA ইত্যাদির জন্য
 // ═══════════════════════════════════════════════════════════════════
 
 interface PremiumStandaloneCardProps {
@@ -169,7 +169,7 @@ export function PremiumStandaloneCard({
 }: PremiumStandaloneCardProps) {
   return (
     <div className="w-full min-h-screen flex items-center justify-center px-4 py-8 lg:py-0 relative">
-      {/* Desktop: Split card */}
+      {/* ডেস্কটপ: বিভক্ত কার্ড */}
       <div className="hidden lg:block">
         <motion.div
           initial={{ opacity: 0, scale: 0.88, y: 40 }}
@@ -180,10 +180,10 @@ export function PremiumStandaloneCard({
             boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.06), 0 0 120px -20px rgba(245, 158, 11, 0.15)',
           }}
         >
-          {/* Glass base */}
+          {/* গ্লাস বেস */}
           <div className="absolute inset-0 bg-white/[0.97] backdrop-blur-2xl" />
 
-          {/* LEFT: Info Panel */}
+          {/* বাম: তথ্য প্যানেল */}
           <div
             className="absolute inset-y-0 left-0 w-[45%] z-10"
             style={{
@@ -197,7 +197,7 @@ export function PremiumStandaloneCard({
             />
           </div>
 
-          {/* RIGHT: Form */}
+          {/* ডান: ফর্ম */}
           <div className="absolute inset-y-0 right-0 w-[55%] z-10 flex items-center justify-center px-10 xl:px-14 overflow-hidden">
             <div className="w-full max-w-[380px]">
               <motion.div
@@ -211,16 +211,16 @@ export function PremiumStandaloneCard({
             </div>
           </div>
 
-          {/* Divider */}
+          {/* বিভাজক */}
           <div className="absolute inset-y-0 left-[45%] w-px bg-gradient-to-b from-transparent via-slate-300/30 to-transparent z-20 pointer-events-none" />
 
-          {/* Card border */}
+          {/* কার্ড বর্ডার */}
           <div className="absolute inset-0 rounded-3xl pointer-events-none z-40">
             <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
             <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/[0.04]" />
           </div>
 
-          {/* Ambient glow */}
+          {/* পরিবেশগত ঝলক */}
           <div
             className="absolute -inset-4 rounded-[2rem] blur-2xl pointer-events-none opacity-30"
             style={{
@@ -230,7 +230,7 @@ export function PremiumStandaloneCard({
         </motion.div>
       </div>
 
-      {/* Mobile: Single card */}
+      {/* মোবাইল: একক কার্ড */}
       <div className="lg:hidden">
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.96 }}

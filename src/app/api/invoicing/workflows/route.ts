@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'At least one workflow step is required' }, { status: 400 })
     }
 
-    // If this is set as default, clear existing defaults for the same type
+    // এটি ডিফল্ট হিসেবে সেট করা হলে, একই ধরনের বিদ্যমান ডিফল্টগুলো মুছে ফেলা হচ্ছে
     if (isDefault && invoiceType) {
       await db.invoiceWorkflow.updateMany({
         where: { invoiceType, isDefault: true },

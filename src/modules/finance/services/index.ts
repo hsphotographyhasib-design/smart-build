@@ -1,3 +1,3 @@
 // src/modules/finance/services/index.ts
-// Finance Module - Services Barrel Export
-// API service functions for finance will be added here
+// ফাইন্যান্স মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// ফাইন্যান্সের API সার্ভিস ফাংশন এখানে যোগ করা হবে

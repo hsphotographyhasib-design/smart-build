@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Add member count
+    // সদস্য গণনা যোগ করা হচ্ছে
     const data = crews.map((crew) => ({
       ...crew,
       memberCount: crew.members.length,

@@ -26,7 +26,7 @@ export async function PUT(
       )
     }
 
-    // Auto-derive status from progress if status not explicitly provided
+    // স্পষ্টভাবে অবস্থা না দেওয়া হলে অগ্রগতি থেকে স্বয়ংক্রিয়ভাবে অবস্থা উদ্ভাসিত করা হচ্ছে
     let derivedStatus = status ?? existing.status
     if (!status && progress !== undefined) {
       if (progress >= 100) derivedStatus = 'completed'
@@ -34,7 +34,7 @@ export async function PUT(
       else derivedStatus = 'not_started'
     }
 
-    // Auto-complete all fields when marked as completed
+    // সম্পন্ন হিসেবে চিহ্নিত করলে সমস্ত ক্ষেত্র স্বয়ংক্রিয়ভাবে পূরণ করা হচ্ছে
     let finalProgress = progress !== undefined ? progress : existing.progress
     let finalActualProgress = actualProgress !== undefined ? actualProgress : existing.actualProgress
     if (derivedStatus === 'completed') {
@@ -47,12 +47,12 @@ export async function PUT(
       data: {
         progress: finalProgress,
         actualProgress: finalActualProgress,
-        plannedProgress: existing.plannedProgress, // keep existing planned
+        plannedProgress: existing.plannedProgress, // বিদ্যমান পরিকল্পিত অগ্রগতি সংরক্ষণ করা হচ্ছে
         status: derivedStatus,
       },
     })
 
-    // Recalculate schedule completion percentage
+    // সময়সূচির সম্পন্নের শতাংশ পুনঃগণনা করা হচ্ছে
     const stats = await db.scheduleActivity.aggregate({
       where: { scheduleId: existing.scheduleId, taskType: { not: 'summary' } },
       _avg: { progress: true },
@@ -60,7 +60,7 @@ export async function PUT(
     })
     const completionPct = stats._count > 0 ? Math.round((stats._avg.progress || 0) * 100) / 100 : 0
 
-    // Recalculate health score based on delayed count and completion
+    // বিলম্বিত সংখ্যা ও সম্পন্নের হারের উপর ভিত্তি করে স্বাস্থ্য স্কোর পুনঃগণনা করা হচ্ছে
     const delayedCount = await db.scheduleActivity.count({
       where: { scheduleId: existing.scheduleId, status: 'delayed' },
     })
@@ -75,7 +75,7 @@ export async function PUT(
       data: { completionPct, healthScore },
     })
 
-    // If this is a parent (summary) task, auto-update plannedProgress from children
+    // এটি যদি প্যারেন্ট (সারসংক্ষেপ) কাজ হয়, চাইল্ড থেকে স্বয়ংক্রিয়ভাবে plannedProgress আপডেট করা হচ্ছে
     if (existing.taskType === 'summary') {
       const children = await db.scheduleActivity.findMany({
         where: { parentId: id },

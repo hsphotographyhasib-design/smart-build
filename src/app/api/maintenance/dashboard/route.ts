@@ -59,13 +59,13 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Average response time
+    // গড় রেসপন্স টাইম
     const avgResponse = await db.maintenanceTicket.aggregate({
       _avg: { actualResponseMinutes: true },
       where: { actualResponseMinutes: { gt: 0 } },
     })
 
-    // Today's tickets
+    // আজকের টিকেট
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const todayTickets = await db.maintenanceTicket.count({
       where: { createdAt: { gte: todayStart } },

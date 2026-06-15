@@ -21,7 +21,7 @@ import {
 import { cn } from '@/lib/utils'
 import { EmptyTickets } from '@/components/common/empty-states'
 
-// ─── Constants ───
+// ─── ধ্রুবক ───
 const ROSE_COLORS = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#ffe4e6', '#be123c', '#9f1239', '#881337']
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
@@ -182,7 +182,7 @@ export function MaintenanceDashboard() {
     },
   ]
 
-  // Prepare chart data
+  // চার্ট তথ্য প্রস্তুত করা
   const categoryChartData = (dashboard.ticketsByCategory || []).map(item => ({
     name: CATEGORY_LABELS[item.category] || item.category,
     value: item.count,
@@ -200,7 +200,7 @@ export function MaintenanceDashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Maintenance Dashboard</h1>
@@ -230,7 +230,7 @@ export function MaintenanceDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI কার্ড */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="relative overflow-hidden">
@@ -250,9 +250,9 @@ export function MaintenanceDashboard() {
         ))}
       </div>
 
-      {/* Charts Row */}
+      {/* চার্ট সারি */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Category Breakdown Pie Chart */}
+        {/* বিভাগ বিশ্লেষণ পাই চার্ট */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Tickets by Category</CardTitle>
@@ -289,7 +289,7 @@ export function MaintenanceDashboard() {
           </CardContent>
         </Card>
 
-        {/* Priority Breakdown Bar Chart */}
+        {/* অগ্রাধিকার বিশ্লেষণ বার চার্ট */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Tickets by Priority</CardTitle>
@@ -324,7 +324,7 @@ export function MaintenanceDashboard() {
         </Card>
       </div>
 
-      {/* Recent Tickets Table */}
+      {/* সাম্প্রতিক টিকেট টেবিল */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">

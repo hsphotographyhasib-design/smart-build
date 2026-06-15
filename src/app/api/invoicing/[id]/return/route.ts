@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: `Cannot return invoice in '${invoice.status}' status` }, { status: 400 })
     }
 
-    // Create return action
+    // ফেরত অ্যাকশন তৈরি করা হচ্ছে
     if (invoice.workflowInstance) {
       const currentStepId = invoice.workflowInstance.currentStepId
       if (currentStepId) {

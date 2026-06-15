@@ -210,7 +210,7 @@ export function ScheduleDashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* ─── Header ─── */}
+      {/* ─── হেডার ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Schedule Dashboard</h1>
@@ -238,7 +238,7 @@ export function ScheduleDashboard() {
         </div>
       </div>
 
-      {/* ─── KPI Cards ─── */}
+      {/* ─── KPI কার্ড ─── */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiCards.map((kpi) => {
           const Icon = kpi.icon
@@ -266,9 +266,9 @@ export function ScheduleDashboard() {
         })}
       </div>
 
-      {/* ─── Lower Section ─── */}
+      {/* ─── নিচের বিভাগ ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Upcoming Milestones */}
+        {/* আসন্ন মাইলফলক */}
         <Card className="rounded-xl lg:col-span-2">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -346,9 +346,9 @@ export function ScheduleDashboard() {
           </CardContent>
         </Card>
 
-        {/* Critical Activities & Recent Activity */}
+        {/* সংকটাপন্ন কার্যকলাপ ও সাম্প্রতিক কার্যকলাপ */}
         <div className="space-y-4">
-          {/* Critical Activities */}
+          {/* সংকটাপন্ন কার্যকলাপ */}
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -401,7 +401,7 @@ export function ScheduleDashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Activities */}
+          {/* সাম্প্রতিক কার্যকলাপ */}
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">Recent Activity</CardTitle>

@@ -51,7 +51,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface InvoiceItem {
@@ -88,7 +88,7 @@ interface ProjectOption {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -123,7 +123,7 @@ function computeTotals(items: Array<{ quantity: number; unitPrice: number }>, ta
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loader
+// স্কেলেটন লোডার
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -144,7 +144,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create / Edit Invoice Dialog
+// তৈরি / সম্পাদনা ইনভয়েস ডায়ালগ
 // ──────────────────────────────────────────
 
 function InvoiceDialog({ invoice, projects }: { invoice?: Invoice; projects: ProjectOption[] }) {
@@ -289,7 +289,7 @@ function InvoiceDialog({ invoice, projects }: { invoice?: Invoice; projects: Pro
             </div>
           </div>
 
-          {/* Items */}
+          {/* আইটেমসমূহ */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Line Items</Label>
@@ -356,7 +356,7 @@ function InvoiceDialog({ invoice, projects }: { invoice?: Invoice; projects: Pro
             </div>
           </div>
 
-          {/* Totals Summary */}
+          {/* মোট সারসংক্ষেপ */}
           <div className="rounded-lg border p-3 space-y-1.5 text-sm bg-muted/30">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(computed.subtotal)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(computed.taxAmount)}</span></div>
@@ -392,7 +392,7 @@ function InvoiceDialog({ invoice, projects }: { invoice?: Invoice; projects: Pro
 }
 
 // ──────────────────────────────────────────
-// Delete Confirmation
+// মুছে ফেলার নিশ্চিতকরণ
 // ──────────────────────────────────────────
 
 function DeleteInvoiceDialog({ invoiceId, invoiceNo }: { invoiceId: string; invoiceNo: string }) {
@@ -433,7 +433,7 @@ function DeleteInvoiceDialog({ invoiceId, invoiceNo }: { invoiceId: string; invo
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function InvoicesPage() {
@@ -451,7 +451,7 @@ export function InvoicesPage() {
     },
   })
 
-  // Derive project options from invoices
+  // ইনভয়েস থেকে প্রকল্প অপশন উদ্ভাবন
   const projectOptions = useMemo(() => {
     if (!invoices) return []
     const map = new Map<string, ProjectOption>()
@@ -465,7 +465,7 @@ export function InvoicesPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
@@ -476,7 +476,7 @@ export function InvoicesPage() {
         <InvoiceDialog projects={projectOptions} />
       </div>
 
-      {/* Toolbar */}
+      {/* টুলবার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -500,7 +500,7 @@ export function InvoicesPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (

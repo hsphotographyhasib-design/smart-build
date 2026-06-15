@@ -24,7 +24,7 @@ export async function POST(
       )
     }
 
-    // Auto-create a snapshot before publishing
+    // প্রকাশের পূর্বে স্বয়ংক্রিয়ভাবে একটি স্ন্যাপশট তৈরি করা হচ্ছে
     const activities = await db.scheduleActivity.findMany({
       where: { scheduleId: id },
       select: { activityId: true, name: true, duration: true, startDate: true, finishDate: true, progress: true, status: true },
@@ -49,7 +49,7 @@ export async function POST(
       },
     })
 
-    // Update status to published
+    // অবস্থা প্রকাশিত হিসেবে আপডেট করা হচ্ছে
     const updated = await db.schedule.update({
       where: { id },
       data: { status: 'published' },

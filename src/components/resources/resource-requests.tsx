@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface ResourceRequest {
@@ -63,7 +63,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusColors: Record<string, string> = {
@@ -104,7 +104,7 @@ const emptyForm = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function ResourceRequests() {
@@ -375,7 +375,7 @@ export function ResourceRequests() {
         ))}
       </Tabs>
 
-      {/* New Request Dialog */}
+      {/* নতুন অনুরোধ ডায়ালগ */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader><DialogTitle>New Resource Request</DialogTitle></DialogHeader>

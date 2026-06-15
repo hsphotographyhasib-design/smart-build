@@ -23,12 +23,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useMenuData, IconByName, findActiveInfo } from '@/hooks/use-menu-data'
 
 // ─────────────────────────────────────────────────────────────────────
-// API MENU TYPES, ICON RESOLUTION, MENU DATA HOOK & ACTIVE FINDER
-// (imported from @/hooks/use-menu-data)
+// API মেনু ধরন, আইকন রেজোলিউশন, মেনু ডেটা হুক ও সক্রিয় সন্ধানকারী
+// (@/hooks/use-menu-data থেকে আমদানিকৃত)
 // ─────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────
-// ANIMATION VARIANTS
+// অ্যানিমেশন ভ্যারিয়্যান্টসমূহ
 // ─────────────────────────────────────────────────────────────────────
 
 const expandVariants = {
@@ -44,7 +44,7 @@ const expandVariants = {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MOBILE SKELETON
+// মোবাইল স্কেলিটন
 // ─────────────────────────────────────────────────────────────────────
 
 function DrawerSkeleton() {
@@ -66,7 +66,7 @@ function DrawerSkeleton() {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// MOBILE MORE DRAWER
+// মোবাইল আরও ড্রয়ার
 // ─────────────────────────────────────────────────────────────────────
 
 function getInitials(name: string) {
@@ -84,17 +84,17 @@ export function MobileMoreDrawer() {
 
   const activeInfo = useMemo(() => findActiveInfo(menuGroups, currentPage), [menuGroups, currentPage])
 
-  // Effective expanded = user preference OR active route (auto-expand on nav)
+  // কার্যকর প্রসারিত = ব্যবহারকারীর পছন্দ অথবা সক্রিয় রুট (নেভিগেশনে স্বয়ংক্রিয় প্রসারণ)
   const effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId
   const effectiveExpandedItemId = activeInfo.itemId || expandedItemId
 
-  // Accordion toggle: opening a new group closes the previous one
+  // অ্যাকর্ডিয়ন টগল: নতুন গ্রুপ খোললে পূর্ববর্তীটি বন্ধ হয়
   const toggleGroup = useCallback((groupId: string) => {
     setExpandedMenuId((prev) => prev === groupId ? '' : groupId)
     setExpandedItemId('')
   }, [])
 
-  // Accordion toggle for sub-items within a group
+  // গ্রুপের মধ্যে উপ-আইটেমের জন্য অ্যাকর্ডিয়ন টগল
   const toggleItem = useCallback((itemId: string) => {
     setExpandedItemId((prev) => prev === itemId ? '' : itemId)
   }, [])
@@ -114,7 +114,7 @@ export function MobileMoreDrawer() {
           <SheetDescription className="text-xs text-muted-foreground">All modules</SheetDescription>
         </SheetHeader>
 
-        {/* User Profile Card */}
+        {/* ব্যবহারকারী প্রোফাইল কার্ড */}
         <div className="px-4 py-3">
           <div className="flex items-center gap-3 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
             <Avatar className="h-10 w-10 shrink-0">
@@ -131,7 +131,7 @@ export function MobileMoreDrawer() {
 
         <Separator />
 
-        {/* 3-Level Hierarchical Navigation */}
+        {/* ৩-স্তর স্তরবিন্যাস্ত নেভিগেশন */}
         <ScrollArea className="flex-1 py-2 px-2" style={{ maxHeight: 'calc(100vh - 240px)' }}>
           {loading ? (
             <DrawerSkeleton />
@@ -181,7 +181,7 @@ export function MobileMoreDrawer() {
                                 const hasActiveDesc = item.hasChildren && item.children.some((c) => c.page === currentPage)
                                 const isItemExpanded = effectiveExpandedItemId === item.id
 
-                                // Leaf item
+                                // পাতা আইটেম
                                 if (!isItemFolder) {
                                   return (
                                     <button
@@ -201,7 +201,7 @@ export function MobileMoreDrawer() {
                                   )
                                 }
 
-                                // Folder item — expandable
+                                // ফোল্ডার আইটেম — প্রসারণযোগ্য
                                 return (
                                   <div key={item.id}>
                                     <button

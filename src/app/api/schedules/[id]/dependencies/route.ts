@@ -63,7 +63,7 @@ export async function POST(
       )
     }
 
-    // Verify both activities belong to this schedule
+    // উভয় কার্যক্রমই এই সময়সূচিতে আছে কিনা যাচাই করা হচ্ছে
     const [pred, succ] = await Promise.all([
       db.scheduleActivity.findFirst({ where: { id: predecessorId, scheduleId: id } }),
       db.scheduleActivity.findFirst({ where: { id: successorId, scheduleId: id } }),
@@ -76,7 +76,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Successor activity not found in this schedule' }, { status: 404 })
     }
 
-    // Check for duplicate dependency
+    // সদৃশ নির্ভরতা পরীক্ষা করা হচ্ছে
     const existing = await db.scheduleDependency.findUnique({
       where: {
         scheduleId_predecessorId_successorId: {

@@ -196,7 +196,7 @@ export function WhatsAppInboxDetail({
     <div className="h-full flex flex-col bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800">
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-5">
-          {/* Contact info */}
+          {/* যোগাযোগের তথ্য */}
           <WhatsAppContactInfo
             contact={contact}
             onNavigateToCustomer={onNavigateToCustomer}
@@ -204,7 +204,7 @@ export function WhatsAppInboxDetail({
 
           <Separator />
 
-          {/* Conversation details */}
+          {/* কথোপকথনের বিবরণ */}
           <div className="space-y-3">
             <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Conversation Details
@@ -239,7 +239,7 @@ export function WhatsAppInboxDetail({
 
           <Separator />
 
-          {/* Assignment */}
+          {/* বরাদ্দ */}
           <div className="space-y-2">
             <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Assignment
@@ -285,7 +285,7 @@ export function WhatsAppInboxDetail({
 
           <Separator />
 
-          {/* Linked ticket */}
+          {/* সংযুক্ত টিকেট */}
           <div className="space-y-2">
             <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Linked Ticket
@@ -311,7 +311,7 @@ export function WhatsAppInboxDetail({
 
           <Separator />
 
-          {/* Internal notes */}
+          {/* অভ্যন্তরীণ নোট */}
           <div className="space-y-2">
             <button
               className="flex items-center justify-between w-full text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
@@ -365,7 +365,7 @@ export function WhatsAppInboxDetail({
 
           <Separator />
 
-          {/* Quick actions */}
+          {/* দ্রুত কার্যকলাপ */}
           <div className="space-y-2">
             <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Quick Actions

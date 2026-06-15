@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 export async function POST(
@@ -45,7 +45,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Work order must be in 'pending' status to start, current status: ${workOrder.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!workOrder.assignedTechnicianId) {
       return NextResponse.json({ success: false, error: 'No technician assigned to this work order' }, { status: 400 })
     }
@@ -66,7 +66,7 @@ export async function POST(
           data: { status: 'in_progress' },
         })
 
-    // Update linked ticket status
+    // সংযুক্ত টিকেটের স্ট্যাটাস আপডেট করা হচ্ছে
     if (workOrder.ticket) {
       await db.maintenanceTicket.update({
         where: { id: workOrder.ticketId },

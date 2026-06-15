@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface RecordPaymentBody {
@@ -38,7 +38,7 @@ export async function POST(
     const authUser = await verifyAuth(request)
     if (!authUser) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Finance role check
+    // ফাইন্যান্স ভূমিকা যাচাই করা হচ্ছে
     if (!requireRole(authUser, ['admin', 'manager', 'accountant'])) {
       return NextResponse.json({ success: false, error: 'Only admin, manager, or accountant can record payments' }, { status: 403 })
     }
@@ -83,11 +83,11 @@ export async function POST(
 
     let ticketClosed = false
 
-    // If fully paid, close linked ticket and WO
+    // সম্পূর্ণ পেমেন্ট হলে, সংযুক্ত টিকেট এবং ওয়ার্ক অর্ডার ক্লোজ করা হচ্ছে
     if (isFullyPaid) {
       const now = new Date()
 
-      // Close linked ticket
+      // সংযুক্ত টিকেট ক্লোজ করা হচ্ছে
       if (invoice.ticketId && invoice.ticket && invoice.ticket.status !== 'closed') {
         const actualResolutionMinutes = Math.round((now.getTime() - invoice.ticket.createdAt.getTime()) / 60000)
 
@@ -114,7 +114,7 @@ export async function POST(
         ticketClosed = true
       }
 
-      // Close linked WO if not already completed
+      // ইতিমধ্যে সম্পন্ন না হলে সংযুক্ত ওয়ার্ক অর্ডার ক্লোজ করা হচ্ছে
       if (invoice.workOrderId && invoice.workOrder && invoice.workOrder.status !== 'completed') {
         await db.maintenanceWorkOrder.update({
           where: { id: invoice.workOrderId },
@@ -123,7 +123,7 @@ export async function POST(
       }
     }
 
-    // Create timeline entry on linked ticket
+    // সংযুক্ত টিকেটে টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     if (invoice.ticketId) {
       await db.maintenanceTimeline.create({
         data: {

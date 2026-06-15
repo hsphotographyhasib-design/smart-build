@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (!name) return NextResponse.json({ success: false, error: 'name is required' }, { status: 400 })
 
-    // Check for duplicate
+    // ডুপ্লিকেট যাচাই করা হচ্ছে
     const existing = await db.skill.findUnique({ where: { name } })
     if (existing) {
       return NextResponse.json({ success: false, error: 'Skill with this name already exists' }, { status: 400 })

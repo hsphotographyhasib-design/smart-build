@@ -26,7 +26,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useFormat } from '@/hooks/use-format'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const invoiceStatusConfig: Record<string, { label: string; color: string }> = {
   draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
   sent: { label: 'Sent', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
@@ -62,7 +62,7 @@ export function MaintenanceInvoices() {
     amount: 0, method: '', reference: '', date: new Date().toISOString().split('T')[0],
   })
 
-  // Fetch invoices
+  // ইনভয়েস আনা
   const { data: invData, isLoading } = useQuery({
     queryKey: ['maintenance-invoices', statusFilter],
     queryFn: () => {
@@ -73,21 +73,21 @@ export function MaintenanceInvoices() {
   })
   const invoices = invData?.data || []
 
-  // Fetch customers
+  // গ্রাহক আনা
   const { data: customersData } = useQuery({
     queryKey: ['customers-inv'],
     queryFn: () => api.get('/api/customers'),
   })
   const customers = customersData?.data || []
 
-  // Fetch tickets for linking
+  // সংযোগের জন্য টিকেট আনা
   const { data: ticketsData } = useQuery({
     queryKey: ['maintenance-tickets-inv'],
     queryFn: () => api.get('/api/maintenance/tickets?status=resolved'),
   })
   const tickets = ticketsData?.data || []
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/invoices', body),
     onSuccess: () => {
@@ -98,7 +98,7 @@ export function MaintenanceInvoices() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Update mutation
+  // আপডেট মিউটেশন
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/invoices/${id}`, body),
     onSuccess: () => {
@@ -112,7 +112,7 @@ export function MaintenanceInvoices() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Review mutation
+  // পর্যালোচনা মিউটেশন
   const reviewMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.post(`/api/maintenance/invoices/${id}/review`, body),
     onSuccess: () => {
@@ -126,7 +126,7 @@ export function MaintenanceInvoices() {
     onError: (err: any) => toast({ title: 'Review Failed', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Record payment mutation
+  // অর্থ প্রদান রেকর্ড মিউটেশন
   const paymentMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api.post(`/api/maintenance/invoices/${id}/record-payment`, body),
     onSuccess: (_, vars) => {
@@ -138,7 +138,7 @@ export function MaintenanceInvoices() {
     onError: (err: any) => toast({ title: 'Payment Failed', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Status change mutation
+  // স্ট্যাটাস পরিবর্তন মিউটেশন
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/maintenance/invoices/${id}`, { status }),
     onSuccess: (_, vars) => {
@@ -148,13 +148,13 @@ export function MaintenanceInvoices() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Compute stats
+  // পরিসংখ্যান গণনা
   const draftCount = invoices.filter((inv: any) => inv.status === 'draft').length
   const sentCount = invoices.filter((inv: any) => inv.status === 'sent').length
   const paidCount = invoices.filter((inv: any) => inv.status === 'paid').length
   const totalRevenue = invoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + (inv.total || 0), 0)
 
-  // Summary totals
+  // সারসংক্ষেপ মোট
   const summaryTotals = invoices.reduce(
     (acc, inv: any) => ({
       labour: acc.labour + (inv.labourCost || 0),
@@ -170,7 +170,7 @@ export function MaintenanceInvoices() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Maintenance Invoicing</h1>
@@ -197,7 +197,7 @@ export function MaintenanceInvoices() {
         </Dialog>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -246,7 +246,7 @@ export function MaintenanceInvoices() {
         </Card>
       </div>
 
-      {/* Status Filter */}
+      {/* স্ট্যাটাস ফিল্টার */}
       <div className="flex gap-2">
         {['all', 'draft', 'sent', 'paid', 'cancelled'].map((s) => (
           <Button
@@ -261,7 +261,7 @@ export function MaintenanceInvoices() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -366,7 +366,7 @@ export function MaintenanceInvoices() {
         </CardContent>
       </Card>
 
-      {/* Summary */}
+      {/* সারসংক্ষেপ */}
       {invoices.length > 0 && (
         <Card className="border-rose-200 dark:border-rose-800">
           <CardContent className="p-4">
@@ -405,7 +405,7 @@ export function MaintenanceInvoices() {
         </Card>
       )}
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -413,7 +413,7 @@ export function MaintenanceInvoices() {
           </DialogHeader>
           {viewingInvoice && (
             <div className="space-y-4">
-              {/* Linked Ticket & Work Order Info */}
+              {/* সংযুক্ত টিকেট ও ওয়ার্ক অর্ডার তথ্য */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Invoice #:</span>{' '}
@@ -435,7 +435,7 @@ export function MaintenanceInvoices() {
                 </div>
               </div>
 
-              {/* Linked Ticket Info */}
+              {/* সংযুক্ত টিকেট তথ্য */}
               <Card className="p-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Linked Ticket</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -450,7 +450,7 @@ export function MaintenanceInvoices() {
                 </div>
               </Card>
 
-              {/* Linked Work Order Info */}
+              {/* সংযুক্ত ওয়ার্ক অর্ডার তথ্য */}
               {viewingInvoice.workOrder && (
                 <Card className="p-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Linked Work Order</p>
@@ -467,7 +467,7 @@ export function MaintenanceInvoices() {
                 </Card>
               )}
 
-              {/* Cost Breakdown Table */}
+              {/* খরচ বিশ্লেষণ টেবিল */}
               <Separator />
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cost Breakdown</p>
@@ -509,7 +509,7 @@ export function MaintenanceInvoices() {
                 </Table>
               </div>
 
-              {/* Payment History */}
+              {/* অর্থ প্রদানের ইতিহাস */}
               {(viewingInvoice.paidAmount || 0) > 0 && (
                 <>
                   <Separator />
@@ -541,7 +541,7 @@ export function MaintenanceInvoices() {
                 </>
               )}
 
-              {/* Action buttons in detail view */}
+              {/* বিস্তারিত দৃশ্যে কার্যকলাপ বাটন */}
               <Separator />
               <div className="flex justify-end gap-2">
                 {viewingInvoice.status === 'draft' && (
@@ -570,7 +570,7 @@ export function MaintenanceInvoices() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -587,7 +587,7 @@ export function MaintenanceInvoices() {
         </DialogContent>
       </Dialog>
 
-      {/* Review Dialog */}
+      {/* পর্যালোচনা ডায়ালগ */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -598,7 +598,7 @@ export function MaintenanceInvoices() {
           </DialogHeader>
           {reviewingInvoice && (
             <div className="space-y-4">
-              {/* Action selection */}
+              {/* কার্যকলাপ নির্বাচন */}
               <div className="space-y-2">
                 <Label>Action</Label>
                 <div className="flex gap-2">
@@ -619,7 +619,7 @@ export function MaintenanceInvoices() {
                 </div>
               </div>
 
-              {/* Cost Adjustments */}
+              {/* খরচ সমন্বয় */}
               <div className="space-y-2">
                 <Label>Cost Adjustments (leave at 0 to keep original)</Label>
                 <div className="grid grid-cols-2 gap-3">
@@ -650,7 +650,7 @@ export function MaintenanceInvoices() {
                 </div>
               </div>
 
-              {/* Total comparison */}
+              {/* মোট তুলনা */}
               <Card className="p-3 bg-muted/30">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground">Current Total</span>
@@ -683,7 +683,7 @@ export function MaintenanceInvoices() {
                 })()}
               </Card>
 
-              {/* Notes */}
+              {/* নোটসমূহ */}
               <div className="space-y-2">
                 <Label>Review Notes</Label>
                 <Textarea placeholder="Add review notes..." value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} rows={2} />
@@ -710,7 +710,7 @@ export function MaintenanceInvoices() {
         </DialogContent>
       </Dialog>
 
-      {/* Record Payment Dialog */}
+      {/* অর্থ প্রদান রেকর্ড ডায়ালগ */}
       <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -794,7 +794,7 @@ export function MaintenanceInvoices() {
   )
 }
 
-// ─── Create Invoice Form ───
+// ─── ইনভয়েস তৈরির ফর্ম ───
 function CreateInvoiceForm({ customers, tickets, onSubmit, loading }: {
   customers: any[]; tickets: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {
@@ -910,7 +910,7 @@ function CreateInvoiceForm({ customers, tickets, onSubmit, loading }: {
   )
 }
 
-// ─── Edit Invoice Form ───
+// ─── ইনভয়েস সম্পাদনার ফর্ম ───
 function EditInvoiceForm({ invoice, onSubmit, loading }: {
   invoice: any; onSubmit: (data: any) => void; loading: boolean
 }) {

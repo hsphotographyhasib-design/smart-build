@@ -71,7 +71,7 @@ export async function GET(
       }),
     ])
 
-    // Aggregate totals
+    // সমষ্টিগত হিসাব
     const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0)
     const totalPaidOnInvoices = invoices.reduce((sum, inv) => sum + inv.paidAmount, 0)
     const totalPayments = payments

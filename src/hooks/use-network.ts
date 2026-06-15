@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react'
 
 export interface NetworkStatus {
-  /** Whether the browser currently has network connectivity */
+  /** ব্রাউজার বর্তমানে নেটওয়ার্ক সংযোগ্যুন আছে কিনা */
   isOnline: boolean
-  /** Whether the connection is detected as slow (effectiveType 2g, slow-2g, or save-data enabled) */
+  /** সংযোগ্যুন ধীনে ধীন সনাক্ত হলে (effectiveType 2g, slow-2g, সেভ-ডেটা সক্রিয় থাকলে) */
   isSlow: boolean
-  /** The effective connection type (e.g. '4g', '3g', '2g', 'slow-2g'), if available */
+  /** কার্য়েক্ট সংযোগ্যুন (যেমন '4g', '3g', '2g', 'slow-2g'), থাকলে থাকলে */
   effectiveType?: string
 }
 
-/**
- * Extends EventTarget to include the connection API types
- * that some browsers support via navigator.connection.
+  /**
+ * navigator.connection অবজেক্ট সুবিধিতান প্রদান করা হচ্ছে,
+ * ব্রাউজার-নির প্রিফিক্স বাস্তবায় বাস্তবায় ব্যবহার করার জন্য নির্ধারণ করা হচ্ছে।
  */
 interface NetworkConnection extends EventTarget {
   effectiveType?: string
@@ -23,10 +23,9 @@ interface NetworkConnection extends EventTarget {
 }
 
 /**
- * Detects the browser's online/offline status and connection speed
- * using the Network Information API (where available).
+ * Network Information API ব্যবহার করে ব্রাউজারের অনলাইন/অফলাইন অবস্থা সনাক্তকরণ করা হচ্ছে।
  *
- * Falls back gracefully when navigator.connection is not supported.
+ * navigator.connection সমর্থিত না থাকলে গ্রেসে ঝুলে সুবিধিত ফলব্যাক হবে।
  *
  * @example
  * const { isOnline, isSlow, effectiveType } = useNetworkStatus()
@@ -99,9 +98,9 @@ function getNavigatorConnection(): NetworkConnection | null {
   )
 }
 
-/**
- * Determines whether a connection is considered "slow".
- * Slow connections include: slow-2g, 2g, or when save-data mode is on.
+  /**
+ * সংযোগ্যুন ধীন ধীনের স্লো হিস্ট কিনা তা নির্ধারণ করে কোড প্রদান করা হচ্ছে।
+ * ধীন স্লো সহ ধীন ধীনের ধীন কে অপেক্ষম হলে ধীন ধীনে মধ্যম অনুযায় ধীন ধীন আছে।
  */
 function isConnectionSlow(conn: NetworkConnection): boolean {
   const type = conn.effectiveType

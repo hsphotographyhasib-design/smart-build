@@ -1,3 +1,3 @@
 // src/modules/resources/services/index.ts
-// Resources Module - Services Barrel Export
-// API service functions for resources will be added here
+// রিসোর্স মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// রিসোর্সের API সার্ভিস ফাংশন এখানে যোগ করা হবে

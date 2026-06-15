@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface ReviewBody {
@@ -101,7 +101,7 @@ export async function POST(
         },
       })
     } else {
-      // request_info — keep status unchanged
+      // request_info — স্ট্যাটাস অপরিবর্তিত রাখা হচ্ছে
       if (!note) {
         return NextResponse.json({ success: false, error: 'Note is required when requesting more info' }, { status: 400 })
       }

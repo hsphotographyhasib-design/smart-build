@@ -93,7 +93,7 @@ export default function BlogPage() {
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Hero */}
+      {/* হিরো */}
       <section className="bg-gradient-to-b from-stone-100 to-white py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
@@ -109,7 +109,7 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Featured Post */}
+      {/* বৈশিষ্ট্য পোস্ট */}
       <section className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-2xl p-8 md:p-12">
           <Badge className={`${categoryColors[featuredPost.category]} mb-4`}>
@@ -141,7 +141,7 @@ export default function BlogPage() {
 
       {/* Categories + Blog Grid */}
       <section className="max-w-4xl mx-auto px-4 pb-16">
-        {/* Category Filter */}
+        {/* ক্যাটাগরি ফিল্টার */}
         <div className="flex flex-wrap gap-2 mb-8">
           {categories.map((cat) => (
             <button
@@ -158,7 +158,7 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* Blog Posts Grid */}
+        {/* ব্লগ পোস্ট গ্রিড */}
         <div className="grid md:grid-cols-2 gap-6">
           {filteredPosts.map((post) => {
             const Icon = categoryIcons[post.category] || Wrench
@@ -167,7 +167,7 @@ export default function BlogPage() {
                 key={post.title}
                 className="group rounded-xl border border-stone-200 overflow-hidden hover:shadow-lg hover:border-stone-300 transition-all cursor-pointer"
               >
-                {/* Image Placeholder */}
+                {/* ইমেজ প্লেসহোল্ডার */}
                 <div className="h-48 bg-stone-100 flex items-center justify-center relative">
                   <div className="absolute top-3 left-3">
                     <Badge className={`${categoryColors[post.category]} text-xs`}>
@@ -177,7 +177,7 @@ export default function BlogPage() {
                   <Icon className="w-16 h-16 text-stone-300" />
                 </div>
 
-                {/* Content */}
+                {/* বিষয়বস্তু */}
                 <div className="p-5">
                   <h3 className="font-bold text-stone-900 text-lg mb-2 group-hover:text-emerald-700 transition-colors leading-snug">
                     {post.title}
@@ -211,7 +211,7 @@ export default function BlogPage() {
           </div>
         )}
 
-        {/* Load More */}
+        {/* আরও লোড করুন */}
         {filteredPosts.length > 0 && (
           <div className="text-center mt-10">
             <Button variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-50">
@@ -222,7 +222,7 @@ export default function BlogPage() {
         )}
       </section>
 
-      {/* Newsletter CTA */}
+      {/* নিউজলেটার CTA */}
       <section className="bg-stone-50 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <Tag className="w-10 h-10 text-emerald-600 mx-auto mb-4" />

@@ -1,0 +1,1045 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import { ScrollArea } from '@/components/ui/scroll-area'
+    15→import {
+    16→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger,
+    17→} from '@/components/ui/dialog'
+    18→import {
+    19→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    20→} from '@/components/ui/table'
+    21→import { useToast } from '@/hooks/use-toast'
+    22→import {
+    23→  Plus, Pencil, Eye, MapPin, Building2, Users, Wrench,
+    24→  Search, X, Phone, Mail, Calendar, FileText, AlertTriangle,
+    25→} from 'lucide-react'
+    26→import { cn } from '@/lib/utils'
+    27→import { useFormat } from '@/hooks/use-format'
+    28→
+    29→// ─── Status helpers ───
+    30→const statusConfig = {
+    31→  active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
+    32→  inactive: { label: 'Inactive', color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+    33→}
+    34→
+    35→const ticketPriorityConfig: Record<string, { label: string; color: string }> = {
+    36→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' },
+    37→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
+    38→  medium: { label: 'Medium', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
+    39→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' },
+    40→}
+    41→
+    42→const ticketStatusConfig: Record<string, { label: string; color: string }> = {
+    43→  new: { label: 'New', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+    44→  assigned: { label: 'Assigned', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300' },
+    45→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
+    46→  on_hold: { label: 'On Hold', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' },
+    47→  resolved: { label: 'Resolved', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300' },
+    48→  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
+    49→}
+    50→
+    51→export function MaintenanceSites() {
+    52→  const { formatCurrency } = useFormat()
+    53→  const { toast } = useToast()
+    54→  const queryClient = useQueryClient()
+    55→  const [createOpen, setCreateOpen] = useState(false)
+    56→  const [editOpen, setEditOpen] = useState(false)
+    57→  const [detailOpen, setDetailOpen] = useState(false)
+    58→  const [editingSite, setEditingSite] = useState<any>(null)
+    59→  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null)
+    60→
+    61→  // Filters
+    62→  const [search, setSearch] = useState('')
+    63→  const [filterCustomer, setFilterCustomer] = useState('all')
+    64→  const [filterStatus, setFilterStatus] = useState('all')
+    65→
+    66→  // Fetch sites
+    67→  const { data: sitesData, isLoading } = useQuery({
+    68→    queryKey: ['maintenance-sites', search, filterCustomer, filterStatus],
+    69→    queryFn: () => {
+    70→      const params = new URLSearchParams()
+    71→      if (search) params.set('search', search)
+    72→      if (filterCustomer !== 'all') params.set('customerId', filterCustomer)
+    73→      if (filterStatus !== 'all') params.set('isActive', filterStatus)
+    74→      params.set('limit', '100')
+    75→      return api.get(`/api/maintenance/sites?${params.toString()}`)
+    76→    },
+    77→  })
+    78→  const sites = sitesData?.data || []
+    79→
+    80→  // Fetch customers for dropdown
+    81→  const { data: customersData } = useQuery({
+    82→    queryKey: ['customers'],
+    83→    queryFn: () => api.get('/api/customers'),
+    84→  })
+    85→  const customers = customersData?.data || []
+    86→
+    87→  // Fetch site detail when viewing details
+    88→  const { data: siteDetail, isLoading: detailLoading } = useQuery({
+    89→    queryKey: ['maintenance-site-detail', selectedSiteId],
+    90→    queryFn: () => api.get(`/api/maintenance/sites/${selectedSiteId}`),
+    91→    enabled: !!selectedSiteId && detailOpen,
+    92→  })
+    93→
+    94→  // Fetch AMC contracts for the customer when viewing details
+    95→  const customerOfSite = siteDetail?.data?.customer?.id
+    96→  const { data: amcData } = useQuery({
+    97→    queryKey: ['maintenance-amc-for-site', customerOfSite],
+    98→    queryFn: () => {
+    99→      const params = new URLSearchParams()
+   100→      params.set('customerId', customerOfSite)
+   101→      params.set('limit', '50')
+   102→      return api.get(`/api/maintenance/amc?${params.toString()}`)
+   103→    },
+   104→    enabled: !!customerOfSite && detailOpen,
+   105→  })
+   106→  const amcContracts = amcData?.data || []
+   107→
+   108→  // KPI Stats
+   109→  const stats = useMemo(() => {
+   110→    const total = sites.length
+   111→    const active = sites.filter((s: any) => s.isActive).length
+   112→    const withTickets = sites.filter((s: any) => (s._count?.tickets ?? 0) > 0).length
+   113→    const totalTickets = sites.reduce((sum: number, s: any) => sum + (s._count?.tickets ?? 0), 0)
+   114→    return { total, active, withTickets, totalTickets }
+   115→  }, [sites])
+   116→
+   117→  // Create mutation
+   118→  const createMutation = useMutation({
+   119→    mutationFn: (body: any) => api.post('/api/maintenance/sites', body),
+   120→    onSuccess: () => {
+   121→      queryClient.invalidateQueries({ queryKey: ['maintenance-sites'] })
+   122→      setCreateOpen(false)
+   123→      toast({ title: 'Site Created', description: 'New maintenance site has been added.' })
+   124→    },
+   125→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create site', variant: 'destructive' }),
+   126→  })
+   127→
+   128→  // Update mutation
+   129→  const updateMutation = useMutation({
+   130→    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/sites/${id}`, body),
+   131→    onSuccess: () => {
+   132→      queryClient.invalidateQueries({ queryKey: ['maintenance-sites'] })
+   133→      queryClient.invalidateQueries({ queryKey: ['maintenance-site-detail'] })
+   134→      setEditOpen(false)
+   135→      setEditingSite(null)
+   136→      toast({ title: 'Site Updated', description: 'Site information has been updated.' })
+   137→    },
+   138→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update site', variant: 'destructive' }),
+   139→  })
+   140→
+   141→  // Toggle active mutation
+   142→  const toggleMutation = useMutation({
+   143→    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => api.put(`/api/maintenance/sites/${id}`, { isActive }),
+   144→    onSuccess: () => {
+   145→      queryClient.invalidateQueries({ queryKey: ['maintenance-sites'] })
+   146→      toast({ title: 'Status Updated', description: 'Site status has been toggled.' })
+   147→    },
+   148→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to toggle status', variant: 'destructive' }),
+   149→  })
+   150→
+   151→  const handleEdit = (site: any) => {
+   152→    setEditingSite(site)
+   153→    setEditOpen(true)
+   154→  }
+   155→
+   156→  const handleViewDetail = (site: any) => {
+   157→    setSelectedSiteId(site.id)
+   158→    setDetailOpen(true)
+   159→  }
+   160→
+   161→  return (
+   162→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   163→      {/* Header */}
+   164→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   165→        <div>
+   166→          <h1 className="text-2xl font-bold tracking-tight">Maintenance Sites</h1>
+   167→          <p className="text-muted-foreground text-sm mt-0.5">Manage customer sites and locations for maintenance services</p>
+   168→        </div>
+   169→        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+   170→          <DialogTrigger asChild>
+   171→            <Button className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   172→              <Plus className="h-3.5 w-3.5" /> Add Site
+   173→            </Button>
+   174→          </DialogTrigger>
+   175→          <DialogContent className="sm:max-w-lg">
+   176→            <DialogHeader>
+   177→              <DialogTitle>Create Maintenance Site</DialogTitle>
+   178→              <DialogDescription>Add a new site location for maintenance service delivery</DialogDescription>
+   179→            </DialogHeader>
+   180→            <CreateSiteForm
+   181→              customers={customers}
+   182→              onSubmit={(body) => createMutation.mutate(body)}
+   183→              loading={createMutation.isPending}
+   184→            />
+   185→          </DialogContent>
+   186→        </Dialog>
+   187→      </div>
+   188→
+   189→      {/* KPI Stats */}
+   190→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+   191→        {isLoading ? (
+   192→          Array.from({ length: 4 }).map((_, i) => (
+   193→            <Skeleton key={i} className="h-28 rounded-xl" />
+   194→          ))
+   195→        ) : (
+   196→          <>
+   197→            <Card className="border-rose-200 dark:border-rose-800">
+   198→              <CardContent className="p-4">
+   199→                <div className="flex items-center gap-2 mb-1">
+   200→                  <Building2 className="h-4 w-4 text-rose-600" />
+   201→                  <p className="text-xs text-muted-foreground">Total Sites</p>
+   202→                </div>
+   203→                <p className="text-2xl font-bold">{stats.total}</p>
+   204→                <p className="text-xs text-muted-foreground mt-1">Across {customers.length} customers</p>
+   205→              </CardContent>
+   206→            </Card>
+   207→            <Card className="border-emerald-200 dark:border-emerald-800">
+   208→              <CardContent className="p-4">
+   209→                <div className="flex items-center gap-2 mb-1">
+   210→                  <MapPin className="h-4 w-4 text-emerald-600" />
+   211→                  <p className="text-xs text-muted-foreground">Active Sites</p>
+   212→                </div>
+   213→                <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
+   214→                <p className="text-xs text-muted-foreground mt-1">
+   215→                  {stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% of total` : '—'}
+   216→                </p>
+   217→              </CardContent>
+   218→            </Card>
+   219→            <Card className="border-amber-200 dark:border-amber-800">
+   220→              <CardContent className="p-4">
+   221→                <div className="flex items-center gap-2 mb-1">
+   222→                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+   223→                  <p className="text-xs text-muted-foreground">Sites with Active Tickets</p>
+   224→                </div>
+   225→                <p className="text-2xl font-bold text-amber-600">{stats.withTickets}</p>
+   226→                <p className="text-xs text-muted-foreground mt-1">{stats.totalTickets} total open tickets</p>
+   227→              </CardContent>
+   228→            </Card>
+   229→            <Card className="border-sky-200 dark:border-sky-800">
+   230→              <CardContent className="p-4">
+   231→                <div className="flex items-center gap-2 mb-1">
+   232→                  <Wrench className="h-4 w-4 text-sky-600" />
+   233→                  <p className="text-xs text-muted-foreground">PM Schedules</p>
+   234→                </div>
+   235→                <p className="text-2xl font-bold text-sky-600">
+   236→                  {sites.reduce((sum: number, s: any) => sum + (s._count?.pmSchedules ?? 0), 0)}
+   237→                </p>
+   238→                <p className="text-xs text-muted-foreground mt-1">Active preventive schedules</p>
+   239→              </CardContent>
+   240→            </Card>
+   241→          </>
+   242→        )}
+   243→      </div>
+   244→
+   245→      {/* Filters */}
+   246→      <Card>
+   247→        <CardContent className="p-4">
+   248→          <div className="flex flex-col sm:flex-row gap-3">
+   249→            <div className="relative flex-1">
+   250→              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   251→              <Input
+   252→                placeholder="Search by site name, code, or address..."
+   253→                value={search}
+   254→                onChange={(e) => setSearch(e.target.value)}
+   255→                className="pl-8"
+   256→              />
+   257→              {search && (
+   258→                <button
+   259→                  onClick={() => setSearch('')}
+   260→                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+   261→                >
+   262→                  <X className="h-3.5 w-3.5" />
+   263→                </button>
+   264→              )}
+   265→            </div>
+   266→            <select
+   267→              className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full sm:w-48"
+   268→              value={filterCustomer}
+   269→              onChange={(e) => setFilterCustomer(e.target.value)}
+   270→            >
+   271→              <option value="all">All Customers</option>
+   272→              {customers.map((c: any) => (
+   273→                <option key={c.id} value={c.id}>{c.name}</option>
+   274→              ))}
+   275→            </select>
+   276→            <select
+   277→              className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full sm:w-36"
+   278→              value={filterStatus}
+   279→              onChange={(e) => setFilterStatus(e.target.value)}
+   280→            >
+   281→              <option value="all">All Status</option>
+   282→              <option value="true">Active</option>
+   283→              <option value="false">Inactive</option>
+   284→            </select>
+   285→          </div>
+   286→        </CardContent>
+   287→      </Card>
+   288→
+   289→      {/* Sites Table */}
+   290→      <Card>
+   291→        <CardHeader className="pb-3">
+   292→          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   293→            <MapPin className="h-4 w-4 text-rose-600" />
+   294→            Sites ({sitesData?.total ?? sites.length})
+   295→          </CardTitle>
+   296→        </CardHeader>
+   297→        <CardContent className="p-0">
+   298→          {isLoading ? (
+   299→            <div className="p-6 space-y-3">
+   300→              {[1, 2, 3, 4, 5].map((i) => (
+   301→                <Skeleton key={i} className="h-12 rounded-lg" />
+   302→              ))}
+   303→            </div>
+   304→          ) : sites.length === 0 ? (
+   305→            <div className="flex flex-col items-center justify-center py-16">
+   306→              <Building2 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   307→              <p className="text-sm text-muted-foreground">No sites found</p>
+   308→              <p className="text-xs text-muted-foreground mt-1">
+   309→                {search || filterCustomer !== 'all' || filterStatus !== 'all'
+   310→                  ? 'Try adjusting your filters'
+   311→                  : 'Create your first maintenance site'}
+   312→              </p>
+   313→              {!search && filterCustomer === 'all' && filterStatus === 'all' && (
+   314→                <Button
+   315→                  size="sm"
+   316→                  variant="outline"
+   317→                  className="mt-3 gap-1.5 bg-rose-600 hover:bg-rose-700 text-white"
+   318→                  onClick={() => setCreateOpen(true)}
+   319→                >
+   320→                  <Plus className="h-3.5 w-3.5" /> Add Site
+   321→                </Button>
+   322→              )}
+   323→            </div>
+   324→          ) : (
+   325→            <div className="max-h-96 overflow-y-auto">
+   326→              <Table>
+   327→                <TableHeader>
+   328→                  <TableRow>
+   329→                    <TableHead>Code</TableHead>
+   330→                    <TableHead>Site Name</TableHead>
+   331→                    <TableHead className="hidden md:table-cell">Customer</TableHead>
+   332→                    <TableHead className="hidden lg:table-cell">Address</TableHead>
+   333→                    <TableHead className="hidden lg:table-cell">Contact</TableHead>
+   334→                    <TableHead>Status</TableHead>
+   335→                    <TableHead className="text-right">Actions</TableHead>
+   336→                  </TableRow>
+   337→                </TableHeader>
+   338→                <TableBody>
+   339→                  {sites.map((site: any) => (
+   340→                    <TableRow key={site.id} className={!site.isActive ? 'opacity-60' : ''}>
+   341→                      <TableCell className="text-sm font-mono font-medium text-rose-600">{site.code}</TableCell>
+   342→                      <TableCell>
+   343→                        <div>
+   344→                          <p className="text-sm font-medium">{site.name}</p>
+   345→                          <p className="text-xs text-muted-foreground md:hidden">{site.customer?.name}</p>
+   346→                        </div>
+   347→                      </TableCell>
+   348→                      <TableCell className="hidden md:table-cell text-sm">{site.customer?.name || '—'}</TableCell>
+   349→                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
+   350→                        {site.address || '—'}
+   351→                      </TableCell>
+   352→                      <TableCell className="hidden lg:table-cell">
+   353→                        <div className="text-xs space-y-0.5">
+   354→                          <p className="flex items-center gap-1">
+   355→                            <Users className="h-3 w-3" />
+   356→                            {site.contactPerson || '—'}
+   357→                          </p>
+   358→                          <p className="text-muted-foreground">{site.contactPhone || '—'}</p>
+   359→                        </div>
+   360→                      </TableCell>
+   361→                      <TableCell>
+   362→                        <Badge
+   363→                          variant="secondary"
+   364→                          className={cn(
+   365→                            'text-xs',
+   366→                            site.isActive ? statusConfig.active.color : statusConfig.inactive.color
+   367→                          )}
+   368→                        >
+   369→                          {site.isActive ? 'Active' : 'Inactive'}
+   370→                        </Badge>
+   371→                      </TableCell>
+   372→                      <TableCell className="text-right">
+   373→                        <div className="flex items-center justify-end gap-1">
+   374→                          <Button
+   375→                            size="sm"
+   376→                            variant="ghost"
+   377→                            className="h-7 text-xs gap-1"
+   378→                            onClick={() => handleViewDetail(site)}
+   379→                          >
+   380→                            <Eye className="h-3 w-3" />
+   381→                            <span className="hidden sm:inline">View</span>
+   382→                          </Button>
+   383→                          <Button
+   384→                            size="sm"
+   385→                            variant="ghost"
+   386→                            className="h-7 text-xs gap-1"
+   387→                            onClick={() => handleEdit(site)}
+   388→                          >
+   389→                            <Pencil className="h-3 w-3" />
+   390→                            <span className="hidden sm:inline">Edit</span>
+   391→                          </Button>
+   392→                          <Button
+   393→                            size="sm"
+   394→                            variant="ghost"
+   395→                            className={cn('h-7 text-xs', site.isActive ? 'text-slate-500 hover:text-red-600' : 'text-emerald-600 hover:text-emerald-700')}
+   396→                            onClick={() => toggleMutation.mutate({ id: site.id, isActive: !site.isActive })}
+   397→                          >
+   398→                            {site.isActive ? 'Deactivate' : 'Activate'}
+   399→                          </Button>
+   400→                        </div>
+   401→                      </TableCell>
+   402→                    </TableRow>
+   403→                  ))}
+   404→                </TableBody>
+   405→              </Table>
+   406→            </div>
+   407→          )}
+   408→        </CardContent>
+   409→      </Card>
+   410→
+   411→      {/* Edit Site Dialog */}
+   412→      <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setEditingSite(null) }}>
+   413→        <DialogContent className="sm:max-w-lg">
+   414→          <DialogHeader>
+   415→            <DialogTitle>Edit Site</DialogTitle>
+   416→            <DialogDescription>Update maintenance site information</DialogDescription>
+   417→          </DialogHeader>
+   418→          {editingSite && (
+   419→            <EditSiteForm
+   420→              site={editingSite}
+   421→              onSubmit={(body) => updateMutation.mutate({ id: editingSite.id, body })}
+   422→              loading={updateMutation.isPending}
+   423→            />
+   424→          )}
+   425→        </DialogContent>
+   426→      </Dialog>
+   427→
+   428→      {/* Site Details Dialog */}
+   429→      <Dialog open={detailOpen} onOpenChange={(open) => { setDetailOpen(open); if (!open) setSelectedSiteId(null) }}>
+   430→        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden">
+   431→          <DialogHeader>
+   432→            <DialogTitle className="flex items-center gap-2">
+   433→              <MapPin className="h-5 w-5 text-rose-600" />
+   434→              {siteDetail?.data?.code} — {siteDetail?.data?.name}
+   435→            </DialogTitle>
+   436→            <DialogDescription>Site details and related information</DialogDescription>
+   437→          </DialogHeader>
+   438→          {detailLoading ? (
+   439→            <div className="space-y-4 p-4">
+   440→              <Skeleton className="h-32 rounded-lg" />
+   441→              <Skeleton className="h-48 rounded-lg" />
+   442→              <Skeleton className="h-24 rounded-lg" />
+   443→            </div>
+   444→          ) : siteDetail?.data ? (
+   445→            <SiteDetailsPanel
+   446→              site={siteDetail.data}
+   447→              amcContracts={amcContracts}
+   448→            />
+   449→          ) : null}
+   450→        </DialogContent>
+   451→      </Dialog>
+   452→    </div>
+   453→  )
+   454→}
+   455→
+   456→// ─── Create Site Form ───
+   457→function CreateSiteForm({ customers, onSubmit, loading }: {
+   458→  customers: any[]
+   459→  onSubmit: (data: any) => void
+   460→  loading: boolean
+   461→}) {
+   462→  const [form, setForm] = useState({
+   463→    customerId: '',
+   464→    name: '',
+   465→    address: '',
+   466→    latitude: '',
+   467→    longitude: '',
+   468→    contactPerson: '',
+   469→    contactPhone: '',
+   470→    contactEmail: '',
+   471→    description: '',
+   472→  })
+   473→
+   474→  const handleSubmit = (e: React.FormEvent) => {
+   475→    e.preventDefault()
+   476→    const body: Record<string, unknown> = {
+   477→      customerId: form.customerId,
+   478→      name: form.name,
+   479→    }
+   480→    if (form.address) body.address = form.address
+   481→    if (form.latitude) body.latitude = parseFloat(form.latitude)
+   482→    if (form.longitude) body.longitude = parseFloat(form.longitude)
+   483→    if (form.contactPerson) body.contactPerson = form.contactPerson
+   484→    if (form.contactPhone) body.contactPhone = form.contactPhone
+   485→    if (form.description) body.description = form.description
+   486→    onSubmit(body)
+   487→    setForm({ customerId: '', name: '', address: '', latitude: '', longitude: '', contactPerson: '', contactPhone: '', contactEmail: '', description: '' })
+   488→  }
+   489→
+   490→  return (
+   491→    <form onSubmit={handleSubmit} className="space-y-4">
+   492→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   493→        <div className="space-y-2">
+   494→          <Label>Customer *</Label>
+   495→          <select
+   496→            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+   497→            value={form.customerId}
+   498→            onChange={(e) => setForm((f) => ({ ...f, customerId: e.target.value }))}
+   499→            required
+   500→          >
+   501→            <option value="">Select customer...</option>
+   502→            {customers.map((c) => (
+   503→              <option key={c.id} value={c.id}>{c.name}</option>
+   504→            ))}
+   505→          </select>
+   506→        </div>
+   507→        <div className="space-y-2">
+   508→          <Label>Site Name *</Label>
+   509→          <Input
+   510→            placeholder="e.g., HQ Building"
+   511→            value={form.name}
+   512→            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+   513→            required
+   514→          />
+   515→        </div>
+   516→      </div>
+   517→
+   518→      <div className="space-y-2">
+   519→        <Label>Address</Label>
+   520→        <Input
+   521→          placeholder="Full site address"
+   522→          value={form.address}
+   523→          onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+   524→        />
+   525→      </div>
+   526→
+   527→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   528→        <div className="space-y-2">
+   529→          <Label>Latitude</Label>
+   530→          <Input
+   531→            type="number"
+   532→            step="any"
+   533→            placeholder="e.g., 28.6139"
+   534→            value={form.latitude}
+   535→            onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
+   536→          />
+   537→        </div>
+   538→        <div className="space-y-2">
+   539→          <Label>Longitude</Label>
+   540→          <Input
+   541→            type="number"
+   542→            step="any"
+   543→            placeholder="e.g., 77.2090"
+   544→            value={form.longitude}
+   545→            onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
+   546→          />
+   547→        </div>
+   548→      </div>
+   549→
+   550→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   551→        <div className="space-y-2">
+   552→          <Label>Contact Person</Label>
+   553→          <Input
+   554→            placeholder="Site contact name"
+   555→            value={form.contactPerson}
+   556→            onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
+   557→          />
+   558→        </div>
+   559→        <div className="space-y-2">
+   560→          <Label>Contact Phone</Label>
+   561→          <Input
+   562→            placeholder="Phone number"
+   563→            value={form.contactPhone}
+   564→            onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
+   565→          />
+   566→        </div>
+   567→      </div>
+   568→
+   569→      <div className="space-y-2">
+   570→        <Label>Contact Email</Label>
+   571→        <Input
+   572→          type="email"
+   573→          placeholder="email@example.com"
+   574→          value={form.contactEmail}
+   575→          onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+   576→        />
+   577→      </div>
+   578→
+   579→      <div className="space-y-2">
+   580→        <Label>Notes</Label>
+   581→        <Textarea
+   582→          placeholder="Additional notes about this site..."
+   583→          value={form.description}
+   584→          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+   585→          rows={3}
+   586→        />
+   587→      </div>
+   588→
+   589→      <DialogFooter>
+   590→        <DialogClose asChild>
+   591→          <Button type="button" variant="outline">Cancel</Button>
+   592→        </DialogClose>
+   593→        <Button type="submit" disabled={loading || !form.customerId || !form.name} className="bg-rose-600 hover:bg-rose-700">
+   594→          {loading ? 'Creating...' : 'Create Site'}
+   595→        </Button>
+   596→      </DialogFooter>
+   597→    </form>
+   598→  )
+   599→}
+   600→
+   601→// ─── Edit Site Form ───
+   602→function EditSiteForm({ site, onSubmit, loading }: {
+   603→  site: any
+   604→  onSubmit: (data: any) => void
+   605→  loading: boolean
+   606→}) {
+   607→  const [form, setForm] = useState({
+   608→    name: site.name || '',
+   609→    address: site.address || '',
+   610→    latitude: site.latitude ? String(site.latitude) : '',
+   611→    longitude: site.longitude ? String(site.longitude) : '',
+   612→    contactPerson: site.contactPerson || '',
+   613→    contactPhone: site.contactPhone || '',
+   614→    description: site.description || '',
+   615→    isActive: site.isActive ?? true,
+   616→  })
+   617→
+   618→  const handleSubmit = (e: React.FormEvent) => {
+   619→    e.preventDefault()
+   620→    const body: Record<string, unknown> = {
+   621→      name: form.name,
+   622→      isActive: form.isActive,
+   623→    }
+   624→    if (form.address) body.address = form.address
+   625→    else body.address = null
+   626→    if (form.latitude) body.latitude = parseFloat(form.latitude)
+   627→    else body.latitude = null
+   628→    if (form.longitude) body.longitude = parseFloat(form.longitude)
+   629→    else body.longitude = null
+   630→    if (form.contactPerson) body.contactPerson = form.contactPerson
+   631→    else body.contactPerson = null
+   632→    if (form.contactPhone) body.contactPhone = form.contactPhone
+   633→    else body.contactPhone = null
+   634→    if (form.description) body.description = form.description
+   635→    else body.description = null
+   636→    onSubmit(body)
+   637→  }
+   638→
+   639→  return (
+   640→    <form onSubmit={handleSubmit} className="space-y-4">
+   641→      <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-3 flex items-center gap-2">
+   642→        <span className="text-xs font-mono text-rose-600 font-bold">{site.code}</span>
+   643→        <span className="text-xs text-muted-foreground">•</span>
+   644→        <span className="text-xs text-muted-foreground">{site.customer?.name}</span>
+   645→      </div>
+   646→
+   647→      <div className="space-y-2">
+   648→        <Label>Site Name *</Label>
+   649→        <Input
+   650→          value={form.name}
+   651→          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+   652→          required
+   653→        />
+   654→      </div>
+   655→
+   656→      <div className="space-y-2">
+   657→        <Label>Address</Label>
+   658→        <Input
+   659→          value={form.address}
+   660→          onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+   661→        />
+   662→      </div>
+   663→
+   664→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   665→        <div className="space-y-2">
+   666→          <Label>Latitude</Label>
+   667→          <Input
+   668→            type="number"
+   669→            step="any"
+   670→            value={form.latitude}
+   671→            onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
+   672→          />
+   673→        </div>
+   674→        <div className="space-y-2">
+   675→          <Label>Longitude</Label>
+   676→          <Input
+   677→            type="number"
+   678→            step="any"
+   679→            value={form.longitude}
+   680→            onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
+   681→          />
+   682→        </div>
+   683→      </div>
+   684→
+   685→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   686→        <div className="space-y-2">
+   687→          <Label>Contact Person</Label>
+   688→          <Input
+   689→            value={form.contactPerson}
+   690→            onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
+   691→          />
+   692→        </div>
+   693→        <div className="space-y-2">
+   694→          <Label>Contact Phone</Label>
+   695→          <Input
+   696→            value={form.contactPhone}
+   697→            onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
+   698→          />
+   699→        </div>
+   700→      </div>
+   701→
+   702→      <div className="space-y-2">
+   703→        <Label>Notes</Label>
+   704→        <Textarea
+   705→          value={form.description}
+   706→          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+   707→          rows={3}
+   708→        />
+   709→      </div>
+   710→
+   711→      <div className="flex items-center gap-2">
+   712→        <label className="relative flex items-center cursor-pointer">
+   713→          <input
+   714→            type="checkbox"
+   715→            checked={form.isActive}
+   716→            onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+   717→            className="sr-only peer"
+   718→          />
+   719→          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600" />
+   720→        </label>
+   721→        <Label>Active</Label>
+   722→      </div>
+   723→
+   724→      <DialogFooter>
+   725→        <DialogClose asChild>
+   726→          <Button type="button" variant="outline">Cancel</Button>
+   727→        </DialogClose>
+   728→        <Button type="submit" disabled={loading} className="bg-rose-600 hover:bg-rose-700">
+   729→          {loading ? 'Saving...' : 'Save Changes'}
+   730→        </Button>
+   731→      </DialogFooter>
+   732→    </form>
+   733→  )
+   734→}
+   735→
+   736→// ─── Site Details Panel ───
+   737→function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any[] }) {
+   738→  const { formatCurrency } = useFormat()
+   739→  const tickets = site.tickets || []
+   740→  const pmSchedules = site.pmSchedules || []
+   741→  const totalTickets = site._count?.tickets ?? 0
+   742→  const totalPM = site._count?.pmSchedules ?? 0
+   743→
+   744→  // Extract unique assets from tickets
+   745→  const assets = useMemo(() => {
+   746→    const assetMap = new Map<string, any>()
+   747→    tickets.forEach((t: any) => {
+   748→      if (t.asset && t.asset.id && !assetMap.has(t.asset.id)) {
+   749→        assetMap.set(t.asset.id, t.asset)
+   750→      }
+   751→    })
+   752→    return Array.from(assetMap.values())
+   753→  }, [tickets])
+   754→
+   755→  return (
+   756→    <ScrollArea className="h-[calc(85vh-120px)]">
+   757→      <Tabs defaultValue="info" className="w-full px-1">
+   758→        <TabsList className="w-full">
+   759→          <TabsTrigger value="info" className="flex-1">Site Info</TabsTrigger>
+   760→          <TabsTrigger value="tickets" className="flex-1">Tickets ({totalTickets})</TabsTrigger>
+   761→          <TabsTrigger value="pm" className="flex-1">PM ({totalPM})</TabsTrigger>
+   762→          <TabsTrigger value="amc" className="flex-1">AMC</TabsTrigger>
+   763→        </TabsList>
+   764→
+   765→        {/* Site Info Tab */}
+   766→        <TabsContent value="info" className="space-y-4 mt-4">
+   767→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   768→            <InfoField icon={<MapPin className="h-3.5 w-3.5" />} label="Site Code" value={site.code} />
+   769→            <InfoField icon={<Building2 className="h-3.5 w-3.5" />} label="Customer" value={site.customer?.name || '—'} />
+   770→            <InfoField icon={<MapPin className="h-3.5 w-3.5" />} label="Address" value={site.address || '—'} />
+   771→            <InfoField
+   772→              icon={<FileText className="h-3.5 w-3.5" />}
+   773→              label="Status"
+   774→              value={
+   775→                <Badge
+   776→                  variant="secondary"
+   777→                  className={cn(
+   778→                    'text-xs',
+   779→                    site.isActive ? statusConfig.active.color : statusConfig.inactive.color
+   780→                  )}
+   781→                >
+   782→                  {site.isActive ? 'Active' : 'Inactive'}
+   783→                </Badge>
+   784→              }
+   785→            />
+   786→            <InfoField icon={<Users className="h-3.5 w-3.5" />} label="Contact Person" value={site.contactPerson || '—'} />
+   787→            <InfoField icon={<Phone className="h-3.5 w-3.5" />} label="Contact Phone" value={site.contactPhone || '—'} />
+   788→            {site.latitude && site.longitude && (
+   789→              <InfoField
+   790→                icon={<MapPin className="h-3.5 w-3.5" />}
+   791→                label="Coordinates"
+   792→                value={`${site.latitude}, ${site.longitude}`}
+   793→              />
+   794→            )}
+   795→          </div>
+   796→
+   797→          {site.description && (
+   798→            <div className="rounded-lg bg-muted/50 p-3">
+   799→              <p className="text-xs font-medium text-muted-foreground mb-1">Notes</p>
+   800→              <p className="text-sm whitespace-pre-wrap">{site.description}</p>
+   801→            </div>
+   802→          )}
+   803→
+   804→          {/* Equipment/Assets at Site */}
+   805→          <Card>
+   806→            <CardHeader className="pb-2">
+   807→              <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+   808→                <Wrench className="h-3.5 w-3.5 text-sky-600" />
+   809→                Equipment at Site ({assets.length})
+   810→              </CardTitle>
+   811→            </CardHeader>
+   812→            <CardContent className="p-0">
+   813→              {assets.length === 0 ? (
+   814→                <p className="text-xs text-muted-foreground p-4 text-center">No equipment linked through tickets</p>
+   815→              ) : (
+   816→                <div className="max-h-48 overflow-y-auto">
+   817→                  <Table>
+   818→                    <TableHeader>
+   819→                      <TableRow>
+   820→                        <TableHead className="text-xs">Asset</TableHead>
+   821→                        <TableHead className="text-xs">Category</TableHead>
+   822→                        <TableHead className="text-xs hidden sm:table-cell">Status</TableHead>
+   823→                      </TableRow>
+   824→                    </TableHeader>
+   825→                    <TableBody>
+   826→                      {assets.map((a: any) => (
+   827→                        <TableRow key={a.id}>
+   828→                          <TableCell className="text-xs font-medium">{a.name || '—'}</TableCell>
+   829→                          <TableCell className="text-xs text-muted-foreground">{a.category || '—'}</TableCell>
+   830→                          <TableCell className="text-xs hidden sm:table-cell">
+   831→                            <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+   832→                              {a.status || '—'}
+   833→                            </Badge>
+   834→                          </TableCell>
+   835→                        </TableRow>
+   836→                      ))}
+   837→                    </TableBody>
+   838→                  </Table>
+   839→                </div>
+   840→              )}
+   841→            </CardContent>
+   842→          </Card>
+   843→        </TabsContent>
+   844→
+   845→        {/* Active Tickets Tab */}
+   846→        <TabsContent value="tickets" className="space-y-4 mt-4">
+   847→          {tickets.length === 0 ? (
+   848→            <div className="flex flex-col items-center justify-center py-12">
+   849→              <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+   850→              <p className="text-sm text-muted-foreground">No active tickets at this site</p>
+   851→            </div>
+   852→          ) : (
+   853→            <div className="max-h-72 overflow-y-auto">
+   854→              <Table>
+   855→                <TableHeader>
+   856→                  <TableRow>
+   857→                    <TableHead>Ticket #</TableHead>
+   858→                    <TableHead>Subject</TableHead>
+   859→                    <TableHead className="hidden sm:table-cell">Priority</TableHead>
+   860→                    <TableHead className="hidden sm:table-cell">Status</TableHead>
+   861→                    <TableHead className="hidden md:table-cell">Assigned To</TableHead>
+   862→                    <TableHead className="text-right">Date</TableHead>
+   863→                  </TableRow>
+   864→                </TableHeader>
+   865→                <TableBody>
+   866→                  {tickets.map((t: any) => {
+   867→                    const pri = ticketPriorityConfig[t.priority] || ticketPriorityConfig.medium
+   868→                    const stat = ticketStatusConfig[t.status] || ticketStatusConfig.new
+   869→                    return (
+   870→                      <TableRow key={t.id}>
+   871→                        <TableCell className="text-xs font-mono font-medium text-rose-600">{t.ticketNo}</TableCell>
+   872→                        <TableCell className="text-xs font-medium max-w-[180px] truncate">{t.subject || '—'}</TableCell>
+   873→                        <TableCell className="hidden sm:table-cell">
+   874→                          <Badge variant="secondary" className={cn('text-xs', pri.color)}>{pri.label}</Badge>
+   875→                        </TableCell>
+   876→                        <TableCell className="hidden sm:table-cell">
+   877→                          <Badge variant="secondary" className={cn('text-xs', stat.color)}>{stat.label}</Badge>
+   878→                        </TableCell>
+   879→                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+   880→                          {t.assignedTechnician?.user?.name || 'Unassigned'}
+   881→                        </TableCell>
+   882→                        <TableCell className="text-right text-xs text-muted-foreground">
+   883→                          {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '—'}
+   884→                        </TableCell>
+   885→                      </TableRow>
+   886→                    )
+   887→                  })}
+   888→                </TableBody>
+   889→              </Table>
+   890→            </div>
+   891→          )}
+   892→
+   893→          {/* Summary stats */}
+   894→          <div className="grid grid-cols-3 gap-2">
+   895→            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-3 text-center">
+   896→              <p className="text-xs text-muted-foreground">Open</p>
+   897→              <p className="text-lg font-bold text-rose-600">
+   898→                {tickets.filter((t: any) => ['new', 'assigned', 'in_progress'].includes(t.status)).length}
+   899→              </p>
+   900→            </div>
+   901→            <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 text-center">
+   902→              <p className="text-xs text-muted-foreground">On Hold</p>
+   903→              <p className="text-lg font-bold text-amber-600">
+   904→                {tickets.filter((t: any) => t.status === 'on_hold').length}
+   905→              </p>
+   906→            </div>
+   907→            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-3 text-center">
+   908→              <p className="text-xs text-muted-foreground">Resolved</p>
+   909→              <p className="text-lg font-bold text-emerald-600">
+   910→                {tickets.filter((t: any) => t.status === 'resolved').length}
+   911→              </p>
+   912→            </div>
+   913→          </div>
+   914→        </TabsContent>
+   915→
+   916→        {/* PM Schedules Tab */}
+   917→        <TabsContent value="pm" className="space-y-4 mt-4">
+   918→          {pmSchedules.length === 0 ? (
+   919→            <div className="flex flex-col items-center justify-center py-12">
+   920→              <Calendar className="h-8 w-8 text-muted-foreground/30 mb-2" />
+   921→              <p className="text-sm text-muted-foreground">No active PM schedules for this site</p>
+   922→            </div>
+   923→          ) : (
+   924→            <div className="max-h-72 overflow-y-auto space-y-2">
+   925→              {pmSchedules.map((pm: any) => {
+   926→                const nextDate = pm.nextVisitDate ? new Date(pm.nextVisitDate) : null
+   927→                const now = new Date()
+   928→                const daysUntil = nextDate ? Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null
+   929→                return (
+   930→                  <Card key={pm.id} className="p-3">
+   931→                    <div className="flex items-center justify-between mb-1">
+   932→                      <div className="flex items-center gap-2">
+   933→                        <span className="text-xs font-mono text-rose-600 font-medium">{pm.pmNo}</span>
+   934→                        <span className="text-xs font-medium">{pm.name || '—'}</span>
+   935→                      </div>
+   936→                      <Badge
+   937→                        variant="secondary"
+   938→                        className={cn(
+   939→                          'text-xs',
+   940→                          daysUntil !== null
+   941→                            ? daysUntil < 0
+   942→                              ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+   943→                              : daysUntil <= 3
+   944→                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
+   945→                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+   946→                            : 'bg-slate-100 text-slate-600'
+   947→                        )}
+   948→                      >
+   949→                        {daysUntil !== null ? (daysUntil < 0 ? `Overdue by ${Math.abs(daysUntil)}d` : daysUntil === 0 ? 'Due today' : `In ${daysUntil}d`) : 'No date'}
+   950→                      </Badge>
+   951→                    </div>
+   952→                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+   953→                      <span className="flex items-center gap-1">
+   954→                        <Calendar className="h-3 w-3" />
+   955→                        {pm.frequency || '—'}
+   956→                      </span>
+   957→                      <span>
+   958→                        Visits: {pm.completedVisits ?? 0}/{pm.totalVisits ?? 0}
+   959→                      </span>
+   960→                    </div>
+   961→                  </Card>
+   962→                )
+   963→              })}
+   964→            </div>
+   965→          )}
+   966→        </TabsContent>
+   967→
+   968→        {/* AMC Contracts Tab */}
+   969→        <TabsContent value="amc" className="space-y-4 mt-4">
+   970→          {amcContracts.length === 0 ? (
+   971→            <div className="flex flex-col items-center justify-center py-12">
+   972→              <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+   973→              <p className="text-sm text-muted-foreground">No AMC contracts for this customer</p>
+   974→            </div>
+   975→          ) : (
+   976→            <div className="max-h-72 overflow-y-auto">
+   977→              <Table>
+   978→                <TableHeader>
+   979→                  <TableRow>
+   980→                    <TableHead>Contract #</TableHead>
+   981→                    <TableHead>Type</TableHead>
+   982→                    <TableHead className="hidden sm:table-cell">Value</TableHead>
+   983→                    <TableHead className="hidden sm:table-cell">Expiry</TableHead>
+   984→                    <TableHead>Status</TableHead>
+   985→                  </TableRow>
+   986→                </TableHeader>
+   987→                <TableBody>
+   988→                  {amcContracts.map((amc: any) => {
+   989→                    const isExpired = amc.endDate && new Date(amc.endDate) < new Date()
+   990→                    const isExpiring = amc.endDate && !isExpired && (new Date(amc.endDate).getTime() - new Date().getTime()) < 30 * 24 * 60 * 60 * 1000
+   991→                    return (
+   992→                      <TableRow key={amc.id}>
+   993→                        <TableCell className="text-xs font-mono font-medium text-rose-600">{amc.contractNo}</TableCell>
+   994→                        <TableCell className="text-xs">{amc.name || '—'}</TableCell>
+   995→                        <TableCell className="hidden sm:table-cell text-xs">
+   996→                          {amc.annualValue ? formatCurrency(Number(amc.annualValue)) : '—'}
+   997→                        </TableCell>
+   998→                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
+   999→                          {amc.endDate ? new Date(amc.endDate).toLocaleDateString() : '—'}
+  1000→                        </TableCell>
+  1001→                        <TableCell>
+  1002→                          <Badge
+  1003→                            variant="secondary"
+  1004→                            className={cn(
+  1005→                              'text-xs',
+  1006→                              isExpired
+  1007→                                ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+  1008→                                : isExpiring
+  1009→                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
+  1010→                                  : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+  1011→                            )}
+  1012→                          >
+  1013→                            {isExpired ? 'Expired' : isExpiring ? 'Expiring' : 'Active'}
+  1014→                          </Badge>
+  1015→                        </TableCell>
+  1016→                      </TableRow>
+  1017→                    )
+  1018→                  })}
+  1019→                </TableBody>
+  1020→              </Table>
+  1021→            </div>
+  1022→          )}
+  1023→        </TabsContent>
+  1024→      </Tabs>
+  1025→    </ScrollArea>
+  1026→  )
+  1027→}
+  1028→
+  1029→// ─── Info Field ───
+  1030→function InfoField({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  1031→  return (
+  1032→    <div className="flex items-start gap-2">
+  1033→      <div className="text-muted-foreground mt-0.5">{icon}</div>
+  1034→      <div>
+  1035→        <p className="text-xs text-muted-foreground">{label}</p>
+  1036→        {typeof value === 'string' ? (
+  1037→          <p className="text-sm font-medium">{value}</p>
+  1038→        ) : (
+  1039→          value
+  1040→        )}
+  1041→      </div>
+  1042→    </div>
+  1043→  )
+  1044→}
+  1045→

@@ -253,7 +253,7 @@ export function AssetsPage() {
         </Card>
       )}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader><DialogTitle>Add Asset</DialogTitle></DialogHeader>
@@ -309,7 +309,7 @@ export function AssetsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader><DialogTitle>Edit Asset</DialogTitle></DialogHeader>
@@ -356,7 +356,7 @@ export function AssetsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* View Dialog */}
+      {/* দেখার ডায়ালগ */}
       <Dialog open={!!viewItem} onOpenChange={() => setViewItem(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

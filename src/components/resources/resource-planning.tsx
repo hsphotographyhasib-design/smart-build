@@ -52,7 +52,7 @@ import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface ResourceAssignment {
@@ -81,7 +81,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -125,7 +125,7 @@ const emptyForm = {
 }
 
 // ──────────────────────────────────────────
-// Skeletons
+// স্কেলিটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -148,7 +148,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Assignment Form Dialog
+// বরাদ্দ ফর্ম ডায়ালগ
 // ──────────────────────────────────────────
 
 function AssignmentFormDialog({
@@ -170,7 +170,7 @@ function AssignmentFormDialog({
   const [resources, setResources] = useState<Array<{ id: string; name: string }>>([])
   const [prevOpen, setPrevOpen] = useState(false)
   
-  // Detect dialog open transition to reset form
+  // ফর্ম রিসেট করতে ডায়ালগ খোলার ট্রানজিশন সনাক্ত করা হচ্ছে
   if (open && !prevOpen) {
     setPrevOpen(true)
     setForm(editData ? {
@@ -349,7 +349,7 @@ function AssignmentFormDialog({
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function ResourcePlanning() {

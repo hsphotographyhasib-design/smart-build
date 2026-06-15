@@ -67,13 +67,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'At least one item is required' }, { status: 400 })
     }
 
-    // Verify project exists
+    // প্রজেক্ট বিদ্যমান কিনা যাচাই করা হচ্ছে
     const project = await db.project.findUnique({ where: { id: projectId } })
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 400 })
     }
 
-    // Generate request number
+    // রিকোয়েস্ট নম্বর তৈরি করা হচ্ছে
     const count = await db.purchaseRequest.count()
     const requestNo = `PR-${String(count + 1).padStart(4, '0')}`
 

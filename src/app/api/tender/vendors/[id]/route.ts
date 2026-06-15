@@ -83,7 +83,7 @@ export async function PUT(
       }
     }
 
-    // Handle JSON fields
+    // JSON ক্ষেত্র পরিচালনা করা হচ্ছে
     if (body.pastPerformance !== undefined) {
       updateData.pastPerformance = typeof body.pastPerformance === 'string'
         ? body.pastPerformance
@@ -105,7 +105,7 @@ export async function PUT(
         : JSON.stringify(body.licenses)
     }
 
-    // Handle isApproved toggle
+    // isApproved টগল পরিচালনা করা হচ্ছে
     if (body.isApproved !== undefined) {
       updateData.isApproved = body.isApproved
     }

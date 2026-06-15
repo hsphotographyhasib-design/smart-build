@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface UsedMaterial {
@@ -72,7 +72,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Work order must be in 'in_progress' status to complete, current status: ${workOrder.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!workOrder.assignedTechnicianId || workOrder.assignedTechnician?.userId !== authUser.id) {
       return NextResponse.json({ success: false, error: 'Only the assigned technician can complete this work order' }, { status: 403 })
     }
@@ -82,7 +82,7 @@ export async function POST(
     const materialsCost = usedMaterials ? usedMaterials.reduce((sum: number, m: UsedMaterial) => sum + (m.cost * m.quantity), 0) : 0
     const materialCostTotal = workOrder.materialCost + materialsCost
 
-    // Generate invoice number
+    // ইনভয়েস নম্বর তৈরি করা হচ্ছে
     const year = now.getFullYear().toString()
     const lastInvoice = await db.maintenanceInvoice.findFirst({
       orderBy: { invoiceNo: 'desc' },
@@ -99,9 +99,9 @@ export async function POST(
 
     const invoiceTotal = labourCost + materialsCost + (workOrder.ticket.transportCost || 0) + (workOrder.ticket.serviceCost || 0)
 
-    // Execute transaction
+    // ট্রানজ্যাকশন চালানো হচ্ছে
     const [updatedWO, updatedTicket, invoice] = await db.$transaction([
-      // 1. Complete work order
+      // ১. ওয়ার্ক অর্ডার সম্পন্ন করা হচ্ছে
       db.maintenanceWorkOrder.update({
         where: { id },
         data: {
@@ -116,7 +116,7 @@ export async function POST(
           photos: photos ? JSON.stringify(photos) : undefined,
         },
       }),
-      // 2. Update ticket costs and status
+      // ২. টিকেটের খরচ এবং স্ট্যাটাস আপডেট করা হচ্ছে
       db.maintenanceTicket.update({
         where: { id: workOrder.ticketId },
         data: {
@@ -127,7 +127,7 @@ export async function POST(
           status: 'pending_customer',
         },
       }),
-      // 3. Auto-generate invoice
+      // ৩. স্বয়ংক্রিয়ভাবে ইনভয়েস তৈরি করা হচ্ছে
       db.maintenanceInvoice.create({
         data: {
           invoiceNo,
@@ -147,7 +147,7 @@ export async function POST(
       }),
     ])
 
-    // Create timeline entries
+    // টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     await db.maintenanceTimeline.create({
       data: {
         ticketId: workOrder.ticketId,
@@ -168,7 +168,7 @@ export async function POST(
       },
     })
 
-    // Update technician stats
+    // টেকনিশিয়ানের পরিসংখ্যান আপডেট করা হচ্ছে
     if (workOrder.assignedTechnicianId) {
       await db.technicianProfile.update({
         where: { id: workOrder.assignedTechnicianId },

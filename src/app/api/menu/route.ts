@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-// GET /api/menu — Return menu configuration for the authenticated user's role
+// GET /api/menu — প্রমাণীকৃত ব্যবহারকারীর ভূমিকার জন্য মেনু কনফিগারেশন প্রদান করা হচ্ছে
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const role = user.role || 'labour'
 
-    // Fetch all active menu groups with their visible items
+    // দৃশ্যমান আইটেমসহ সকল সক্রিয় মেনু গোষ্ঠী সংগ্রহ করা হচ্ছে
     const groups = await db.menuGroup.findMany({
       where: { isActive: true },
       include: {
@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
       orderBy: { sortOrder: 'asc' },
     })
 
-    // If no role-based permissions are configured yet, return all groups
-    // (backward compatible with the hardcoded roleGroupAccess map)
+    // যদি ভূমিকা-ভিত্তিক অনুমতি এখনও কনফিগার না করা হয়, সব গোষ্ঠী প্রদান করা হচ্ছে
+    // (hardcoded roleGroupAccess ম্যাপের সাথে সামঞ্জস্যপূর্ণ)
     const hasPermissions = groups.some((g) => g.roleAccess.length > 0)
 
     const visibleGroups = hasPermissions

@@ -55,7 +55,7 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface SessionUser {
@@ -94,7 +94,7 @@ interface SessionStats {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatDuration(seconds: number): string {
@@ -157,7 +157,7 @@ const STATUS_OPTIONS = [
 ]
 
 // ──────────────────────────────────────────
-// Skeleton Components
+// স্কেলেটন উপাদানসমূহ
 // ──────────────────────────────────────────
 
 function StatsSkeleton() {
@@ -200,7 +200,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// User Avatar
+// ব্যবহারকারী অ্যাভাটার
 // ──────────────────────────────────────────
 
 function UserAvatar({ user }: { user: SessionUser }) {
@@ -233,7 +233,7 @@ function UserAvatar({ user }: { user: SessionUser }) {
 }
 
 // ──────────────────────────────────────────
-// Session Detail Dialog
+// সেশন বিবরণ ডায়ালগ
 // ──────────────────────────────────────────
 
 function SessionDetailDialog({
@@ -278,7 +278,7 @@ function SessionDetailDialog({
 
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="space-y-6 pb-4">
-            {/* User Information */}
+            {/* ব্যবহারকারীর তথ্য */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 User Information
@@ -299,7 +299,7 @@ function SessionDetailDialog({
 
             <Separator />
 
-            {/* Session Timeline */}
+            {/* সেশন টাইমলাইন */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Session Timeline
@@ -360,7 +360,7 @@ function SessionDetailDialog({
 
             <Separator />
 
-            {/* Device & Browser */}
+            {/* ডিভাইস ও ব্রাউজার */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Device &amp; Browser
@@ -414,7 +414,7 @@ function SessionDetailDialog({
 
             <Separator />
 
-            {/* Location Info */}
+            {/* অবস্থানের তথ্য */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Location &amp; Network
@@ -458,7 +458,7 @@ function SessionDetailDialog({
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function LoginActivityPage() {
@@ -471,7 +471,7 @@ export function LoginActivityPage() {
 
   const refreshKey = useState(0)[0]
 
-  // Build query params
+  // কুয়েরি প্যারামিটার তৈরি
   const queryParams = useMemo(() => {
     const p = new URLSearchParams()
     p.set('role', 'admin')
@@ -483,7 +483,7 @@ export function LoginActivityPage() {
     return p.toString()
   }, [statusFilter, searchQuery, dateRange, page])
 
-  // Fetch sessions
+  // সেশন আনা
   const {
     data: sessionsData,
     isLoading: sessionsLoading,
@@ -495,7 +495,7 @@ export function LoginActivityPage() {
       api.get(`/api/sessions?${queryParams}`).then((r) => r.data as any),
   })
 
-  // Fetch session stats
+  // সেশন পরিসংখ্যান আনা
   const {
     data: statsData,
     isLoading: statsLoading,
@@ -506,7 +506,7 @@ export function LoginActivityPage() {
       api.get('/api/sessions/active').then((r) => r.data as any),
   })
 
-  // Transform API response to match Session interface
+  // Session ইন্টারফেসের সাথে মেলাতে API প্রতিক্রিয়া রূপান্তর
   const sessions: Session[] = useMemo(() => {
     const rawSessions = sessionsData?.sessions || sessionsData?.data || []
     return rawSessions.map((s: any) => ({
@@ -557,7 +557,7 @@ export function LoginActivityPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Page Header */}
+      {/* পৃষ্ঠা হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Login Activity</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -565,7 +565,7 @@ export function LoginActivityPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       {statsLoading ? (
         <StatsSkeleton />
       ) : stats ? (
@@ -636,7 +636,7 @@ export function LoginActivityPage() {
         </div>
       ) : null}
 
-      {/* Filters Bar */}
+      {/* ফিল্টার বার */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3 items-center">
@@ -710,7 +710,7 @@ export function LoginActivityPage() {
         </CardContent>
       </Card>
 
-      {/* Sessions Table */}
+      {/* সেশন টেবিল */}
       {sessionsLoading ? (
         <Card>
           <CardContent className="p-0">
@@ -852,7 +852,7 @@ export function LoginActivityPage() {
               </Table>
             </div>
 
-            {/* Pagination */}
+            {/* পেজিনেশন */}
             {total > limit && (
               <div className="flex items-center justify-between p-4 border-t">
                 <p className="text-sm text-muted-foreground">
@@ -884,7 +884,7 @@ export function LoginActivityPage() {
         </>
       )}
 
-      {/* Session Detail Dialog */}
+      {/* সেশন বিবরণ ডায়ালগ */}
       <SessionDetailDialog
         session={selectedSession}
         open={!!selectedSession}

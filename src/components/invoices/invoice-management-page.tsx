@@ -33,7 +33,7 @@ import {
   FileSpreadsheet, Receipt, Shield, Timer, Activity, CreditCard, CircleDollarSign, Banknote, PiggyBank,
 } from 'lucide-react'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface LineItem {
   description: string
   qty: number
@@ -74,7 +74,7 @@ interface DashboardStats {
   recentInvoices: Invoice[]
 }
 
-// ─── Config Maps ───
+// ─── কনফিগারেশন ম্যাপ ───
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
   pending_review: { label: 'Pending Review', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -116,7 +116,7 @@ const allStatuses = Object.entries(statusConfig).map(([k, v]) => ({ value: k, la
 
 const emptyLineItem = (): LineItem => ({ description: '', qty: 1, unit: 'ea', unitPrice: 0 })
 
-// ─── Component ───
+// ─── উপাদান ───
 export function InvoiceManagementPage() {
   const { navigate } = useAppStore()
   const { formatCurrency, formatCurrencyCompact, formatDate } = useFormat()
@@ -126,7 +126,7 @@ export function InvoiceManagementPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
 
-  // Filters
+  // ফিল্টারসমূহ
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -137,7 +137,7 @@ export function InvoiceManagementPage() {
   const [page, setPage] = useState(1)
   const pageSize = 20
 
-  // ─── Queries ───
+  // ─── কুয়েরিসমূহ ───
   const { data: dashData, isLoading: dashLoading } = useQuery({
     queryKey: [...queryKeys.invoiceManagement, 'dashboard'],
     queryFn: () => api.get<DashboardStats>('/api/invoicing/dashboard'),
@@ -179,7 +179,7 @@ export function InvoiceManagementPage() {
   const totalItems = listData?.data?.total || invoices.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
 
-  // ─── Mutations ───
+  // ─── মিউটেশনসমূহ ───
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.del(`/api/invoicing/${id}`),
     onSuccess: () => {
@@ -190,7 +190,7 @@ export function InvoiceManagementPage() {
     onError: (err: any) => toast.error(err?.error || 'Failed to delete'),
   })
 
-  // ─── Create form state ───
+  // ─── তৈরির ফর্ম অবস্থা ───
   const [form, setForm] = useState({
     projectId: '', type: 'progress_claim', vendorName: '', vendorType: '',
     purchaseOrderId: '', workOrderId: '', costCodeId: '', contractNo: '', referenceNo: '',
@@ -255,10 +255,10 @@ export function InvoiceManagementPage() {
   const dash = dashData?.data
   const maxAging = Math.max(1, ...(dash?.aging?.map((a: any) => a.amount) || [1]))
 
-  // ─── Render ───
+  // ─── রেন্ডার ───
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Invoice Management</h1>
@@ -269,14 +269,14 @@ export function InvoiceManagementPage() {
         </Button>
       </div>
 
-      {/* Tabs */}
+      {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="list">All Invoices</TabsTrigger>
         </TabsList>
 
-        {/* ─── Dashboard Tab ─── */}
+        {/* ─── ড্যাশবোর্ড ট্যাব ─── */}
         <TabsContent value="dashboard" className="space-y-6 mt-4">
           {dashLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -284,7 +284,7 @@ export function InvoiceManagementPage() {
             </div>
           ) : (
             <>
-              {/* 12 Stat Cards */}
+              {/* ১২ পরিসংখ্যান কার্ড */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { label: 'Pending Invoices', value: dash?.pendingInvoices ?? 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', trend: '+3 this week' },
@@ -317,9 +317,9 @@ export function InvoiceManagementPage() {
                 ))}
               </div>
 
-              {/* Aging + Recent */}
+              {/* পুরনো + সাম্প্রতিক */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Aging Chart */}
+                {/* পুরনোত্ব চার্ট */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base font-semibold">Invoice Aging</CardTitle>
@@ -351,7 +351,7 @@ export function InvoiceManagementPage() {
                   </CardContent>
                 </Card>
 
-                {/* Recent Invoices */}
+                {/* সাম্প্রতিক ইনভয়েস */}
                 <Card>
                   <CardHeader className="pb-3 flex flex-row items-center justify-between">
                     <CardTitle className="text-base font-semibold">Recent Invoices</CardTitle>
@@ -405,7 +405,7 @@ export function InvoiceManagementPage() {
                 </Card>
               </div>
 
-              {/* Quick Actions */}
+              {/* দ্রুত কার্যকলাপ */}
               <div className="flex flex-wrap gap-3">
                 <Button onClick={() => setCreateOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" /> Create Invoice
@@ -418,9 +418,9 @@ export function InvoiceManagementPage() {
           )}
         </TabsContent>
 
-        {/* ─── List Tab ─── */}
+        {/* ─── তালিকা ট্যাব ─── */}
         <TabsContent value="list" className="space-y-4 mt-4">
-          {/* Filters */}
+          {/* ফিল্টারসমূহ */}
           <Card>
             <CardContent className="p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -464,7 +464,7 @@ export function InvoiceManagementPage() {
             </CardContent>
           </Card>
 
-          {/* Table */}
+          {/* টেবিল */}
           <Card>
             <CardContent className="p-0">
               <div className="max-h-[calc(100vh-280px)] overflow-y-auto overflow-x-auto">
@@ -545,7 +545,7 @@ export function InvoiceManagementPage() {
                 </Table>
               </div>
 
-              {/* Pagination */}
+              {/* পেজিনেশন */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t">
                   <p className="text-xs text-muted-foreground">
@@ -567,7 +567,7 @@ export function InvoiceManagementPage() {
         </TabsContent>
       </Tabs>
 
-      {/* ─── Create Invoice Dialog ─── */}
+      {/* ─── ইনভয়েস তৈরির ডায়ালগ ─── */}
       <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) resetForm() }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -666,7 +666,7 @@ export function InvoiceManagementPage() {
               </div>
             </div>
 
-            {/* Progress Billing */}
+            {/* অগ্রগতি বিলিং */}
             {isProgressClaim && (
               <div className="space-y-3 rounded-lg border p-4 bg-muted/30">
                 <h4 className="font-semibold text-sm">Progress Billing</h4>
@@ -689,7 +689,7 @@ export function InvoiceManagementPage() {
               </div>
             )}
 
-            {/* Line Items */}
+            {/* লাইন আইটেমসমূহ */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-sm">Line Items</h4>
@@ -755,7 +755,7 @@ export function InvoiceManagementPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Delete Dialog ─── */}
+      {/* ─── মুছে ফেলার ডায়ালগ ─── */}
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

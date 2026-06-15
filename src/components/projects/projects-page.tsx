@@ -45,7 +45,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Project {
@@ -70,7 +70,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; className: string }> = {
@@ -107,7 +107,7 @@ function formatDate(dateStr: string | null) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loaders
+// স্কেলেটন লোডারসমূহ
 // ──────────────────────────────────────────
 
 function CardSkeleton() {
@@ -149,7 +149,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// New Project Dialog
+// নতুন প্রকল্প ডায়ালগ
 // ──────────────────────────────────────────
 
 function NewProjectDialog() {
@@ -316,7 +316,7 @@ function NewProjectDialog() {
 }
 
 // ──────────────────────────────────────────
-// Project Card
+// প্রকল্প কার্ড
 // ──────────────────────────────────────────
 
 function ProjectCard({ project, onClick }: { project: Project; onClick: () => void }) {
@@ -330,7 +330,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
       onClick={onClick}
     >
       <CardContent className="p-5">
-        {/* Header */}
+        {/* হেডার */}
         <div className="flex items-start justify-between mb-1">
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-sm truncate group-hover:text-amber-700 transition-colors">
@@ -341,7 +341,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           <div className="ml-2 flex-shrink-0">{getStatusBadge(project.status)}</div>
         </div>
 
-        {/* Progress */}
+        {/* অগ্রগতি */}
         <div className="mt-3 mb-3">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-muted-foreground">Progress</span>
@@ -355,7 +355,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           </div>
         </div>
 
-        {/* Meta */}
+        {/* মেটাডেটা */}
         <Separator className="my-3" />
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
@@ -384,7 +384,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           </div>
         </div>
 
-        {/* Chevron */}
+        {/* শেভরন */}
         <div className="mt-3 flex justify-end">
           <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
         </div>
@@ -394,7 +394,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function ProjectsPage() {
@@ -414,7 +414,7 @@ export function ProjectsPage() {
     },
   })
 
-  // Count by status for the filter badges
+  // ফিল্টার ব্যাজের জন্য স্ট্যাটাস অনুযায়ী গণনা
   const statusCounts = useMemo(() => {
     if (!projects) return {}
     const counts: Record<string, number> = {}
@@ -430,7 +430,7 @@ export function ProjectsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
@@ -445,9 +445,9 @@ export function ProjectsPage() {
         <NewProjectDialog />
       </div>
 
-      {/* Toolbar */}
+      {/* টুলবার */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {/* Search */}
+        {/* অনুসন্ধান */}
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -458,7 +458,7 @@ export function ProjectsPage() {
           />
         </div>
 
-        {/* Status Filter */}
+        {/* স্ট্যাটাস ফিল্টার */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <Button
             variant={statusFilter === 'all' ? 'default' : 'outline'}
@@ -487,7 +487,7 @@ export function ProjectsPage() {
           ))}
         </div>
 
-        {/* View Toggle */}
+        {/* দৃশ্য টগল */}
         <div className="flex items-center gap-1 border rounded-md p-0.5 ml-auto">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -508,7 +508,7 @@ export function ProjectsPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

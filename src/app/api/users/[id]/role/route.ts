@@ -5,8 +5,8 @@ import { verifyAuth, logPermissionAudit } from '@/lib/auth'
 type RouteContext = { params: Promise<{ id: string }> }
 
 /**
- * GET /api/users/[id]/role — Get a user's current role info
- * Admin and super_admin can access.
+ * GET /api/users/[id]/role — একজন ব্যবহারকারীর বর্তমান ভূমিকার তথ্য সংগ্রহ করা হচ্ছে
+ * প্রশাসক এবং super_admin অ্যাক্সেস করতে পারবেন।
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
@@ -53,9 +53,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * PUT /api/users/[id]/role — Change a user's role
- * Body: { roleId: "role_code_string" } (the role.code, not role.id)
- * Only super_admin. Cannot change own role to non-super_admin.
+ * PUT /api/users/[id]/role — একজন ব্যবহারকারীর ভূমিকা পরিবর্তন করা হচ্ছে
+ * Body: { roleId: "role_code_string" } (role.code, role.id নয়)
+ * শুধুমাত্র super_admin। নিজের ভূমিকা non-super_admin এ পরিবর্তন করা যাবে না।
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Find target user
+    // লক্ষ্য ব্যবহারকারী খোঁজা হচ্ছে
     const targetUser = await db.user.findUnique({
       where: { id },
       select: { id: true, name: true, email: true, role: true },
@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Validate the target role exists
+    // লক্ষ্য ভূমিকা বিদ্যমান কিনা যাচাই করা হচ্ছে
     const targetRole = await db.role.findUnique({
       where: { code: roleId },
     })
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Cannot change own role to non-super_admin
+    // নিজের ভূমিকা non-super_admin এ পরিবর্তন করা যাবে না
     if (user.id === id && roleId !== 'super_admin') {
       return NextResponse.json(
         { success: false, error: 'Cannot change your own role to a non-super admin role' },

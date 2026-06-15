@@ -45,7 +45,7 @@ export async function PUT(
     const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (priority !== undefined) {
-      // Check uniqueness if changing priority
+      // অগ্রাধিকার পরিবর্তন করলে অনন্যতা যাচাই করা হচ্ছে
       if (priority !== existing.priority) {
         const conflict = await db.sLATemplate.findUnique({ where: { priority } })
         if (conflict) {

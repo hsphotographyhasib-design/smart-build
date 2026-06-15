@@ -1,0 +1,1312 @@
+     1→     1→import { PrismaClient } from '@prisma/client'
+     2→     2→import bcrypt from 'bcryptjs'
+     3→     3→
+     4→     4→const prisma = new PrismaClient()
+     5→     5→
+     6→     6→async function hashPassword(password: string): Promise<string> {
+     7→     7→  return bcrypt.hash(password, 10)
+     8→     8→}
+     9→     9→
+    10→    10→function daysAgo(days: number): Date {
+    11→    11→  const d = new Date()
+    12→    12→  d.setDate(d.getDate() - days)
+    13→    13→  d.setHours(0, 0, 0, 0)
+    14→    14→  return d
+    15→    15→}
+    16→    16→
+    17→    17→function daysFromNow(days: number): Date {
+    18→    18→  const d = new Date()
+    19→    19→  d.setDate(d.getDate() + days)
+    20→    20→  d.setHours(0, 0, 0, 0)
+    21→    21→  return d
+    22→    22→}
+    23→    23→
+    24→    24→function today(): Date {
+    25→    25→  const d = new Date()
+    26→    26→  d.setHours(0, 0, 0, 0)
+    27→    27→  return d
+    28→    28→}
+    29→    29→
+    30→    30→function startOfMonth(): Date {
+    31→    31→  const d = new Date()
+    32→    32→  d.setDate(1)
+    33→    33→  d.setHours(0, 0, 0, 0)
+    34→    34→  return d
+    35→    35→}
+    36→    36→
+    37→    37→function monthsAgo(months: number): Date {
+    38→    38→  const d = new Date()
+    39→    39→  d.setMonth(d.getMonth() - months)
+    40→    40→  d.setDate(1)
+    41→    41→  d.setHours(0, 0, 0, 0)
+    42→    42→  return d
+    43→    43→}
+    44→    44→
+    45→    45→async function main() {
+    46→    46→  console.log('🌱 Seeding SMARTBUILD Construction Management ERP...')
+    47→    47→
+    48→    48→  // Clean up existing data (in correct order to respect FK constraints)
+    49→    49→  console.log('🧹 Cleaning existing data...')
+    50→    50→  await prisma.notificationPreference.deleteMany()
+    51→    51→  await prisma.notification.deleteMany()
+    52→    52→  await prisma.assetIssue.deleteMany()
+    53→    53→  await prisma.assetMaintenance.deleteMany()
+    54→    54→  await prisma.asset.deleteMany()
+    55→    55→  await prisma.milestonePayment.deleteMany()
+    56→    56→  await prisma.workOrder.deleteMany()
+    57→    57→  await prisma.subContractor.deleteMany()
+    58→    58→  await prisma.loan.deleteMany()
+    59→    59→  await prisma.leaveRequest.deleteMany()
+    60→    60→  await prisma.employee.deleteMany()
+    61→    61→  await prisma.advancePayment.deleteMany()
+    62→    62→  await prisma.payroll.deleteMany()
+    63→    63→  await prisma.attendance.deleteMany()
+    64→    64→  await prisma.labour.deleteMany()
+    65→    65→  await prisma.labourGroup.deleteMany()
+    66→    66→  await prisma.salesInvoice.deleteMany()
+    67→    67→  await prisma.salesQuotation.deleteMany()
+    68→    68→  await prisma.product.deleteMany()
+    69→    69→  await prisma.productCategory.deleteMany()
+    70→    70→  await prisma.customer.deleteMany()
+    71→    71→  await prisma.purchaseOrderItem.deleteMany()
+    72→    72→  await prisma.purchaseOrder.deleteMany()
+    73→    73→  await prisma.purchaseRequestItem.deleteMany()
+    74→    74→  await prisma.purchaseRequest.deleteMany()
+    75→    75→  await prisma.stockMovement.deleteMany()
+    76→    76→  await prisma.material.deleteMany()
+    77→    77→  await prisma.supplier.deleteMany()
+    78→    78→  await prisma.bOQItem.deleteMany()
+    79→    79→  await prisma.bOQ.deleteMany()
+    80→    80→  await prisma.invoiceItem.deleteMany()
+    81→    81→  await prisma.payment.deleteMany()
+    82→    82→  await prisma.invoice.deleteMany()
+    83→    83→  await prisma.expense.deleteMany()
+    84→    84→  await prisma.dailyNote.deleteMany()
+    85→    85→  await prisma.projectTask.deleteMany()
+    86→    86→  await prisma.projectMilestone.deleteMany()
+    87→    87→  await prisma.projectDocument.deleteMany()
+    88→    88→  await prisma.projectMember.deleteMany()
+    89→    89→  await prisma.project.deleteMany()
+    90→    90→  await prisma.session.deleteMany()
+    91→    91→  await prisma.auditLog.deleteMany()
+    92→    92→  await prisma.user.deleteMany()
+    93→    93→
+    94→    94→  // ============ USERS ============
+    95→    95→  console.log('👤 Creating users...')
+    96→    96→  const adminPassword = await hashPassword('admin123')
+    97→    97→  const userPassword = await hashPassword('password123')
+    98→    98→
+    99→    99→  const adminUser = await prisma.user.create({
+   100→   100→    data: {
+   101→   101→      email: 'admin@smartbuild.com',
+   102→   102→      password: adminPassword,
+   103→   103→      name: 'Admin User',
+   104→   104→      phone: '+91 98765 43210',
+   105→   105→      role: 'admin',
+   106→   106→      isActive: true,
+   107→   107→    },
+   108→   108→  })
+   109→   109→
+   110→   110→  const supervisorUser = await prisma.user.create({
+   111→   111→    data: {
+   112→   112→      email: 'supervisor@smartbuild.com',
+   113→   113→      password: userPassword,
+   114→   114→      name: 'Rajesh Kumar',
+   115→   115→      phone: '+91 98765 43211',
+   116→   116→      role: 'supervisor',
+   117→   117→      isActive: true,
+   118→   118→    },
+   119→   119→  })
+   120→   120→
+   121→   121→  const hrUser = await prisma.user.create({
+   122→   122→    data: {
+   123→   123→      email: 'hr@smartbuild.com',
+   124→   124→      password: userPassword,
+   125→   125→      name: 'Priya Sharma',
+   126→   126→      phone: '+91 98765 43212',
+   127→   127→      role: 'hr_manager',
+   128→   128→      isActive: true,
+   129→   129→    },
+   130→   130→  })
+   131→   131→
+   132→   132→  const accountantUser = await prisma.user.create({
+   133→   133→    data: {
+   134→   134→      email: 'accountant@smartbuild.com',
+   135→   135→      password: userPassword,
+   136→   136→      name: 'Amit Patel',
+   137→   137→      phone: '+91 98765 43213',
+   138→   138→      role: 'accountant',
+   139→   139→      isActive: true,
+   140→   140→    },
+   141→   141→  })
+   142→   142→
+   143→   143→  const storeManagerUser = await prisma.user.create({
+   144→   144→    data: {
+   145→   145→      email: 'store@smartbuild.com',
+   146→   146→      password: userPassword,
+   147→   147→      name: 'Suresh Reddy',
+   148→   148→      phone: '+91 98765 43214',
+   149→   149→      role: 'store_manager',
+   150→   150→      isActive: true,
+   151→   151→    },
+   152→   152→  })
+   153→   153→
+   154→   154→  const clientUser = await prisma.user.create({
+   155→   155→    data: {
+   156→   156→      email: 'client@smartbuild.com',
+   157→   157→      password: userPassword,
+   158→   158→      name: 'Mahesh Agarwal',
+   159→   159→      phone: '+91 98765 43215',
+   160→   160→      role: 'client',
+   161→   161→      isActive: true,
+   162→   162→    },
+   163→   163→  })
+   164→   164→
+   165→   165→  // ============ PROJECTS ============
+   166→   166→  console.log('🏗️ Creating projects...')
+   167→   167→  const project1 = await prisma.project.create({
+   168→   168→    data: {
+   169→   169→      name: 'Skyline Tower - Phase 1',
+   170→   170→      code: 'PRJ-001',
+   171→   171→      description: '20-storey commercial building with basement parking in Tech Park area',
+   172→   172→      status: 'active',
+   173→   173→      startDate: daysAgo(90),
+   174→   174→      endDate: daysFromNow(180),
+   175→   175→      budget: 150000000,
+   176→   176→      address: 'Plot 45, Tech Park, Whitefield, Bangalore - 560066',
+   177→   177→      progress: 35,
+   178→   178→    },
+   179→   179→  })
+   180→   180→
+   181→   181→  const project2 = await prisma.project.create({
+   182→   182→    data: {
+   183→   183→      name: 'Green Valley Residences',
+   184→   184→      code: 'PRJ-002',
+   185→   185→      description: '48-unit premium residential apartment complex with amenities',
+   186→   186→      status: 'active',
+   187→   187→      startDate: daysAgo(150),
+   188→   188→      endDate: daysFromNow(120),
+   189→   189→      budget: 80000000,
+   190→   190→      address: 'Survey No 12/3, Green Valley Layout, HSR Sector 7, Bangalore',
+   191→   191→      progress: 60,
+   192→   192→    },
+   193→   193→  })
+   194→   194→
+   195→   195→  const project3 = await prisma.project.create({
+   196→   196→    data: {
+   197→   197→      name: 'Metro Station Expansion',
+   198→   198→      code: 'PRJ-003',
+   199→   199→      description: 'Expansion of existing metro station with additional platforms and foot over bridge',
+   200→   200→      status: 'planning',
+   201→   201→      startDate: daysFromNow(30),
+   202→   202→      endDate: daysFromNow(365),
+   203→   203→      budget: 200000000,
+   204→   204→      address: 'MG Road Metro Station, Bangalore - 560001',
+   205→   205→      progress: 0,
+   206→   206→    },
+   207→   207→  })
+   208→   208→
+   209→   209→  // ============ PROJECT MEMBERS ============
+   210→   210→  console.log('👥 Adding project members...')
+   211→   211→  await prisma.projectMember.createMany({
+   212→   212→    data: [
+   213→   213→      { projectId: project1.id, userId: supervisorUser.id, role: 'supervisor' },
+   214→   214→      { projectId: project1.id, userId: storeManagerUser.id, role: 'member' },
+   215→   215→      { projectId: project1.id, userId: accountantUser.id, role: 'member' },
+   216→   216→      { projectId: project2.id, userId: supervisorUser.id, role: 'supervisor' },
+   217→   217→      { projectId: project2.id, userId: accountantUser.id, role: 'member' },
+   218→   218→      { projectId: project3.id, userId: supervisorUser.id, role: 'supervisor' },
+   219→   219→    ],
+   220→   220→  })
+   221→   221→
+   222→   222→  // ============ SUPPLIERS ============
+   223→   223→  console.log('🏭 Creating suppliers...')
+   224→   224→  const suppliers = await Promise.all([
+   225→   225→    prisma.supplier.create({
+   226→   226→      data: {
+   227→   227→        name: 'UltraTech Cement Ltd',
+   228→   228→        code: 'SUP-001',
+   229→   229→        contact: 'Vikram Singh',
+   230→   230→        email: 'sales@ultratech.example.com',
+   231→   231→        phone: '+91 80 4567 8901',
+   232→   232→        address: 'No 42, Industrial Area, Hosur Road, Bangalore',
+   233→   233→        gstNo: '29AABCU9630R1ZM',
+   234→   234→        isActive: true,
+   235→   235→      },
+   236→   236→    }),
+   237→   237→    prisma.supplier.create({
+   238→   238→      data: {
+   239→   239→        name: 'Tata Steel Distributors',
+   240→   240→        code: 'SUP-002',
+   241→   241→        contact: 'Arjun Mehta',
+   242→   242→        email: 'orders@tatadist.example.com',
+   243→   243→        phone: '+91 80 5678 9012',
+   244→   244→        address: 'No 15, Steel Yard, Peenya Industrial Area, Bangalore',
+   245→   245→        gstNo: '29AABCT1234R1ZM',
+   246→   246→        isActive: true,
+   247→   247→      },
+   248→   248→    }),
+   249→   249→    prisma.supplier.create({
+   250→   250→      data: {
+   251→   251→        name: 'Deccan Sand & Aggregates',
+   252→   252→        code: 'SUP-003',
+   253→   253→        contact: 'Ravi Gowda',
+   254→   254→        email: 'info@deccansand.example.com',
+   255→   255→        phone: '+91 80 6789 0123',
+   256→   256→        address: 'Quarry Road, Mysore Road, Bangalore',
+   257→   257→        gstNo: '29AABCD5678R1ZM',
+   258→   258→        isActive: true,
+   259→   259→      },
+   260→   260→    }),
+   261→   261→    prisma.supplier.create({
+   262→   262→      data: {
+   263→   263→        name: 'Asian Paints - Construction Division',
+   264→   264→        code: 'SUP-004',
+   265→   265→        contact: 'Kavitha Nair',
+   266→   266→        email: 'bulk@asianpaints.example.com',
+   267→   267→        phone: '+91 80 7890 1234',
+   268→   268→        address: 'No 88, Hardware Lane, KR Puram, Bangalore',
+   269→   269→        gstNo: '29AABCA9012R1ZM',
+   270→   270→        isActive: true,
+   271→   271→      },
+   272→   272→    }),
+   273→   273→  ])
+   274→   274→
+   275→   275→  // ============ MATERIALS ============
+   276→   276→  console.log('🧱 Creating materials...')
+   277→   277→  const materials = await Promise.all([
+   278→   278→    prisma.material.create({
+   279→   279→      data: {
+   280→   280→        name: 'OPC Cement (53 Grade)',
+   281→   281→        code: 'MAT-001',
+   282→   282→        unit: 'bags',
+   283→   283→        category: 'Cement',
+   284→   284→        description: 'Ordinary Portland Cement 53 Grade - 50kg bags',
+   285→   285→        currentStock: 450,
+   286→   286→        minStock: 200,
+   287→   287→        unitPrice: 380,
+   288→   288→      },
+   289→   289→    }),
+   290→   290→    prisma.material.create({
+   291→   291→      data: {
+   292→   292→        name: 'TMT Steel Bars (12mm)',
+   293→   293→        code: 'MAT-002',
+   294→   294→        unit: 'kg',
+   295→   295→        category: 'Steel',
+   296→   296→        description: 'Thermo Mechanically Treated steel bars 12mm diameter',
+   297→   297→        currentStock: 3200,
+   298→   298→        minStock: 1000,
+   299→   299→        unitPrice: 62,
+   300→   300→      },
+   301→   301→    }),
+   302→   302→    prisma.material.create({
+   303→   303→      data: {
+   304→   304→        name: 'TMT Steel Bars (16mm)',
+   305→   305→        code: 'MAT-003',
+   306→   306→        unit: 'kg',
+   307→   307→        category: 'Steel',
+   308→   308→        description: 'Thermo Mechanically Treated steel bars 16mm diameter',
+   309→   309→        currentStock: 1800,
+   310→   310→        minStock: 800,
+   311→   311→        unitPrice: 65,
+   312→   312→      },
+   313→   313→    }),
+   314→   314→    prisma.material.create({
+   315→   315→      data: {
+   316→   316→        name: 'River Sand',
+   317→   317→        code: 'MAT-004',
+   318→   318→        unit: 'cft',
+   319→   319→        category: 'Aggregates',
+   320→   320→        description: 'Clean river sand for construction',
+   321→   321→        currentStock: 80,
+   322→   322→        minStock: 100,
+   323→   323→        unitPrice: 55,
+   324→   324→      },
+   325→   325→    }),
+   326→   326→    prisma.material.create({
+   327→   327→      data: {
+   328→   328→        name: 'M-Sand (Manufactured)',
+   329→   329→        code: 'MAT-005',
+   330→   330→        unit: 'cft',
+   331→   331→        category: 'Aggregates',
+   332→   332→        description: 'Manufactured sand - P-Sand quality',
+   333→   333→        currentStock: 200,
+   334→   334→        minStock: 150,
+   335→   335→        unitPrice: 45,
+   336→   336→      },
+   337→   337→    }),
+   338→   338→    prisma.material.create({
+   339→   339→      data: {
+   340→   340→        name: 'Gravel (20mm)',
+   341→   341→        code: 'MAT-006',
+   342→   342→        unit: 'cft',
+   343→   343→        category: 'Aggregates',
+   344→   344→        description: '20mm jelly / gravel for concrete mixing',
+   345→   345→        currentStock: 150,
+   346→   346→        minStock: 100,
+   347→   347→        unitPrice: 40,
+   348→   348→      },
+   349→   349→    }),
+   350→   350→    prisma.material.create({
+   351→   351→      data: {
+   352→   352→        name: 'Red Clay Bricks',
+   353→   353→        code: 'MAT-007',
+   354→   354→        unit: 'pcs',
+   355→   355→        category: 'Bricks',
+   356→   356→        description: 'Standard red clay bricks 230x110x75mm',
+   357→   357→        currentStock: 25000,
+   358→   358→        minStock: 10000,
+   359→   359→        unitPrice: 8,
+   360→   360→      },
+   361→   361→    }),
+   362→   362→    prisma.material.create({
+   363→   363→      data: {
+   364→   364→        name: 'AAC Blocks (600x200x200)',
+   365→   365→        code: 'MAT-008',
+   366→   366→        unit: 'pcs',
+   367→   367→        category: 'Bricks',
+   368→   368→        description: 'Autoclaved Aerated Concrete blocks',
+   369→   369→        currentStock: 3000,
+   370→   370→        minStock: 1000,
+   371→   371→        unitPrice: 85,
+   372→   372→      },
+   373→   373→    }),
+   374→   374→    prisma.material.create({
+   375→   375→      data: {
+   376→   376→        name: 'Exterior Emulsion Paint',
+   377→   377→        code: 'MAT-009',
+   378→   378→        unit: 'ltr',
+   379→   379→        category: 'Paint',
+   380→   380→        description: 'Weather-proof exterior emulsion paint - 20ltr drums',
+   381→   381→        currentStock: 40,
+   382→   382→        minStock: 20,
+   383→   383→        unitPrice: 320,
+   384→   384→      },
+   385→   385→    }),
+   386→   386→    prisma.material.create({
+   387→   387→      data: {
+   388→   388→        name: 'PVC Pipes (4 inch)',
+   389→   389→        code: 'MAT-010',
+   390→   390→        unit: 'pcs',
+   391→   391→        category: 'Plumbing',
+   392→   392→        description: 'PVC plumbing pipes 4 inch diameter - 3m length',
+   393→   393→        currentStock: 120,
+   394→   394→        minStock: 50,
+   395→   395→        unitPrice: 280,
+   396→   396→      },
+   397→   397→    }),
+   398→   398→    prisma.material.create({
+   399→   399→      data: {
+   400→   400→        name: 'Electrical Wire (3mm)',
+   401→   401→        code: 'MAT-011',
+   402→   402→        unit: 'm',
+   403→   403→        category: 'Electrical',
+   404→   404→        description: 'Copper electrical wire 3mm² - 90m coil',
+   405→   405→        currentStock: 500,
+   406→   406→        minStock: 200,
+   407→   407→        unitPrice: 28,
+   408→   408→      },
+   409→   409→    }),
+   410→   410→    prisma.material.create({
+   411→   411→      data: {
+   412→   412→        name: 'Vitrified Tiles (2x2 ft)',
+   413→   413→        code: 'MAT-012',
+   414→   414→        unit: 'sqft',
+   415→   415→        category: 'Finishing',
+   416→   416→        description: 'Premium vitrified floor tiles 600x600mm',
+   417→   417→        currentStock: 800,
+   418→   418→        minStock: 300,
+   419→   419→        unitPrice: 75,
+   420→   420→      },
+   421→   421→    }),
+   422→   422→    prisma.material.create({
+   423→   423→      data: {
+   424→   424→        name: 'Clear Float Glass (5mm)',
+   425→   425→        code: 'MAT-013',
+   426→   426→        unit: 'sqft',
+   427→   427→        category: 'Finishing',
+   428→   428→        description: '5mm clear float glass for windows',
+   429→   429→        currentStock: 150,
+   430→   430→        minStock: 100,
+   431→   431→        unitPrice: 95,
+   432→   432→      },
+   433→   433→    }),
+   434→   434→  ])
+   435→   435→
+   436→   436→  // ============ LABOUR GROUPS & LABOUR ============
+   437→   437→  console.log('👷 Creating labour groups and labour...')
+   438→   438→  const labourGroups = await Promise.all([
+   439→   439→    prisma.labourGroup.create({ data: { name: 'Mason', rate: 900, isActive: true } }),
+   440→   440→    prisma.labourGroup.create({ data: { name: 'Carpenter', rate: 850, isActive: true } }),
+   441→   441→    prisma.labourGroup.create({ data: { name: 'Electrician', rate: 950, isActive: true } }),
+   442→   442→    prisma.labourGroup.create({ data: { name: 'Plumber', rate: 900, isActive: true } }),
+   443→   443→    prisma.labourGroup.create({ data: { name: 'Painter', rate: 750, isActive: true } }),
+   444→   444→    prisma.labourGroup.create({ data: { name: 'Helper', rate: 550, isActive: true } }),
+   445→   445→  ])
+   446→   446→
+   447→   447→  const labourData: Array<{ groupId: string; name: string; phone: string; aadhaar: string; dailyRate: number }> = []
+   448→   448→
+   449→   449→  const labourNames: Record<string, string[]> = {
+   450→   450→    Mason: ['Ramu K', 'Krishna M', 'Soma N'],
+   451→   451→    Carpenter: ['Raju B', 'Manja T', 'Giri S'],
+   452→   452→    Electrician: ['Shankar P', 'Mohan R', 'Venkat D'],
+   453→   453→    Plumber: ['Nagaraj K', 'Basava G', 'Thimma H'],
+   454→   454→    Painter: ['Deva J', 'Chandra M', 'Kempa R'],
+   455→   455→    Helper: ['Muni B', 'Sidda V', 'Lakshman T'],
+   456→   456→  }
+   457→   457→
+   458→   458→  for (const group of labourGroups) {
+   459→   459→    const names = labourNames[group.name] || []
+   460→   460→    for (let i = 0; i < names.length; i++) {
+   461→   461→      labourData.push({
+   462→   462→        groupId: group.id,
+   463→   463→        name: names[i],
+   464→   464→        phone: `+91 ${Math.floor(7000000000 + Math.random() * 3000000000)}`,
+   465→   465→        aadhaar: `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`,
+   466→   466→        dailyRate: group.rate,
+   467→   467→      })
+   468→   468→    }
+   469→   469→  }
+   470→   470→
+   471→   471→  const labours = await Promise.all(
+   472→   472→    labourData.map((l) =>
+   473→   473→      prisma.labour.create({
+   474→   474→        data: l,
+   475→   475→      })
+   476→   476→    )
+   477→   477→  )
+   478→   478→
+   479→   479→  // ============ ATTENDANCE ============
+   480→   480→  console.log('📋 Creating attendance records...')
+   481→   481→  const attendanceData = []
+   482→   482→  const todayDate = today()
+   483→   483→
+   484→   484→  for (let dayOffset = 1; dayOffset <= 5; dayOffset++) {
+   485→   485→    const date = daysAgo(dayOffset)
+   486→   486→    // Pick a subset of labours for each project
+   487→   487→    const projectLabours1 = labours.slice(0, 10)
+   488→   488→    const projectLabours2 = labours.slice(6, 18)
+   489→   489→
+   490→   490→    for (const labour of projectLabours1) {
+   491→   491→      const status = Math.random() > 0.15 ? 'present' : Math.random() > 0.5 ? 'half_day' : 'absent'
+   492→   492→      if (status !== 'absent') {
+   493→   493→        attendanceData.push({
+   494→   494→          projectId: project1.id,
+   495→   495→          labourId: labour.id,
+   496→   496→          date,
+   497→   497→          status,
+   498→   498→          hoursWorked: status === 'half_day' ? 4.5 : 8 + Math.random() * 2,
+   499→   499→          overtime: Math.random() > 0.7 ? 1 + Math.random() * 2 : 0,
+   500→   500→        })
+   501→   501→      }
+   502→   502→    }
+   503→   503→
+   504→   504→    for (const labour of projectLabours2) {
+   505→   505→      const status = Math.random() > 0.1 ? 'present' : Math.random() > 0.5 ? 'half_day' : 'absent'
+   506→   506→      if (status !== 'absent') {
+   507→   507→        attendanceData.push({
+   508→   508→          projectId: project2.id,
+   509→   509→          labourId: labour.id,
+   510→   510→          date,
+   511→   511→          status,
+   512→   512→          hoursWorked: status === 'half_day' ? 4.5 : 8 + Math.random() * 2,
+   513→   513→          overtime: Math.random() > 0.7 ? 1 + Math.random() * 2 : 0,
+   514→   514→        })
+   515→   515→      }
+   516→   516→    }
+   517→   517→  }
+   518→   518→
+   519→   519→  // Today's attendance for project 1
+   520→   520→  for (const labour of labours.slice(0, 12)) {
+   521→   521→    attendanceData.push({
+   522→   522→      projectId: project1.id,
+   523→   523→      labourId: labour.id,
+   524→   524→      date: todayDate,
+   525→   525→      status: 'present',
+   526→   526→      hoursWorked: 8,
+   527→   527→    })
+   528→   528→  }
+   529→   529→  // Today's attendance for project 2
+   530→   530→  for (const labour of labours.slice(5, 16)) {
+   531→   531→    attendanceData.push({
+   532→   532→      projectId: project2.id,
+   533→   533→      labourId: labour.id,
+   534→   534→      date: todayDate,
+   535→   535→      status: 'present',
+   536→   536→      hoursWorked: 8,
+   537→   537→    })
+   538→   538→  }
+   539→   539→
+   540→   540→  // Create attendance - deduplicate by (projectId, labourId, date)
+   541→   541→  const uniqueAttendance = new Map<string, typeof attendanceData[0]>()
+   542→   542→  for (const a of attendanceData) {
+   543→   543→    const key = `${a.projectId}-${a.labourId}-${a.date.toISOString().slice(0, 10)}`
+   544→   544→    if (!uniqueAttendance.has(key)) {
+   545→   545→      uniqueAttendance.set(key, a)
+   546→   546→    }
+   547→   547→  }
+   548→   548→
+   549→   549→  const attendanceBatch = Array.from(uniqueAttendance.values())
+   550→   550→  for (let i = 0; i < attendanceBatch.length; i += 50) {
+   551→   551→    await prisma.attendance.createMany({
+   552→   552→      data: attendanceBatch.slice(i, i + 50),
+   553→   553→    })
+   554→   554→  }
+   555→   555→
+   556→   556→  // ============ DAILY NOTES ============
+   557→   557→  console.log('📝 Creating daily notes...')
+   558→   558→  await prisma.dailyNote.createMany({
+   559→   559→    data: [
+   560→   560→      {
+   561→   561→        projectId: project1.id,
+   562→   562→        date: daysAgo(1),
+   563→   563→        weather: 'Sunny',
+   564→   564→        temperature: 32,
+   565→   565→        workDone: 'Completed slab casting for 7th floor. Steel fixing in progress for 8th floor. Brick work continues on 3rd to 5th floors.',
+   566→   566→        issues: 'Concrete delivery delayed by 2 hours due to traffic. Need to reschedule tomorrow\'s pour earlier.',
+   567→   567→        labourCount: 45,
+   568→   568→        supervisorId: supervisorUser.id,
+   569→   569→      },
+   570→   570→      {
+   571→   571→        projectId: project1.id,
+   572→   572→        date: daysAgo(2),
+   573→   573→        weather: 'Partly Cloudy',
+   574→   574→        temperature: 29,
+   575→   575→        workDone: 'Shuttering work for 8th floor slab. Plastering completed on 2nd floor. Electrical conduit work on 4th floor.',
+   576→   576→        issues: 'None',
+   577→   577→        labourCount: 42,
+   578→   578→        supervisorId: supervisorUser.id,
+   579→   579→      },
+   580→   580→      {
+   581→   581→        projectId: project1.id,
+   582→   582→        date: daysAgo(3),
+   583→   583→        weather: 'Rainy',
+   584→   584→        temperature: 26,
+   585→   585→        workDone: 'Interior finishing work on 1st floor. Staircase construction continued. Plumber started pipeline work on 3rd floor.',
+   586→   586→        issues: 'Rain stopped work after 2 PM. Some water seepage in basement area needs attention.',
+   587→   587→        labourCount: 30,
+   588→   588→        supervisorId: supervisorUser.id,
+   589→   589→      },
+   590→   590→      {
+   591→   591→        projectId: project2.id,
+   592→   592→        date: daysAgo(1),
+   593→   593→        weather: 'Sunny',
+   594→   594→        temperature: 33,
+   595→   595→        workDone: 'Tile laying in Block A - 3rd and 4th floors. Painting work started in Block B - 5th floor. External plastering completed.',
+   596→   596→        issues: 'Tile batch variation noticed. Need to check with supplier.',
+   597→   597→        labourCount: 38,
+   598→   598→        supervisorId: supervisorUser.id,
+   599→   599→      },
+   600→   600→      {
+   601→   601→        projectId: project2.id,
+   602→   602→        date: daysAgo(2),
+   603→   603→        weather: 'Sunny',
+   604→   604→        temperature: 31,
+   605→   605→        workDone: 'Electrical wiring completed up to 6th floor Block A. Plumbing work ongoing. Lift installation crew arrived.',
+   606→   606→        issues: 'Lift shaft dimensions need minor adjustment.',
+   607→   607→        labourCount: 35,
+   608→   608→        supervisorId: supervisorUser.id,
+   609→   609→      },
+   610→   610→    ],
+   611→   611→  })
+   612→   612→
+   613→   613→  // ============ INVOICES ============
+   614→   614→  console.log('💰 Creating invoices and payments...')
+   615→   615→  const inv1 = await prisma.invoice.create({
+   616→   616→    data: {
+   617→   617→      projectId: project1.id,
+   618→   618→      invoiceNo: 'INV-2025-001',
+   619→   619→      type: 'sales',
+   620→   620→      status: 'paid',
+   621→   621→      issueDate: monthsAgo(5),
+   622→   622→      dueDate: daysAgo(120),
+   623→   623→      subtotal: 5000000,
+   624→   624→      tax: 900000,
+   625→   625→      discount: 50000,
+   626→   626→      total: 5850000,
+   627→   627→      paidAmount: 5850000,
+   628→   628→      retention: 0,
+   629→   629→    },
+   630→   630→  })
+   631→   631→
+   632→   632→  await prisma.invoiceItem.createMany({
+   633→   633→    data: [
+   634→   634→      { invoiceId: inv1.id, description: 'Excavation & Foundation Work - Stage 1', quantity: 1, unit: 'lot', unitPrice: 3000000, amount: 3000000 },
+   635→   635→      { invoiceId: inv1.id, description: 'Piling Work - 24 piles', quantity: 24, unit: 'nos', unitPrice: 83333, amount: 2000000 },
+   636→   636→    ],
+   637→   637→  })
+   638→   638→
+   639→   639→  await prisma.payment.create({
+   640→   640→    data: {
+   641→   641→      projectId: project1.id,
+   642→   642→      invoiceId: inv1.id,
+   643→   643→      paymentNo: 'PAY-2025-001',
+   644→   644→      amount: 5850000,
+   645→   645→      method: 'bank_transfer',
+   646→   646→      status: 'completed',
+   647→   647→      reference: 'NEFT-REF-001234',
+   648→   648→      date: daysAgo(118),
+   649→   649→      receivedBy: accountantUser.name,
+   650→   650→      notes: 'Full payment received against INV-2025-001',
+   651→   651→    },
+   652→   652→  })
+   653→   653→
+   654→   654→  const inv2 = await prisma.invoice.create({
+   655→   655→    data: {
+   656→   656→      projectId: project1.id,
+   657→   657→      invoiceNo: 'INV-2025-002',
+   658→   658→      type: 'sales',
+   659→   659→      status: 'partial',
+   660→   660→      issueDate: monthsAgo(2),
+   661→   661→      dueDate: daysAgo(30),
+   662→   662→      subtotal: 8000000,
+   663→   663→      tax: 1440000,
+   664→   664→      discount: 0,
+   665→   665→      total: 9440000,
+   666→   666→      paidAmount: 5000000,
+   667→   667→      retention: 0,
+   668→   668→    },
+   669→   669→  })
+   670→   670→
+   671→   671→  await prisma.invoiceItem.createMany({
+   672→   672→    data: [
+   673→   673→      { invoiceId: inv2.id, description: 'Structural Work - GF to 5th Floor', quantity: 1, unit: 'lot', unitPrice: 5000000, amount: 5000000 },
+   674→   674→      { invoiceId: inv2.id, description: 'Block Work - GF to 3rd Floor', quantity: 1, unit: 'lot', unitPrice: 3000000, amount: 3000000 },
+   675→   675→    ],
+   676→   676→  })
+   677→   677→
+   678→   678→  await prisma.payment.create({
+   679→   679→    data: {
+   680→   680→      projectId: project1.id,
+   681→   681→      invoiceId: inv2.id,
+   682→   682→      paymentNo: 'PAY-2025-005',
+   683→   683→      amount: 5000000,
+   684→   684→      method: 'bank_transfer',
+   685→   685→      status: 'completed',
+   686→   686→      reference: 'NEFT-REF-005678',
+   687→   687→      date: daysAgo(25),
+   688→   688→      receivedBy: accountantUser.name,
+   689→   689→    },
+   690→   690→  })
+   691→   691→
+   692→   692→  const inv3 = await prisma.invoice.create({
+   693→   693→    data: {
+   694→   694→      projectId: project2.id,
+   695→   695→      invoiceNo: 'INV-2025-003',
+   696→   696→      type: 'sales',
+   697→   697→      status: 'sent',
+   698→   698→      issueDate: daysAgo(10),
+   699→   699→      dueDate: daysFromNow(20),
+   700→   700→      subtotal: 6500000,
+   701→   701→      tax: 1170000,
+   702→   702→      discount: 0,
+   703→   703→      total: 7670000,
+   704→   704→      paidAmount: 0,
+   705→   705→      retention: 0,
+   706→   706→    },
+   707→   707→  })
+   708→   708→
+   709→   709→  await prisma.invoiceItem.createMany({
+   710→   710→    data: [
+   711→   711→      { invoiceId: inv3.id, description: 'Superstructure - Block A (6th-10th Floor)', quantity: 1, unit: 'lot', unitPrice: 4000000, amount: 4000000 },
+   712→   712→      { invoiceId: inv3.id, description: 'Common Area Finishing', quantity: 1, unit: 'lot', unitPrice: 2500000, amount: 2500000 },
+   713→   713→    ],
+   714→   714→  })
+   715→   715→
+   716→   716→  const inv4 = await prisma.invoice.create({
+   717→   717→    data: {
+   718→   718→      projectId: project2.id,
+   719→   719→      invoiceNo: 'INV-2025-004',
+   720→   720→      type: 'sales',
+   721→   721→      status: 'overdue',
+   722→   722→      issueDate: daysAgo(45),
+   723→   723→      dueDate: daysAgo(15),
+   724→   724→      subtotal: 4500000,
+   725→   725→      tax: 810000,
+   726→   726→      discount: 0,
+   727→   727→      total: 5310000,
+   728→   728→      paidAmount: 0,
+   729→   729→      retention: 0,
+   730→   730→    },
+   731→   731→  })
+   732→   732→
+   733→   733→  await prisma.invoiceItem.createMany({
+   734→   734→    data: [
+   735→   735→      { invoiceId: inv4.id, description: 'Electrical & Plumbing - Block A', quantity: 1, unit: 'lot', unitPrice: 3000000, amount: 3000000 },
+   736→   736→      { invoiceId: inv4.id, description: 'External Development Works', quantity: 1, unit: 'lot', unitPrice: 1500000, amount: 1500000 },
+   737→   737→    ],
+   738→   738→  })
+   739→   739→
+   740→   740→  // More recent payment
+   741→   741→  await prisma.payment.create({
+   742→   742→    data: {
+   743→   743→      projectId: project2.id,
+   744→   744→      invoiceId: inv2.id,
+   745→   745→      paymentNo: 'PAY-2025-008',
+   746→   746→      amount: 2000000,
+   747→   747→      method: 'online',
+   748→   748→      status: 'completed',
+   749→   749→      reference: 'UPI-REF-009988',
+   750→   750→      date: daysAgo(3),
+   751→   751→      receivedBy: accountantUser.name,
+   752→   752→    },
+   753→   753→  })
+   754→   754→
+   755→   755→  await prisma.payment.create({
+   756→   756→    data: {
+   757→   757→      projectId: project1.id,
+   758→   758→      invoiceId: inv2.id,
+   759→   759→      paymentNo: 'PAY-2025-009',
+   760→   760→      amount: 1500000,
+   761→   761→      method: 'cheque',
+   762→   762→      status: 'pending',
+   763→   763→      reference: 'CHQ-2025-001',
+   764→   764→      date: todayDate,
+   765→   765→      receivedBy: accountantUser.name,
+   766→   766→    },
+   767→   767→  })
+   768→   768→
+   769→   769→  // ============ EXPENSES ============
+   770→   770→  console.log('💸 Creating expenses...')
+   771→   771→  await prisma.expense.createMany({
+   772→   772→    data: [
+   773→   773→      {
+   774→   774→        projectId: project1.id,
+   775→   775→        category: 'Labour',
+   776→   776→        description: 'Weekly labour wages - Week 22',
+   777→   777→        amount: 185000,
+   778→   778→        date: daysAgo(3),
+   779→   779→        createdById: supervisorUser.id,
+   780→   780→        approvedBy: adminUser.id,
+   781→   781→        status: 'approved',
+   782→   782→      },
+   783→   783→      {
+   784→   784→        projectId: project1.id,
+   785→   785→        category: 'Material',
+   786→   786→        description: 'Cement purchase - 200 bags UltraTech',
+   787→   787→        amount: 76000,
+   788→   788→        date: daysAgo(5),
+   789→   789→        createdById: storeManagerUser.id,
+   790→   790→        approvedBy: adminUser.id,
+   791→   791→        status: 'approved',
+   792→   792→      },
+   793→   793→      {
+   794→   794→        projectId: project1.id,
+   795→   795→        category: 'Transport',
+   796→   796→        description: 'Sand and aggregate delivery charges',
+   797→   797→        amount: 15000,
+   798→   798→        date: daysAgo(4),
+   799→   799→        createdById: supervisorUser.id,
+   800→   800→        status: 'pending',
+   801→   801→      },
+   802→   802→      {
+   803→   803→        projectId: project1.id,
+   804→   804→        category: 'Equipment',
+   805→   805→        description: 'Concrete mixer rental - weekly',
+   806→   806→        amount: 12000,
+   807→   807→        date: daysAgo(2),
+   808→   808→        createdById: supervisorUser.id,
+   809→   809→        approvedBy: adminUser.id,
+   810→   810→        status: 'approved',
+   811→   811→      },
+   812→   812→      {
+   813→   813→        projectId: project2.id,
+   814→   814→        category: 'Labour',
+   815→   815→        description: 'Weekly labour wages - Week 22',
+   816→   816→        amount: 145000,
+   817→   817→        date: daysAgo(3),
+   818→   818→        createdById: supervisorUser.id,
+   819→   819→        approvedBy: adminUser.id,
+   820→   820→        status: 'approved',
+   821→   821→      },
+   822→   822→      {
+   823→   823→        projectId: project2.id,
+   824→   824→        category: 'Material',
+   825→   825→        description: 'Tiles and sanitary ware - Block A',
+   826→   826→        amount: 225000,
+   827→   827→        date: daysAgo(7),
+   828→   828→        createdById: storeManagerUser.id,
+   829→   829→        approvedBy: adminUser.id,
+   830→   830→        status: 'approved',
+   831→   831→      },
+   832→   832→      {
+   833→   833→        projectId: project2.id,
+   834→   834→        category: 'Miscellaneous',
+   835→   835→        description: 'Site cleaning and waste disposal',
+   836→   836→        amount: 8000,
+   837→   837→        date: daysAgo(1),
+   838→   838→        createdById: supervisorUser.id,
+   839→   839→        status: 'pending',
+   840→   840→      },
+   841→   841→    ],
+   842→   842→  })
+   843→   843→
+   844→   844→  // ============ PURCHASE REQUESTS ============
+   845→   845→  console.log('📦 Creating purchase requests...')
+   846→   846→  const pr1 = await prisma.purchaseRequest.create({
+   847→   847→    data: {
+   848→   848→      projectId: project1.id,
+   849→   849→      requestNo: 'PR-2025-001',
+   850→   850→      status: 'approved',
+   851→   851→      requiredBy: daysFromNow(14),
+   852→   852→      notes: 'Urgent requirement for 8th floor slab work',
+   853→   853→      createdById: supervisorUser.id,
+   854→   854→      approvedById: adminUser.id,
+   855→   855→    },
+   856→   856→  })
+   857→   857→
+   858→   858→  await prisma.purchaseRequestItem.createMany({
+   859→   859→    data: [
+   860→   860→      { purchaseRequestId: pr1.id, materialId: materials[0].id, description: 'OPC Cement 53 Grade', quantity: 500, unit: 'bags', estimatedPrice: 190000 },
+   861→   861→      { purchaseRequestId: pr1.id, materialId: materials[1].id, description: 'TMT Steel Bars 12mm', quantity: 2000, unit: 'kg', estimatedPrice: 124000 },
+   862→   862→      { purchaseRequestId: pr1.id, materialId: materials[5].id, description: 'Gravel 20mm', quantity: 100, unit: 'cft', estimatedPrice: 4000 },
+   863→   863→    ],
+   864→   864→  })
+   865→   865→
+   866→   866→  const pr2 = await prisma.purchaseRequest.create({
+   867→   867→    data: {
+   868→   868→      projectId: project1.id,
+   869→   869→      requestNo: 'PR-2025-002',
+   870→   870→      status: 'submitted',
+   871→   871→      requiredBy: daysFromNow(21),
+   872→   872→      notes: 'Electrical materials for 5th floor wiring',
+   873→   873→      createdById: supervisorUser.id,
+   874→   874→    },
+   875→   875→  })
+   876→   876→
+   877→   877→  await prisma.purchaseRequestItem.createMany({
+   878→   878→    data: [
+   879→   879→      { purchaseRequestId: pr2.id, materialId: materials[10].id, description: 'Electrical Wire 3mm', quantity: 500, unit: 'm', estimatedPrice: 14000 },
+   880→   880→    ],
+   881→   881→  })
+   882→   882→
+   883→   883→  const pr3 = await prisma.purchaseRequest.create({
+   884→   884→    data: {
+   885→   885→      projectId: project2.id,
+   886→   886→      requestNo: 'PR-2025-003',
+   887→   887→      status: 'submitted',
+   888→   888→      requiredBy: daysFromNow(10),
+   889→   889→      notes: 'Painting materials for Block B finishing',
+   890→   890→      createdById: supervisorUser.id,
+   891→   891→    },
+   892→   892→  })
+   893→   893→
+   894→   894→  await prisma.purchaseRequestItem.createMany({
+   895→   895→    data: [
+   896→   896→      { purchaseRequestId: pr3.id, materialId: materials[8].id, description: 'Exterior Emulsion Paint', quantity: 60, unit: 'ltr', estimatedPrice: 19200 },
+   897→   897→      { purchaseRequestId: pr3.id, materialId: materials[11].id, description: 'Vitrified Tiles 2x2', quantity: 400, unit: 'sqft', estimatedPrice: 30000 },
+   898→   898→    ],
+   899→   899→  })
+   900→   900→
+   901→   901→  const pr4 = await prisma.purchaseRequest.create({
+   902→   902→    data: {
+   903→   903→      projectId: project2.id,
+   904→   904→      requestNo: 'PR-2025-004',
+   905→   905→      status: 'draft',
+   906→   906→      requiredBy: daysFromNow(30),
+   907→   907→      notes: 'Plumbing fixtures for Block A',
+   908→   908→      createdById: storeManagerUser.id,
+   909→   909→    },
+   910→   910→  })
+   911→   911→
+   912→   912→  await prisma.purchaseRequestItem.createMany({
+   913→   913→    data: [
+   914→   914→      { purchaseRequestId: pr4.id, materialId: materials[9].id, description: 'PVC Pipes 4 inch', quantity: 80, unit: 'pcs', estimatedPrice: 22400 },
+   915→   915→    ],
+   916→   916→  })
+   917→   917→
+   918→   918→  // ============ PURCHASE ORDERS ============
+   919→   919→  console.log('📋 Creating purchase orders...')
+   920→   920→  await prisma.purchaseOrder.create({
+   921→   921→    data: {
+   922→   922→      projectId: project1.id,
+   923→   923→      purchaseRequestId: pr1.id,
+   924→   924→      supplierId: suppliers[0].id,
+   925→   925→      orderNo: 'PO-2025-001',
+   926→   926→      status: 'partially_received',
+   927→   927→      orderDate: daysAgo(7),
+   928→   928→      expectedDate: daysFromNow(5),
+   929→   929→      subtotal: 265000,
+   930→   930→      tax: 47700,
+   931→   931→      total: 312700,
+   932→   932→      notes: 'Deliver to Skyline Tower site. Contact supervisor on arrival.',
+   933→   933→    },
+   934→   934→  })
+   935→   935→
+   936→   936→  await prisma.purchaseOrder.create({
+   937→   937→    data: {
+   938→   938→      projectId: project2.id,
+   939→   939→      supplierId: suppliers[2].id,
+   940→   940→      orderNo: 'PO-2025-002',
+   941→   941→      status: 'sent',
+   942→   942→      orderDate: daysAgo(3),
+   943→   943→      expectedDate: daysFromNow(10),
+   944→   944→      subtotal: 180000,
+   945→   945→      tax: 32400,
+   946→   946→      total: 212400,
+   947→   947→      notes: 'M-Sand and Gravel for Green Valley project.',
+   948→   948→    },
+   949→   949→  })
+   950→   950→
+   951→   951→  // ============ ASSETS ============
+   952→   952→  console.log('🔧 Creating assets...')
+   953→   953→  const assets = await Promise.all([
+   954→   954→    prisma.asset.create({
+   955→   955→      data: {
+   956→   956→        name: 'Concrete Mixer Machine',
+   957→   957→        code: 'AST-001',
+   958→   958→        type: 'equipment',
+   959→   959→        category: 'Heavy Equipment',
+   960→   960→        purchaseDate: daysAgo(300),
+   961→   961→        purchasePrice: 85000,
+   962→   962→        currentValue: 68000,
+   963→   963→        status: 'issued',
+   964→   964→        location: 'Skyline Tower Site',
+   965→   965→      },
+   966→   966→    }),
+   967→   967→    prisma.asset.create({
+   968→   968→      data: {
+   969→   969→        name: 'Bar Bending Machine',
+   970→   970→        code: 'AST-002',
+   971→   971→        type: 'equipment',
+   972→   972→        category: 'Steel Equipment',
+   973→   973→        purchaseDate: daysAgo(250),
+   974→   974→        purchasePrice: 45000,
+   975→   975→        currentValue: 36000,
+   976→   976→        status: 'issued',
+   977→   977→        location: 'Skyline Tower Site',
+   978→   978→      },
+   979→   979→    }),
+   980→   980→    prisma.asset.create({
+   981→   981→      data: {
+   982→   982→        name: 'Vibrator (Needle Type)',
+   983→   983→        code: 'AST-003',
+   984→   984→        type: 'tool',
+   985→   985→        category: 'Concrete Tools',
+   986→   986→        purchaseDate: daysAgo(180),
+   987→   987→        purchasePrice: 12000,
+   988→   988→        currentValue: 10000,
+   989→   989→        status: 'available',
+   990→   990→        location: 'Central Store',
+   991→   991→      },
+   992→   992→    }),
+   993→   993→    prisma.asset.create({
+   994→   994→      data: {
+   995→   995→        name: 'Tata Ace - Site Vehicle',
+   996→   996→        code: 'AST-004',
+   997→   997→        type: 'vehicle',
+   998→   998→        category: 'Transport',
+   999→   999→        purchaseDate: daysAgo(365),
+  1000→  1000→        purchasePrice: 550000,
+  1001→  1001→        currentValue: 420000,
+  1002→  1002→        status: 'issued',
+  1003→  1003→        location: 'Green Valley Site',
+  1004→  1004→      },
+  1005→  1005→    }),
+  1006→  1006→    prisma.asset.create({
+  1007→  1007→      data: {
+  1008→  1008→        name: 'Scaffolding Set (20 frames)',
+  1009→  1009→        code: 'AST-005',
+  1010→  1010→        type: 'equipment',
+  1011→  1011→        category: 'Safety Equipment',
+  1012→  1012→        purchaseDate: daysAgo(200),
+  1013→  1013→        purchasePrice: 120000,
+  1014→  1014→        currentValue: 96000,
+  1015→  1015→        status: 'issued',
+  1016→  1016→        location: 'Green Valley Site',
+  1017→  1017→      },
+  1018→  1018→    }),
+  1019→  1019→    prisma.asset.create({
+  1020→  1020→      data: {
+  1021→  1021→        name: 'Power Drill Set',
+  1022→  1022→        code: 'AST-006',
+  1023→  1023→        type: 'tool',
+  1024→  1024→        category: 'Power Tools',
+  1025→  1025→        purchaseDate: daysAgo(90),
+  1026→  1026→        purchasePrice: 8500,
+  1027→  1027→        currentValue: 7500,
+  1028→  1028→        status: 'maintenance',
+  1029→  1029→        location: 'Workshop',
+  1030→  1030→      },
+  1031→  1031→    }),
+  1032→  1032→  ])
+  1033→  1033→
+  1034→  1034→  // Asset issues
+  1035→  1035→  await prisma.assetIssue.createMany({
+  1036→  1036→    data: [
+  1037→  1037→      { assetId: assets[0].id, issuedTo: 'Site - Skyline Tower', issuedById: storeManagerUser.id, issuedDate: daysAgo(30), status: 'issued' },
+  1038→  1038→      { assetId: assets[1].id, issuedTo: 'Site - Skyline Tower', issuedById: storeManagerUser.id, issuedDate: daysAgo(25), status: 'issued' },
+  1039→  1039→      { assetId: assets[3].id, issuedTo: 'Site - Green Valley', issuedById: storeManagerUser.id, issuedDate: daysAgo(60), status: 'issued' },
+  1040→  1040→      { assetId: assets[4].id, issuedTo: 'Site - Green Valley', issuedById: storeManagerUser.id, issuedDate: daysAgo(45), status: 'issued' },
+  1041→  1041→    ],
+  1042→  1042→  })
+  1043→  1043→
+  1044→  1044→  // ============ PRODUCT CATEGORIES & PRODUCTS ============
+  1045→  1045→  console.log('🏷️ Creating product categories and products...')
+  1046→  1046→  const cat1 = await prisma.productCategory.create({ data: { name: 'Cement & Binding', isActive: true } })
+  1047→  1047→  const cat2 = await prisma.productCategory.create({ data: { name: 'Steel & Metals', isActive: true } })
+  1048→  1048→  const cat3 = await prisma.productCategory.create({ data: { name: 'Plumbing & Fittings', isActive: true } })
+  1049→  1049→  const cat4 = await prisma.productCategory.create({ data: { name: 'Electrical & Lighting', isActive: true } })
+  1050→  1050→  const cat5 = await prisma.productCategory.create({ data: { name: 'Tiles & Flooring', isActive: true } })
+  1051→  1051→
+  1052→  1052→  await prisma.product.createMany({
+  1053→  1053→    data: [
+  1054→  1054→      { categoryId: cat1.id, name: 'OPC Cement 53 Grade (50kg)', sku: 'PCB-001', brand: 'UltraTech', unit: 'bags', costPrice: 340, sellingPrice: 390, currentStock: 200, minStock: 50, isActive: true },
+  1055→  1055→      { categoryId: cat1.id, name: 'PPC Cement (50kg)', sku: 'PCB-002', brand: 'ACC', unit: 'bags', costPrice: 310, sellingPrice: 355, currentStock: 150, minStock: 50, isActive: true },
+  1056→  1056→      { categoryId: cat1.id, name: 'White Cement (25kg)', sku: 'PCB-003', brand: 'Birla', unit: 'bags', costPrice: 280, sellingPrice: 330, currentStock: 60, minStock: 20, isActive: true },
+  1057→  1057→      { categoryId: cat2.id, name: 'TMT Bar 12mm', sku: 'PSM-001', brand: 'Tata Tiscon', unit: 'kg', costPrice: 56, sellingPrice: 66, currentStock: 5000, minStock: 1000, isActive: true },
+  1058→  1058→      { categoryId: cat2.id, name: 'TMT Bar 16mm', sku: 'PSM-002', brand: 'Tata Tiscon', unit: 'kg', costPrice: 59, sellingPrice: 69, currentStock: 3000, minStock: 800, isActive: true },
+  1059→  1059→      { categoryId: cat2.id, name: 'MS Angles 50x50x5mm', sku: 'PSM-003', brand: 'SAIL', unit: 'kg', costPrice: 52, sellingPrice: 62, currentStock: 800, minStock: 200, isActive: true },
+  1060→  1060→      { categoryId: cat3.id, name: 'CPVC Pipe 1/2 inch', sku: 'PPL-001', brand: 'Astral', unit: 'pcs', costPrice: 120, sellingPrice: 150, currentStock: 300, minStock: 50, isActive: true },
+  1061→  1061→      { categoryId: cat3.id, name: 'PVC Pipe 4 inch', sku: 'PPL-002', brand: 'Supreme', unit: 'pcs', costPrice: 250, sellingPrice: 300, currentStock: 100, minStock: 30, isActive: true },
+  1062→  1062→      { categoryId: cat4.id, name: 'LED Panel Light 36W', sku: 'PEL-001', brand: 'Philips', unit: 'pcs', costPrice: 850, sellingPrice: 1100, currentStock: 80, minStock: 20, isActive: true },
+  1063→  1063→      { categoryId: cat4.id, name: 'Wire 3mm² (90m coil)', sku: 'PEL-002', brand: 'Polycab', unit: 'coil', costPrice: 2200, sellingPrice: 2700, currentStock: 40, minStock: 10, isActive: true },
+  1064→  1064→      { categoryId: cat5.id, name: 'Vitrified Tile 600x600mm', sku: 'PTF-001', brand: 'Kajaria', unit: 'sqft', costPrice: 60, sellingPrice: 80, currentStock: 2000, minStock: 500, isActive: true },
+  1065→  1065→      { categoryId: cat5.id, name: 'Anti-Skid Floor Tile', sku: 'PTF-002', brand: 'Somany', unit: 'sqft', costPrice: 55, sellingPrice: 75, currentStock: 800, minStock: 200, isActive: true },
+  1066→  1066→    ],
+  1067→  1067→  })
+  1068→  1068→
+  1069→  1069→  // ============ CUSTOMERS ============
+  1070→  1070→  console.log('🤝 Creating customers...')
+  1071→  1071→  await prisma.customer.createMany({
+  1072→  1072→    data: [
+  1073→  1073→      {
+  1074→  1074→        name: 'Skyline Developers Pvt Ltd',
+  1075→  1075→        email: 'projects@skylinebuilders.example.com',
+  1076→  1076→        phone: '+91 80 2345 6789',
+  1077→  1077→        address: '5th Floor, Skyline Towers, MG Road, Bangalore - 560001',
+  1078→  1078→        gstNo: '29AABCS5678R1ZM',
+  1079→  1079→        balance: 4440000,
+  1080→  1080→        isActive: true,
+  1081→  1081→      },
+  1082→  1082→      {
+  1083→  1083→        name: 'Green Valley Housing Society',
+  1084→  1084→        email: 'secretary@greenvalleyhs.example.com',
+  1085→  1085→        phone: '+91 80 3456 7890',
+  1086→  1086→        address: 'No 22, HSR Layout, Bangalore - 560102',
+  1087→  1087→        gstNo: '29AABCG1234R1ZM',
+  1088→  1088→        balance: 12980000,
+  1089→  1089→        isActive: true,
+  1090→  1090→      },
+  1091→  1091→      {
+  1092→  1092→        name: 'Bangalore Metro Rail Corp',
+  1093→  1093→        email: 'contracts@bmrcl.example.com',
+  1094→  1094→        phone: '+91 80 4567 8901',
+  1095→  1095→        address: 'BMTC Complex, Shanthinagar, Bangalore - 560027',
+  1096→  1096→        gstNo: '29AABCB5678R1ZM',
+  1097→  1097→        balance: 0,
+  1098→  1098→        isActive: true,
+  1099→  1099→      },
+  1100→  1100→      {
+  1101→  1101→        name: 'Rajesh Constructions',
+  1102→  1102→        email: 'rajesh@rajeshconst.example.com',
+  1103→  1103→        phone: '+91 80 5678 9012',
+  1104→  1104→        address: 'No 77, Peenya Industrial Area, Bangalore',
+  1105→  1105→        gstNo: '29AABCR9012R1ZM',
+  1106→  1106→        balance: 350000,
+  1107→  1107→        isActive: true,
+  1108→  1108→      },
+  1109→  1109→    ],
+  1110→  1110→  })
+  1111→  1111→
+  1112→  1112→  // ============ PROJECT TASKS ============
+  1113→  1113→  console.log('✅ Creating project tasks...')
+  1114→  1114→  const task1 = await prisma.projectTask.create({
+  1115→  1115→    data: {
+  1116→  1116→      projectId: project1.id,
+  1117→  1117→      title: 'Complete 8th Floor Slab Casting',
+  1118→  1118→      description: 'Cast the RCC slab for 8th floor including beam and slab reinforcement',
+  1119→  1119→      status: 'in_progress',
+  1120→  1120→      priority: 'high',
+  1121→  1121→      startDate: daysAgo(5),
+  1122→  1122→      endDate: daysFromNow(3),
+  1123→  1123→      progress: 60,
+  1124→  1124→      assigneeId: supervisorUser.id,
+  1125→  1125→      order: 1,
+  1126→  1126→    },
+  1127→  1127→  })
+  1128→  1128→
+  1129→  1129→  await prisma.projectTask.create({
+  1130→  1130→    data: {
+  1131→  1131→      projectId: project1.id,
+  1132→  1132→      title: 'Install 7th Floor Electrical Conduits',
+  1133→  1133→      description: 'Run electrical conduits and switch boxes for all rooms on 7th floor',
+  1134→  1134→      status: 'todo',
+  1135→  1135→      priority: 'medium',
+  1136→  1136→      startDate: daysFromNow(2),
+  1137→  1137→      endDate: daysFromNow(10),
+  1138→  1138→      progress: 0,
+  1139→  1139→      assigneeId: supervisorUser.id,
+  1140→  1140→      order: 2,
+  1141→  1141→    },
+  1142→  1142→  })
+  1143→  1143→
+  1144→  1144→  await prisma.projectTask.create({
+  1145→  1145→    data: {
+  1146→  1146→      projectId: project2.id,
+  1147→  1147→      title: 'Complete Tile Laying Block A - 4th Floor',
+  1148→  1148→      description: 'Lay vitrified tiles in all rooms of 4th floor, Block A',
+  1149→  1149→      status: 'in_progress',
+  1150→  1150→      priority: 'high',
+  1151→  1151→      startDate: daysAgo(3),
+  1152→  1152→      endDate: daysFromNow(5),
+  1153→  1153→      progress: 40,
+  1154→  1154→      assigneeId: supervisorUser.id,
+  1155→  1155→      order: 1,
+  1156→  1156→    },
+  1157→  1157→  })
+  1158→  1158→
+  1159→  1159→  await prisma.projectTask.create({
+  1160→  1160→    data: {
+  1161→  1161→      projectId: project2.id,
+  1162→  1162→      title: 'Paint Block B - 3rd to 5th Floor',
+  1163→  1163→      description: 'Complete interior and exterior painting for Block B floors 3-5',
+  1164→  1164→      status: 'todo',
+  1165→  1165→      priority: 'medium',
+  1166→  1166→      startDate: daysFromNow(5),
+  1167→  1167→      endDate: daysFromNow(18),
+  1168→  1168→      progress: 0,
+  1169→  1169→      assigneeId: supervisorUser.id,
+  1170→  1170→      order: 2,
+  1171→  1171→    },
+  1172→  1172→  })
+  1173→  1173→
+  1174→  1174→  await prisma.projectTask.create({
+  1175→  1175→    data: {
+  1176→  1176→      projectId: project2.id,
+  1177→  1177→      title: 'Install Lift Shaft Doors',
+  1178→  1178→      description: 'Install automatic lift doors on all floors of Block A and B',
+  1179→  1179→      status: 'todo',
+  1180→  1180→      priority: 'high',
+  1181→  1181→      startDate: daysFromNow(10),
+  1182→  1182→      endDate: daysFromNow(15),
+  1183→  1183→      progress: 0,
+  1184→  1184→      assigneeId: supervisorUser.id,
+  1185→  1185→      order: 3,
+  1186→  1186→    },
+  1187→  1187→  })
+  1188→  1188→
+  1189→  1189→  // ============ STOCK MOVEMENTS ============
+  1190→  1190→  console.log('📊 Creating stock movements...')
+  1191→  1191→  await prisma.stockMovement.createMany({
+  1192→  1192→    data: [
+  1193→  1193→      { projectId: project1.id, materialId: materials[0].id, type: 'in', quantity: 200, unitPrice: 380, reference: 'PO-2025-001', notes: 'Received against PO', date: daysAgo(5) },
+  1194→  1194→      { projectId: project1.id, materialId: materials[0].id, type: 'out', quantity: 50, unitPrice: 380, reference: 'DN-' + daysAgo(3).toISOString().slice(0, 10), notes: 'Issued for 8th floor slab', date: daysAgo(3) },
+  1195→  1195→      { projectId: project1.id, materialId: materials[1].id, type: 'in', quantity: 1000, unitPrice: 62, reference: 'PO-2025-001', notes: 'Received against PO', date: daysAgo(5) },
+  1196→  1196→      { projectId: project2.id, materialId: materials[11].id, type: 'in', quantity: 400, unitPrice: 75, reference: 'PO-2025-002', notes: 'Tiles for Block A', date: daysAgo(10) },
+  1197→  1197→      { projectId: project2.id, materialId: materials[11].id, type: 'out', quantity: 150, unitPrice: 75, reference: 'DN-' + daysAgo(1).toISOString().slice(0, 10), notes: 'Issued for 4th floor', date: daysAgo(1) },
+  1198→  1198→    ],
+  1199→  1199→  })
+  1200→  1200→
+  1201→  1201→  // ============ NOTIFICATIONS ============
+  1202→  1202→  console.log('🔔 Creating notifications...')
+  1203→  1203→  await prisma.notification.createMany({
+  1204→  1204→    data: [
+  1205→  1205→      {
+  1206→  1206→        userId: adminUser.id,
+  1207→  1207→        type: 'approval',
+  1208→  1208→        title: 'Purchase Request Awaiting Approval',
+  1209→  1209→        message: 'PR-2025-002 for Skyline Tower requires your approval.',
+  1210→  1210→        data: JSON.stringify({ purchaseRequestId: pr2.id }),
+  1211→  1211→        isRead: false,
+  1212→  1212→      },
+  1213→  1213→      {
+  1214→  1214→        userId: adminUser.id,
+  1215→  1215→        type: 'approval',
+  1216→  1216→        title: 'Purchase Request Awaiting Approval',
+  1217→  1217→        message: 'PR-2025-003 for Green Valley Residences requires your approval.',
+  1218→  1218→        data: JSON.stringify({ purchaseRequestId: pr3.id }),
+  1219→  1219→        isRead: false,
+  1220→  1220→      },
+  1221→  1221→      {
+  1222→  1222→        userId: accountantUser.id,
+  1223→  1223→        type: 'invoice',
+  1224→  1224→        title: 'Invoice Overdue',
+  1225→  1225→        message: 'INV-2025-004 for ₹53,10,000 is overdue by 15 days.',
+  1226→  1226→        data: JSON.stringify({ invoiceId: inv4.id }),
+  1227→  1227→        isRead: true,
+  1228→  1228→      },
+  1229→  1229→      {
+  1230→  1230→        userId: supervisorUser.id,
+  1231→  1231→        type: 'task',
+  1232→  1232→        title: 'Task Deadline Approaching',
+  1233→  1233→        message: '8th Floor Slab Casting is due in 3 days. Current progress: 60%.',
+  1234→  1234→        data: JSON.stringify({ taskId: task1.id }),
+  1235→  1235→        isRead: false,
+  1236→  1236→      },
+  1237→  1237→      {
+  1238→  1238→        userId: adminUser.id,
+  1239→  1239→        type: 'system',
+  1240→  1240→        title: 'New User Registered',
+  1241→  1241→        message: 'Client user Mahesh Agarwal has been registered in the system.',
+  1242→  1242→        isRead: true,
+  1243→  1243→      },
+  1244→  1244→      {
+  1245→  1245→        userId: storeManagerUser.id,
+  1246→  1246→        type: 'reminder',
+  1247→  1247→        title: 'Low Stock Alert',
+  1248→  1248→        message: 'River Sand stock is below minimum level (80/100 cft). Please reorder.',
+  1249→  1249→        isRead: false,
+  1250→  1250→      },
+  1251→  1251→    ],
+  1252→  1252→  })
+  1253→  1253→
+  1254→  1254→  // ============ NOTIFICATION PREFERENCES ============
+  1255→  1255→  console.log('⚙️ Creating notification preferences...')
+  1256→  1256→  for (const user of [adminUser, supervisorUser, hrUser, accountantUser, storeManagerUser, clientUser]) {
+  1257→  1257→    await prisma.notificationPreference.create({
+  1258→  1258→      data: {
+  1259→  1259→        userId: user.id,
+  1260→  1260→        inApp: true,
+  1261→  1261→        email: true,
+  1262→  1262→        sms: false,
+  1263→  1263→      },
+  1264→  1264→    })
+  1265→  1265→  }
+  1266→  1266→
+  1267→  1267→  // ============ AUDIT LOGS ============
+  1268→  1268→  console.log('📋 Creating audit logs...')
+  1269→  1269→  await prisma.auditLog.createMany({
+  1270→  1270→    data: [
+  1271→  1271→      { userId: adminUser.id, action: 'CREATE', entity: 'Project', entityId: project1.id, newValues: JSON.stringify({ name: project1.name, code: project1.code }), ipAddress: '127.0.0.1', createdAt: daysAgo(90) },
+  1272→  1272→      { userId: adminUser.id, action: 'CREATE', entity: 'Project', entityId: project2.id, newValues: JSON.stringify({ name: project2.name, code: project2.code }), ipAddress: '127.0.0.1', createdAt: daysAgo(150) },
+  1273→  1273→      { userId: adminUser.id, action: 'CREATE', entity: 'User', entityId: supervisorUser.id, newValues: JSON.stringify({ name: supervisorUser.name, role: 'supervisor' }), ipAddress: '127.0.0.1', createdAt: daysAgo(180) },
+  1274→  1274→      { userId: adminUser.id, action: 'UPDATE', entity: 'Project', entityId: project2.id, oldValues: JSON.stringify({ progress: 50 }), newValues: JSON.stringify({ progress: 60 }), ipAddress: '127.0.0.1', createdAt: daysAgo(1) },
+  1275→  1275→      { userId: accountantUser.id, action: 'CREATE', entity: 'Payment', ipAddress: '127.0.0.1', createdAt: daysAgo(3) },
+  1276→  1276→      { userId: storeManagerUser.id, action: 'CREATE', entity: 'PurchaseRequest', entityId: pr2.id, newValues: JSON.stringify({ requestNo: 'PR-2025-002' }), ipAddress: '127.0.0.1', createdAt: daysAgo(2) },
+  1277→  1277→    ],
+  1278→  1278→  })
+  1279→  1279→
+  1280→  1280→  console.log('✅ Seeding completed successfully!')
+  1281→  1281→  console.log('')
+  1282→  1282→  console.log('📋 Summary:')
+  1283→  1283→  console.log('  - 6 users (admin, supervisor, hr_manager, accountant, store_manager, client)')
+  1284→  1284→  console.log('  - 3 projects')
+  1285→  1285→  console.log('  - 4 suppliers')
+  1286→  1286→  console.log('  - 13 materials')
+  1287→  1287→  console.log('  - 6 labour groups with 18 labourers')
+  1288→  1288→  console.log('  - Attendance records')
+  1289→  1289→  console.log('  - 5 daily notes')
+  1290→  1290→  console.log('  - 4 invoices with payments')
+  1291→  1291→  console.log('  - 7 expenses')
+  1292→  1292→  console.log('  - 4 purchase requests')
+  1293→  1293→  console.log('  - 2 purchase orders')
+  1294→  1294→  console.log('  - 6 assets')
+  1295→  1295→  console.log('  - 5 product categories with 12 products')
+  1296→  1296→  console.log('  - 4 customers')
+  1297→  1297→  console.log('  - 5 project tasks')
+  1298→  1298→  console.log('  - Stock movements, notifications, audit logs')
+  1299→  1299→  console.log('')
+  1300→  1300→  console.log('🔐 Login credentials:')
+  1301→  1301→  console.log('  Admin:    admin@smartbuild.com / admin123')
+  1302→  1302→  console.log('  Others:   {role}@smartbuild.com / password123')
+  1303→  1303→}
+  1304→  1304→
+  1305→  1305→main()
+  1306→  1306→  .catch((e) => {
+  1307→  1307→    console.error('❌ Seeding failed:', e)
+  1308→  1308→    process.exit(1)
+  1309→  1309→  })
+  1310→  1310→  .finally(async () => {
+  1311→  1311→    await prisma.$disconnect()
+  1312→  1312→  })

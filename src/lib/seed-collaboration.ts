@@ -23,7 +23,7 @@ function daysFromNowTime(days: number): Date {
 async function main() {
   console.log('🌱 Seeding SMARTBUILD Collaboration Module...')
 
-  // Find project: try specific ID first, then fallback to first active project
+  // প্রজেক্ট খোঁজা হচ্ছে: প্রথমে নির্দিষ্ট ID চেষ্টা করা হচ্ছে, তারপর প্রথম সক্রিয় প্রজেক্টে ফলব্যাক
   let project = await db.project.findUnique({
     where: { id: 'cmqb07i1z0001pknyu09vgl60' },
   })
@@ -36,7 +36,7 @@ async function main() {
   }
   console.log(`📐 Using project: ${project.name} (${project.id})`)
 
-  // Find users for references
+  // রেফারেন্সের জন্য ব্যবহারকারী খোঁজা হচ্ছে
   const adminUser = await db.user.findFirst({ where: { role: 'admin' } })
   const supervisorUser = await db.user.findFirst({ where: { role: 'supervisor' } })
   const accountantUser = await db.user.findFirst({ where: { role: 'accountant' } })
@@ -56,7 +56,7 @@ async function main() {
 
   const pid = project.id
 
-  // ============ PROJECT TEAM MEMBERS ============
+  // ============ প্রজেক্ট টিম সদস্য ============
   console.log('👥 Creating project team members...')
   try {
     const existingTeam = await db.projectTeamMember.findMany({ where: { projectId: pid } })
@@ -118,7 +118,7 @@ async function main() {
     console.log(`  ⚠️  Team members error: ${error.message}`)
   }
 
-  // ============ OPEN ITEMS ============
+  // ============ খোলা আইটেম ============
   console.log('📋 Creating open items...')
   try {
     const existingOI = await db.openItem.findMany({ where: { projectId: pid } })
@@ -304,7 +304,7 @@ async function main() {
       console.log('  ✅ 4 RFIs created')
     } else {
       console.log('  ⏭️  RFIs already exist, skipping')
-      // Still need IDs for comments
+      // মন্তব্যের জন্য এখনও ID প্রয়োজন
       const rfiForComments = await db.rFI.findFirst({
         where: { projectId: pid, status: { in: ['submitted', 'under_review'] } },
       })
@@ -316,7 +316,7 @@ async function main() {
     console.log(`  ⚠️  RFIs error: ${error.message}`)
   }
 
-  // ============ RFI COMMENTS ============
+  // ============ RFI মন্তব্য ============
   console.log('💬 Creating RFI comments...')
   try {
     if (rfi1Id) {
@@ -345,7 +345,7 @@ async function main() {
     console.log(`  ⚠️  RFI comments error: ${error.message}`)
   }
 
-  // ============ CHANGE EVENTS ============
+  // ============ পরিবর্তন ইভেন্ট ============
   console.log('🔄 Creating change events...')
   let ce1Id = ''
   let ce2Id = ''
@@ -416,7 +416,7 @@ async function main() {
     console.log(`  ⚠️  Change events error: ${error.message}`)
   }
 
-  // ============ CHANGE ORDERS ============
+  // ============ পরিবর্তন অর্ডার ============
   console.log('📋 Creating change orders...')
   try {
     const existingCO = await db.changeOrder.findMany({ where: { projectId: pid } })
@@ -462,7 +462,7 @@ async function main() {
     console.log(`  ⚠️  Change orders error: ${error.message}`)
   }
 
-  // ============ PROJECT COMMITMENTS ============
+  // ============ প্রজেক্ট প্রতিশ্রুতি ============
   console.log('📦 Creating project commitments...')
   try {
     const existingCommitments = await db.projectCommitment.findMany({ where: { projectId: pid } })
@@ -527,7 +527,7 @@ async function main() {
     console.log(`  ⚠️  Project commitments error: ${error.message}`)
   }
 
-  // ============ DIRECT COSTS ============
+  // ============ প্রত্যক্ষ খরচ ============
   console.log('💰 Creating direct costs...')
   try {
     const existingDC = await db.directCost.findMany({ where: { projectId: pid } })
@@ -604,7 +604,7 @@ async function main() {
     console.log(`  ⚠️  Direct costs error: ${error.message}`)
   }
 
-  // ============ PRIME CONTRACT ============
+  // ============ প্রধান চুক্তি ============
   console.log('📄 Creating prime contract...')
   try {
     const existingPC = await db.primeContract.findUnique({ where: { projectId: pid } })
@@ -631,12 +631,12 @@ async function main() {
     console.log(`  ⚠️  Prime contract error: ${error.message}`)
   }
 
-  // ============ PROJECT COMMENTS ============
+  // ============ প্রজেক্ট মন্তব্য ============
   console.log('💬 Creating project comments...')
   try {
     const existingComments = await db.projectComment.findMany({ where: { projectId: pid } })
     if (existingComments.length === 0) {
-      // Get entity IDs for attaching comments
+      // মন্তব্য সংযুক্ত করতে এনটিটি ID সংগ্রহ করা হচ্ছে
       const firstOI = await db.openItem.findFirst({ where: { projectId: pid } })
       const firstRFI = await db.rFI.findFirst({ where: { projectId: pid } })
 

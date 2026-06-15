@@ -12,7 +12,7 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
@@ -51,7 +51,7 @@ async function storeBotMessage(conversationId: string, content: string, sentById
   })
 }
 
-// POST — Process bot commands
+// POST — বট কমান্ড প্রক্রিয়া করা হচ্ছে
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
             botAction = 'awaiting_complaint'
             break
           case '2':
-            // Status query — handled by webhook
+            // স্ট্যাটাস কুয়েরি — ওয়েবহুক দ্বারা পরিচালিত
             reply = `To check your ticket status, please reply: STATUS`
             break
           case '3':
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
             break
           case '4':
             reply = `👋 An agent will be with you shortly. Thank you for your patience.\n\nIn the meantime, feel free to describe your issue.`
-            // Mark as not bot conversation so agent can pick up
+            // এজেন্ট নিতে পারে তাই বট কথোপকথন হিসেবে চিহ্নিত করা হচ্ছে না
             await db.whatsAppConversation.update({
               where: { id: conversationId },
               data: { isBotConversation: false },
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
           break
         }
 
-        // Generate ticket number
+        // টিকেট নম্বর তৈরি করা হচ্ছে
         const year = new Date().getFullYear()
         const lastTicket = await db.maintenanceTicket.findFirst({
           where: { ticketNo: { startsWith: `CMP-${year}` } },
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
         }
         const ticketNo = `CMP-${year}-${String(nextNum).padStart(6, '0')}`
 
-        // Find a user for createdById
+        // createdById-এর জন্য একজন ইউজার খুঁজে বের করা হচ্ছে
         let systemUser = await db.user.findFirst()
         if (!systemUser) {
           reply = `❌ System error. Please try again later.`
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
           },
         })
 
-        // Create link
+        // লিংক তৈরি করা হচ্ছে
         await db.complaintWhatsAppLink.create({
           data: {
             ticketId: ticket.id,
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
       await sendWhatsAppMessage(account.phoneNumberId, account.accessToken, contact.phone, reply)
       const msg = await storeBotMessage(conversationId, reply, authUser.id)
 
-      // Update conversation
+      // কথোপকথন আপডেট করা হচ্ছে
       await db.whatsAppConversation.update({
         where: { id: conversationId },
         data: {

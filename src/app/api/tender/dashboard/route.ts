@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
         count: c._count.bidPackages,
         percentage: Math.round((c._count.bidPackages / totalPackages) * 100),
       })),
-      // Summary counts
+      // সারসংক্ষেপ counts
       totalVendors,
       totalInvitations,
       expiredBids,

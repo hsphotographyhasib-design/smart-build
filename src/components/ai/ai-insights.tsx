@@ -122,7 +122,7 @@ export function AIInsights() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600">
@@ -210,7 +210,7 @@ export function AIInsights() {
         </Dialog>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
         <CardContent className="p-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -252,7 +252,7 @@ export function AIInsights() {
         </CardContent>
       </Card>
 
-      {/* Insights List */}
+      {/* অন্তর্দৃষ্টি তালিকা */}
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}

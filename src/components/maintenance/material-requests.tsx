@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Config ───
+// ─── কনফিগারেশন ───
 const mrStatusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: 'Pending Approval', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' },
   supervisor_approved: { label: 'Supervisor Approved', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
@@ -51,7 +51,7 @@ export function MaterialRequests() {
   const [createOpen, setCreateOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  // Fetch material requests
+  // উপাদান অনুরোধ আনা
   const { data: mrData, isLoading } = useQuery({
     queryKey: ['maintenance-materials', tab],
     queryFn: () => {
@@ -62,7 +62,7 @@ export function MaterialRequests() {
   })
   const requests = mrData?.data || []
 
-  // Fetch dropdowns
+  // ড্রপডাউন আনা
   const { data: workOrdersData } = useQuery({
     queryKey: ['maintenance-workorders-mr'],
     queryFn: () => api.get('/api/maintenance/work-orders'),
@@ -75,7 +75,7 @@ export function MaterialRequests() {
   })
   const tickets = ticketsData?.data || []
 
-  // Create mutation
+  // তৈরি মিউটেশন
   const createMutation = useMutation({
     mutationFn: (body: any) => api.post('/api/maintenance/materials', body),
     onSuccess: () => {
@@ -86,7 +86,7 @@ export function MaterialRequests() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Approve mutation
+  // অনুমোদন মিউটেশন
   const approveMutation = useMutation({
     mutationFn: ({ id, action }: { id: string; action: string }) => api.put(`/api/maintenance/materials/${id}`, { status: action }),
     onSuccess: () => {
@@ -96,7 +96,7 @@ export function MaterialRequests() {
     onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
   })
 
-  // Compute stats
+  // পরিসংখ্যান গণনা
   const allReqs = requests
   const pendingCount = allReqs.filter((r: any) => r.status === 'pending').length
   const waitingForStore = allReqs.filter((r: any) => r.status === 'supervisor_approved').length
@@ -106,7 +106,7 @@ export function MaterialRequests() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Material Requests</h1>
@@ -133,7 +133,7 @@ export function MaterialRequests() {
         </Dialog>
       </div>
 
-      {/* Stat Cards */}
+      {/* পরিসংখ্যান কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -173,7 +173,7 @@ export function MaterialRequests() {
         </Card>
       </div>
 
-      {/* Tabs + Table */}
+      {/* ট্যাব + টেবিল */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList>
           <TabsTrigger value="pending">Pending Approval</TabsTrigger>
@@ -264,12 +264,12 @@ export function MaterialRequests() {
                               </TableCell>
                             </TableRow>
 
-                            {/* Expanded Row */}
+                            {/* প্রসারিত সারি */}
                             {isExpanded && (
                               <TableRow>
                                 <TableCell colSpan={10} className="bg-muted/20 px-6 py-4">
                                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Items Sub-table */}
+                                    {/* আইটেম সাব-টেবিল */}
                                     <div>
                                       <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Items</h4>
                                       {items.length === 0 ? (
@@ -302,7 +302,7 @@ export function MaterialRequests() {
                                       )}
                                     </div>
 
-                                    {/* Approval Chain */}
+                                    {/* অনুমোদন শৃঙ্খল */}
                                     <div>
                                       <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Approval Chain</h4>
                                       <div className="space-y-3">
@@ -351,7 +351,7 @@ export function MaterialRequests() {
   )
 }
 
-// ─── Create MR Form ───
+// ─── MR তৈরির ফর্ম ───
 function CreateMRForm({ workOrders, tickets, onSubmit, loading }: {
   workOrders: any[]; tickets: any[]; onSubmit: (data: any) => void; loading: boolean
 }) {

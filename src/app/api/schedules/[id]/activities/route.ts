@@ -93,7 +93,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Activity name is required' }, { status: 400 })
     }
 
-    // Auto-generate activity ID: A0010, A0020, ...
+    // স্বয়ংক্রিয়ভাবে কার্যক্রম আইডি তৈরি করা হচ্ছে: A0010, A0020, ...
     const lastActivity = await db.scheduleActivity.findFirst({
       where: { scheduleId: id },
       orderBy: { activityId: 'desc' },
@@ -105,7 +105,7 @@ export async function POST(
     }
     const activityId = `A${String(nextNum).padStart(4, '0')}`
 
-    // Auto-calculate finish date from start + duration if finish not provided
+    // সমাপ্তি তারিখ না দেওয়া হলে শুরু + সময়কাল থেকে স্বয়ংক্রিয়ভাবে সমাপ্তি তারিখ গণনা করা হচ্ছে
     let calculatedFinish = finishDate ? new Date(finishDate) : null
     if (startDate && duration && !finishDate) {
       calculatedFinish = new Date(new Date(startDate).getTime() + duration * 24 * 60 * 60 * 1000)
@@ -134,7 +134,7 @@ export async function POST(
       },
     })
 
-    // Update schedule total activities count
+    // সময়সূচির মোট কার্যক্রম সংখ্যা আপডেট করা হচ্ছে
     const totalActivities = await db.scheduleActivity.count({ where: { scheduleId: id } })
     await db.schedule.update({
       where: { id },

@@ -22,7 +22,7 @@ export async function GET(
     const now = new Date()
     const lookaheadEnd = new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000)
 
-    // Fetch activities that start or are in progress within the lookahead window
+    // পূর্বরূপ সময়সীমার মধ্যে শুরু হওয়া বা চলমান কার্যক্রমগুলো আনা হচ্ছে
     const activities = await db.scheduleActivity.findMany({
       where: {
         scheduleId: id,
@@ -47,7 +47,7 @@ export async function GET(
       orderBy: [{ startDate: 'asc' }, { order: 'asc' }],
     })
 
-    // Group activities by week
+    // সপ্তাহ অনুযায়ী কার্যক্রম গোষ্ঠীভুক্ত করা হচ্ছে
     const weekBuckets: Array<{
       weekStart: string
       weekEnd: string
@@ -63,7 +63,7 @@ export async function GET(
         const start = a.startDate ? new Date(a.startDate) : null
         const end = a.finishDate ? new Date(a.finishDate) : null
         if (!start && !end) return false
-        // Activity overlaps with this week
+        // কার্যক্রমটি এই সপ্তাহের সাথে অতিক্রান্ত
         if (start && start < weekEnd && end && end > weekStart) return true
         if (start && start >= weekStart && start < weekEnd) return true
         if (end && end >= weekStart && end < weekEnd) return true
@@ -79,7 +79,7 @@ export async function GET(
       })
     }
 
-    // Aggregate resource requirements for the lookahead period
+    // পূর্বরূপ সময়ের জন্য সম্পদ প্রয়োজনীয়তা সমষ্টিগত করা হচ্ছে
     const resourceSummary = new Map<string, { resourceType: string; resourceName: string; totalQuantity: number; unit: string; activities: string[] }>()
     for (const activity of activities) {
       for (const ra of activity.resourceAssignments) {
@@ -101,7 +101,7 @@ export async function GET(
       }
     }
 
-    // Summary stats
+    // সারসংক্ষেপ পরিসংখ্যান
     const notStarted = activities.filter((a) => a.status === 'not_started').length
     const inProgress = activities.filter((a) => a.status === 'in_progress').length
     const delayed = activities.filter((a) => a.status === 'delayed').length

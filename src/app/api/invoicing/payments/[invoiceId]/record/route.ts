@@ -27,16 +27,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: `Cannot record payment for invoice in '${invoice.status}' status` }, { status: 400 })
     }
 
-    // Generate payment number
+    // পেমেন্ট নম্বর তৈরি করা হচ্ছে
     const count = await db.payment.count()
     const paymentNo = `PAY-${String(count + 1).padStart(6, '0')}`
 
-    // Build notes from extra fields
+    // অতিরিক্ত ক্ষেত্র থেকে নোট তৈরি করা হচ্ছে
     let notes = ''
     if (bankReference) notes += `Bank Ref: ${bankReference}; `
     if (chequeNumber) notes += `Cheque #: ${chequeNumber}`
 
-    // Create payment
+    // পেমেন্ট তৈরি করা হচ্ছে
     const payment = await db.payment.create({
       data: {
         projectId: invoice.projectId,
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
-    // Update invoice payment fields
+    // ইনভয়েস আপডেট করা হচ্ছে পেমেন্ট ক্ষেত্র
     const newPaidAmount = invoice.paidAmount + amount
     const newOutstandingAmount = invoice.total - newPaidAmount
     let newPaymentStatus = invoice.paymentStatus

@@ -62,7 +62,7 @@ export async function POST(
       include: { performedBy: { select: { id: true, name: true, avatar: true } } },
     })
 
-    // Optionally update ticket status
+    // ঐচ্ছিকভাবে টিকেটের স্ট্যাটাস আপডেট করা হচ্ছে
     if (updateTicketStatus && updateTicketStatus !== ticket.status) {
       const statusData: Record<string, unknown> = { status: updateTicketStatus }
 

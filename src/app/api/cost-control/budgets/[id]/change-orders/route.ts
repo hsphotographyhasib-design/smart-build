@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 })
     }
 
-    // Generate BCO number
+    // BCO নম্বর তৈরি করা হচ্ছে
     const coCount = await db.budgetChangeOrder.count({ where: { budgetId: id } })
     const bcoNo = `BCO-${budget.projectId.slice(-4).toUpperCase()}-${String(coCount + 1).padStart(3, '0')}`
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       include: { lineItemUpdates: true },
     })
 
-    // Update pending changes on budget
+    // বাজেটে মুলত্বী পরিবর্তন আপডেট করা হচ্ছে
     await db.budget.update({
       where: { id },
       data: { pendingChanges: { increment: totalChange } },

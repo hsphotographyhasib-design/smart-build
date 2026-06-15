@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// ─── Types ───
+// ─── প্রকারভেদ ───
 interface CostCodeNode {
   id: string
   code: string
@@ -81,7 +81,7 @@ export function CostCodes() {
     },
   })
 
-  // Parent codes for create dialog
+  // তৈরির ডায়ালগের জন্য প্যারেন্ট কোড
   const { data: parentCodes = [] } = useQuery({
     queryKey: ['cost-codes-parents'],
     queryFn: () => api.get<CostCodeFlat[]>('/api/cost-control/cost-codes').then(r => r.data || []),
@@ -120,7 +120,7 @@ export function CostCodes() {
     })
   }
 
-  // Build tree from flat list (only root nodes at top level)
+  // সমতল তালিকা থেকে ট্রি তৈরি (শুধুমাত্র মূল নোড শীর্ষ স্তরে)
   const roots = costCodes.filter(c => !c.parentId)
   const filteredRoots = search
     ? roots.filter(r => {
@@ -137,7 +137,7 @@ export function CostCodes() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cost Codes</h1>
@@ -150,7 +150,7 @@ export function CostCodes() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -179,7 +179,7 @@ export function CostCodes() {
         </CardContent>
       </Card>
 
-      {/* Tree Table */}
+      {/* ট্রি টেবিল */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -227,7 +227,7 @@ export function CostCodes() {
         </CardContent>
       </Card>
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -242,7 +242,7 @@ export function CostCodes() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={!!editCode} onOpenChange={() => setEditCode(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -259,7 +259,7 @@ export function CostCodes() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -278,7 +278,7 @@ export function CostCodes() {
   )
 }
 
-// ─── Tree Row Component ───
+// ─── ট্রি সারি উপাদান ───
 function CostCodeRow({ node, depth, expandedIds, toggleExpand, onEdit, onDelete, onToggleActive, levelColors, levelLabels, search }: {
   node: any; depth: number; expandedIds: Set<string>; toggleExpand: (id: string) => void
   onEdit: (node: any) => void; onDelete: (id: string) => void; onToggleActive: (id: string, active: boolean) => void
@@ -353,7 +353,7 @@ function CostCodeRow({ node, depth, expandedIds, toggleExpand, onEdit, onDelete,
   )
 }
 
-// ─── Forms ───
+// ─── ফর্মসমূহ ───
 function CreateCostCodeForm({ parentCodes, onSubmit, isLoading }: { parentCodes: any[]; onSubmit: (data: any) => void; isLoading: boolean }) {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')

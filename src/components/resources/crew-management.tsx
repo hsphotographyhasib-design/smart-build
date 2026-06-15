@@ -40,7 +40,7 @@ import { Plus, Search, Users, Pencil, Trash2, ChevronDown, ChevronUp, X, UserPlu
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// ধরন
 // ──────────────────────────────────────────
 
 interface Crew {
@@ -90,7 +90,7 @@ const typeColors: Record<string, string> = {
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান কম্পোনেন্ট
 // ──────────────────────────────────────────
 
 export function CrewManagement() {
@@ -104,7 +104,7 @@ export function CrewManagement() {
   const [editCrew, setEditCrew] = useState<Crew | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  // Form state
+  // ফর্ম অবস্থা
   const [form, setForm] = useState({
     name: '',
     type: 'general',

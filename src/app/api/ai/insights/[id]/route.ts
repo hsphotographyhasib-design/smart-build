@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, error: 'Insight not found' }, { status: 404 })
     }
 
-    // Validate status transitions
+    // স্ট্যাটাস পরিবর্তন যাচাই করা হচ্ছে
     if (status && !VALID_STATUSES.includes(status)) {
       return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 })
     }

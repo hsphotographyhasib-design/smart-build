@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-// ============ TYPES ============
+// ============ ধরন (TYPES) ============
 
 interface OptimisticConfig<TData, TInput> {
   queryKey: string[]
@@ -12,13 +12,13 @@ interface OptimisticConfig<TData, TInput> {
   rollbackMessage?: string
 }
 
-// ============ OPTIMISTIC UPDATE ============
+// ============ অপটিমিস্টিক আপডেট ============
 
 /**
- * Perform an optimistic update with automatic rollback on failure.
+ * ব্যর্থ হলে স্বয়ংক্রিয়ভাবে রোলব্যাক সহ একটি অপটিমিস্টিক আপডেট সম্পাদন করা হচ্ছে।
  *
- * Immediately updates the React Query cache with `newData`, fires the
- * `apiCall` in the background, and rolls back if the call fails.
+ * সাথে সাথে React Query ক্যাশে `newData` দিয়ে আপডেট করা হচ্ছে, ব্যাকগ্রাউন্ডে
+ * `apiCall` চালানো হচ্ছে, এবং কল ব্যর্থ হলে রোলব্যাক করা হচ্ছে।
  *
  * @example
  * ```ts
@@ -44,13 +44,13 @@ export async function optimisticUpdate<TData, TInput>(
     rollbackMessage = 'Changes were reverted.',
   } = config
 
-  // Cancel any outgoing refetches so they don't overwrite our optimistic update
+  // চলমান রিফেচ বাতিল করা হচ্ছে যাতে এগুলো আমাদের অপটিমিস্টিক আপডেট ওভাররাইট না করে
   await queryClient.cancelQueries({ queryKey })
 
-  // Snapshot the previous value
+  // পূর্ববর্তী মানের স্ন্যাপশট নেওয়া হচ্ছে
   const previousData = queryClient.getQueryData<TData>(queryKey)
 
-  // Optimistically update to the new value
+  // নতুন মান দিয়ে অপটিমিস্টিক্যালি আপডেট করা হচ্ছে
   queryClient.setQueryData<TData>(queryKey, (old) => {
     if (typeof newData === 'function') {
       return (newData as (old: TData | undefined, input: TInput) => TData)(old, undefined as TInput)
@@ -62,7 +62,7 @@ export async function optimisticUpdate<TData, TInput>(
     const result = await apiCall()
 
     if (result.success) {
-      // Optionally sync the server response back into the cache
+      // ঐচ্ছিকভাবে সার্ভার প্রতিক্রিয়া ক্যাশে সিঙ্ক করা হচ্ছে
       if (result.data !== undefined) {
         queryClient.setQueryData<TData>(queryKey, result.data)
       }
@@ -70,16 +70,16 @@ export async function optimisticUpdate<TData, TInput>(
         toast.success(successMessage)
       }
     } else {
-      // Rollback on API-reported failure
+      // API রিপোর্ট করা ব্যর্থতায় রোলব্যাক করা হচ্ছে
       queryClient.setQueryData<TData>(queryKey, previousData)
       toast.error(result.error || errorMessage)
     }
   } catch {
-    // Rollback on unexpected error
+    // অপ্রত্যাশিত ত্রুটিতে রোলব্যাক করা হচ্ছে
     queryClient.setQueryData<TData>(queryKey, previousData)
     toast.error(errorMessage)
   } finally {
-    // Always refetch after settling to ensure cache is in sync
+    // ক্যাশে সিঙ্ক আছে তা নিশ্চিত করতে সমাপ্তির পর সর্বদা রিফেচ করা হচ্ছে
     queryClient.invalidateQueries({ queryKey })
   }
 }

@@ -12,11 +12,11 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
-// POST — Mark conversation as read
+// POST — কথোপকথন পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,7 +32,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    // Mark all messages as read
+    // সব মেসেজ পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
     await db.whatsAppMessage.updateMany({
       where: {
         conversationId: id,
@@ -42,7 +42,7 @@ export async function POST(
       data: { isRead: true, receivedById: authUser.id },
     })
 
-    // Reset unread count
+    // অপঠিত গণনা রিসেট করা হচ্ছে
     const updated = await db.whatsAppConversation.update({
       where: { id },
       data: { unreadCount: 0 },

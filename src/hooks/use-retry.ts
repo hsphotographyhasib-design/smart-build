@@ -3,22 +3,22 @@
 import { useState, useCallback, useRef } from 'react'
 
 export interface RetryConfig {
-  /** Maximum number of retry attempts (default: 3) */
+  /** সর্বোচ্চ পুনঃচেষ্টার সংখ্যা (ডিফল্ট: ৩) */
   maxRetries: number
-  /** Base delay in milliseconds before the first retry (default: 1000) */
+  /** প্রথম পুনঃচেষ্টার আগে বেস ডিলে মিলিসেকেন্ড (ডিফল্ট: 1000) */
   baseDelay: number
-  /** Maximum delay cap in milliseconds (default: 30000) */
+  /** সর্বোচ্চ ডিলে ক্যাপ মিলিসেকেন্ড (ডিফল্ট: 30000) */
   maxDelay: number
-  /** Multiplier for exponential backoff (default: 2) */
+  /** এক্সপোনেনশিয়াল ব্যাকঅফের জন্য গুণক (ডিফল্ট: ২) */
   backoffFactor: number
 }
 
 export interface RetryState {
-  /** Current number of retries that have been attempted */
+  /** বর্তমানে যত পুনঃচেষ্টা করা হয়েছে */
   retryCount: number
-  /** The last error that triggered a retry, or null */
+  /** পুনঃচেষ্টা ট্রিগার করে এই শেষ ত্রুটিটি, বা null */
   lastError: Error | null
-  /** Whether a retry is currently in flight */
+  /** একটি পুনঃচেষ্টা বর্তমানে চলমান আছে কিনা */
   isRetrying: boolean
 }
 
@@ -30,15 +30,15 @@ const DEFAULT_CONFIG: RetryConfig = {
 }
 
 /**
- * Provides retry logic with exponential backoff for async operations.
+ * অ্যাসিংক অপারেশনের জন্য এক্সপোনেনশিয়াল ব্যাকঅফ সহ একটি হুক।
  *
  * @example
  * const { execute, retryState, reset, canRetry } = useRetry({ maxRetries: 5 })
  *
- * // In an event handler:
+ * // একটি ইভেন্ট হ্যান্ডলারে:
  * const result = await execute(() => fetch('/api/data'))
  *
- * // Check state in JSX:
+ * // JSX-এ অবস্থান পরীক্ষা:
  * if (retryState.isRetrying) return <Spinner />
  * if (retryState.lastError) return <Error error={retryState.lastError} />
  */
@@ -80,10 +80,10 @@ export function useRetry(config?: Partial<RetryConfig>): {
 
       while (retryCountRef.current <= resolvedConfig.maxRetries) {
         try {
-          // Attempt the operation
+          // কার্যকলাপ চেষ্টা করা হচ্ছে
           const result = await fn()
 
-          // Success – reset state
+          // সফল – অবস্থা পুনরায় সেট করা হচ্ছে
           retryCountRef.current = 0
           setRetryState({
             retryCount: 0,
@@ -95,7 +95,7 @@ export function useRetry(config?: Partial<RetryConfig>): {
         } catch (error: any) {
           const currentAttempt = retryCountRef.current
 
-          // If aborted or no retries left, throw
+          // বাতিল হলে বা পুনঃচেষ্টা বাকি না থাকলে নিক্ষেপ করা হচ্ছে
           if (abortRef.current || currentAttempt >= resolvedConfig.maxRetries) {
             setRetryState({
               retryCount: currentAttempt,
@@ -105,7 +105,7 @@ export function useRetry(config?: Partial<RetryConfig>): {
             throw error
           }
 
-          // Update retry state
+          // পুনঃচেষ্টার অবস্থা আপডেট করা হচ্ছে
           retryCountRef.current += 1
           setRetryState({
             retryCount: retryCountRef.current,
@@ -113,7 +113,7 @@ export function useRetry(config?: Partial<RetryConfig>): {
             isRetrying: true,
           })
 
-          // Wait before retrying with exponential backoff
+          // এক্সপোনেনশিয়াল ব্যাকঅফ সহ পুনঃচেষ্টা করার আগে অপেক্ষমা করা হচ্ছে
           const delay = calculateDelay(currentAttempt)
 
           await new Promise<void>((resolve) => {
@@ -123,13 +123,13 @@ export function useRetry(config?: Partial<RetryConfig>): {
               }
             }, delay)
 
-            // Store timer so we can clean up if needed
+            // প্রয়োজন হলে টাইমার পরিষ্কার করতে সংরক্ষণ করা হচ্ছে
             return () => clearTimeout(timer)
           })
         }
       }
 
-      // This should not be reached, but just in case
+      // এটি পৌঁছানো উচিত নয়, তবে সতর্কতার জন্য
       throw new Error('Max retries exceeded')
     },
     [resolvedConfig.maxRetries, calculateDelay]

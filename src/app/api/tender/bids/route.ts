@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invitation must be accepted before creating a bid' }, { status: 400 })
     }
 
-    // Check if bid already exists for this invitation
+    // এই আমন্ত্রণের জন্য ইতিমধ্যে বিড আছে কিনা যাচাই করা হচ্ছে
     const existingBid = await db.tenderBid.findUnique({
       where: { invitationId },
     })
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Update vendor stats
+    // ভেন্ডর আপডেট করা হচ্ছে stats
     await db.tenderVendor.update({
       where: { id: invitation.vendorId },
       data: { totalBids: { increment: 1 } },

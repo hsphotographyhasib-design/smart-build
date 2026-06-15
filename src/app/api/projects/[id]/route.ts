@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
     }
 
-    // Compute KPIs
+    // কর্মক্ষমতা সূচক (KPI) গণনা করা হচ্ছে
     const totalTasks = project.tasks.length
     const todoTasks = project.tasks.filter((t) => t.status === 'todo').length
     const inProgressTasks = project.tasks.filter((t) => t.status === 'in_progress').length
@@ -43,7 +43,7 @@ export async function GET(
     const cancelledTasks = project.tasks.filter((t) => t.status === 'cancelled').length
     const highPriorityTasks = project.tasks.filter((t) => t.priority === 'high' || t.priority === 'critical').length
 
-    // Finance KPIs
+    // আর্থিক কর্মক্ষমতা সূচক (KPI)
     const [invoiceAgg, paymentAgg, expenseAgg] = await Promise.all([
       db.invoice.aggregate({
         where: { projectId: id },
@@ -65,7 +65,7 @@ export async function GET(
     const budgetUtilization = project.budget > 0 ? Math.round((totalExpenses / project.budget) * 100) : 0
     const pendingInvoices = totalInvoiced - (invoiceAgg._sum.paidAmount || 0)
 
-    // Pending tasks with due dates
+    // নির্ধারিত তারিখ অতিক্রান্ত অপেক্ষমান কাজসমূহ
     const overdueTasks = await db.projectTask.count({
       where: {
         projectId: id,

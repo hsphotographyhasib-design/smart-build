@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// POST - Mark all notifications as read for current user
+// POST - বর্তমান ব্যবহারকারীর সকল বিজ্ঞপ্তি পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyAuth(request)

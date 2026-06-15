@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       projectId, type, clientId, issueDate, dueDate, vendorId, vendorName, vendorType,
       purchaseOrderId, workOrderId, costCodeId, contractNo, referenceNo, currency,
       taxRate, retentionPercent, notes, items,
-      // Progress billing fields
+      // অগ্রগতি বিলিং ক্ষেত্র
       originalContractValue, previousClaimsTotal, certifiedAmount,
       workCompletedPercent, workCompletedValue, balanceRemaining,
       periodStartDate, periodEndDate,
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'At least one invoice item is required' }, { status: 400 })
     }
 
-    // Generate invoice number: INV-YYYY-NNNNNN
+    // ইনভয়েস নম্বর তৈরি করা হচ্ছে: INV-YYYY-NNNNNN
     const year = new Date(issueDate).getFullYear()
     const yearPrefix = `INV-${year}-`
     const countThisYear = await db.invoice.count({
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     })
     const invoiceNo = `${yearPrefix}${String(countThisYear + 1).padStart(6, '0')}`
 
-    // Calculate amounts
+    // পরিমাণ হিসাব করা হচ্ছে
     const subtotal = items.reduce((sum: number, item: Record<string, number>) => {
       return sum + (item.quantity * item.unitPrice)
     }, 0)
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       boqItemId: item.boqItemId ? String(item.boqItemId) : null,
     }))
 
-    // Find default workflow for this invoice type
+    // এই ইনভয়েস ধরনের জন্য ডিফল্ট ওয়ার্কফ্লো খুঁজে বের করা হচ্ছে
     let workflowId: string | undefined
     if (type) {
       const defaultWorkflow = await db.invoiceWorkflow.findFirst({
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
         total,
         retentionAmount,
         outstandingAmount,
-        // Progress billing
+        // অগ্রগতি বিলিং
         originalContractValue: originalContractValue || 0,
         previousClaimsTotal: previousClaimsTotal || 0,
         certifiedAmount: certifiedAmount || 0,

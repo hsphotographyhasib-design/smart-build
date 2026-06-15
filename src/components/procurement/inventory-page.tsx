@@ -29,7 +29,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface Material {
@@ -48,7 +48,7 @@ interface Material {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -67,7 +67,7 @@ function stockBadge(status: string) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -90,7 +90,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Create / Edit Dialog
+// তৈরি / সম্পাদনা ডায়ালগ
 // ──────────────────────────────────────────
 
 function MaterialFormDialog({ material, open, onClose }: { material: Material | null; open: boolean; onClose: () => void }) {
@@ -188,7 +188,7 @@ function MaterialFormDialog({ material, open, onClose }: { material: Material | 
 }
 
 // ──────────────────────────────────────────
-// Stock Adjustment Dialog
+// স্টক সমন্বয় ডায়ালগ
 // ──────────────────────────────────────────
 
 function StockAdjustDialog({ material, open, onClose }: { material: Material | null; open: boolean; onClose: () => void }) {
@@ -276,7 +276,7 @@ function StockAdjustDialog({ material, open, onClose }: { material: Material | n
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function InventoryPage() {
@@ -328,7 +328,7 @@ export function InventoryPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
@@ -342,7 +342,7 @@ export function InventoryPage() {
         </Button>
       </div>
 
-      {/* Stock Alerts */}
+      {/* স্টক সতর্কতা */}
       {!isLoading && lowStockItems.length > 0 && (
         <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
           <CardHeader className="pb-3">
@@ -372,7 +372,7 @@ export function InventoryPage() {
         </Card>
       )}
 
-      {/* Search & Filters */}
+      {/* অনুসন্ধান ও ফিল্টার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -396,7 +396,7 @@ export function InventoryPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -475,16 +475,16 @@ export function InventoryPage() {
         </Card>
       ) : null}
 
-      {/* Create Dialog */}
+      {/* তৈরির ডায়ালগ */}
       <MaterialFormDialog material={null} open={createOpen} onClose={() => setCreateOpen(false)} />
 
-      {/* Edit Dialog */}
+      {/* সম্পাদনা ডায়ালগ */}
       <MaterialFormDialog material={editMaterial} open={!!editMaterial} onClose={() => setEditMaterial(null)} />
 
-      {/* Stock Adjustment Dialog */}
+      {/* স্টক সমন্বয় ডায়ালগ */}
       <StockAdjustDialog material={adjustMaterial} open={!!adjustMaterial} onClose={() => setAdjustMaterial(null)} />
 
-      {/* Delete Confirmation */}
+      {/* মুছে ফেলার নিশ্চিতকরণ */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

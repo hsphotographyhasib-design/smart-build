@@ -61,7 +61,7 @@ export async function PUT(
     const body = await request.json()
     const { name, scheduleType, description, startDate, endDate, notes, healthScore } = body
 
-    // Calculate total duration if dates changed
+    // তারিখ পরিবর্তন হলে মোট সময়কাল গণনা করা হচ্ছে
     let totalDuration = existing.totalDuration
     if (startDate && endDate) {
       const start = new Date(startDate)
@@ -69,7 +69,7 @@ export async function PUT(
       totalDuration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     }
 
-    // Recalculate completion percentage from activities
+    // কার্যক্রম থেকে সম্পন্নের শতাংশ পুনঃগণনা করা হচ্ছে
     const activityStats = await db.scheduleActivity.aggregate({
       where: { scheduleId: id, taskType: { not: 'summary' } },
       _avg: { progress: true },
@@ -77,7 +77,7 @@ export async function PUT(
     })
     const completionPct = activityStats._count > 0 ? Math.round((activityStats._avg.progress || 0) * 100) / 100 : 0
 
-    // Recalculate total activities
+    // মোট কার্যক্রম পুনঃগণনা করা হচ্ছে
     const totalActivities = await db.scheduleActivity.count({ where: { scheduleId: id } })
 
     const updateData: Record<string, unknown> = {

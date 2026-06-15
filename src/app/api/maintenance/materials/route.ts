@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Items array is required' }, { status: 400 })
     }
 
-    // Auto-generate request number
+    // স্বয়ংক্রিয়ভাবে রিকোয়েস্ট নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'MR'
     const count = await db.materialRequest.count({
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create timeline entry if linked to ticket
+    // টিকেটের সাথে লিংক থাকলে টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
     if (ticketId) {
       await db.maintenanceTimeline.create({
         data: {

@@ -202,7 +202,7 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
 export function AppSidebar() {
   const { sidebarOpen, setSidebarOpen, user, logout } = useAppStore()
 
-  // Filter menu items based on user role
+  // ব্যবহারকারীর ভূমিকার ভিত্তিতে মেনু আইটেম ফিল্টার করা হচ্ছে
   const userRole = user?.role || 'labour'
   const visibleSections = filterNavForRole(navSections, userRole)
 
@@ -213,7 +213,7 @@ export function AppSidebar() {
         sidebarOpen ? 'w-64' : 'w-16'
       )}
     >
-      {/* Logo */}
+      {/* লোগো */}
       <div className="flex items-center h-14 px-3 border-b shrink-0">
         {sidebarOpen ? (
           <div className="flex items-center gap-2 w-full">
@@ -232,7 +232,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* Nav */}
+      {/* নেভিগেশন */}
       <ScrollArea className="flex-1 py-2">
         <div className="space-y-1 px-2">
           {visibleSections.map((section) => (
@@ -252,7 +252,7 @@ export function AppSidebar() {
         </div>
       </ScrollArea>
 
-      {/* User */}
+      {/* ব্যবহারকারী */}
       <div className="border-t p-2 shrink-0">
         {sidebarOpen ? (
           <div className="flex items-center gap-2 px-2 py-1.5">
@@ -283,7 +283,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* Toggle */}
+      {/* টগল */}
       <Button
         variant="outline"
         size="icon"

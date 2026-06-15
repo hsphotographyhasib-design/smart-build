@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z, ZodType } from 'zod'
 
 /**
- * Validates request body against a Zod schema.
- * Returns { data, error } — data is the parsed body if valid, error is a response if invalid.
+ * Zod স্কিমার বিপরীতে অনুরোধের বডি যাচাই করা হচ্ছে।
+ * { data, error } প্রদান করে — data হলো বৈধ হলে পার্স করা বডি, error হলো অবৈধ হলে একটি প্রতিক্রিয়া।
  */
 export function validateBody<T>(
   schema: ZodType<T>,
@@ -34,8 +34,8 @@ export function validateBody<T>(
 }
 
 /**
- * Validates URL query params against a Zod schema.
- * Returns { data, error } — data is the parsed query if valid, error is a response if invalid.
+ * Zod স্কিমার বিপরীতে URL কোয়েরি প্যারামিটার যাচাই করা হচ্ছে।
+ * { data, error } প্রদান করে — data হলো বৈধ হলে পার্স করা কোয়েরি, error হলো অবৈধ হলে একটি প্রতিক্রিয়া।
  */
 export function validateQuery<T>(
   schema: ZodType<T>,
@@ -85,9 +85,9 @@ export function validateQuery<T>(
 }
 
 /**
- * Higher-order function that wraps a route handler with body validation.
+ * বডি যাচাইকরণ সহ একটি রাউট হ্যান্ডলার মোড়ানোর জন্য উচ্চ-ক্রমের ফাংশন।
  *
- * Usage:
+ * ব্যবহার:
  *   export async function POST(request: NextRequest) {
  *     return withValidation(createProjectSchema, request, async (data) => {
  *       const project = await db.project.create({ data })
@@ -123,7 +123,7 @@ export async function withValidation<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Common validation schemas for reuse across routes
+// বিভিন্ন রাউটে পুনরায় ব্যবহারের জন্য সাধারণ যাচাইকরণ স্কিমা
 // ---------------------------------------------------------------------------
 
 export const commonSchemas = {

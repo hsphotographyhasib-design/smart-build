@@ -60,34 +60,34 @@ export function ApprovalsPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [search, setSearch] = useState('')
 
-  // Fetch pending purchase requests
+  // অপেক্ষমান ক্রয়ের অনুরোধ আনা হচ্ছে
   const { data: prData } = useQuery({
     queryKey: ['approvals-pr', typeFilter],
     queryFn: () => api.get('/api/purchase-requests?status=submitted'),
     enabled: typeFilter === 'all' || typeFilter === 'purchase_request',
   })
 
-  // Fetch pending leave requests
+  // অপেক্ষমান ছুটির অনুরোধ আনা হচ্ছে
   const { data: lrData } = useQuery({
     queryKey: ['approvals-lr', typeFilter],
     queryFn: () => api.get('/api/leave-requests?status=pending'),
     enabled: typeFilter === 'all' || typeFilter === 'leave_request',
   })
 
-  // Fetch pending submittals
+  // অপেক্ষমান জমা আনা হচ্ছে
   const { data: subData } = useQuery({
     queryKey: ['approvals-sub', typeFilter],
     queryFn: () => api.get('/api/collaboration/submittals?status=submitted'),
     enabled: typeFilter === 'all' || typeFilter === 'submittal',
   })
 
-  // Fetch projects for change events
+  // পরিবর্তন ইভেন্টের জন্য প্রকল্প আনা হচ্ছে
   const { data: projectsData } = useQuery({
     queryKey: ['projects-all'],
     queryFn: () => api.get('/api/projects'),
   })
 
-  // Fetch pending change events from all projects
+  // সকল প্রকল্প থেকে অপেক্ষমান পরিবর্তন ইভেন্ট আনা হচ্ছে
   const projectList = projectsData?.data || []
   const { data: ceResults } = useQuery({
     queryKey: ['approvals-ce', typeFilter, projectList.length],
@@ -102,7 +102,7 @@ export function ApprovalsPage() {
     enabled: typeFilter === 'all' || typeFilter === 'change_event',
   })
 
-  // Combine all into a unified list
+  // সবকিছু একটি একীভূত তালিকায় সমন্বিত করা হচ্ছে
   const items: ApprovalItem[] = [
     ...(prData?.data || []).map((pr: any) => ({
       id: pr.id, type: 'purchase_request' as const,

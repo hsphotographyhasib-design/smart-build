@@ -20,7 +20,7 @@ async function emitMaintEvent(event: string, data: Record<string, unknown>, room
         })
       }
     }
-  } catch { /* ignore */ }
+  } catch { /* উপেক্ষা করা হচ্ছে */ }
 }
 
 interface RejectAssignmentBody {
@@ -55,7 +55,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: `Ticket must be in 'assigned' status to reject assignment, current status: ${ticket.status}` }, { status: 400 })
     }
 
-    // Verify authUser is the assigned technician
+    // প্রমাণীকৃত ব্যবহারকারী নির্ধারিত টেকনিশিয়ান কিনা যাচাই করা হচ্ছে
     if (!ticket.assignedTechnicianId || ticket.assignedTechnician?.userId !== authUser.id) {
       return NextResponse.json({ success: false, error: 'Only the assigned technician can reject this assignment' }, { status: 403 })
     }
@@ -70,7 +70,7 @@ export async function POST(
       },
     })
 
-    // Decrement technician active jobs
+    // টেকনিশিয়ানের সক্রিয় কাজ হ্রাস করা হচ্ছে
     if (previousTechnicianId) {
       await db.technicianProfile.update({
         where: { id: previousTechnicianId },

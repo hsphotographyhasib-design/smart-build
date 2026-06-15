@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { verifyAuth, logPermissionAudit } from '@/lib/auth'
 
 /**
- * GET /api/roles — List all roles with permission count
- * Only admin and super_admin can access.
+ * GET /api/roles — অনুমতি সংখ্যাসহ সকল ভূমিকার তালিকা
+ * শুধুমাত্র প্রশাসক এবং super_admin অ্যাক্সেস করতে পারবেন।
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Count users per role (User.role is a plain string matching Role.code)
+    // প্রতিটি ভূমিকায় ব্যবহারকারী গণনা (User.role Role.code এর সাথে মিলে এমন একটি সাধারণ স্ট্রিং)
     const allUsers = await db.user.findMany({ select: { role: true } })
     const userCountByRole: Record<string, number> = {}
     for (const u of allUsers) {
@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/roles — Create a new role
- * Only super_admin can create roles.
+ * POST /api/roles — নতুন ভূমিকা তৈরি করা হচ্ছে
+ * শুধুমাত্র super_admin ভূমিকা তৈরি করতে পারবেন।
  */
 export async function POST(request: NextRequest) {
   try {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate uniqueness
+    // অনন্যতা যাচাই করা হচ্ছে
     const existingName = await db.role.findUnique({ where: { name } })
     if (existingName) {
       return NextResponse.json(

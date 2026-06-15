@@ -12,11 +12,11 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
-// GET — Full conversation with messages, contact, linked ticket
+// GET — মেসেজ, পরিচিতি এবং সংযুক্ত টিকেট সহ সম্পূর্ণ কথোপকথন
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -69,7 +69,7 @@ export async function GET(
   }
 }
 
-// PUT — Update conversation (assign, priority, status, tags, internal note)
+// PUT — কথোপকথন আপডেট করা হচ্ছে (assign, priority, status, tags, internal note)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -102,7 +102,7 @@ export async function PUT(
       updateData.tags = Array.isArray(tags) ? JSON.stringify(tags) : tags
     }
 
-    // Add internal note
+    // অভ্যন্তরীণ নোট যোগ করা হচ্ছে
     if (internalNote) {
       const existingNotes: Array<{ note: string; agentId: string; agentName: string; createdAt: string }> =
         conversation.internalNotes ? JSON.parse(conversation.internalNotes) : []
@@ -142,7 +142,7 @@ export async function PUT(
   }
 }
 
-// DELETE — Archive conversation
+// DELETE — কথোপকথন আর্কাইভ করা হচ্ছে
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

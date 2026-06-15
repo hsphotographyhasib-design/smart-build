@@ -103,33 +103,33 @@ export async function PUT(
     if (customerRating !== undefined) updateData.customerRating = customerRating
     if (customerFeedback !== undefined) updateData.customerFeedback = customerFeedback
 
-    // Handle status transitions
+    // স্ট্যাটাস ট্রানজিশন পরিচালনা করা হচ্ছে
     if (status !== undefined && status !== existing.status) {
       updateData.status = status
 
-      // Calculate response time on first assignment
+      // প্রথম অ্যাসাইনমেন্টে রেসপন্স টাইম হিসাব করা হচ্ছে
       if (status === 'assigned' && !existing.assignedTechnicianId && existing.actualResponseMinutes === 0) {
         const responseMs = Date.now() - existing.createdAt.getTime()
         updateData.actualResponseMinutes = Math.round(responseMs / 60000)
       }
 
-      // Set closed info
+      // ক্লোজ তথ্য সেট করা হচ্ছে
       if (status === 'closed') {
         updateData.closedById = authUser.id
         updateData.closedAt = new Date()
-        // Calculate resolution time
+        // রেজোলিউশন টাইম হিসাব করা হচ্ছে
         if (existing.actualResolutionMinutes === 0) {
           const resolutionMs = Date.now() - existing.createdAt.getTime()
           updateData.actualResolutionMinutes = Math.round(resolutionMs / 60000)
         }
       }
 
-      // Check SLA breach
+      // SLA লঙ্ঘন যাচাই করা হচ্ছে
       if (existing.resolutionDeadline && new Date() > existing.resolutionDeadline && status !== 'closed') {
         updateData.slaBreached = true
       }
 
-      // Create timeline entry for status change
+      // স্ট্যাটাস পরিবর্তনের জন্য টাইমলাইন এন্ট্রি তৈরি করা হচ্ছে
       await db.maintenanceTimeline.create({
         data: {
           ticketId: id,
@@ -140,7 +140,7 @@ export async function PUT(
       })
     }
 
-    // Calculate total cost
+    // মোট খরচ হিসাব করা হচ্ছে
     if (labourHours !== undefined || materialCost !== undefined || serviceCost !== undefined || transportCost !== undefined) {
       const lH = labourHours !== undefined ? labourHours : existing.labourHours
       const mC = materialCost !== undefined ? materialCost : existing.materialCost

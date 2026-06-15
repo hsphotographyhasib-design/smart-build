@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const currentStep = steps[currentStepIndex]
     const nextStep = steps[nextStepIndex]
 
-    // Create escalated action on current step
+    // বর্তমান ধাপে এসকালেটেড অ্যাকশন তৈরি করা হচ্ছে
     await db.invoiceApprovalAction.create({
       data: {
         instanceId: invoice.workflowInstance.id,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
-    // Advance to next step
+    // পরবর্তী ধাপে অগ্রসর করা হচ্ছে
     await db.invoiceWorkflowInstance.update({
       where: { id: invoice.workflowInstance.id },
       data: { currentStepId: nextStep.id },

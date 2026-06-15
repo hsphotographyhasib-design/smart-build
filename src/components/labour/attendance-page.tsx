@@ -18,7 +18,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface AttendanceRecord {
@@ -58,7 +58,7 @@ interface LabourGroup {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function statusBadge(status: string) {
@@ -77,7 +77,7 @@ function statusBadge(status: string) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function SummarySkeleton() {
@@ -112,7 +112,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Mark Attendance Dialog
+// উপস্থিতি চিহ্নিতকরণ ডায়ালগ
 // ──────────────────────────────────────────
 
 function MarkAttendanceDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -271,7 +271,7 @@ function MarkAttendanceDialog({ open, onClose }: { open: boolean; onClose: () =>
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function AttendancePage() {
@@ -314,7 +314,7 @@ export function AttendancePage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
@@ -328,7 +328,7 @@ export function AttendancePage() {
         </Button>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       {isLoading ? (
         <SummarySkeleton />
       ) : (
@@ -372,7 +372,7 @@ export function AttendancePage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -414,7 +414,7 @@ export function AttendancePage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -468,7 +468,7 @@ export function AttendancePage() {
         </Card>
       )}
 
-      {/* Mark Attendance Dialog */}
+      {/* উপস্থিতি চিহ্নিতকরণ ডায়ালগ */}
       <MarkAttendanceDialog open={markOpen} onClose={() => setMarkOpen(false)} />
     </div>
   )

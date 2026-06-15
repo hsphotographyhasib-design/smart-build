@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const periodStart = new Date(y, m - 1, 1)
     const periodEnd = new Date(y, m, 0, 23, 59, 59, 999)
 
-    // Get all active labour
+    // সব সক্রিয় শ্রমিক পাওয়া হচ্ছে
     const labourList = await db.labour.findMany({
       where: { isActive: true },
     })
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No active labour found' }, { status: 400 })
     }
 
-    // Get attendance for the period
+    // সময়কালের জন্য উপস্থিতি পাওয়া হচ্ছে
     const attendanceRecords = await db.attendance.findMany({
       where: {
         projectId,
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Get advance deductions (pending/approved advances)
+    // অগ্রিম কর্তন পাওয়া হচ্ছে (মুলত্বী/অনুমোদিত অগ্রিম)
     const advances = await db.advancePayment.findMany({
       where: {
         labourId: { in: labourList.map((l) => l.id) },
@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
       select: { labourId: true, amount: true },
     })
 
-    // Build advance map
+    // অগ্রিম ম্যাপ তৈরি করা হচ্ছে
     const advanceMap = new Map<string, number>()
     for (const adv of advances) {
       advanceMap.set(adv.labourId, (advanceMap.get(adv.labourId) || 0) + adv.amount)
     }
 
-    // Build attendance map
+    // উপস্থিতি ম্যাপ তৈরি করা হচ্ছে
     const attMap = new Map<string, { daysWorked: number; otHours: number }>()
     for (const att of attendanceRecords) {
       const existing = attMap.get(att.labourId) || { daysWorked: 0, otHours: 0 }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       attMap.set(att.labourId, existing)
     }
 
-    // Delete existing payroll for same period/project
+    // একই সময়কাল/প্রজেক্টের জন্য বিদ্যমান পেরোল মুছে ফেলা হচ্ছে
     await db.payroll.deleteMany({
       where: {
         projectId,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate payroll for each labour
+    // পেরোল তৈরি করা হচ্ছে for each labour
     const created: unknown[] = []
     for (const labour of labourList) {
       const att = attMap.get(labour.id) || { daysWorked: 0, otHours: 0 }

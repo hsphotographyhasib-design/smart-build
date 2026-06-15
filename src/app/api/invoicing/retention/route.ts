@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Total retention held and released
+    // মোট ধারণ আটকানো এবং মুক্ত করা হয়েছে
     const [totalHeld, totalReleased] = await Promise.all([
       db.invoice.aggregate({
         _sum: { retentionAmount: true },
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Retention by project
+    // প্রজেক্ট অনুযায়ী ধারণ
     const byProject = await db.invoice.groupBy({
       by: ['projectId'],
       where: { retentionAmount: { gt: 0 }, status: { not: 'cancelled' } },
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       : []
     const projectMap = new Map(projects.map(p => [p.id, p]))
 
-    // Retention by vendor
+    // ভেন্ডর অনুযায়ী ধারণ
     const byVendor = await db.invoice.groupBy({
       by: ['vendorId', 'vendorName'],
       where: { retentionAmount: { gt: 0 }, vendorId: { not: null }, status: { not: 'cancelled' } },
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       _count: true,
     })
 
-    // Overdue retention (past retentionDueDate and not fully released)
+    // বিলম্বিত ধারণ (retentionDueDate অতিক্রান্ত এবং সম্পূর্ণভাবে মুক্ত নয়)
     const overdueRetention = await db.invoice.findMany({
       where: {
         retentionAmount: { gt: 0 },

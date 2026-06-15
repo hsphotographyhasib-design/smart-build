@@ -3,9 +3,9 @@ import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
 /**
- * GET /api/permissions/audit-log — Get permission audit logs with pagination
- * Super admin only.
- * Query params: page, limit, action, userId
+ * GET /api/permissions/audit-log — পৃষ্ঠাযুক্ত অনুমতি অডিট লগ সংগ্রহ করা হচ্ছে
+ * শুধুমাত্র super_admin।
+ * কোয়েরি প্যারামিটার: page, limit, action, userId
  */
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       db.permissionAuditLog.count({ where }),
     ])
 
-    // Batch-resolve user names for the returned logs
+    // প্রত্যাবর্তিত লগের জন্য ব্যবহারকারী নাম একসাথে সমাধান করা হচ্ছে
     const userIds = [...new Set(logs.map((l) => l.userId).filter((id): id is string => !!id))]
     const userMap = new Map<string, { name: string; email: string }>()
     if (userIds.length > 0) {

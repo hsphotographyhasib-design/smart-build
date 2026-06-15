@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ success: false, error: `Cannot reject invoice in '${invoice.status}' status` }, { status: 400 })
     }
 
-    // Create rejection action
+    // প্রত্যাখ্যান অ্যাকশন তৈরি করা হচ্ছে
     if (invoice.workflowInstance) {
       const currentStep = invoice.workflowInstance.workflow.steps.find(
         s => s.id === invoice.workflowInstance!.currentStepId
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         })
       }
 
-      // Complete workflow instance
+      // ওয়ার্কফ্লো ইনস্ট্যান্স সম্পন্ন করা হচ্ছে
       await db.invoiceWorkflowInstance.update({
         where: { id: invoice.workflowInstance.id },
         data: { status: 'rejected', completedAt: new Date() },

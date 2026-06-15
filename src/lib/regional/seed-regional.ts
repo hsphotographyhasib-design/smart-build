@@ -1,13 +1,13 @@
 import { db } from '@/lib/db'
 
 /**
- * Seed all regional localization data into the database.
- * Idempotent - safe to run multiple times.
+ * ডাটাবেজে সকল আঞ্চলিক লোকালাইজেশন ডেটা সিড করা হচ্ছে।
+ * আইডেম্পোটেন্ট - একাধিকবার চালানো নিরাপদ।
  */
 export async function seedRegionalData() {
   console.log('🌱 Seeding regional data...')
 
-  // ──────────── Currencies ────────────
+  // ──────────── মুদ্রা ────────────
   const currencyData: Record<string, { name: string; symbol: string; symbolNative: string; decimalDigits: number }> = {
     BND:  { name: 'Brunei Dollar',        symbol: 'B$',  symbolNative: 'B$',  decimalDigits: 2 },
     SGD:  { name: 'Singapore Dollar',      symbol: 'S$',  symbolNative: 'S$',  decimalDigits: 2 },
@@ -38,7 +38,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── Countries ────────────
+  // ──────────── দেশসমূহ ────────────
   const countryData = [
     { code: 'BN', name: 'Brunei',           callingCode: '+673', flagEmoji: '🇧🇳', timezone: 'Asia/Brunei',          utcOffset: 'UTC+8',    dateFormat: 'DD/MM/YYYY', sortOrder: 0 },
     { code: 'SG', name: 'Singapore',        callingCode: '+65', flagEmoji: '🇸🇬', timezone: 'Asia/Singapore',       utcOffset: 'UTC+8',    dateFormat: 'DD/MM/YYYY', sortOrder: 1 },
@@ -55,13 +55,13 @@ export async function seedRegionalData() {
     { code: 'IN', name: 'India',            callingCode: '+91', flagEmoji: '🇮🇳', timezone: 'Asia/Kolkata',         utcOffset: 'UTC+5:30', dateFormat: 'DD/MM/YYYY', sortOrder: 12 },
   ]
 
-  // Map country code → default currency code
+  // দেশের কোড → ডিফল্ট মুদ্রা কোড ম্যাপিং
   const countryCurrencyMap: Record<string, string> = {
     BN: 'BND', SG: 'SGD', MY: 'MYR', ID: 'IDR', TH: 'THB', PH: 'PHP', VN: 'VND',
     AU: 'AUD', GB: 'GBP', US: 'USD', AE: 'AED', SA: 'SAR', IN: 'INR',
   }
 
-  // Map country code → default language code
+  // দেশের কোড → ডিফল্ট ভাষা কোড ম্যাপিং
   const countryLanguageMap: Record<string, string[]> = {
     BN: ['en'], SG: ['en', 'zh', 'ms'], MY: ['ms', 'en', 'zh'],
     ID: ['id', 'en'], TH: ['th', 'en'], PH: ['en', 'fil'],
@@ -69,7 +69,7 @@ export async function seedRegionalData() {
     AE: ['ar', 'en'], SA: ['ar', 'en'], IN: ['en', 'hi'],
   }
 
-  // Tax rules
+  // কর নিয়মাবলী
   const countryTaxMap: Record<string, { name: string; rate: number }> = {
     BN: { name: 'No Tax', rate: 0 },
     SG: { name: 'GST', rate: 0.09 },
@@ -98,7 +98,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── Languages ────────────
+  // ──────────── ভাষাসমূহ ────────────
   const languageData = [
     { code: 'en',  name: 'English',    nativeName: 'English' },
     { code: 'ms',  name: 'Malay',      nativeName: 'Bahasa Melayu' },
@@ -122,7 +122,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── RegionalCurrency Links ────────────
+  // ──────────── আঞ্চলিক মুদ্রা লিংক ────────────
   for (const [cc, curCode] of Object.entries(countryCurrencyMap)) {
     const cid = countryIds[cc]
     const curId = currencyIds[curCode]
@@ -138,7 +138,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── CountryLanguage Links ────────────
+  // ──────────── দেশ-ভাষা লিংক ────────────
   for (const [cc, langs] of Object.entries(countryLanguageMap)) {
     const cid = countryIds[cc]
     if (!cid) continue
@@ -159,7 +159,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── Tax Rules ────────────
+  // ──────────── কর নিয়মাবলী ────────────
   for (const [cc, tax] of Object.entries(countryTaxMap)) {
     const cid = countryIds[cc]
     if (!cid) continue
@@ -173,7 +173,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── Exchange Rates ────────────
+  // ──────────── বিনিময় হার ────────────
   const baseCurrencyId = currencyIds['BND']
   if (baseCurrencyId) {
     const rates: Record<string, number> = {
@@ -193,7 +193,7 @@ export async function seedRegionalData() {
           data: { fromCurrencyId: baseCurrencyId, toCurrencyId, rate, source: 'manual' },
         })
       }
-      // Also create reverse
+      // বিপরীত হারও তৈরি করা হচ্ছে
       const existingReverse = await db.exchangeRate.findUnique({
         where: { fromCurrencyId_toCurrencyId: { fromCurrencyId: toCurrencyId, toCurrencyId: baseCurrencyId } },
       })
@@ -205,7 +205,7 @@ export async function seedRegionalData() {
     }
   }
 
-  // ──────────── Default Regional Settings ────────────
+  // ──────────── ডিফল্ট আঞ্চলিক সেটিংস ────────────
   const existingSettings = await db.regionalSetting.findFirst()
   if (!existingSettings) {
     await db.regionalSetting.create({
@@ -225,7 +225,7 @@ export async function seedRegionalData() {
   console.log('✅ Regional data seeding complete!')
 }
 
-// Run if called directly
+// সরাসরি কল করা হলে চালানো হবে
 if (typeof require !== 'undefined' && require.main === module) {
   seedRegionalData().catch(console.error)
 }

@@ -28,7 +28,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface PayrollRecord {
@@ -69,7 +69,7 @@ interface Project {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 function formatCurrency(amount: number) {
@@ -95,7 +95,7 @@ function statusBadge(status: string) {
 }
 
 // ──────────────────────────────────────────
-// Skeleton
+// স্কেলেটন
 // ──────────────────────────────────────────
 
 function TableSkeleton() {
@@ -117,7 +117,7 @@ function TableSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Generate Payroll Dialog
+// বেতন তৈরি ডায়ালগ
 // ──────────────────────────────────────────
 
 function GeneratePayrollDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -212,7 +212,7 @@ function GeneratePayrollDialog({ open, onClose }: { open: boolean; onClose: () =
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function PayrollPage() {
@@ -271,7 +271,7 @@ export function PayrollPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Payroll</h1>
@@ -287,7 +287,7 @@ export function PayrollPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* ফিল্টারসমূহ */}
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -339,7 +339,7 @@ export function PayrollPage() {
         </Select>
       </div>
 
-      {/* Content */}
+      {/* বিষয়বস্তু */}
       {isLoading ? (
         <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
       ) : error ? (
@@ -410,7 +410,7 @@ export function PayrollPage() {
                   </TableRow>
                 ))}
 
-                {/* Summary Row */}
+                {/* সারসংক্ষেপ সারি */}
                 <TableRow className="bg-muted/80 font-semibold">
                   <TableCell className="text-sm" colSpan={4}>Total</TableCell>
                   <TableCell className="text-right text-sm hidden lg:table-cell">{formatCurrency(summary.totalBasic)}</TableCell>
@@ -427,10 +427,10 @@ export function PayrollPage() {
         </Card>
       )}
 
-      {/* Generate Payroll Dialog */}
+      {/* বেতন তৈরি ডায়ালগ */}
       <GeneratePayrollDialog open={generateOpen} onClose={() => setGenerateOpen(false)} />
 
-      {/* Mark as Paid Confirmation */}
+      {/* পরিশোধিত হিসেবে চিহ্নিতকরণ নিশ্চিতকরণ */}
       <AlertDialog open={!!payId} onOpenChange={() => setPayId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

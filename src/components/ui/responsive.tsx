@@ -31,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 // ---------------------------------------------------------------------------
-// 1. ResponsiveTable
+// ১. ResponsiveTable
 // ---------------------------------------------------------------------------
 
 interface ResponsiveColumn {
@@ -146,7 +146,7 @@ function ResponsiveTable({
 }
 
 // ---------------------------------------------------------------------------
-// 2. ResponsiveGrid
+// ২. ResponsiveGrid
 // ---------------------------------------------------------------------------
 
 interface ResponsiveGridProps {
@@ -170,7 +170,7 @@ function ResponsiveGrid({
   const tablet = cols?.tablet ?? 2
   const desktop = cols?.desktop ?? 3
 
-  // Build responsive grid-cols classes
+  // রেসপন্সিভ grid-cols ক্লাস তৈরি করা হচ্ছে
   const colClasses = [
     mobile === 1
       ? 'grid-cols-1'
@@ -198,7 +198,7 @@ function ResponsiveGrid({
 }
 
 // ---------------------------------------------------------------------------
-// 3. ResponsiveModal
+// ৩. ResponsiveModal
 // ---------------------------------------------------------------------------
 
 interface ResponsiveModalProps
@@ -221,14 +221,13 @@ function ResponsiveModal({
 }: ResponsiveModalProps) {
   return (
     <Dialog>
-      {/* Trigger is handled by the caller wrapping in <Dialog> themselves */}
-      {/* We render only the content part; the caller must wrap this with
+      {/* ট্রিগার কলার নিজেই <Dialog> দিয়ে মোড়ানো করার মাধ্যমে পরিচালিত হয় */}
+      /* আমরা শুধুমাত্র বিষয়বস্তু অংশ রেন্ডার করি; কলারকে এটি
           <Dialog open={...} onOpenChange={...}> */}
 
-      {/* This component is intended to be used inside an already-opened Dialog.
-          We provide a self-contained wrapper that includes open/onOpenChange
-          for convenience, but the primary pattern is: caller controls Dialog
-          state and passes children into ResponsiveModal. */}
+      /* এই কম্পোনেন্টটি ইতিমধ্যে খোলা একটি Dialog-এর ভেতরে ব্যবহারের জন্য তৈরি করা হয়েছে।
+          সুবিধার্থে আমরা একটি স্বয়ংসম্পূর্ণ র‍্যাপার প্রদান করি যা open/onOpenChange অন্তর্ভুক্ত করে,
+          কিন্তু প্রাথমিক প্যাটার্নটি হলো: কলার ডায়ালগ অবস্থা নিয়ন্ত্রণ করে এবং ResponsiveModal-এ চাইল্ড্রেন পাস করে। */}
       <ResponsiveModalInner
         fullScreenMobile={fullScreenMobile}
         title={title}
@@ -243,7 +242,7 @@ function ResponsiveModal({
   )
 }
 
-// Internal content component used by ResponsiveModal
+// ResponsiveModal দ্বারা ব্যবহৃত অভ্যন্তরীণ বিষয়বস্তু কম্পোনেন্ট
 function ResponsiveModalInner({
   fullScreenMobile = true,
   title,
@@ -270,7 +269,7 @@ function ResponsiveModalInner({
   )
 }
 
-// Convenience: use ResponsiveModalContent when the parent Dialog is already open
+// সুবিধা: যখন প্যারেন্ট Dialog ইতিমধ্যে খোলা থাকে তখন ResponsiveModalContent ব্যবহার করুন
 interface ResponsiveModalContentProps
   extends React.ComponentProps<typeof DialogContent> {
   fullScreenMobile?: boolean
@@ -294,7 +293,7 @@ function ResponsiveModalContent({
 }
 
 // ---------------------------------------------------------------------------
-// 4. ResponsiveChart
+// ৪. ResponsiveChart
 // ---------------------------------------------------------------------------
 
 interface ResponsiveChartProps {
@@ -364,7 +363,7 @@ function ResponsiveChart({
 }
 
 // ---------------------------------------------------------------------------
-// 5. MobileOnly & DesktopOnly
+// ৫. MobileOnly ও DesktopOnly
 // ---------------------------------------------------------------------------
 
 function MobileOnly({ children, className }: { children: ReactNode; className?: string }) {
@@ -376,7 +375,7 @@ function DesktopOnly({ children, className }: { children: ReactNode; className?:
 }
 
 // ---------------------------------------------------------------------------
-// 6. ResponsivePagination
+// ৬. ResponsivePagination
 // ---------------------------------------------------------------------------
 
 interface ResponsivePaginationProps {
@@ -395,7 +394,7 @@ function ResponsivePagination({
   const canGoPrev = currentPage > 1
   const canGoNext = currentPage < totalPages
 
-  // Build page numbers for desktop view with ellipsis
+  // ইলিপসিস সহ ডেস্কটপ ভিউয়ের জন্য পৃষ্ঠা সংখ্যা তৈরি করা হচ্ছে
   function getPageNumbers(): (number | 'ellipsis')[] {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -514,7 +513,7 @@ function ResponsivePagination({
 }
 
 // ---------------------------------------------------------------------------
-// Exports
+// রপ্তানিসমূহ
 // ---------------------------------------------------------------------------
 
 export {

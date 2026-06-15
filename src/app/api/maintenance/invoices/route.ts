@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer ID is required' }, { status: 400 })
     }
 
-    // Auto-generate invoice number
+    // স্বয়ংক্রিয়ভাবে ইনভয়েস নম্বর তৈরি করা হচ্ছে
     const year = new Date().getFullYear()
     const prefix = 'MIV'
     const count = await db.maintenanceInvoice.count({

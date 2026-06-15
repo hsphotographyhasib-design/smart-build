@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       ? attendance.filter((a) => a.labour.groupId === groupId)
       : attendance
 
-    // Summary
+    // সারসংক্ষেপ
     const summary = {
       present: filtered.filter((a) => a.status === 'present').length,
       absent: filtered.filter((a) => a.status === 'absent').length,
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     for (const record of records) {
       if (!record.labourId || !record.status) continue
 
-      // Upsert: delete existing if present, then create
+      // আপসার্ট: বিদ্যমান থাকলে মুছে ফেলুন, তারপর তৈরি করুন
       await db.attendance.deleteMany({
         where: {
           projectId,

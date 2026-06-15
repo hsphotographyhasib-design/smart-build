@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Client-side error monitoring utility
+// ক্লায়েন্ট-সাইড ত্রুটি পর্যবেক্ষণ সহায়ক
 // ---------------------------------------------------------------------------
 
 export interface ErrorEvent {
@@ -13,23 +13,23 @@ export interface ErrorEvent {
 }
 
 // ---------------------------------------------------------------------------
-// ErrorMonitor class
+// ErrorMonitor ক্লাস
 // ---------------------------------------------------------------------------
 
 class ErrorMonitor {
   private errors: ErrorEvent[] = []
   private maxErrors: number = 100
 
-  /** Record an error event. */
+  /** একটি ত্রুটি ইভেন্ট রেকর্ড করা হচ্ছে। */
   log(event: ErrorEvent): void {
     this.errors.push(event)
 
-    // Evict oldest entries when we exceed the cap
+    // সীমা অতিক্রম করলে পুরনো এন্ট্রি অপসারণ করা হচ্ছে
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(-this.maxErrors)
     }
 
-    // Always echo to the native console for developer tooling
+    // ডেভেলপার টুলিংয়ের জন্য সর্বদা নেটিভ কনসোলে আউটপুট দেওয়া হচ্ছে
     if (event.severity === 'critical') {
       console.error(`[ErrorMonitor][${event.type}]`, event.message, event.stack ?? '')
     } else if (event.severity === 'warning') {
@@ -39,7 +39,7 @@ class ErrorMonitor {
     }
   }
 
-  /** Return the most recent N errors (newest first). */
+  /** সর্বশেষ Nটি ত্রুটি প্রদান করা হচ্ছে (নতুন থেকে পুরনো ক্রমে)। */
   getErrors(limit?: number): ErrorEvent[] {
     if (!limit || limit >= this.errors.length) {
       return [...this.errors].reverse()
@@ -47,7 +47,7 @@ class ErrorMonitor {
     return this.errors.slice(-limit).reverse()
   }
 
-  /** Return a count of errors grouped by type. */
+  /** ধরন অনুযায়ী ত্রুটির গণনা প্রদান করা হচ্ছে। */
   getCountByType(): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const e of this.errors) {
@@ -56,12 +56,12 @@ class ErrorMonitor {
     return counts
   }
 
-  /** Clear all stored errors. */
+  /** সকল সংরক্ষিত ত্রুটি মুছে ফেলা হচ্ছে। */
   clear(): void {
     this.errors = []
   }
 
-  /** Get a compact summary of the current error state. */
+  /** বর্তমান ত্রুটি অবস্থার একটি সংক্ষিপ্ত সারাংশ প্রদান করা হচ্ছে। */
   getSummary(): { total: number; critical: number; byType: Record<string, number> } {
     let critical = 0
     const byType: Record<string, number> = {}
@@ -75,11 +75,11 @@ class ErrorMonitor {
   }
 }
 
-/** Singleton error monitor instance. */
+/** সিঙ্গলটন ত্রুটি পর্যবেক্ষণ ইনস্ট্যান্স। */
 export const errorMonitor = new ErrorMonitor()
 
 // ---------------------------------------------------------------------------
-// React hook – convenient error handler for components
+// React হুক — কম্পোনেন্টের জন্য সুবিধাজনক ত্রুটি হ্যান্ডলার
 // ---------------------------------------------------------------------------
 
 export function useErrorHandler(): {
@@ -101,16 +101,16 @@ export function useErrorHandler(): {
 }
 
 // ---------------------------------------------------------------------------
-// Global unhandled error listeners
+// গ্লোবাল অহ্যান্ডেল করা না হওয়া ত্রুটি শ্রোতা
 // ---------------------------------------------------------------------------
 
 /**
- * Initialise global error listeners.
- * Call once in a client layout (e.g. inside a `useEffect`).
- * Returns a cleanup function that removes all listeners.
+ * গ্লোবাল ত্রুটি শ্রোতা আরম্ভ করা হচ্ছে।
+ * একটি ক্লায়েন্ট লেআউটে একবার কল করুন (যেমন `useEffect` এর ভিতরে)।
+ * সকল শ্রোতা সরানোর একটি ক্লিনআপ ফাংশন প্রদান করে।
  */
 export function initErrorMonitoring(): () => void {
-  // --- Unhandled promise rejections ---
+  // --- হ্যান্ডেল করা হয়নি এমন Promise প্রত্যাখ্যান ---
   const handleRejection = (event: PromiseRejectionEvent) => {
     event.preventDefault()
     const message =
@@ -128,10 +128,10 @@ export function initErrorMonitoring(): () => void {
     })
   }
 
-  // --- Uncaught runtime errors ---
-  // Use globalThis.ErrorEvent to avoid shadowing by our own exported ErrorEvent interface
+  // --- ধরা পড়েনি এমন রানটাইম ত্রুটি ---
+  // আমাদের রপ্তানি করা ErrorEvent ইন্টারফেস দ্বারা ছায়া পড়তে এড়াতে globalThis.ErrorEvent ব্যবহার করা হচ্ছে
   const handleError = (event: globalThis.ErrorEvent) => {
-    // DOM ErrorEvent – `event.error` may be an Error object
+    // DOM ErrorEvent – `event.error` একটি Error অবজেক্ট হতে পারে
     const errorObj = (event as unknown as { error?: Error }).error
     const message = errorObj instanceof Error ? errorObj.message : event.message
     const stack = errorObj instanceof Error ? errorObj.stack : undefined
@@ -151,7 +151,7 @@ export function initErrorMonitoring(): () => void {
   window.addEventListener('unhandledrejection', handleRejection as EventListener)
   window.addEventListener('error', handleError as EventListener)
 
-  // Return cleanup function
+  // ক্লিনআপ ফাংশন প্রদান করা হচ্ছে
   return () => {
     window.removeEventListener('unhandledrejection', handleRejection as EventListener)
     window.removeEventListener('error', handleError as EventListener)

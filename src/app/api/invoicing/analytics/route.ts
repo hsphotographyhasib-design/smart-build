@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1)
 
-    // 1. Invoice volume by month
+    // 1. মাস অনুযায়ী ইনভয়েসের পরিমাণ
     const invoicesByMonth = await db.invoice.findMany({
       where: { createdAt: { gte: twelveMonthsAgo }, status: { not: 'cancelled' } },
       select: { createdAt: true, total: true, type: true },
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Average approval time by type
+    // 2. ধরন অনুযায়ী গড় অনুমোদন সময়
     const approvedInvoices = await db.invoice.findMany({
       where: {
         status: 'approved',
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       avgApprovalTimeByType[type] = Math.round((totalDays / approvalCountByType[type]) * 100) / 100
     }
 
-    // 3. Approval bottlenecks (steps with longest avg time)
+    // 3. অনুমোদন বাধা (সবচেয়ে দীর্ঘ গড় সময়ের ধাপ)
     const actions = await db.invoiceApprovalAction.findMany({
       where: { action: { in: ['approved', 'escalated'] } },
       include: { step: { select: { id: true, label: true } } },
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.avgDays - a.avgDays)
       .slice(0, 5)
 
-    // 4. Outstanding payments summary
+    // 4. বকেয়া পেমেন্টের সারসংক্ষেপ
     const outstandingByProject = await db.invoice.groupBy({
       by: ['projectId'],
       where: { outstandingAmount: { gt: 0 }, status: { not: 'cancelled' } },
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       : []
     const projMap = new Map(projList.map(p => [p.id, p]))
 
-    // 5. Invoice aging distribution
+    // 5. ইনভয়েস বয়স বিতরণ
     const unpaidInvoices = await db.invoice.findMany({
       where: {
         paymentStatus: { in: ['unpaid', 'partial', 'overdue'] },
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
       aging.counts[bucket]++
     }
 
-    // 6. Cashflow impact (invoices approved minus payments received) by month
+    // 6. মাস অনুযায়ী নগদ প্রবাহের প্রভাব (অনুমোদিত ইনভয়েস বিয়োগ প্রাপ্ত পেমেন্ট)
     const approvedMonthly = await db.invoice.findMany({
       where: { status: 'approved', approvedAt: { gte: twelveMonthsAgo } },
       select: { approvedAt: true, total: true },

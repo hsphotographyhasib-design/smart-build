@@ -1,3 +1,3 @@
 // src/modules/collaboration/services/index.ts
-// Collaboration Module - Services Barrel Export
-// API service functions for collaboration will be added here
+// কোলাবোরেশন মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// কোলাবোরেশনের API সার্ভিস ফাংশন এখানে যোগ করা হবে

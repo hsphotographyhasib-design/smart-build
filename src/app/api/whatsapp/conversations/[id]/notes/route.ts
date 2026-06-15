@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — Get internal notes for conversation
+// GET — কথোপকথনের জন্য অভ্যন্তরীণ নোট পাওয়া হচ্ছে
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,7 +32,7 @@ export async function GET(
   }
 }
 
-// POST — Add internal note
+// POST — অভ্যন্তরীণ নোট যোগ করা হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

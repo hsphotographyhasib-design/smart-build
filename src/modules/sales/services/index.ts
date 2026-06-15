@@ -1,3 +1,3 @@
 // src/modules/sales/services/index.ts
-// Sales Module - Services Barrel Export
-// API service functions for sales will be added here
+// সেলস মডিউল - সার্ভিস ব্যারেল এক্সপোর্ট
+// সেলসের API সার্ভিস ফাংশন এখানে যোগ করা হবে

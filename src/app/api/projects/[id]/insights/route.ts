@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     const { id: projectId } = await params
 
-    // Budget
+    // বাজেট
     const project = await db.project.findUnique({ where: { id: projectId }, select: { budget: true } })
     const budgetTotal = project?.budget ?? 0
 
@@ -25,15 +25,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const budgetUsed = expenseAgg._sum.amount ?? 0
     const totalCommitments = commitmentAgg._sum.committedCost ?? 0
 
-    // Open items summary
+    // উন্মুক্ত আইটেমের সারসংক্ষেপ
     const openItemsSummary: Record<string, number> = {}
     openItems.forEach(oi => { openItemsSummary[oi.status] = (openItemsSummary[oi.status] || 0) + 1 })
 
-    // RFI breakdown
+    // RFI বিভাজন
     const rfiBreakdown: Record<string, number> = {}
     rfis.forEach(r => { rfiBreakdown[r.status] = (rfiBreakdown[r.status] || 0) + 1 })
 
-    // Direct costs by category
+    // বিভাগ অনুযায়ী প্রত্যক্ষ খরচ
     const categoryMap: Record<string, number> = {}
     directCosts.forEach(c => { categoryMap[c.category] = (categoryMap[c.category] || 0) + c.amount })
     const costsByCategory = Object.entries(categoryMap).map(([category, amount]) => ({
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       amount,
     }))
 
-    // Change events summary
+    // পরিবর্তন ইভেন্টের সারসংক্ষেপ
     const ceSummary: Record<string, number> = { total: changeEvents.length }
     changeEvents.forEach(ce => { ceSummary[ce.status] = (ceSummary[ce.status] || 0) + 1 })
 

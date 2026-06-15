@@ -120,13 +120,13 @@ export function CostControlDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Cost Control Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">Monitor budgets, costs, and change orders across all projects</p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI কার্ড */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="relative overflow-hidden">
@@ -146,9 +146,9 @@ export function CostControlDashboard() {
         ))}
       </div>
 
-      {/* Charts Row */}
+      {/* চার্ট সারি */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Budget vs Actual Bar Chart */}
+        {/* বাজেট বনাম প্রকৃত বার চার্ট */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Budget vs Actual by Project</CardTitle>
@@ -179,7 +179,7 @@ export function CostControlDashboard() {
           </CardContent>
         </Card>
 
-        {/* Cost Code Distribution Pie Chart */}
+        {/* খরচ কোড বিতরণ পাই চার্ট */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Cost Code Distribution</CardTitle>
@@ -217,9 +217,9 @@ export function CostControlDashboard() {
         </Card>
       </div>
 
-      {/* Bottom Row */}
+      {/* নিচের সারি */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Change Orders */}
+        {/* সাম্প্রতিক পরিবর্তন অর্ডার */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Recent Change Orders</CardTitle>
@@ -268,7 +268,7 @@ export function CostControlDashboard() {
           </CardContent>
         </Card>
 
-        {/* Budget Status Overview */}
+        {/* বাজেট স্ট্যাটাস সারসংক্ষেপ */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Budget Status</CardTitle>
@@ -305,7 +305,7 @@ export function CostControlDashboard() {
         </Card>
       </div>
 
-      {/* Monthly Trend */}
+      {/* মাসিক ট্রেন্ড */}
       {monthlyTrends.length > 0 && (
         <Card>
           <CardHeader className="pb-2">

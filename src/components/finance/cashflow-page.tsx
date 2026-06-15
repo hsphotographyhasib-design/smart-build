@@ -37,7 +37,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 // ──────────────────────────────────────────
-// Types
+// প্রকারভেদ
 // ──────────────────────────────────────────
 
 interface CashflowData {
@@ -68,7 +68,7 @@ interface CashflowData {
 }
 
 // ──────────────────────────────────────────
-// Helpers
+// সহায়ক ফাংশনসমূহ
 // ──────────────────────────────────────────
 
 const months = [
@@ -107,7 +107,7 @@ function abbreviateCurrency(value: number): string {
 }
 
 // ──────────────────────────────────────────
-// Skeleton Loaders
+// স্কেলেটন লোডারসমূহ
 // ──────────────────────────────────────────
 
 function SummarySkeleton() {
@@ -148,7 +148,7 @@ function ChartSkeleton() {
 }
 
 // ──────────────────────────────────────────
-// Custom Chart Tooltip
+// কাস্টম চার্ট টুলটিপ
 // ──────────────────────────────────────────
 
 function ChartTooltipContent({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
@@ -170,7 +170,7 @@ function ChartTooltipContent({ active, payload, label }: { active?: boolean; pay
 }
 
 // ──────────────────────────────────────────
-// Main Component
+// প্রধান উপাদান
 // ──────────────────────────────────────────
 
 export function CashflowPage() {
@@ -178,7 +178,7 @@ export function CashflowPage() {
   const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1))
   const [selectedYear, setSelectedYear] = useState(String(now.getFullYear()))
 
-  // Generate year options
+  // বছরের অপশন তৈরি
   const yearOptions = useMemo(() => {
     const currentYear = now.getFullYear()
     return [
@@ -197,7 +197,7 @@ export function CashflowPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* হেডার */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cashflow</h1>
@@ -205,7 +205,7 @@ export function CashflowPage() {
         </div>
       </div>
 
-      {/* Period Selector */}
+      {/* সময়কাল নির্বাচক */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-full sm:w-[180px]">
@@ -234,7 +234,7 @@ export function CashflowPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* সারসংক্ষেপ কার্ড */}
       {isLoading ? (
         <SummarySkeleton />
       ) : (
@@ -296,7 +296,7 @@ export function CashflowPage() {
         </div>
       )}
 
-      {/* Monthly Trend Chart */}
+      {/* মাসিক ট্রেন্ড চার্ট */}
       {isLoading ? (
         <ChartSkeleton />
       ) : error ? (
@@ -308,7 +308,7 @@ export function CashflowPage() {
         </Card>
       ) : !cashflow ? null : (
         <>
-          {/* Chart */}
+          {/* চার্ট */}
           {cashflow.monthlyTrend && cashflow.monthlyTrend.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
@@ -347,9 +347,9 @@ export function CashflowPage() {
             </Card>
           )}
 
-          {/* Inflows & Outflows Tables */}
+          {/* আয় ও ব্যয় টেবিল */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Inflows Table */}
+            {/* আয় টেবিল */}
             <Card className="overflow-hidden">
               <CardHeader className="pb-2 pt-4 px-5">
                 <div className="flex items-center gap-2">
@@ -390,7 +390,7 @@ export function CashflowPage() {
               </CardContent>
             </Card>
 
-            {/* Outflows Table */}
+            {/* ব্যয় টেবিল */}
             <Card className="overflow-hidden">
               <CardHeader className="pb-2 pt-4 px-5">
                 <div className="flex items-center gap-2">

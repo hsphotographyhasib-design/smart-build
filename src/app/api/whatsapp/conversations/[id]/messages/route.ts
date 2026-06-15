@@ -12,11 +12,11 @@ async function emitEvent(event: string, data: unknown) {
       body: JSON.stringify({ event, data }),
     })
   } catch {
-    // Socket service may not be running
+    // Socket সার্ভিস চলছে না হতে পারে
   }
 }
 
-// GET — List messages in conversation (paginated)
+// GET — কথোপকথনে মেসেজের তালিকা (পেজিনেটেড)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -67,7 +67,7 @@ export async function GET(
   }
 }
 
-// POST — Send message via WhatsApp API
+// POST — WhatsApp API-এর মাধ্যমে মেসেজ পাঠানো হচ্ছে
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -96,7 +96,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'WhatsApp not configured' }, { status: 400 })
     }
 
-    // Build WhatsApp API payload
+    // WhatsApp API পেলোড তৈরি করা হচ্ছে
     const waPayload: Record<string, unknown> = {
       messaging_product: 'whatsapp',
       to: conversation.contact.phone,
@@ -104,7 +104,7 @@ export async function POST(
       text: { body: content },
     }
 
-    // Send via WhatsApp Business API
+    // WhatsApp Business API-এর মাধ্যমে পাঠানো হচ্ছে
     let waMessageId: string | null = null
     try {
       const response = await fetch(
@@ -123,10 +123,10 @@ export async function POST(
         waMessageId = result.messages[0].id as string
       }
     } catch {
-      // Store message even if WhatsApp API fails
+      // WhatsApp API ব্যর্থ হলেও মেসেজ সংরক্ষণ করা হচ্ছে
     }
 
-    // Store message in DB
+    // ডাটাবেজে মেসেজ সংরক্ষণ করা হচ্ছে
     const message = await db.whatsAppMessage.create({
       data: {
         conversationId: id,
@@ -141,7 +141,7 @@ export async function POST(
       },
     })
 
-    // Update conversation
+    // কথোপকথন আপডেট করা হচ্ছে
     await db.whatsAppConversation.update({
       where: { id },
       data: {
