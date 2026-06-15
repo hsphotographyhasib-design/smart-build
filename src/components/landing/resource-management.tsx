@@ -1,296 +1,263 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 import {
-  UserCog,
+  Users,
   Wrench,
   TrendingUp,
   Activity,
   Truck,
-  Zap,
-  ArrowRight,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  Target,
+  ChevronRight,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const features = [
   {
-    icon: UserCog,
-    title: 'Labour Planning & Scheduling',
-    description: 'Optimize crew assignments and shift schedules across all active projects.',
+    icon: Users,
+    title: 'Labour Planning',
+    description: 'Plan and allocate workforce across projects with skill-based matching and availability tracking.',
   },
   {
     icon: Wrench,
-    title: 'Equipment Tracking & Maintenance',
-    description: 'Monitor equipment health and schedule preventive maintenance automatically.',
+    title: 'Equipment Tracking',
+    description: 'Monitor equipment location, usage hours, and maintenance schedules in real time.',
   },
   {
     icon: TrendingUp,
-    title: 'Resource Forecasting & Demand Planning',
-    description: 'Predict resource needs based on project timelines and historical data.',
+    title: 'Resource Forecasting',
+    description: 'AI-powered forecasting predicts resource needs based on project timelines and historical data.',
   },
   {
     icon: Activity,
-    title: 'Crew Productivity Monitoring',
-    description: 'Measure and benchmark crew performance with real-time productivity metrics.',
+    title: 'Productivity Monitoring',
+    description: 'Track output per worker and crew with automated KPI dashboards and benchmarks.',
   },
   {
     icon: Truck,
-    title: 'Vehicle & Tool Management',
-    description: 'Track fleet vehicles and tools with check-in/check-out and location history.',
+    title: 'Vehicle Management',
+    description: 'Fleet tracking, fuel logs, and driver assignments consolidated in one place.',
   },
   {
-    icon: Zap,
-    title: 'Skill Matching Engine',
-    description: 'Automatically match the right skilled workers to tasks based on certifications.',
+    icon: Target,
+    title: 'Skill Matching',
+    description: 'Match the right workers to the right tasks based on certifications, experience, and availability.',
   },
-]
+];
+
+const utilizationData = [
+  { label: 'Electricians', value: 92, color: '#ff5201' },
+  { label: 'Carpenters', value: 78, color: '#ff7a3d' },
+  { label: 'Plumbers', value: 85, color: '#ff9966' },
+  { label: 'Welders', value: 65, color: '#ffb399' },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.08 },
   },
-}
+};
 
 const itemVariants = {
-  hidden: { opacity: 0, x: -30 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.5 } },
-}
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
-function ResourceDashboardMockup() {
-  const resources = [
-    { name: 'Electricians', util: 92, color: '#3b82f6' },
-    { name: 'Carpenters', util: 78, color: '#f97316' },
-    { name: 'Plumbers', util: 85, color: '#22c55e' },
-    { name: 'Welders', util: 65, color: '#a855f7' },
-    { name: 'Operators', util: 88, color: '#06b6d4' },
-  ]
+function DonutChart({ percentage }: { percentage: number }) {
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 30 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-      className="relative w-full"
-    >
-      {/* Main glass card */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl shadow-2xl">
-        {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-semibold text-white">Resource Allocation</h4>
-            <p className="text-xs text-blue-300">Real-time utilization across teams</p>
-          </div>
-          <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-blue-200">
-            Live
-          </div>
-        </div>
-
-        {/* Utilization bars */}
-        <div className="space-y-3.5">
-          {resources.map((resource, index) => (
-            <motion.div
-              key={resource.name}
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-            >
-              <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-xs font-medium text-blue-100">{resource.name}</span>
-                <span className="text-xs font-semibold text-white">{resource.util}%</span>
-              </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${resource.util}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: 0.5 + index * 0.1, ease: 'easeOut' }}
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: resource.color }}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Bottom row: donut chart + stat cards */}
-        <div className="mt-6 flex items-center gap-4">
-          {/* CSS donut chart */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative w-32 h-32">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="12"
+          />
+          <motion.circle
+            cx="64"
+            cy="64"
+            r={radius}
+            fill="none"
+            stroke="#ff5201"
+            strokeWidth="12"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            whileInView={{ strokeDashoffset: offset }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-            className="relative shrink-0"
-          >
-            <div
-              className="h-24 w-24 rounded-full"
-              style={{
-                background: `conic-gradient(
-                  #3b82f6 0deg 130deg,
-                  #f97316 130deg 220deg,
-                  #22c55e 220deg 290deg,
-                  #a855f7 290deg 340deg,
-                  #06b6d4 340deg 360deg
-                )`,
-              }}
-            >
-              <div className="absolute inset-2 flex items-center justify-center rounded-full bg-blue-950">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">87%</div>
-                  <div className="text-[8px] text-blue-300">Avg Util</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Legend */}
-          <div className="flex flex-1 flex-wrap gap-x-4 gap-y-1.5">
-            {resources.map((r, i) => (
-              <motion.div
-                key={r.name}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.9 + i * 0.08 }}
-                className="flex items-center gap-1.5"
-              >
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: r.color }}
-                />
-                <span className="text-[10px] text-blue-200">{r.name}</span>
-              </motion.div>
-            ))}
-          </div>
+            transition={{ duration: 1.5, ease: 'easeOut', delay: 0.3 }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-white">{percentage}%</span>
+          <span className="text-[10px] text-white/50 uppercase tracking-wider">Avg Utilization</span>
         </div>
       </div>
-
-      {/* Floating stat cards */}
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -right-4 -top-4 rounded-xl border border-white/10 bg-white/[0.1] px-4 py-3 backdrop-blur-lg shadow-lg"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/20">
-            <Activity className="h-5 w-5 text-green-400" />
-          </div>
-          <div>
-            <div className="text-[10px] text-blue-300">Utilization Rate</div>
-            <div className="text-xl font-bold text-white">87%</div>
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -bottom-4 -left-4 rounded-xl border border-white/10 bg-white/[0.1] px-4 py-3 backdrop-blur-lg shadow-lg"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/20">
-            <UserCog className="h-5 w-5 text-orange-400" />
-          </div>
-          <div>
-            <div className="text-[10px] text-blue-300">Idle Resources</div>
-            <div className="text-xl font-bold text-white">12</div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
+    </div>
+  );
 }
 
 export function ResourceManagement() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 py-20 md:py-28">
-      {/* Subtle background pattern */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
-        <div
-          className="h-full w-full"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
-
-      {/* Decorative gradient orbs */}
-      <div className="pointer-events-none absolute -left-32 top-1/4 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-1/4 h-64 w-64 rounded-full bg-orange-500/5 blur-3xl" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-[#000000] py-20 md:py-28 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-16 text-center"
+          className="text-center mb-14 md:mb-20"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
             Smart Resource Management
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-200">
-            Optimize your workforce, equipment, and materials across all projects
+          <p className="mt-4 text-base sm:text-lg text-white/60 max-w-2xl mx-auto">
+            Optimize workforce, equipment, and materials across every job site with data-driven insights.
           </p>
         </motion.div>
 
-        {/* Content grid */}
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Left: Feature list */}
+        {/* 2-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
+          {/* Left: Feature Cards */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="space-y-5"
+            className="flex flex-col gap-3"
           >
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <motion.div
-                  key={feature.title}
-                  variants={itemVariants}
-                  className="group relative rounded-xl border-l-[3px] border-l-orange-400/60 bg-white/[0.04] px-5 py-4 transition-all duration-300 hover:bg-white/[0.08]"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] transition-colors group-hover:bg-orange-500/20">
-                      <Icon className="h-5 w-5 text-orange-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">
-                        {feature.title}
-                      </h3>
-                      <p className="mt-1 text-xs leading-relaxed text-blue-300/80">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )
-            })}
-
-            <motion.div variants={itemVariants} className="pt-2">
-              <Button
-                variant="outline"
-                className="border-orange-400/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20 hover:text-orange-200"
+            {features.map((feature) => (
+              <motion.div
+                key={feature.title}
+                variants={itemVariants}
+                className={cn(
+                  'group relative rounded-lg border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 cursor-default',
+                  'hover:bg-white/[0.06] hover:border-white/15'
+                )}
               >
-                Explore Resources
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </motion.div>
+                {/* Orange left border on hover */}
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg bg-[#ff5201] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" />
+                <div className="flex items-start gap-4 pl-2">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center group-hover:bg-[#ff5201]/10 transition-colors duration-300">
+                    <feature.icon className="w-5 h-5 text-white/60 group-hover:text-[#ff5201] transition-colors duration-300" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-white group-hover:text-white transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-white/40 leading-relaxed group-hover:text-white/55 transition-colors">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
 
-          {/* Right: Dashboard mockup */}
-          <ResourceDashboardMockup />
+          {/* Right: Dashboard Mockup */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="flex flex-col gap-6"
+          >
+            {/* Utilization Bars Card */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Team Utilization</h3>
+                  <p className="text-xs text-white/40 mt-0.5">Current sprint — this week</p>
+                </div>
+                <span className="text-xs text-white/30 bg-white/[0.06] px-2.5 py-1 rounded-md">
+                  Live
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {utilizationData.map((item, index) => (
+                  <motion.div
+                    key={item.label}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-white/70">{item.label}</span>
+                      <span className="text-xs font-semibold text-white">{item.value}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ backgroundColor: item.color }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${item.value}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, ease: 'easeOut', delay: 0.4 + index * 0.1 }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Donut Chart Card */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 flex items-center gap-6">
+              <DonutChart percentage={87} />
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="w-2 h-2 rounded-full bg-[#ff5201]" />
+                    <span className="text-xs text-white/60">On-Site</span>
+                  </div>
+                  <span className="text-lg font-bold text-white">312</span>
+                  <span className="text-xs text-white/40 ml-1">workers</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="w-2 h-2 rounded-full bg-white/20" />
+                    <span className="text-xs text-white/60">Available</span>
+                  </div>
+                  <span className="text-lg font-bold text-white">47</span>
+                  <span className="text-xs text-white/40 ml-1">workers</span>
+                </div>
+                <div className="text-[11px] text-white/30 pt-1 border-t border-white/5">
+                  Updated 5 min ago
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-14 md:mt-20 text-center"
+        >
+          <Button
+            variant="outline"
+            className="border-[#ff5201] text-[#ff5201] hover:bg-[#ff5201] hover:text-white transition-all duration-300 rounded-lg px-6 py-2.5 text-sm"
+          >
+            Explore Resources
+            <ChevronRight className="ml-1.5 w-4 h-4" />
+          </Button>
+        </motion.div>
       </div>
     </section>
-  )
+  );
 }

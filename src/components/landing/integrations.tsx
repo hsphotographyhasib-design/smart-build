@@ -4,58 +4,65 @@ import { motion } from 'framer-motion'
 import {
   MapPin,
   MessageCircle,
-  FileText,
+  FileSpreadsheet,
   Mail,
-  Receipt,
-  DollarSign,
+  BookOpen,
+  CreditCard,
   BarChart3,
-  PenTool,
+  PencilRuler,
   Table,
-  Code,
+  Plug,
 } from 'lucide-react'
+import { type LucideIcon } from 'lucide-react'
 
-const integrations = [
-  { name: 'Google Maps', icon: MapPin, color: 'text-gray-500' },
-  { name: 'WhatsApp', icon: MessageCircle, color: 'text-green-500' },
-  { name: 'Microsoft 365', icon: FileText, color: 'text-blue-500' },
-  { name: 'Google Workspace', icon: Mail, color: 'text-blue-600' },
-  { name: 'QuickBooks', icon: Receipt, color: 'text-green-600' },
-  { name: 'Xero', icon: DollarSign, color: 'text-blue-400' },
-  { name: 'Power BI', icon: BarChart3, color: 'text-yellow-500' },
-  { name: 'AutoCAD', icon: PenTool, color: 'text-red-500' },
-  { name: 'Excel', icon: Table, color: 'text-green-500' },
-  { name: 'API', icon: Code, color: 'text-purple-500' },
+interface Integration {
+  icon: LucideIcon
+  name: string
+}
+
+const integrations: Integration[] = [
+  { icon: MapPin, name: 'Google Maps' },
+  { icon: MessageCircle, name: 'WhatsApp' },
+  { icon: FileSpreadsheet, name: 'Microsoft 365' },
+  { icon: Mail, name: 'Google Workspace' },
+  { icon: CreditCard, name: 'QuickBooks' },
+  { icon: BookOpen, name: 'Xero' },
+  { icon: BarChart3, name: 'Power BI' },
+  { icon: PencilRuler, name: 'AutoCAD' },
+  { icon: Table, name: 'Excel' },
+  { icon: Plug, name: 'API' },
 ]
 
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: {},
   visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
+    transition: {
+      staggerChildren: 0.06,
+    },
   },
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.4, ease: 'easeOut' },
   },
 }
 
 export function Integrations() {
   return (
     <section className="bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl">
             Seamless Integrations
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
@@ -67,34 +74,34 @@ export function Integrations() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
-          className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-5"
+          viewport={{ once: true, margin: '-40px' }}
+          className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
-          {integrations.map((integration) => (
-            <motion.div
-              key={integration.name}
-              variants={cardVariants}
-              whileHover={{ y: -4, boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
-              className="flex flex-col items-center gap-3 rounded-xl p-6 transition-shadow"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gray-100">
-                <integration.icon className={`h-8 w-8 ${integration.color}`} />
-              </div>
-              <span className="text-sm font-medium text-gray-700">
-                {integration.name}
-              </span>
-            </motion.div>
-          ))}
+          {integrations.map((item, i) => {
+            const Icon = item.icon
+            return (
+              <motion.div
+                key={i}
+                variants={cardVariants}
+                className="group flex flex-col items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 transition-colors group-hover:bg-gray-200">
+                  <Icon className="h-6 w-6 text-[#595552]" />
+                </div>
+                <span className="text-sm font-medium text-black">{item.name}</span>
+              </motion.div>
+            )
+          })}
         </motion.div>
 
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-10 text-center text-sm text-gray-400"
         >
-          Plus 50+ more integrations available
+          Plus 50+ more integrations
         </motion.p>
       </div>
     </section>

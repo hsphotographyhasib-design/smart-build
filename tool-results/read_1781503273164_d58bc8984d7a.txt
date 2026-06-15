@@ -1,0 +1,753 @@
+     1→'use client'
+     2→
+     3→import { useState } from 'react'
+     4→import { motion, AnimatePresence } from 'framer-motion'
+     5→import {
+     6→  FolderKanban,
+     7→  DollarSign,
+     8→  ShoppingCart,
+     9→  Users,
+    10→  Wrench,
+    11→  UserCheck,
+    12→  Check,
+    13→  ArrowRight,
+    14→  BarChart3,
+    15→  CalendarDays,
+    16→  FileText,
+    17→  Clock,
+    18→  Bell,
+    19→  Layers,
+    20→  PieChart,
+    21→  Shield,
+    22→  Eye,
+    23→  RefreshCw,
+    24→  Package,
+    25→  CreditCard,
+    26→  ClipboardList,
+    27→  Building2,
+    28→  UserPlus,
+    29→  Lock,
+    30→  MessageSquare,
+    31→  Upload,
+    32→  Settings,
+    33→  TrendingUp,
+    34→} from 'lucide-react'
+    35→import { Button } from '@/components/ui/button'
+    36→import { Badge } from '@/components/ui/badge'
+    37→
+    38→interface TabData {
+    39→  id: string
+    40→  label: string
+    41→  icon: React.ElementType
+    42→  title: string
+    43→  description: string
+    44→  features: string[]
+    45→  mockupType: 'project' | 'finance' | 'procurement' | 'workforce' | 'assets' | 'portal'
+    46→}
+    47→
+    48→const tabs: TabData[] = [
+    49→  {
+    50→    id: 'project',
+    51→    label: 'Project Management',
+    52→    icon: FolderKanban,
+    53→    title: 'Project Management',
+    54→    description:
+    55→      'Plan, execute, and track construction projects from groundbreaking to handover with full visibility and control.',
+    56→    features: [
+    57→      'Gantt charts & critical path scheduling',
+    58→      'Milestone tracking with automated alerts',
+    59→      'Document management & version control',
+    60→      'Multi-project portfolio dashboard',
+    61→      'RFI & submittal workflow automation',
+    62→    ],
+    63→    mockupType: 'project',
+    64→  },
+    65→  {
+    66→    id: 'finance',
+    67→    label: 'Finance',
+    68→    icon: DollarSign,
+    69→    title: 'Financial Management',
+    70→    description:
+    71→      'Complete financial oversight with real-time budgeting, invoicing, and payment tracking across every project.',
+    72→    features: [
+    73→      'Real-time budget vs. actual tracking',
+    74→      'Automated invoicing & payment processing',
+    75→      'Multi-currency support & tax management',
+    76→      'Financial reporting & analytics',
+    77→      'Retention & progress billing',
+    78→    ],
+    79→    mockupType: 'finance',
+    80→  },
+    81→  {
+    82→    id: 'procurement',
+    83→    label: 'Procurement',
+    84→    icon: ShoppingCart,
+    85→    title: 'Procurement & Supply Chain',
+    86→    description:
+    87→      'Streamline purchasing from requisition to delivery with vendor management and inventory optimization.',
+    88→    features: [
+    89→      'Purchase order lifecycle management',
+    90→      'Vendor evaluation & scorecards',
+    91→      'Inventory tracking & reorder points',
+    92→      'Material requisition workflows',
+    93→      'Price comparison & bid analysis',
+    94→    ],
+    95→    mockupType: 'procurement',
+    96→  },
+    97→  {
+    98→    id: 'workforce',
+    99→    label: 'Workforce',
+   100→    icon: Users,
+   101→    title: 'Workforce Management',
+   102→    description:
+   103→      'Manage your entire workforce with attendance tracking, payroll integration, and compliance management.',
+   104→    features: [
+   105→      'Time & attendance with GPS verification',
+   106→      'Certification & compliance tracking',
+   107→      'Payroll processing & integration',
+   108→      'Shift scheduling & overtime management',
+   109→      'Employee self-service portal',
+   110→    ],
+   111→    mockupType: 'workforce',
+   112→  },
+   113→  {
+   114→    id: 'assets',
+   115→    label: 'Assets',
+   116→    icon: Wrench,
+   117→    title: 'Asset & Equipment Management',
+   118→    description:
+   119→      'Track and maintain all construction assets with preventive maintenance scheduling and utilization analytics.',
+   120→    features: [
+   121→      'Equipment maintenance scheduling',
+   122→      'GPS-based asset tracking',
+   123→      'Depreciation & lifecycle costing',
+   124→      'Tool & small equipment checkouts',
+   125→      'Fuel & consumption monitoring',
+   126→    ],
+   127→    mockupType: 'assets',
+   128→  },
+   129→  {
+   130→    id: 'portal',
+   131→    label: 'Client Portal',
+   132→    icon: UserCheck,
+   133→    title: 'Client Portal',
+   134→    description:
+   135→      'Provide clients with transparent project visibility, document sharing, and communication tools.',
+   136→    features: [
+   137→      'Real-time project progress dashboard',
+   138→      'Document sharing & approvals',
+   139→      'Communication & messaging hub',
+   140→      'Change order review & sign-off',
+   141→      'Invoice & payment tracking',
+   142→    ],
+   143→    mockupType: 'portal',
+   144→  },
+   145→]
+   146→
+   147→function ProjectMockup() {
+   148→  return (
+   149→    <motion.div
+   150→      initial={{ opacity: 0, y: 20 }}
+   151→      animate={{ opacity: 1, y: 0 }}
+   152→      transition={{ duration: 0.5 }}
+   153→      className="relative w-full"
+   154→    >
+   155→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   156→        {/* Header bar */}
+   157→        <div className="mb-4 flex items-center justify-between">
+   158→          <div className="flex items-center gap-2">
+   159→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   160→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   161→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   162→          </div>
+   163→          <div className="h-5 w-48 rounded bg-gray-100" />
+   164→          <div className="h-5 w-5 rounded bg-gray-100" />
+   165→        </div>
+   166→        {/* Gantt chart simulation */}
+   167→        <div className="space-y-3">
+   168→          <div className="flex items-center gap-3">
+   169→            <div className="h-4 w-24 shrink-0 rounded bg-gray-200" />
+   170→            <div className="relative h-5 flex-1 rounded bg-gray-50">
+   171→              <div className="absolute left-[5%] top-0 h-5 w-[35%] rounded bg-blue-500/80" />
+   172→              <div className="absolute left-[45%] top-0 h-5 w-[25%] rounded bg-orange-400/80" />
+   173→              <div className="absolute left-[75%] top-0 h-5 w-[20%] rounded bg-blue-300/80" />
+   174→            </div>
+   175→          </div>
+   176→          <div className="flex items-center gap-3">
+   177→            <div className="h-4 w-28 shrink-0 rounded bg-gray-200" />
+   178→            <div className="relative h-5 flex-1 rounded bg-gray-50">
+   179→              <div className="absolute left-[10%] top-0 h-5 w-[50%] rounded bg-blue-600/80" />
+   180→            </div>
+   181→          </div>
+   182→          <div className="flex items-center gap-3">
+   183→            <div className="h-4 w-20 shrink-0 rounded bg-gray-200" />
+   184→            <div className="relative h-5 flex-1 rounded bg-gray-50">
+   185→              <div className="absolute left-[25%] top-0 h-5 w-[30%] rounded bg-green-500/80" />
+   186→              <div className="absolute left-[60%] top-0 h-5 w-[35%] rounded bg-orange-500/80" />
+   187→            </div>
+   188→          </div>
+   189→          <div className="flex items-center gap-3">
+   190→            <div className="h-4 w-32 shrink-0 rounded bg-gray-200" />
+   191→            <div className="relative h-5 flex-1 rounded bg-gray-50">
+   192→              <div className="absolute left-[0%] top-0 h-5 w-[60%] rounded bg-blue-400/80" />
+   193→            </div>
+   194→          </div>
+   195→        </div>
+   196→        {/* Stats row */}
+   197→        <div className="mt-4 grid grid-cols-3 gap-2">
+   198→          <div className="rounded-lg bg-blue-50 p-2 text-center">
+   199→            <div className="text-xs text-blue-600">On Track</div>
+   200→            <div className="text-lg font-bold text-blue-700">12</div>
+   201→          </div>
+   202→          <div className="rounded-lg bg-orange-50 p-2 text-center">
+   203→            <div className="text-xs text-orange-600">At Risk</div>
+   204→            <div className="text-lg font-bold text-orange-700">3</div>
+   205→          </div>
+   206→          <div className="rounded-lg bg-green-50 p-2 text-center">
+   207→            <div className="text-xs text-green-600">Complete</div>
+   208→            <div className="text-lg font-bold text-green-700">8</div>
+   209→          </div>
+   210→        </div>
+   211→      </div>
+   212→      {/* Floating element */}
+   213→      <motion.div
+   214→        animate={{ y: [0, -8, 0] }}
+   215→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   216→        className="absolute -right-4 -top-4 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   217→      >
+   218→        <div className="flex items-center gap-2">
+   219→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+   220→            <Check className="h-4 w-4 text-green-600" />
+   221→          </div>
+   222→          <div>
+   223→            <div className="text-xs font-semibold text-gray-800">Milestone Hit</div>
+   224→            <div className="text-[10px] text-gray-500">Foundation Complete</div>
+   225→          </div>
+   226→        </div>
+   227→      </motion.div>
+   228→    </motion.div>
+   229→  )
+   230→}
+   231→
+   232→function FinanceMockup() {
+   233→  return (
+   234→    <motion.div
+   235→      initial={{ opacity: 0, y: 20 }}
+   236→      animate={{ opacity: 1, y: 0 }}
+   237→      transition={{ duration: 0.5 }}
+   238→      className="relative w-full"
+   239→    >
+   240→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   241→        <div className="mb-4 flex items-center justify-between">
+   242→          <div className="flex items-center gap-2">
+   243→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   244→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   245→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   246→          </div>
+   247→          <div className="h-5 w-48 rounded bg-gray-100" />
+   248→          <div className="h-5 w-5 rounded bg-gray-100" />
+   249→        </div>
+   250→        {/* Budget vs Actual bars */}
+   251→        <div className="space-y-3">
+   252→          {[
+   253→            { label: 'Site Prep', budget: 85, actual: 72, color: 'bg-blue-500' },
+   254→            { label: 'Structural', budget: 65, actual: 70, color: 'bg-orange-500' },
+   255→            { label: 'Electrical', budget: 50, actual: 38, color: 'bg-blue-500' },
+   256→            { label: 'Plumbing', budget: 40, actual: 42, color: 'bg-orange-500' },
+   257→          ].map((item) => (
+   258→            <div key={item.label} className="space-y-1">
+   259→              <div className="flex justify-between text-[10px] text-gray-500">
+   260→                <span>{item.label}</span>
+   261→                <span>${item.actual}k / ${item.budget}k</span>
+   262→              </div>
+   263→              <div className="relative h-3 w-full rounded-full bg-gray-100">
+   264→                <motion.div
+   265→                  initial={{ width: 0 }}
+   266→                  animate={{ width: `${item.budget}%` }}
+   267→                  transition={{ duration: 0.8, delay: 0.2 }}
+   268→                  className={`absolute left-0 top-0 h-3 rounded-full ${item.color}/20`}
+   269→                />
+   270→                <motion.div
+   271→                  initial={{ width: 0 }}
+   272→                  animate={{ width: `${item.actual}%` }}
+   273→                  transition={{ duration: 0.8, delay: 0.4 }}
+   274→                  className={`absolute left-0 top-0 h-3 rounded-full ${item.color}`}
+   275→                />
+   276→              </div>
+   277→            </div>
+   278→          ))}
+   279→        </div>
+   280→        {/* Revenue card */}
+   281→        <div className="mt-4 flex gap-2">
+   282→          <div className="flex-1 rounded-lg bg-green-50 p-3">
+   283→            <div className="text-[10px] text-green-600">Revenue YTD</div>
+   284→            <div className="text-lg font-bold text-green-700">$2.4M</div>
+   285→            <div className="flex items-center gap-1 text-[10px] text-green-600">
+   286→              <TrendingUp className="h-3 w-3" />
+   287→              +12.5%
+   288→            </div>
+   289→          </div>
+   290→          <div className="flex-1 rounded-lg bg-blue-50 p-3">
+   291→            <div className="text-[10px] text-blue-600">Outstanding</div>
+   292→            <div className="text-lg font-bold text-blue-700">$340k</div>
+   293→            <div className="text-[10px] text-blue-500">7 invoices</div>
+   294→          </div>
+   295→        </div>
+   296→      </div>
+   297→      <motion.div
+   298→        animate={{ y: [0, -8, 0] }}
+   299→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   300→        className="absolute -left-4 bottom-8 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   301→      >
+   302→        <div className="flex items-center gap-2">
+   303→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+   304→            <DollarSign className="h-4 w-4 text-blue-600" />
+   305→          </div>
+   306→          <div>
+   307→            <div className="text-xs font-semibold text-gray-800">Payment Received</div>
+   308→            <div className="text-[10px] text-gray-500">$45,000 from ABC Corp</div>
+   309→          </div>
+   310→        </div>
+   311→      </motion.div>
+   312→    </motion.div>
+   313→  )
+   314→}
+   315→
+   316→function ProcurementMockup() {
+   317→  return (
+   318→    <motion.div
+   319→      initial={{ opacity: 0, y: 20 }}
+   320→      animate={{ opacity: 1, y: 0 }}
+   321→      transition={{ duration: 0.5 }}
+   322→      className="relative w-full"
+   323→    >
+   324→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   325→        <div className="mb-4 flex items-center justify-between">
+   326→          <div className="flex items-center gap-2">
+   327→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   328→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   329→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   330→          </div>
+   331→          <div className="h-5 w-48 rounded bg-gray-100" />
+   332→          <div className="h-5 w-5 rounded bg-gray-100" />
+   333→        </div>
+   334→        {/* PO list */}
+   335→        <div className="space-y-2">
+   336→          {[
+   337→            { id: 'PO-2024-001', vendor: 'SteelCorp', amount: '$12,500', status: 'Approved', color: 'bg-green-500' },
+   338→            { id: 'PO-2024-002', vendor: 'ConcreteMix', amount: '$8,200', status: 'Pending', color: 'bg-yellow-500' },
+   339→            { id: 'PO-2024-003', vendor: 'WireTech', amount: '$3,750', status: 'In Transit', color: 'bg-blue-500' },
+   340→            { id: 'PO-2024-004', vendor: 'PipeWorks', amount: '$15,800', status: 'Approved', color: 'bg-green-500' },
+   341→          ].map((po) => (
+   342→            <div key={po.id} className="flex items-center justify-between rounded-lg bg-gray-50 p-2.5">
+   343→              <div className="flex items-center gap-2">
+   344→                <div className={`h-2 w-2 rounded-full ${po.color}`} />
+   345→                <div>
+   346→                  <div className="text-[11px] font-semibold text-gray-700">{po.id}</div>
+   347→                  <div className="text-[10px] text-gray-400">{po.vendor}</div>
+   348→                </div>
+   349→              </div>
+   350→              <div className="text-right">
+   351→                <div className="text-[11px] font-semibold text-gray-700">{po.amount}</div>
+   352→                <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+   353→                  {po.status}
+   354→                </Badge>
+   355→              </div>
+   356→            </div>
+   357→          ))}
+   358→        </div>
+   359→        {/* Inventory summary */}
+   360→        <div className="mt-4 grid grid-cols-3 gap-2">
+   361→          <div className="rounded-lg bg-orange-50 p-2 text-center">
+   362→            <div className="text-xs text-orange-600">Low Stock</div>
+   363→            <div className="text-lg font-bold text-orange-700">5</div>
+   364→          </div>
+   365→          <div className="rounded-lg bg-blue-50 p-2 text-center">
+   366→            <div className="text-xs text-blue-600">Pending</div>
+   367→            <div className="text-lg font-bold text-blue-700">12</div>
+   368→          </div>
+   369→          <div className="rounded-lg bg-green-50 p-2 text-center">
+   370→            <div className="text-xs text-green-600">Delivered</div>
+   371→            <div className="text-lg font-bold text-green-700">48</div>
+   372→          </div>
+   373→        </div>
+   374→      </div>
+   375→      <motion.div
+   376→        animate={{ y: [0, -8, 0] }}
+   377→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   378→        className="absolute -right-4 bottom-12 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   379→      >
+   380→        <div className="flex items-center gap-2">
+   381→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+   382→            <Package className="h-4 w-4 text-orange-600" />
+   383→          </div>
+   384→          <div>
+   385→            <div className="text-xs font-semibold text-gray-800">Shipment Arrived</div>
+   386→            <div className="text-[10px] text-gray-500">PO-2024-003 delivered</div>
+   387→          </div>
+   388→        </div>
+   389→      </motion.div>
+   390→    </motion.div>
+   391→  )
+   392→}
+   393→
+   394→function WorkforceMockup() {
+   395→  return (
+   396→    <motion.div
+   397→      initial={{ opacity: 0, y: 20 }}
+   398→      animate={{ opacity: 1, y: 0 }}
+   399→      transition={{ duration: 0.5 }}
+   400→      className="relative w-full"
+   401→    >
+   402→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   403→        <div className="mb-4 flex items-center justify-between">
+   404→          <div className="flex items-center gap-2">
+   405→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   406→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   407→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   408→          </div>
+   409→          <div className="h-5 w-48 rounded bg-gray-100" />
+   410→          <div className="h-5 w-5 rounded bg-gray-100" />
+   411→        </div>
+   412→        {/* Team rows */}
+   413→        <div className="space-y-2">
+   414→          {[
+   415→            { team: 'Electricians', count: 12, present: 10, color: 'bg-blue-500' },
+   416→            { team: 'Plumbers', count: 8, present: 7, color: 'bg-orange-500' },
+   417→            { team: 'Carpenters', count: 15, present: 15, color: 'bg-green-500' },
+   418→            { team: 'Welders', count: 6, present: 4, color: 'bg-blue-500' },
+   419→          ].map((team) => (
+   420→            <div key={team.team} className="flex items-center gap-3">
+   421→              <div className="w-20 shrink-0 text-[11px] font-medium text-gray-600">{team.team}</div>
+   422→              <div className="flex flex-1 gap-0.5">
+   423→                {Array.from({ length: team.count }).map((_, i) => (
+   424→                  <div
+   425→                    key={i}
+   426→                    className={`h-5 w-5 rounded-full ${
+   427→                      i < team.present
+   428→                        ? `${team.color}`
+   429→                        : 'bg-gray-200'
+   430→                    } flex items-center justify-center`}
+   431→                  >
+   432→                    {i < team.present && (
+   433→                      <span className="text-[7px] font-bold text-white">✓</span>
+   434→                    )}
+   435→                  </div>
+   436→                ))}
+   437→              </div>
+   438→              <div className="w-12 text-right text-[11px] font-semibold text-gray-600">
+   439→                {team.present}/{team.count}
+   440→              </div>
+   441→            </div>
+   442→          ))}
+   443→        </div>
+   444→        {/* Stats */}
+   445→        <div className="mt-4 flex gap-2">
+   446→          <div className="flex-1 rounded-lg bg-green-50 p-3">
+   447→            <div className="text-[10px] text-green-600">On Site Today</div>
+   448→            <div className="text-lg font-bold text-green-700">36</div>
+   449→          </div>
+   450→          <div className="flex-1 rounded-lg bg-orange-50 p-3">
+   451→            <div className="text-[10px] text-orange-600">Overtime Hours</div>
+   452→            <div className="text-lg font-bold text-orange-700">24.5</div>
+   453→          </div>
+   454→          <div className="flex-1 rounded-lg bg-blue-50 p-3">
+   455→            <div className="text-[10px] text-blue-600">Compliance</div>
+   456→            <div className="text-lg font-bold text-blue-700">98%</div>
+   457→          </div>
+   458→        </div>
+   459→      </div>
+   460→      <motion.div
+   461→        animate={{ y: [0, -8, 0] }}
+   462→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   463→        className="absolute -left-4 -top-4 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   464→      >
+   465→        <div className="flex items-center gap-2">
+   466→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+   467→            <UserPlus className="h-4 w-4 text-green-600" />
+   468→          </div>
+   469→          <div>
+   470→            <div className="text-xs font-semibold text-gray-800">Clock-In</div>
+   471→            <div className="text-[10px] text-gray-500">2 workers arrived</div>
+   472→          </div>
+   473→        </div>
+   474→      </motion.div>
+   475→    </motion.div>
+   476→  )
+   477→}
+   478→
+   479→function AssetsMockup() {
+   480→  return (
+   481→    <motion.div
+   482→      initial={{ opacity: 0, y: 20 }}
+   483→      animate={{ opacity: 1, y: 0 }}
+   484→      transition={{ duration: 0.5 }}
+   485→      className="relative w-full"
+   486→    >
+   487→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   488→        <div className="mb-4 flex items-center justify-between">
+   489→          <div className="flex items-center gap-2">
+   490→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   491→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   492→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   493→          </div>
+   494→          <div className="h-5 w-48 rounded bg-gray-100" />
+   495→          <div className="h-5 w-5 rounded bg-gray-100" />
+   496→        </div>
+   497→        {/* Equipment cards */}
+   498→        <div className="grid grid-cols-2 gap-2">
+   499→          {[
+   500→            { name: 'Excavator A', status: 'Active', util: 92, color: 'bg-green-500' },
+   501→            { name: 'Crane B', status: 'Maintenance', util: 0, color: 'bg-yellow-500' },
+   502→            { name: 'Bulldozer C', status: 'Active', util: 78, color: 'bg-green-500' },
+   503→            { name: 'Generator D', status: 'Idle', util: 15, color: 'bg-gray-400' },
+   504→          ].map((eq) => (
+   505→            <div key={eq.name} className="rounded-lg border border-gray-100 bg-gray-50 p-2.5">
+   506→              <div className="flex items-center justify-between">
+   507→                <div className="text-[11px] font-semibold text-gray-700">{eq.name}</div>
+   508→                <div className={`h-2 w-2 rounded-full ${eq.color}`} />
+   509→              </div>
+   510→              <div className="mt-1.5 text-[10px] text-gray-400">{eq.status}</div>
+   511→              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-200">
+   512→                <div
+   513→                  className={`h-1.5 rounded-full ${
+   514→                    eq.util > 80 ? 'bg-green-500' : eq.util > 40 ? 'bg-blue-500' : 'bg-gray-400'
+   515→                  }`}
+   516→                  style={{ width: `${eq.util}%` }}
+   517→                />
+   518→              </div>
+   519→              <div className="mt-0.5 text-right text-[9px] text-gray-400">{eq.util}% util</div>
+   520→            </div>
+   521→          ))}
+   522→        </div>
+   523→        {/* Maintenance alert */}
+   524→        <div className="mt-3 flex items-center gap-2 rounded-lg bg-orange-50 p-2.5">
+   525→          <Bell className="h-4 w-4 shrink-0 text-orange-500" />
+   526→          <div>
+   527→            <div className="text-[11px] font-medium text-orange-700">Maintenance Due</div>
+   528→            <div className="text-[10px] text-orange-500">Crane B — 500hr service in 2 days</div>
+   529→          </div>
+   530→        </div>
+   531→      </div>
+   532→      <motion.div
+   533→        animate={{ y: [0, -8, 0] }}
+   534→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   535→        className="absolute -right-4 -top-4 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   536→      >
+   537→        <div className="flex items-center gap-2">
+   538→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+   539→            <Wrench className="h-4 w-4 text-orange-600" />
+   540→          </div>
+   541→          <div>
+   542→            <div className="text-xs font-semibold text-gray-800">Inspection</div>
+   543→            <div className="text-[10px] text-gray-500">Excavator A passed</div>
+   544→          </div>
+   545→        </div>
+   546→      </motion.div>
+   547→    </motion.div>
+   548→  )
+   549→}
+   550→
+   551→function PortalMockup() {
+   552→  return (
+   553→    <motion.div
+   554→      initial={{ opacity: 0, y: 20 }}
+   555→      animate={{ opacity: 1, y: 0 }}
+   556→      transition={{ duration: 0.5 }}
+   557→      className="relative w-full"
+   558→    >
+   559→      <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-xl shadow-blue-100/50">
+   560→        <div className="mb-4 flex items-center justify-between">
+   561→          <div className="flex items-center gap-2">
+   562→            <div className="h-3 w-3 rounded-full bg-red-400" />
+   563→            <div className="h-3 w-3 rounded-full bg-yellow-400" />
+   564→            <div className="h-3 w-3 rounded-full bg-green-400" />
+   565→          </div>
+   566→          <div className="h-5 w-48 rounded bg-gray-100" />
+   567→          <div className="h-5 w-5 rounded bg-gray-100" />
+   568→        </div>
+   569→        {/* Client project view */}
+   570→        <div className="mb-3 rounded-lg bg-blue-50 p-3">
+   571→          <div className="text-[11px] font-semibold text-blue-700">Riverside Tower — Phase 2</div>
+   572→          <div className="mt-1 text-[10px] text-blue-500">Overall Progress</div>
+   573→          <div className="mt-1.5 h-2.5 w-full rounded-full bg-blue-100">
+   574→            <motion.div
+   575→              initial={{ width: 0 }}
+   576→              animate={{ width: '68%' }}
+   577→              transition={{ duration: 1, delay: 0.3 }}
+   578→              className="h-2.5 rounded-full bg-blue-600"
+   579→            />
+   580→          </div>
+   581→          <div className="mt-1 text-right text-[10px] font-semibold text-blue-700">68%</div>
+   582→        </div>
+   583→        {/* Recent updates */}
+   584→        <div className="space-y-2">
+   585→          {[
+   586→            { icon: Upload, text: 'Floor Plan v3 uploaded', time: '2h ago', color: 'text-blue-600 bg-blue-100' },
+   587→            { icon: MessageSquare, text: 'New comment on electrical specs', time: '5h ago', color: 'text-orange-600 bg-orange-100' },
+   588→            { icon: FileText, text: 'Change Order #12 approved', time: '1d ago', color: 'text-green-600 bg-green-100' },
+   589→          ].map((update, i) => (
+   590→            <div key={i} className="flex items-center gap-2 rounded-lg bg-gray-50 p-2">
+   591→              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${update.color}`}>
+   592→                <update.icon className="h-3.5 w-3.5" />
+   593→              </div>
+   594→              <div className="flex-1">
+   595→                <div className="text-[11px] text-gray-700">{update.text}</div>
+   596→                <div className="text-[9px] text-gray-400">{update.time}</div>
+   597→              </div>
+   598→            </div>
+   599→          ))}
+   600→        </div>
+   601→      </div>
+   602→      <motion.div
+   603→        animate={{ y: [0, -8, 0] }}
+   604→        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+   605→        className="absolute -left-4 bottom-12 rounded-lg border border-blue-100 bg-white p-3 shadow-lg"
+   606→      >
+   607→        <div className="flex items-center gap-2">
+   608→          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+   609→            <UserCheck className="h-4 w-4 text-blue-600" />
+   610→          </div>
+   611→          <div>
+   612→            <div className="text-xs font-semibold text-gray-800">Client Approved</div>
+   613→            <div className="text-[10px] text-gray-500">Floor Plan v3 signed off</div>
+   614→          </div>
+   615→        </div>
+   616→      </motion.div>
+   617→    </motion.div>
+   618→  )
+   619→}
+   620→
+   621→const mockupComponents: Record<string, React.FC> = {
+   622→  project: ProjectMockup,
+   623→  finance: FinanceMockup,
+   624→  procurement: ProcurementMockup,
+   625→  workforce: WorkforceMockup,
+   626→  assets: AssetsMockup,
+   627→  portal: PortalMockup,
+   628→}
+   629→
+   630→const containerVariants = {
+   631→  hidden: { opacity: 0 },
+   632→  visible: {
+   633→    opacity: 1,
+   634→    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+   635→  },
+   636→  exit: {
+   637→    opacity: 0,
+   638→    y: -10,
+   639→    transition: { duration: 0.15 },
+   640→  },
+   641→}
+   642→
+   643→const itemVariants = {
+   644→  hidden: { opacity: 0, y: 20 },
+   645→  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+   646→}
+   647→
+   648→export function Features() {
+   649→  const [activeTab, setActiveTab] = useState('project')
+   650→  const activeData = tabs.find((t) => t.id === activeTab)!
+   651→
+   652→  return (
+   653→    <section className="bg-gradient-to-b from-gray-50 to-white py-20 md:py-28">
+   654→      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+   655→        {/* Header */}
+   656→        <motion.div
+   657→          initial={{ opacity: 0, y: 30 }}
+   658→          whileInView={{ opacity: 1, y: 0 }}
+   659→          viewport={{ once: true }}
+   660→          transition={{ duration: 0.6 }}
+   661→          className="mb-14 text-center"
+   662→        >
+   663→          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+   664→            Everything You Need to{' '}
+   665→            <span className="text-blue-600">Build Smarter</span>
+   666→          </h2>
+   667→          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
+   668→            Comprehensive tools designed for the construction industry
+   669→          </p>
+   670→        </motion.div>
+   671→
+   672→        {/* Tab buttons */}
+   673→        <motion.div
+   674→          initial={{ opacity: 0, y: 20 }}
+   675→          whileInView={{ opacity: 1, y: 0 }}
+   676→          viewport={{ once: true }}
+   677→          transition={{ duration: 0.5, delay: 0.2 }}
+   678→          className="mb-12"
+   679→        >
+   680→          <div className="flex gap-1 overflow-x-auto rounded-xl bg-gray-100 p-1.5 no-scrollbar">
+   681→            {tabs.map((tab) => {
+   682→              const Icon = tab.icon
+   683→              const isActive = activeTab === tab.id
+   684→              return (
+   685→                <button
+   686→                  key={tab.id}
+   687→                  onClick={() => setActiveTab(tab.id)}
+   688→                  className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+   689→                    isActive
+   690→                      ? 'bg-white text-blue-700 shadow-sm'
+   691→                      : 'text-gray-500 hover:text-gray-700'
+   692→                  }`}
+   693→                >
+   694→                  <Icon className="h-4 w-4" />
+   695→                  <span className="hidden sm:inline">{tab.label}</span>
+   696→                </button>
+   697→              )
+   698→            })}
+   699→          </div>
+   700→        </motion.div>
+   701→
+   702→        {/* Tab content */}
+   703→        <AnimatePresence mode="wait">
+   704→          <motion.div
+   705→            key={activeTab}
+   706→            variants={containerVariants}
+   707→            initial="hidden"
+   708→            animate="visible"
+   709→            exit="exit"
+   710→            className="grid items-center gap-12 lg:grid-cols-2"
+   711→          >
+   712→            {/* Left content */}
+   713→            <motion.div variants={itemVariants} className="space-y-6">
+   714→              <h3 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+   715→                {activeData.title}
+   716→              </h3>
+   717→              <p className="text-gray-500 leading-relaxed">{activeData.description}</p>
+   718→              <ul className="space-y-3">
+   719→                {activeData.features.map((feature, i) => (
+   720→                  <motion.li
+   721→                    key={i}
+   722→                    variants={itemVariants}
+   723→                    className="flex items-start gap-3"
+   724→                  >
+   725→                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100">
+   726→                      <Check className="h-3 w-3 text-blue-600" />
+   727→                    </div>
+   728→                    <span className="text-gray-600">{feature}</span>
+   729→                  </motion.li>
+   730→                ))}
+   731→              </ul>
+   732→              <motion.div variants={itemVariants}>
+   733→                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+   734→                  Learn More
+   735→                  <ArrowRight className="ml-1 h-4 w-4" />
+   736→                </Button>
+   737→              </motion.div>
+   738→            </motion.div>
+   739→
+   740→            {/* Right mockup */}
+   741→            <motion.div variants={itemVariants} className="relative">
+   742→              {mockupComponents[activeData.mockupType] &&
+   743→                (() => {
+   744→                  const MockupComponent = mockupComponents[activeData.mockupType]
+   745→                  return <MockupComponent />
+   746→                })()}
+   747→            </motion.div>
+   748→          </motion.div>
+   749→        </AnimatePresence>
+   750→      </div>
+   751→    </section>
+   752→  )
+   753→}

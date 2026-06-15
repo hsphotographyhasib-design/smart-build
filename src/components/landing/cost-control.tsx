@@ -1,291 +1,297 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 import {
-  Calculator,
-  TrendingUp,
   DollarSign,
-  Tag,
-  FileText,
+  TrendingUp,
+  Banknote,
   BarChart3,
+  FileEdit,
+  LineChart,
   ArrowRight,
-  ArrowDown,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  CheckCircle2,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-const costFeatures = [
+const features = [
   {
-    icon: Calculator,
+    icon: DollarSign,
     title: 'Budget Tracking',
-    description:
-      'Set, track, and compare budgets across all projects with real-time variance analysis.',
+    description: 'Set project budgets and monitor spending in real time across all cost categories.',
   },
   {
     icon: TrendingUp,
     title: 'Profitability Analysis',
-    description:
-      'Monitor profit margins, forecast completion costs, and identify savings opportunities.',
+    description: 'Instant margin calculations per project, phase, and trade with drill-down capability.',
   },
   {
-    icon: DollarSign,
+    icon: Banknote,
     title: 'Cash Flow Management',
-    description:
-      'Manage incoming and outgoing payments with detailed cash flow forecasting.',
-  },
-  {
-    icon: Tag,
-    title: 'Cost Codes',
-    description:
-      'Organize costs by trade, phase, or activity with flexible cost code hierarchies.',
-  },
-  {
-    icon: FileText,
-    title: 'Change Orders',
-    description:
-      'Track change requests, approvals, and cost impacts with full audit trail.',
+    description: 'Forecast cash needs, track invoicing, and manage payment schedules proactively.',
   },
   {
     icon: BarChart3,
-    title: 'Forecasting',
-    description:
-      'AI-powered forecasting to predict final costs and identify budget risks early.',
+    title: 'Cost Codes',
+    description: 'Standardized cost coding aligned with industry formats for precise categorization.',
   },
-]
+  {
+    icon: FileEdit,
+    title: 'Change Orders',
+    description: 'Manage scope changes with full audit trails, approvals, and budget impact analysis.',
+  },
+  {
+    icon: LineChart,
+    title: 'Forecasting',
+    description: 'AI-driven cost projections to identify overruns before they happen.',
+  },
+];
 
-const gridContainerVariants = {
+const budgetData = [
+  { label: 'Foundation', budget: 120000, actual: 115000, color: '#ff5201' },
+  { label: 'Structure', budget: 340000, actual: 355000, color: '#ff7a3d' },
+  { label: 'MEP', budget: 280000, actual: 248000, color: '#ff9966' },
+  { label: 'Finishing', budget: 190000, actual: 165000, color: '#ffb399' },
+  { label: 'Landscaping', budget: 70000, actual: 52000, color: '#ffcc99' },
+];
+
+const pieSlices = [
+  { label: 'Labor', pct: 35, color: '#ff5201' },
+  { label: 'Material', pct: 28, color: '#ff7a3d' },
+  { label: 'Equipment', pct: 18, color: '#ff9966' },
+  { label: 'Subcontract', pct: 12, color: '#ffb399' },
+  { label: 'Other', pct: 7, color: '#ffcc99' },
+];
+
+function formatCurrency(value: number) {
+  if (value >= 1000) {
+    return `$${(value / 1000).toFixed(0)}K`;
+  }
+  return `$${value}`;
+}
+
+function PieChart() {
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  const gap = 2;
+
+  const slicesWithOffsets = pieSlices.reduce<Array<{ label: string; pct: number; color: string; dashArray: string; dashOffset: number }>>((acc, slice) => {
+    const sliceLength = (slice.pct / 100) * circumference;
+    const prevAccumulated = acc.reduce((sum, s) => sum + (s.pct / 100) * circumference, 0);
+    acc.push({
+      ...slice,
+      dashArray: `${sliceLength - gap} ${circumference - sliceLength + gap}`,
+      dashOffset: -prevAccumulated,
+    });
+    return acc;
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative w-44 h-44">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
+          {slicesWithOffsets.map((slice) => (
+            <motion.circle
+              key={slice.label}
+              cx="80"
+              cy="80"
+              r={radius}
+              fill="none"
+              stroke={slice.color}
+              strokeWidth="18"
+              strokeDasharray={slice.dashArray}
+              strokeDashoffset={slice.dashOffset}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            />
+          ))}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-lg font-bold text-black">$1.0M</span>
+          <span className="text-[10px] text-black/40 uppercase tracking-wider">Total Budget</span>
+        </div>
+      </div>
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+        {pieSlices.map((s) => (
+          <div key={s.label} className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+            <span className="text-[11px] text-black/50">{s.label} {s.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.07 },
   },
-}
+};
 
-const gridItemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
-
-function CostDashboardMockup() {
-  const budgetItems = [
-    { name: 'Foundation', budget: 100, actual: 88, budgetColor: 'bg-blue-200', actualColor: 'bg-blue-600' },
-    { name: 'Structure', budget: 100, actual: 95, budgetColor: 'bg-blue-200', actualColor: 'bg-blue-600' },
-    { name: 'MEP', budget: 100, actual: 72, budgetColor: 'bg-blue-200', actualColor: 'bg-orange-500' },
-    { name: 'Finishing', budget: 100, actual: 45, budgetColor: 'bg-blue-200', actualColor: 'bg-blue-500' },
-    { name: 'Landscaping', budget: 100, actual: 30, budgetColor: 'bg-blue-200', actualColor: 'bg-blue-400' },
-  ]
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-      className="rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50/50 p-6 shadow-xl shadow-gray-200/50 md:p-8"
-    >
-      {/* Dashboard header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h4 className="text-sm font-semibold text-gray-800">Project Cost Overview</h4>
-          <p className="text-xs text-gray-400">Riverside Tower — Phase 2</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-blue-200" />
-            <span className="text-[10px] text-gray-500">Budget</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-            <span className="text-[10px] text-gray-500">Actual</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-            <span className="text-[10px] text-gray-500">Overrun</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-3">
-        {/* Budget vs Actual bars */}
-        <div className="space-y-3 md:col-span-2">
-          {budgetItems.map((item, index) => (
-            <motion.div
-              key={item.name}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.4 + index * 0.08 }}
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-gray-600">{item.name}</span>
-                <span className="text-[10px] text-gray-400">
-                  ${(item.actual * 12.5).toFixed(0)}k / ${(item.budget * 12.5).toFixed(0)}k
-                </span>
-              </div>
-              <div className="relative h-3 w-full overflow-hidden rounded-full bg-blue-100/50">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: '100%' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.5 + index * 0.08 }}
-                  className={`absolute left-0 top-0 h-3 rounded-full ${item.budgetColor}`}
-                />
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${item.actual}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.6 + index * 0.08 }}
-                  className={`absolute left-0 top-0 h-3 rounded-full ${item.actualColor}`}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Right column: Pie chart + stat */}
-        <div className="flex flex-col items-center gap-6">
-          {/* CSS Pie chart */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="relative"
-          >
-            <div
-              className="h-32 w-32 rounded-full"
-              style={{
-                background: `conic-gradient(
-                  #2563eb 0deg 108deg,
-                  #f97316 108deg 187deg,
-                  #22c55e 187deg 252deg,
-                  #a855f7 252deg 310deg,
-                  #06b6d4 310deg 360deg
-                )`,
-              }}
-            >
-              <div className="absolute inset-3 flex items-center justify-center rounded-full bg-white">
-                <div className="text-center">
-                  <div className="text-xs text-gray-400">Total Spent</div>
-                  <div className="text-lg font-bold text-gray-800">$4.1M</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Legend */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 w-full">
-            {[
-              { label: 'Foundation', color: '#2563eb', pct: '30%' },
-              { label: 'Structure', color: '#f97316', pct: '22%' },
-              { label: 'MEP', color: '#22c55e', pct: '18%' },
-              { label: 'Finishing', color: '#a855f7', pct: '16%' },
-              { label: 'Landscape', color: '#06b6d4', pct: '14%' },
-            ].map((item, i) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.8 + i * 0.06 }}
-                className="flex items-center gap-1.5"
-              >
-                <div
-                  className="h-2 w-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[10px] text-gray-500">
-                  {item.label} <span className="font-medium text-gray-700">{item.pct}</span>
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom stat banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: 1 }}
-        className="mt-8 flex flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 px-6 py-4 sm:flex-row sm:justify-between"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-            <ArrowDown className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-green-800">23% Cost Reduction Average</div>
-            <div className="text-xs text-green-600">Across all projects using SmartBuild</div>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-green-200 bg-white text-green-700 hover:bg-green-50 shrink-0"
-        >
-          View Report
-          <ArrowRight className="ml-1 h-3 w-3" />
-        </Button>
-      </motion.div>
-    </motion.div>
-  )
-}
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
 export function CostControl() {
+  const maxBudget = Math.max(...budgetData.map((d) => d.budget));
+
   return (
-    <section className="bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-white py-20 md:py-28 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-14 md:mb-20"
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black tracking-tight">
+            Complete <span className="text-[#ff5201]">Cost Control</span>
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-black/50 max-w-2xl mx-auto">
+            Track every dollar from budget to completion with granular visibility and intelligent forecasting.
+          </p>
+        </motion.div>
+
+        {/* Feature Cards Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-14 md:mb-20"
+        >
+          {features.map((feature) => (
+            <motion.div
+              key={feature.title}
+              variants={itemVariants}
+              whileHover={{ y: -4, boxShadow: '0 12px 40px rgba(0,0,0,0.08)' }}
+              className="rounded-xl border border-[#e2e8f0] bg-white p-5 transition-colors duration-300 hover:border-[#ff5201]/20"
+            >
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center mb-4">
+                <feature.icon className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-sm font-semibold text-black mb-1.5">{feature.title}</h3>
+              <p className="text-xs text-black/45 leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Budget vs Actual Dashboard */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-14 text-center"
+          transition={{ duration: 0.7 }}
+          className="rounded-2xl border border-[#e2e8f0] bg-white p-6 sm:p-8 shadow-sm"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Complete <span className="text-blue-600">Cost Control</span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
-            Track every dollar from budget to completion
-          </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
+            <div>
+              <h3 className="text-base font-bold text-black">Budget vs Actual</h3>
+              <p className="text-xs text-black/40 mt-0.5">Riverside Tower — Phase 1 Breakdown</p>
+            </div>
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-2 rounded-sm bg-[#ff5201]/20" />
+                <span className="text-black/50">Budget</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-2 rounded-sm bg-[#ff5201]" />
+                <span className="text-black/50">Actual</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            {/* Horizontal Bars */}
+            <div className="lg:col-span-2 space-y-4">
+              {budgetData.map((item, index) => {
+                const budgetPct = (item.budget / maxBudget) * 100;
+                const actualPct = (item.actual / maxBudget) * 100;
+                const overBudget = item.actual > item.budget;
+                return (
+                  <motion.div
+                    key={item.label}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.1 + index * 0.08 }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-black/70">{item.label}</span>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="text-black/35">{formatCurrency(item.budget)}</span>
+                        <span className={cn('font-semibold', overBudget ? 'text-red-500' : 'text-black')}>
+                          {formatCurrency(item.actual)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="relative w-full h-3 bg-black/[0.04] rounded-full overflow-hidden">
+                      <motion.div
+                        className="absolute top-0 left-0 h-full rounded-full bg-[#ff5201]/15"
+                        style={{ width: `${budgetPct}%` }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${budgetPct}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 + index * 0.08 }}
+                      />
+                      <motion.div
+                        className="absolute top-0 left-0 h-full rounded-full"
+                        style={{ backgroundColor: overBudget ? '#ef4444' : item.color, width: `${actualPct}%` }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${actualPct}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 + index * 0.08 }}
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Pie Chart */}
+            <PieChart />
+          </div>
+
+          {/* Green Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="mt-6 rounded-lg bg-emerald-50 border border-emerald-100 px-5 py-3.5 flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span className="text-sm font-semibold text-emerald-800">
+              23% Cost Reduction Average
+            </span>
+            <span className="text-xs text-emerald-600/70 hidden sm:inline">
+              — across 1,200+ completed projects
+            </span>
+          </motion.div>
         </motion.div>
 
-        {/* Feature cards grid */}
+        {/* CTA */}
         <motion.div
-          variants={gridContainerVariants}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-10 text-center"
         >
-          {costFeatures.map((feature) => {
-            const Icon = feature.icon
-            return (
-              <motion.div
-                key={feature.title}
-                variants={gridItemVariants}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="group relative rounded-xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-blue-100/50 hover:border-blue-100"
-              >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 transition-colors duration-300 group-hover:bg-blue-100">
-                  <Icon className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="mb-2 text-base font-semibold text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-gray-500">
-                  {feature.description}
-                </p>
-              </motion.div>
-            )
-          })}
+          <Button className="bg-[#ff5201] hover:bg-[#e04a01] text-white rounded-lg px-6 py-2.5 text-sm transition-colors duration-300">
+            View Cost Features
+            <ArrowRight className="ml-1.5 w-4 h-4" />
+          </Button>
         </motion.div>
-
-        {/* Cost dashboard mockup */}
-        <CostDashboardMockup />
       </div>
     </section>
-  )
+  );
 }

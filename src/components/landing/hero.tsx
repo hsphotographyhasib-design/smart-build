@@ -1,348 +1,281 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import {
-  Play,
-  FolderKanban,
-  DollarSign,
-  Users,
-  CheckCircle2,
-  TrendingUp,
-  ArrowUpRight,
-  Activity,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Play, ArrowRight, TrendingUp, Users, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-/* ───────────────── floating background shapes ───────────────── */
-const floatingShapes = [
-  { size: 12, top: '15%', left: '10%', delay: 0, duration: 7, type: 'circle' },
-  { size: 8, top: '25%', left: '85%', delay: 1.2, duration: 8, type: 'square' },
-  { size: 16, top: '60%', left: '5%', delay: 0.5, duration: 9, type: 'circle' },
-  { size: 10, top: '70%', left: '90%', delay: 2, duration: 6, type: 'square' },
-  { size: 6, top: '40%', left: '30%', delay: 1.5, duration: 10, type: 'circle' },
-  { size: 14, top: '80%', left: '20%', delay: 0.8, duration: 7.5, type: 'square' },
-  { size: 8, top: '10%', left: '60%', delay: 2.5, duration: 8.5, type: 'circle' },
-  { size: 10, top: '50%', left: '75%', delay: 1.8, duration: 9.5, type: 'square' },
-]
+/* ------------------------------------------------------------------ */
+/*  Count-Up Hook                                                      */
+/* ------------------------------------------------------------------ */
 
-/* ───────────────── count-up component ───────────────── */
-function CountUpStat({
-  target,
-  suffix,
-  label,
-  duration = 2000,
-}: {
-  target: number
-  suffix: string
-  label: string
-  duration?: number
-}) {
-  const [display, setDisplay] = useState('0')
-  const [started, setStarted] = useState(false)
-
-  const start = useCallback(() => {
-    if (started) return
-    setStarted(true)
-  }, [started])
+function useCountUp(target: number, duration = 2000, startOnView = true) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-50px' });
+  const started = useRef(false);
 
   useEffect(() => {
-    if (!started) return
-    const startTime = performance.now()
-    const step = (now: number) => {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      const current = target % 1 === 0 ? Math.round(eased * target) : parseFloat((eased * target).toFixed(1))
-      setDisplay(current.toLocaleString() + suffix)
-      if (progress < 1) requestAnimationFrame(step)
+    if (!startOnView || inView) {
+      if (started.current) return;
+      started.current = true;
+
+      const startTime = performance.now();
+      const step = (now: number) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        // ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(eased * target));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
     }
-    requestAnimationFrame(step)
-  }, [started, target, suffix, duration])
+  }, [inView, target, duration, startOnView]);
 
-  return (
-    <motion.div
-      onViewportEnter={start}
-      viewport={{ once: true, amount: 0.3 }}
-      className="text-center lg:text-left"
-    >
-      <p className="text-2xl sm:text-3xl font-bold text-white">{display}</p>
-      <p className="text-xs sm:text-sm text-blue-300/60 font-medium mt-1">{label}</p>
-    </motion.div>
-  )
+  return { count, ref };
 }
 
-/* ───────────────── dashboard stat card ───────────────── */
-function DashStatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
-  delay,
-}: {
-  icon: React.ElementType
-  label: string
-  value: string
-  color: string
-  delay: number
-}) {
+/* ------------------------------------------------------------------ */
+/*  Stat Counter                                                       */
+/* ------------------------------------------------------------------ */
+
+function StatCounter({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const { count, ref } = useCountUp(value);
+
+  return (
+    <div className="flex flex-col items-start" ref={ref}>
+      <span className="text-2xl sm:text-3xl font-extrabold text-white tabular-nums leading-none">
+        {count.toLocaleString()}
+        {suffix && <span className="text-[#ff5201]">{suffix}</span>}
+      </span>
+      <span className="text-xs sm:text-sm text-white/50 font-medium mt-1">{label}</span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Dashboard Mockup                                                   */
+/* ------------------------------------------------------------------ */
+
+function DashboardMockup() {
+  const statCards = [
+    { label: 'Active Projects', value: '24', icon: <FolderOpen className="size-4 text-[#ff5201]" />, color: '#ff5201' },
+    { label: 'Budget Health', value: '78%', icon: <TrendingUp className="size-4 text-green-500" />, color: '#22c55e' },
+    { label: 'Team Members', value: '156', icon: <Users className="size-4 text-blue-500" />, color: '#3b82f6' },
+    { label: 'Completed', value: '892', icon: <CheckCircle2 className="size-4 text-purple-500" />, color: '#a855f7' },
+  ];
+
+  const barData = [
+    { label: 'Mon', value: 65 },
+    { label: 'Tue', value: 80 },
+    { label: 'Wed', value: 45 },
+    { label: 'Thu', value: 90 },
+    { label: 'Fri', value: 70 },
+    { label: 'Sat', value: 55 },
+    { label: 'Sun', value: 35 },
+  ];
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6 + delay * 0.1, duration: 0.5, ease: 'easeOut' }}
-      className="bg-white/[0.08] backdrop-blur-sm rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors"
+      transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
+      className="relative"
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div
-          className={`w-7 h-7 rounded-lg flex items-center justify-center ${color}`}
-        >
-          <Icon className="w-3.5 h-3.5 text-white" />
+      {/* Floating animation wrapper */}
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-full max-w-md mx-auto lg:max-w-none"
+      >
+        <div className="bg-white rounded-lg border border-white/10 shadow-2xl overflow-hidden">
+          {/* Window chrome */}
+          <div className="flex items-center gap-2 px-4 py-3 bg-[#f5f1ed] border-b border-[#e2e8f0]">
+            <div className="flex gap-1.5">
+              <div className="size-3 rounded-full bg-red-400" aria-hidden="true" />
+              <div className="size-3 rounded-full bg-yellow-400" aria-hidden="true" />
+              <div className="size-3 rounded-full bg-green-400" aria-hidden="true" />
+            </div>
+            <div className="flex-1 text-center">
+              <div className="inline-block px-4 py-1 bg-white rounded-md text-xs text-[#595552] font-medium border border-[#e2e8f0]">
+                SmartBuild Dashboard
+              </div>
+            </div>
+            <div className="w-14" aria-hidden="true" />
+          </div>
+
+          {/* Dashboard content */}
+          <div className="p-4 space-y-4">
+            {/* 2x2 stat cards */}
+            <div className="grid grid-cols-2 gap-3">
+              {statCards.map((card) => (
+                <div
+                  key={card.label}
+                  className="rounded-lg border border-[#e2e8f0] p-3 bg-white hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-medium text-[#595552] uppercase tracking-wider">
+                      {card.label}
+                    </span>
+                    {card.icon}
+                  </div>
+                  <span className="text-xl font-bold text-[#000] tabular-nums leading-none">
+                    {card.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mini bar chart */}
+            <div className="rounded-lg border border-[#e2e8f0] p-3 bg-white">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-medium text-[#595552] uppercase tracking-wider">
+                  Weekly Progress
+                </span>
+                <span className="text-xs font-medium text-[#ff5201]">+12.5%</span>
+              </div>
+              <div className="flex items-end gap-2 h-20">
+                {barData.map((bar) => (
+                  <div key={bar.label} className="flex-1 flex flex-col items-center gap-1">
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${bar.value}%` }}
+                      transition={{ duration: 0.8, delay: 0.8, ease: 'easeOut' }}
+                      className="w-full rounded-t-sm"
+                      style={{ backgroundColor: bar.value > 70 ? '#ff5201' : '#cbbaab' }}
+                    />
+                    <span className="text-[9px] text-[#595552] font-medium">{bar.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-        <span className="text-[11px] text-blue-200/70 font-medium">{label}</span>
-      </div>
-      <p className="text-white text-xl font-bold tracking-tight">{value}</p>
+      </motion.div>
+
+      {/* Subtle glow behind card */}
+      <div
+        className="absolute -inset-4 -z-10 rounded-2xl blur-2xl opacity-20"
+        style={{ background: 'radial-gradient(ellipse at center, #ff5201 0%, transparent 70%)' }}
+        aria-hidden="true"
+      />
     </motion.div>
-  )
+  );
 }
 
-/* ───────────────── mini bar chart ───────────────── */
-const barData = [
-  { height: 45, color: 'bg-orange-400/80' },
-  { height: 65, color: 'bg-orange-500/80' },
-  { height: 50, color: 'bg-blue-400/60' },
-  { height: 80, color: 'bg-blue-500/70' },
-  { height: 70, color: 'bg-orange-500/80' },
-  { height: 90, color: 'bg-blue-400/80' },
-  { height: 55, color: 'bg-orange-400/60' },
-  { height: 75, color: 'bg-blue-500/80' },
-  { height: 60, color: 'bg-orange-500/70' },
-  { height: 85, color: 'bg-blue-400/70' },
-  { height: 95, color: 'bg-blue-500/80' },
-  { height: 70, color: 'bg-orange-400/80' },
-]
+/* ------------------------------------------------------------------ */
+/*  Hero Section                                                       */
+/* ------------------------------------------------------------------ */
 
-/* ───────────────── Hero Component ───────────────── */
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800">
-      {/* Grid Pattern Overlay */}
+    <section
+      className="relative min-h-screen flex items-center overflow-hidden"
+      style={{ backgroundColor: '#000000' }}
+      aria-label="Hero"
+    >
+      {/* Dot grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.07]"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.15) 49px, rgba(255,255,255,0.15) 50px),
-            repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,255,255,0.15) 49px, rgba(255,255,255,0.15) 50px)
-          `,
+          backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
+        aria-hidden="true"
       />
 
-      {/* Radial glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[400px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-      {/* Floating Shapes */}
-      {floatingShapes.map((shape, i) => (
-        <motion.div
-          key={i}
-          className="absolute pointer-events-none"
-          style={{
-            top: shape.top,
-            left: shape.left,
-            width: shape.size,
-            height: shape.size,
-            borderRadius: shape.type === 'circle' ? '50%' : '3px',
-            backgroundColor:
-              shape.type === 'circle'
-                ? 'rgba(251, 191, 36, 0.12)'
-                : 'rgba(96, 165, 250, 0.12)',
-          }}
-          animate={{
-            y: [0, -15, 0, 10, 0],
-            x: [0, 8, 0, -5, 0],
-            rotate: shape.type === 'square' ? [0, 90, 180, 270, 360] : 0,
-          }}
-          transition={{
-            duration: shape.duration,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: shape.delay,
-          }}
-        />
-      ))}
-
-      {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 w-full">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Left - Text Content */}
-          <div className="flex-1 text-center lg:text-left">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left content */}
+          <div className="flex flex-col gap-8">
+            {/* Pill badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-              <Badge className="mb-6 bg-white/10 text-orange-300 border-orange-500/30 hover:bg-white/15 px-4 py-1.5 text-xs font-semibold backdrop-blur-sm">
-                <Activity className="w-3 h-3 mr-1.5" />
-                Now with AI-Powered Insights
-              </Badge>
+              <span
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-white"
+                style={{ backgroundColor: '#ff5201' }}
+              >
+                <span className="size-1.5 rounded-full bg-white animate-pulse" aria-hidden="true" />
+                AI-Powered Construction Platform
+              </span>
             </motion.div>
 
+            {/* Heading */}
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight"
+              transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.1]"
             >
-              Manage Every{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
-                Construction Project
-              </span>{' '}
-              From One Platform
+              Manage Every Construction Project From One Platform
             </motion.h1>
 
+            {/* Description */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-              className="mt-6 text-lg sm:text-xl text-blue-200/80 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+              transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+              className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed"
             >
-              Control projects, finance, procurement, workforce, assets,
-              scheduling, and client communication from a single integrated
-              platform.
+              Streamline project management, financials, procurement, and workforce coordination
+              with SmartBuild&apos;s unified construction ERP. Built for teams that build the world.
             </motion.p>
 
+            {/* Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6, ease: 'easeOut' }}
-              className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
+              className="flex flex-wrap items-center gap-4"
             >
               <Button
                 size="lg"
-                className="h-12 px-8 text-base font-semibold rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 hover:-translate-y-0.5 group"
+                className="text-white font-semibold px-6 py-3 text-base rounded-lg hover:brightness-110 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#ff5201]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                style={{ backgroundColor: '#ff5201' }}
+                asChild
               >
-                Request Demo
-                <ArrowUpRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <a href="#demo" className="gap-2">
+                  Request Demo
+                  <ArrowRight className="size-4" />
+                </a>
               </Button>
+
               <Button
                 variant="outline"
                 size="lg"
-                className="h-12 px-8 text-base font-medium rounded-xl border-white/20 text-white hover:bg-white/10 hover:border-white/30 hover:text-white backdrop-blur-sm transition-all duration-300 group"
+                className="font-semibold px-6 py-3 text-base rounded-lg border-white/20 text-white hover:bg-white/10 hover:text-white transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                asChild
               >
-                <Play className="w-4 h-4 mr-2 fill-current" />
-                Watch Video
+                <a href="#video" className="gap-2">
+                  <Play className="size-4" />
+                  Watch Video
+                </a>
               </Button>
             </motion.div>
 
-            {/* Bottom Stats Bar */}
+            {/* Stats row */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.9, ease: 'easeOut' }}
-              className="mt-14 flex flex-col sm:flex-row gap-8 sm:gap-12 justify-center lg:justify-start"
+              transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
+              className="flex flex-wrap items-center gap-8 sm:gap-12 pt-4 border-t border-white/10"
             >
-              <CountUpStat target={15000} suffix="+" label="Projects Managed" duration={2200} />
-              <div className="hidden sm:block w-px h-12 bg-white/10" />
-              <CountUpStat target={500} suffix="+" label="Companies Worldwide" duration={1800} />
-              <div className="hidden sm:block w-px h-12 bg-white/10" />
-              <CountUpStat target={99.9} suffix="%" label="Platform Uptime" duration={2000} />
+              <StatCounter value={15000} suffix="+" label="Projects" />
+              <StatCounter value={500} suffix="+" label="Companies" />
+              <StatCounter value={99} suffix=".9%" label="Uptime" />
             </motion.div>
           </div>
 
-          {/* Right - Dashboard Mockup */}
-          <motion.div
-            initial={{ opacity: 0, x: 40, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
-            className="flex-1 w-full max-w-lg"
-          >
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative bg-white/[0.07] backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-2xl shadow-black/20"
-            >
-              {/* Mock window header */}
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-                </div>
-                <div className="flex-1 ml-3">
-                  <div className="h-5 bg-white/[0.06] rounded-md max-w-[200px]" />
-                </div>
-              </div>
-
-              {/* Stat Cards Grid */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <DashStatCard
-                  icon={FolderKanban}
-                  label="Active Projects"
-                  value="24"
-                  color="bg-orange-500/20"
-                  delay={0}
-                />
-                <DashStatCard
-                  icon={DollarSign}
-                  label="Budget Utilization"
-                  value="78%"
-                  color="bg-blue-500/20"
-                  delay={1}
-                />
-                <DashStatCard
-                  icon={Users}
-                  label="Team Members"
-                  value="156"
-                  color="bg-emerald-500/20"
-                  delay={2}
-                />
-                <DashStatCard
-                  icon={CheckCircle2}
-                  label="Tasks Completed"
-                  value="892"
-                  color="bg-purple-500/20"
-                  delay={3}
-                />
-              </div>
-
-              {/* Mini Bar Chart */}
-              <div className="bg-white/[0.05] rounded-xl p-4 border border-white/[0.06]">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-blue-300/60" />
-                    <span className="text-[11px] text-blue-200/50 font-medium">
-                      Monthly Progress
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-emerald-400/70 font-medium">+12.5%</span>
-                </div>
-                <div className="flex items-end gap-1.5 h-16">
-                  {barData.map((bar, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${bar.height}%` }}
-                      transition={{
-                        delay: 1 + i * 0.05,
-                        duration: 0.5,
-                        ease: 'easeOut',
-                      }}
-                      className={`flex-1 rounded-t-sm ${bar.color} min-w-0`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Decorative glow behind dashboard */}
-              <div className="absolute -inset-4 -z-10 bg-gradient-to-r from-orange-500/10 via-blue-500/10 to-purple-500/10 rounded-3xl blur-2xl" />
-            </motion.div>
-          </motion.div>
+          {/* Right – Dashboard mockup */}
+          <div className="hidden lg:block">
+            <DashboardMockup />
+          </div>
         </div>
       </div>
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-900 to-transparent pointer-events-none" />
     </section>
-  )
+  );
 }

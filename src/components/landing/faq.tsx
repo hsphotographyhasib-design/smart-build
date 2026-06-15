@@ -1,107 +1,52 @@
 'use client'
 
-import { Plus, Minus } from 'lucide-react'
-import { motion } from 'framer-motion'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
+import { motion } from 'framer-motion'
+import { Plus, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const faqs = [
   {
     question: 'What is SmartBuild?',
     answer:
-      'SmartBuild is an all-in-one construction management platform that helps companies manage projects, finances, procurement, workforce, assets, and client communication from a single integrated system.',
+      'SmartBuild is a comprehensive construction management platform that helps companies streamline project management, finance, procurement, HR, and operations — all from a single integrated system. It replaces scattered tools and spreadsheets with one powerful platform.',
   },
   {
-    question: 'Who is SmartBuild for?',
+    question: 'Who is SmartBuild designed for?',
     answer:
-      'SmartBuild is designed for construction companies, contractors, developers, MEP contractors, facility managers, and government agencies of all sizes.',
+      'SmartBuild is built for construction companies, real estate developers, contractors, and infrastructure firms of all sizes — from growing teams of 10 to enterprises with 500+ employees managing multiple projects simultaneously.',
   },
   {
     question: 'How long does implementation take?',
     answer:
-      'Most teams are up and running within 1-2 weeks. Our dedicated onboarding team ensures a smooth transition with data migration, training, and ongoing support.',
+      'Most teams are up and running within 2–4 weeks. Our onboarding team handles data migration, configuration, and training. Complex enterprise deployments with custom integrations typically take 4–8 weeks.',
   },
   {
-    question: 'Can I use SmartBuild on mobile?',
+    question: 'Does SmartBuild work on mobile devices?',
     answer:
-      'Yes! SmartBuild offers native iOS and Android apps with full project management, attendance tracking, photo documentation, and offline support.',
+      'Yes. SmartBuild is fully responsive and works on smartphones, tablets, and desktops. Field workers can access project details, log attendance, upload photos, and update task status directly from their mobile browser or our progressive web app.',
   },
   {
-    question: 'Can clients access project data?',
+    question: 'Can my clients access project updates?',
     answer:
-      'Yes, our Client Portal gives your clients real-time visibility into project progress, documents, invoices, and communication.',
+      'Absolutely. SmartBuild includes a branded client portal where your clients can view real-time project progress, milestones, documents, and invoices — reducing status-update calls and improving transparency.',
   },
   {
-    question: 'How secure is SmartBuild?',
+    question: 'How secure is my data?',
     answer:
-      'SmartBuild uses AES-256 encryption, role-based access controls, audit logging, and operates on enterprise cloud infrastructure with 99.9% uptime guarantee.',
+      'Very secure. We use AES-256 encryption at rest, TLS 1.3 in transit, role-based access controls, and comprehensive audit logs. Our infrastructure is hosted on enterprise cloud providers with 99.9% uptime SLA, and we are SOC 2 compliant and GDPR ready.',
   },
   {
-    question: 'Can it replace my spreadsheets?',
+    question: 'Can SmartBuild replace our spreadsheets?',
     answer:
-      'Absolutely. SmartBuild eliminates the need for multiple spreadsheets by providing integrated modules for project tracking, financial management, procurement, and reporting.',
+      'Yes — that is one of the primary reasons teams switch to SmartBuild. Our platform eliminates manual spreadsheet tracking for project costs, labour, inventory, and reporting with automated, real-time dashboards that reduce errors and save hours every week.',
   },
   {
     question: 'What kind of support do you offer?',
     answer:
-      'We provide 24/7 support via chat, email, and phone, along with a comprehensive knowledge base, video tutorials, and dedicated account managers.',
+      'We offer 24/7 priority support via chat, email, and phone for all plans. Every account gets a dedicated onboarding specialist, and enterprise plans include a named account manager, custom training sessions, and priority SLA with guaranteed response times.',
   },
 ]
-
-function FAQAccordionTrigger({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
-  return (
-    <AccordionPrimitive.Header className="flex">
-      <AccordionPrimitive.Trigger
-        className={cn(
-          'group flex flex-1 items-start justify-between gap-4 py-5 text-left text-base font-medium text-gray-900 transition-all outline-none hover:text-blue-600 [&[data-state=open]>span.icon-plus]:hidden [&[data-state=open]>span.icon-minus]:block [&[data-state=closed]>span.icon-plus]:block [&[data-state=closed]>span.icon-minus]:hidden',
-          className
-        )}
-        {...props}
-      >
-        {children}
-        <span className="icon-plus mt-0.5 shrink-0">
-          <Plus className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-600" />
-        </span>
-        <span className="icon-minus hidden mt-0.5 shrink-0">
-          <Minus className="h-5 w-5 text-blue-600" />
-        </span>
-      </AccordionPrimitive.Trigger>
-    </AccordionPrimitive.Header>
-  )
-}
-
-function FAQAccordionItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Item>) {
-  return (
-    <AccordionPrimitive.Item
-      className={cn('border-b border-gray-200', className)}
-      {...props}
-    />
-  )
-}
-
-function FAQAccordionContent({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Content>) {
-  return (
-    <AccordionPrimitive.Content
-      className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden"
-      {...props}
-    >
-      <div className={cn('pb-5 text-sm leading-relaxed text-gray-500', className)}>
-        {children}
-      </div>
-    </AccordionPrimitive.Content>
-  )
-}
 
 export function FAQ() {
   return (
@@ -110,11 +55,11 @@ export function FAQ() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl">
             Frequently Asked Questions
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
@@ -125,16 +70,28 @@ export function FAQ() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5, delay: 0.15 }}
           className="mt-14"
         >
-          <AccordionPrimitive.Root type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <FAQAccordionItem key={index} value={`item-${index}`}>
-                <FAQAccordionTrigger>{faq.question}</FAQAccordionTrigger>
-                <FAQAccordionContent>{faq.answer}</FAQAccordionContent>
-              </FAQAccordionItem>
+          <AccordionPrimitive.Root type="single" collapsible className="divide-y divide-[#e2e8f0]">
+            {faqs.map((faq, i) => (
+              <AccordionPrimitive.Item key={i} value={`item-${i}`}>
+                <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between py-5 text-left transition-colors hover:text-[#ff5201] data-[state=open]:text-[#ff5201]">
+                  <span className="pr-4 text-sm font-semibold text-black sm:text-base">
+                    {faq.question}
+                  </span>
+                  <span className="relative flex h-5 w-5 shrink-0 items-center justify-center">
+                    <Plus className="h-4 w-4 text-[#595552] transition-transform duration-300 group-data-[state=open]:rotate-90 group-data-[state=open]:scale-0" />
+                    <Minus className="absolute h-4 w-4 text-[#ff5201] scale-0 transition-transform duration-300 group-data-[state=open]:scale-100" />
+                  </span>
+                </AccordionPrimitive.Trigger>
+                <AccordionPrimitive.Content className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                  <div className="pb-5 text-sm leading-relaxed text-gray-500">
+                    {faq.answer}
+                  </div>
+                </AccordionPrimitive.Content>
+              </AccordionPrimitive.Item>
             ))}
           </AccordionPrimitive.Root>
         </motion.div>

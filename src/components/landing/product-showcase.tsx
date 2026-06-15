@@ -7,121 +7,107 @@ import {
   ShoppingCart,
   Users,
   HardHat,
-  Wrench,
-  CalendarRange,
-  UserCheck,
-  Activity,
-  Calculator,
-  Store,
-  BarChart3,
+  Package,
+  CalendarDays,
+  Globe,
+  BookOpen,
+  PieChart,
+  TrendingUp,
+  FileBarChart,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { type LucideIcon } from 'lucide-react'
 
-interface ProductModule {
+interface ProductCard {
+  icon: LucideIcon
   title: string
   description: string
-  icon: LucideIcon
-  iconBg: string
-  iconColor: string
-  hoverBorder: string
+  color: string
 }
 
-const products: ProductModule[] = [
+const products: ProductCard[] = [
   {
-    title: 'Project Management',
-    description: 'Plan, track, and deliver projects on time',
     icon: FolderKanban,
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    hoverBorder: 'hover:border-blue-300',
+    title: 'Project Management',
+    description:
+      'Plan, track, and deliver projects on time with full visibility across all stages.',
+    color: 'bg-orange-50 text-[#ff5201]',
   },
   {
-    title: 'Finance',
-    description: 'Invoices, payments, and financial control',
     icon: DollarSign,
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
-    hoverBorder: 'hover:border-green-300',
+    title: 'Finance',
+    description:
+      'Manage budgets, invoices, payments, and financial reporting in one place.',
+    color: 'bg-emerald-50 text-emerald-600',
   },
   {
-    title: 'Procurement',
-    description: 'Streamlined purchasing and inventory',
     icon: ShoppingCart,
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    hoverBorder: 'hover:border-purple-300',
+    title: 'Procurement',
+    description:
+      'Streamline purchasing, vendor management, and material procurement workflows.',
+    color: 'bg-amber-50 text-amber-600',
   },
   {
-    title: 'HR Management',
-    description: 'Employee records, leave, and compliance',
     icon: Users,
-    iconBg: 'bg-orange-100',
-    iconColor: 'text-orange-600',
-    hoverBorder: 'hover:border-orange-300',
+    title: 'HR',
+    description:
+      'Handle hiring, onboarding, attendance, and employee lifecycle management.',
+    color: 'bg-sky-50 text-sky-600',
   },
   {
-    title: 'Labour Management',
-    description: 'Attendance, payroll, and workforce tracking',
     icon: HardHat,
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-    hoverBorder: 'hover:border-amber-300',
+    title: 'Labour',
+    description:
+      'Track labour deployment, productivity, and workforce allocation across sites.',
+    color: 'bg-rose-50 text-rose-600',
   },
   {
-    title: 'Asset Management',
-    description: 'Tools, equipment, and vehicle lifecycle',
-    icon: Wrench,
-    iconBg: 'bg-teal-100',
-    iconColor: 'text-teal-600',
-    hoverBorder: 'hover:border-teal-300',
+    icon: Package,
+    title: 'Assets',
+    description:
+      'Manage equipment, tools, and vehicles with full maintenance tracking.',
+    color: 'bg-violet-50 text-violet-600',
   },
   {
+    icon: CalendarDays,
     title: 'Scheduling',
-    description: 'Interactive Gantt charts and timelines',
-    icon: CalendarRange,
-    iconBg: 'bg-indigo-100',
-    iconColor: 'text-indigo-600',
-    hoverBorder: 'hover:border-indigo-300',
+    description:
+      'Create Gantt charts, milestones, and critical path schedules with ease.',
+    color: 'bg-teal-50 text-teal-600',
   },
   {
+    icon: Globe,
     title: 'Client Portal',
-    description: 'Real-time project access for clients',
-    icon: UserCheck,
-    iconBg: 'bg-pink-100',
-    iconColor: 'text-pink-600',
-    hoverBorder: 'hover:border-pink-300',
+    description:
+      'Give clients real-time project visibility with branded dashboards.',
+    color: 'bg-pink-50 text-pink-600',
   },
   {
-    title: 'Resource Management',
-    description: 'Workforce and equipment optimization',
-    icon: Activity,
-    iconBg: 'bg-cyan-100',
-    iconColor: 'text-cyan-600',
-    hoverBorder: 'hover:border-cyan-300',
+    icon: BookOpen,
+    title: 'Resources',
+    description:
+      'Manage materials, inventory, and resource allocation efficiently.',
+    color: 'bg-lime-50 text-lime-600',
   },
   {
+    icon: PieChart,
     title: 'Cost Control',
-    description: 'Budget tracking and forecasting',
-    icon: Calculator,
-    iconBg: 'bg-red-100',
-    iconColor: 'text-red-600',
-    hoverBorder: 'hover:border-red-300',
+    description:
+      'Monitor spending, forecast costs, and prevent budget overruns in real time.',
+    color: 'bg-cyan-50 text-cyan-600',
   },
   {
+    icon: TrendingUp,
     title: 'Sales',
-    description: 'Product catalog and invoicing',
-    icon: Store,
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
-    hoverBorder: 'hover:border-violet-300',
+    description:
+      'Track leads, proposals, and contracts with a built-in CRM pipeline.',
+    color: 'bg-fuchsia-50 text-fuchsia-600',
   },
   {
+    icon: FileBarChart,
     title: 'Reports',
-    description: 'Analytics and business intelligence',
-    icon: BarChart3,
-    iconBg: 'bg-gray-200',
-    iconColor: 'text-gray-600',
-    hoverBorder: 'hover:border-gray-400',
+    description:
+      'Generate detailed reports and dashboards for data-driven decisions.',
+    color: 'bg-indigo-50 text-indigo-600',
   },
 ]
 
@@ -135,62 +121,57 @@ const containerVariants = {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 25 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.4,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.45, ease: 'easeOut' },
   },
 }
 
 export function ProductShowcase() {
   return (
-    <section className="bg-white py-20 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
+    <section className="bg-white py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
         >
-          <h2 className="text-4xl font-bold tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold tracking-tight text-black sm:text-4xl">
             Complete Construction Platform
           </h2>
-          <p className="mt-4 text-lg text-gray-500">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
             Every tool you need in one integrated system
           </p>
         </motion.div>
 
-        {/* Products Grid */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-40px' }}
+          className="mt-16 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
         >
-          {products.map((product) => {
+          {products.map((product, i) => {
             const Icon = product.icon
             return (
               <motion.div
-                key={product.title}
-                className={`group flex flex-col items-center rounded-xl border border-gray-200 bg-white p-6 text-center transition-all duration-300 ${product.hoverBorder} hover:shadow-lg hover:scale-[1.03]`}
+                key={i}
                 variants={cardVariants}
+                className="group rounded-xl border border-[#e2e8f0] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#ff5201]/30 hover:shadow-lg"
               >
                 <div
-                  className={`flex h-14 w-14 items-center justify-center rounded-full ${product.iconBg} mb-4 transition-transform duration-300 group-hover:scale-110`}
+                  className={`mb-4 flex h-11 w-11 items-center justify-center rounded-full ${product.color}`}
                 >
-                  <Icon className={`h-7 w-7 ${product.iconColor}`} />
+                  <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">
+                <h3 className="mb-1.5 text-sm font-semibold text-black">
                   {product.title}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-xs leading-relaxed text-gray-500">
                   {product.description}
                 </p>
               </motion.div>

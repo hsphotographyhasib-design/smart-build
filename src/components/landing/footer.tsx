@@ -1,104 +1,120 @@
 'use client'
 
+import { useState } from 'react'
 import { Github, Twitter, Linkedin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-const columns = [
+const footerLinks: {
+  title: string
+  links: { label: string; href: string }[]
+}[] = [
   {
     title: 'Products',
     links: [
-      'Project Management',
-      'Finance',
-      'Procurement',
-      'HR',
-      'Labour',
-      'Assets',
-      'Scheduling',
-      'Sales',
+      { label: 'Project Management', href: '#' },
+      { label: 'Finance', href: '#' },
+      { label: 'Procurement', href: '#' },
+      { label: 'HR', href: '#' },
+      { label: 'Labour', href: '#' },
+      { label: 'Assets', href: '#' },
+      { label: 'Scheduling', href: '#' },
+      { label: 'Sales', href: '#' },
     ],
   },
   {
     title: 'Solutions',
     links: [
-      'Construction Companies',
-      'MEP Contractors',
-      'Developers',
-      'Facility Management',
-      'Government',
+      { label: 'Construction Companies', href: '#' },
+      { label: 'MEP Contractors', href: '#' },
+      { label: 'Developers', href: '#' },
+      { label: 'Facility Management', href: '#' },
+      { label: 'Government', href: '#' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      'Documentation',
-      'API Reference',
-      'Blog',
-      'Case Studies',
-      'Webinars',
-      'Help Center',
+      { label: 'Documentation', href: '#' },
+      { label: 'API Reference', href: '#' },
+      { label: 'Blog', href: '#' },
+      { label: 'Case Studies', href: '#' },
+      { label: 'Webinars', href: '#' },
+      { label: 'Help Center', href: '#' },
     ],
   },
   {
     title: 'Company',
-    links: ['About', 'Careers', 'Contact', 'Press', 'Partners', 'Legal'],
+    links: [
+      { label: 'About', href: '#' },
+      { label: 'Careers', href: '#' },
+      { label: 'Contact', href: '#' },
+      { label: 'Press', href: '#' },
+      { label: 'Partners', href: '#' },
+      { label: 'Legal', href: '#' },
+    ],
   },
 ]
 
+const socialLinks = [
+  { icon: Github, href: '#', label: 'GitHub' },
+  { icon: Twitter, href: '#', label: 'Twitter' },
+  { icon: Linkedin, href: '#', label: 'LinkedIn' },
+]
+
 export function Footer() {
+  const [email, setEmail] = useState('')
+
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        {/* Main grid */}
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+    <footer className="w-full bg-black text-gray-300">
+      {/* Main grid */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:gap-8 lg:grid-cols-5 lg:gap-12">
           {/* Brand column */}
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <h3 className="text-xl font-bold tracking-wider text-white">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h3 className="text-lg font-bold tracking-widest text-white">
               SMARTBUILD
             </h3>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
-              The all-in-one construction management platform built for modern
-              teams.
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-400">
+              The all-in-one construction management platform that helps teams
+              deliver projects on time, on budget, and to the highest standards.
             </p>
-            <div className="mt-5 flex items-center gap-3">
-              <a
-                href="#"
-                aria-label="GitHub"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-              >
-                <Github className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="Twitter"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-              >
-                <Linkedin className="h-4 w-4" />
-              </a>
+
+            {/* Social icons */}
+            <div className="mt-6 flex items-center gap-3">
+              {socialLinks.map(({ icon: Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-md',
+                    'text-gray-400 transition-colors hover:bg-white/10 hover:text-white'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
           {/* Link columns */}
-          {columns.map((column) => (
-            <div key={column.title}>
-              <h4 className="text-sm font-semibold text-white">
-                {column.title}
+          {footerLinks.map((group) => (
+            <div key={group.title}>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-white">
+                {group.title}
               </h4>
               <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={link}>
+                {group.links.map((link) => (
+                  <li key={link.label}>
                     <a
-                      href="#"
-                      className="text-sm text-gray-400 transition-colors hover:text-white"
+                      href={link.href}
+                      className={cn(
+                        'text-sm text-gray-400 transition-colors hover:text-white'
+                      )}
                     >
-                      {link}
+                      {link.label}
                     </a>
                   </li>
                 ))}
@@ -107,23 +123,32 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Newsletter */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-8 sm:flex-row">
+        {/* Newsletter section */}
+        <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-white/10 pt-10 md:flex-row">
           <p className="text-sm text-gray-400">
-            Subscribe to our newsletter for the latest updates.
+            Subscribe to our newsletter
           </p>
           <form
+            className="flex w-full max-w-md gap-3"
             onSubmit={(e) => e.preventDefault()}
-            className="flex w-full max-w-sm items-center gap-2"
           >
             <Input
               type="email"
               placeholder="Enter your email"
-              className="h-10 border-gray-700 bg-gray-800 text-white placeholder:text-gray-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={cn(
+                'h-10 flex-1 rounded-md border-white/20 bg-white/5 text-sm text-white',
+                'placeholder:text-gray-500 focus-visible:ring-[#ff5201]'
+              )}
             />
             <Button
               type="submit"
-              className="h-10 shrink-0 bg-blue-600 px-5 text-white hover:bg-blue-700"
+              size="sm"
+              className={cn(
+                'h-10 bg-[#ff5201] px-6 font-semibold text-white hover:bg-[#e64a01] active:bg-[#cc4101]',
+                'rounded-md shadow-none transition-colors shrink-0'
+              )}
             >
               Subscribe
             </Button>
@@ -131,14 +156,20 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-8 text-sm text-gray-500 sm:flex-row">
-          <p>&copy; 2024 SmartBuild. All rights reserved.</p>
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-gray-500 md:flex-row">
+          <p>&copy; 2025 SmartBuild. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="transition-colors hover:text-gray-300">
+            <a
+              href="#"
+              className="transition-colors hover:text-white"
+            >
               Privacy Policy
             </a>
-            <span className="text-gray-700">|</span>
-            <a href="#" className="transition-colors hover:text-gray-300">
+            <span className="text-white/20">|</span>
+            <a
+              href="#"
+              className="transition-colors hover:text-white"
+            >
               Terms of Service
             </a>
           </div>
