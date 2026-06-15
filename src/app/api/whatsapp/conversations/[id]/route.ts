@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth, createAuditLog } from '@/lib/auth'
 
-const WA_SOCKET_PORT = 3096
+const REALTIME_BRIDGE_URL = 'http://localhost:3096/api/events'
 
-async function emitEvent(event: string, data: unknown) {
+async function emitEvent(room: string, event: string, data: unknown) {
   try {
-    await fetch(`http://localhost:${WA_SOCKET_PORT}/api/events`, {
+    await fetch(REALTIME_BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, data }),
+      body: JSON.stringify({ room, event, data }),
     })
   } catch {
-    // Socket সার্ভিস চলছে না হতে পারে
+    // Realtime service not available, non-blocking
   }
 }
 
-// GET — মেসেজ, পরিচিতি এবং সংযুক্ত টিকেট সহ সম্পূর্ণ কথোপকথন
+// GET — Full conversation with messages, contact, and linked complaint
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,30 +31,16 @@ export async function GET(
       where: { id },
       include: {
         contact: true,
+        account: { select: { id: true, name: true, phoneNumber: true, status: true } },
         assignedTo: { select: { id: true, name: true, avatar: true, role: true, phone: true } },
-        ticket: {
-          include: {
-            assignedTechnician: {
-              include: { user: { select: { id: true, name: true, avatar: true } } },
-            },
-            timeline: { orderBy: { createdAt: 'desc' }, take: 5 },
-          },
-        },
-        complaintLinks: {
-          include: {
-            ticket: { select: { id: true, ticketNo: true, status: true, subject: true, category: true } },
-          },
-        },
+        complaintLink: { select: { id: true, complaintId: true, linkedAt: true } },
         messages: {
           orderBy: { createdAt: 'asc' },
           include: {
-            sentBy: { select: { id: true, name: true, avatar: true } },
-            contactSender: { select: { id: true, name: true, pushName: true, profilePicUrl: true } },
-            attachments: true,
+            contact: { select: { id: true, name: true, pushName: true, profilePicUrl: true } },
           },
         },
-        attachments: true,
-        _count: { select: { messages: true, attachments: true } },
+        _count: { select: { messages: true } },
       },
     })
 
@@ -69,7 +55,7 @@ export async function GET(
   }
 }
 
-// PUT — কথোপকথন আপডেট করা হচ্ছে (assign, priority, status, tags, internal note)
+// PUT — Update conversation (status, priority, isArchived, assignedTo)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -80,40 +66,28 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { assignedToId, priority, status, tags, internalNote } = body
+    const { assignedToId, priority, status, isArchived, groupName } = body
 
     const conversation = await db.whatsAppConversation.findUnique({ where: { id } })
     if (!conversation) {
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    const updateData: Record<string, unknown> = {}
+    const updateData: Record<string, unknown> = { updatedAt: new Date() }
 
-    if (assignedToId !== undefined) updateData.assignedToId = assignedToId || null
+    if (assignedToId !== undefined) {
+      updateData.assignedToId = assignedToId || null
+      updateData.assignedAt = assignedToId ? new Date() : null
+    }
     if (priority) updateData.priority = priority
     if (status) {
       updateData.status = status
-      if (status === 'closed' || status === 'archived') {
-        updateData.resolvedAt = new Date()
+      if (status === 'closed' || status === 'pending') {
         updateData.unreadCount = 0
       }
     }
-    if (tags !== undefined) {
-      updateData.tags = Array.isArray(tags) ? JSON.stringify(tags) : tags
-    }
-
-    // অভ্যন্তরীণ নোট যোগ করা হচ্ছে
-    if (internalNote) {
-      const existingNotes: Array<{ note: string; agentId: string; agentName: string; createdAt: string }> =
-        conversation.internalNotes ? JSON.parse(conversation.internalNotes) : []
-      existingNotes.push({
-        note: internalNote,
-        agentId: authUser.id,
-        agentName: authUser.name,
-        createdAt: new Date().toISOString(),
-      })
-      updateData.internalNotes = JSON.stringify(existingNotes)
-    }
+    if (isArchived !== undefined) updateData.isArchived = isArchived
+    if (groupName !== undefined) updateData.groupName = groupName
 
     const updated = await db.whatsAppConversation.update({
       where: { id },
@@ -121,7 +95,7 @@ export async function PUT(
       include: {
         contact: true,
         assignedTo: { select: { id: true, name: true, avatar: true } },
-        ticket: { select: { id: true, ticketNo: true, status: true } },
+        complaintLink: { select: { id: true, complaintId: true, linkedAt: true } },
       },
     })
 
@@ -133,7 +107,10 @@ export async function PUT(
       newValues: updateData,
     })
 
-    await emitEvent('conversation_updated', { conversationId: id, changes: Object.keys(updateData) })
+    await emitEvent(`conversation:${id}`, 'conversation_updated', {
+      conversationId: id,
+      changes: Object.keys(updateData),
+    })
 
     return NextResponse.json({ success: true, data: updated })
   } catch (error: unknown) {
@@ -142,7 +119,7 @@ export async function PUT(
   }
 }
 
-// DELETE — কথোপকথন আর্কাইভ করা হচ্ছে
+// DELETE — Archive conversation
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -161,9 +138,10 @@ export async function DELETE(
     const archived = await db.whatsAppConversation.update({
       where: { id },
       data: {
-        status: 'archived',
-        resolvedAt: new Date(),
+        isArchived: true,
+        status: 'closed',
         unreadCount: 0,
+        updatedAt: new Date(),
       },
     })
 
@@ -174,7 +152,7 @@ export async function DELETE(
       entityId: id,
     })
 
-    await emitEvent('conversation_archived', { conversationId: id })
+    await emitEvent('whatsapp', 'conversation_archived', { conversationId: id })
 
     return NextResponse.json({ success: true, data: archived })
   } catch (error: unknown) {

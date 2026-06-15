@@ -1,57 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
+import { sendTextMessage } from '@/lib/openwa-client'
 
-const WA_SOCKET_PORT = 3096
+const REALTIME_BRIDGE_URL = 'http://localhost:3096/api/events'
 
-async function emitEvent(event: string, data: unknown) {
+async function emitEvent(room: string, event: string, data: unknown) {
   try {
-    await fetch(`http://localhost:${WA_SOCKET_PORT}/api/events`, {
+    await fetch(REALTIME_BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, data }),
+      body: JSON.stringify({ room, event, data }),
     })
   } catch {
-    // Socket সার্ভিস চলছে না হতে পারে
+    // Realtime service not available, non-blocking
   }
 }
 
-async function sendWhatsAppMessage(phoneNumberId: string, accessToken: string, to: string, message: string) {
-  try {
-    await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to,
-        type: 'text',
-        text: { body: message },
-      }),
-    })
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function storeBotMessage(conversationId: string, content: string, sentById?: string) {
+async function storeBotMessage(conversationId: string, contactId: string, accountId: string, content: string, senderName?: string) {
   return db.whatsAppMessage.create({
     data: {
       conversationId,
+      contactId,
+      sentByAccountId: accountId,
       direction: 'outgoing',
       messageType: 'text',
       content,
-      senderType: 'bot',
-      sentById: sentById || null,
-      isDelivered: true,
+      senderName: senderName || 'Bot',
     },
   })
 }
 
-// POST — বট কমান্ড প্রক্রিয়া করা হচ্ছে
+// POST — Process bot commands using OpenWA for sending
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -72,21 +52,21 @@ export async function POST(request: NextRequest) {
       include: {
         contact: true,
         account: true,
-        ticket: true,
-        complaintLinks: {
-          include: { ticket: true },
-        },
+        complaintLink: true,
       },
     })
     if (!conversation) {
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    if (!conversation.account?.accessToken) {
-      return NextResponse.json({ success: false, error: 'WhatsApp not configured' }, { status: 400 })
+    if (!conversation.account?.sessionId || conversation.account.status !== 'connected') {
+      return NextResponse.json({ success: false, error: 'WhatsApp not connected' }, { status: 400 })
     }
 
-    const { account, contact } = conversation
+    const account = conversation.account
+    const contact = conversation.contact
+    const sessionId = account.sessionId
+    const accountId = account.id
     let reply: string | null = null
     let botAction: string | null = null
 
@@ -104,8 +84,7 @@ export async function POST(request: NextRequest) {
             botAction = 'awaiting_complaint'
             break
           case '2':
-            // স্ট্যাটাস কুয়েরি — ওয়েবহুক দ্বারা পরিচালিত
-            reply = `To check your ticket status, please reply: STATUS`
+            reply = `To check your complaint status, please reply: STATUS`
             break
           case '3':
             reply = `🔧 *Service Request*\n\nPlease describe the service you need:\n- Type of service\n- Preferred date/time\n- Location\n\nWe'll arrange it for you.`
@@ -113,11 +92,6 @@ export async function POST(request: NextRequest) {
             break
           case '4':
             reply = `👋 An agent will be with you shortly. Thank you for your patience.\n\nIn the meantime, feel free to describe your issue.`
-            // এজেন্ট নিতে পারে তাই বট কথোপকথন হিসেবে চিহ্নিত করা হচ্ছে না
-            await db.whatsAppConversation.update({
-              where: { id: conversationId },
-              data: { isBotConversation: false },
-            })
             break
           case '5':
             reply = `📋 *AMC (Annual Maintenance Contract)*\n\nOur AMC packages include:\n- 🔧 Preventive maintenance visits\n- ⚡ Priority response\n- 📞 24/7 support\n\nFor AMC details, please contact our sales team or reply with your interest.`
@@ -129,80 +103,44 @@ export async function POST(request: NextRequest) {
       }
 
       case 'status_query': {
-        const activeTicket = conversation.ticket || conversation.complaintLinks?.[0]?.ticket
-        if (activeTicket) {
-          reply = `📋 *Ticket Status Update*\n\n🎫 Ticket: ${activeTicket.ticketNo}\n📌 Subject: ${activeTicket.subject}\n📊 Status: ${activeTicket.status.replace(/_/g, ' ').toUpperCase()}\n🔥 Priority: ${activeTicket.priority}\n📅 Created: ${activeTicket.createdAt.toLocaleDateString()}\n\n_Thank you for your patience._`
+        const activeLink = conversation.complaintLink
+        if (activeLink) {
+          reply = `📋 *Complaint Status Update*\n\n🔖 Complaint ID: ${activeLink.complaintId}\n📊 Linked to your conversation\n🔗 Linked at: ${activeLink.linkedAt.toLocaleDateString()}\n\n_Thank you for your patience._`
         } else {
-          reply = `🔍 No active ticket found for your number.\n\nTo report a new issue, please describe your problem.`
+          reply = `🔍 No active complaint found for your number.\n\nTo report a new issue, please describe your problem.`
         }
         break
       }
 
       case 'create_complaint': {
-        const { subject, description, category, priority } = payload || {}
+        const { subject, description } = payload || {}
 
         if (!subject || !description) {
           reply = `❌ Please provide a subject and description for the complaint.`
           break
         }
 
-        // টিকেট নম্বর তৈরি করা হচ্ছে
-        const year = new Date().getFullYear()
-        const lastTicket = await db.maintenanceTicket.findFirst({
-          where: { ticketNo: { startsWith: `CMP-${year}` } },
-          orderBy: { ticketNo: 'desc' },
-        })
-        let nextNum = 1
-        if (lastTicket) {
-          const parts = lastTicket.ticketNo.split('-')
-          nextNum = (parseInt(parts[2] || '0', 10) || 0) + 1
-        }
-        const ticketNo = `CMP-${year}-${String(nextNum).padStart(6, '0')}`
+        // Generate complaint ID
+        const complaintId = `CMP-${Date.now()}`
 
-        // createdById-এর জন্য একজন ইউজার খুঁজে বের করা হচ্ছে
-        let systemUser = await db.user.findFirst()
-        if (!systemUser) {
-          reply = `❌ System error. Please try again later.`
-          break
-        }
-
-        const ticket = await db.maintenanceTicket.create({
-          data: {
-            ticketNo,
-            type: 'complaint',
-            category: category || 'general_maintenance',
-            priority: priority || 'medium',
-            status: 'new',
-            subject,
-            description,
-            customerId: contact.customerId,
-            contactPhone: contact.phone,
-            contactPerson: contact.name || undefined,
-            createdById: systemUser.id,
-          },
-        })
-
-        // লিংক তৈরি করা হচ্ছে
+        // Create complaint link
         await db.complaintWhatsAppLink.create({
           data: {
-            ticketId: ticket.id,
+            complaintId,
             conversationId,
-            autoCreated: true,
           },
         })
 
-        await db.whatsAppConversation.update({
-          where: { id: conversationId },
-          data: { ticketId: ticket.id },
-        })
+        reply = `✅ *Complaint Registered*\n\n🔖 Complaint ID: ${complaintId}\n📌 ${subject}\n\nOur team will review shortly. Reply "STATUS" for updates.`
+        botAction = 'complaint_created'
 
-        reply = `✅ *Complaint Registered*\n\n🎫 Ticket: ${ticketNo}\n📌 ${subject}\n📊 Priority: ${(priority || 'medium').toUpperCase()}\n\nOur team will review shortly. Reply "STATUS" for updates.`
-        botAction = 'ticket_created'
-
-        await emitEvent('ticket_auto_created', {
+        await emitEvent(`conversation:${conversationId}`, 'complaint_created', {
           conversationId,
-          ticketId: ticket.id,
-          ticketNo,
+          complaintId,
+        })
+        await emitEvent('whatsapp', 'complaint_created', {
+          conversationId,
+          complaintId,
         })
         break
       }
@@ -211,21 +149,30 @@ export async function POST(request: NextRequest) {
         reply = `🤖 I didn't understand that command. Please choose an option from the menu or type your message.`
     }
 
-    if (reply) {
-      await sendWhatsAppMessage(account.phoneNumberId, account.accessToken, contact.phone, reply)
-      const msg = await storeBotMessage(conversationId, reply, authUser.id)
+    if (reply && sessionId) {
+      // Send via OpenWA
+      let sent = false
+      try {
+        await sendTextMessage(sessionId, contact.waId, reply)
+        sent = true
+      } catch {
+        // Send failed, still store the message
+      }
 
-      // কথোপকথন আপডেট করা হচ্ছে
+      const msg = await storeBotMessage(conversationId, contact.id, accountId, reply, authUser.name)
+
+      // Update conversation
       await db.whatsAppConversation.update({
         where: { id: conversationId },
         data: {
           lastMessageText: reply,
           lastMessageAt: new Date(),
-          lastMessageDir: 'outgoing',
+          lastMessageType: 'text',
+          updatedAt: new Date(),
         },
       })
 
-      await emitEvent('bot_response', {
+      await emitEvent(`conversation:${conversationId}`, 'bot_response', {
         conversationId,
         messageId: msg.id,
         command,

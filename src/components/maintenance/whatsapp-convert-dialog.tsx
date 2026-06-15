@@ -96,7 +96,7 @@ export function WhatsAppConvertDialog({
 
     setIsSubmitting(true)
     try {
-      const res = await api.post('/api/maintenance/whatsapp/convert', {
+      const res = await api.post('/api/whatsapp/convert', {
         conversationId,
         convertType,
         category,

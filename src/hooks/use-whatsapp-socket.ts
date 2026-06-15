@@ -36,7 +36,7 @@ export function useWhatsAppSocket(options: UseWhatsAppSocketOptions = {}) {
     socket.on('connect', () => {
       setIsConnected(true)
       if (user?.id) {
-        socket.emit('agent:subscribe', user.id)
+        socket.emit('subscribe-agent', user.id)
       }
     })
 
@@ -44,11 +44,11 @@ export function useWhatsAppSocket(options: UseWhatsAppSocketOptions = {}) {
       setIsConnected(false)
     })
 
-    socket.on('message:new', (data: any) => {
+    socket.on('new-message', (data: any) => {
       options.onNewMessage?.(data)
     })
 
-    socket.on('conversation:updated', (data: any) => {
+    socket.on('conversation-update', (data: any) => {
       options.onConversationUpdated?.(data)
     })
 
@@ -66,26 +66,26 @@ export function useWhatsAppSocket(options: UseWhatsAppSocketOptions = {}) {
 
     return () => {
       if (user?.id && socketRef.current) {
-        socketRef.current.emit('agent:unsubscribe', user.id)
+        socketRef.current.emit('unsubscribe-agent', user.id)
       }
       socket.disconnect()
     }
   }, [isAuthenticated, options.enabled])
 
   const subscribeAgent = useCallback((userId: string) => {
-    socketRef.current?.emit('agent:subscribe', userId)
+    socketRef.current?.emit('subscribe-agent', userId)
   }, [])
 
   const unsubscribeAgent = useCallback((userId: string) => {
-    socketRef.current?.emit('agent:unsubscribe', userId)
+    socketRef.current?.emit('unsubscribe-agent', userId)
   }, [])
 
   const joinConversation = useCallback((conversationId: string) => {
-    socketRef.current?.emit('conversation:join', conversationId)
+    socketRef.current?.emit('join-room', conversationId)
   }, [])
 
   const leaveConversation = useCallback((conversationId: string) => {
-    socketRef.current?.emit('conversation:leave', conversationId)
+    socketRef.current?.emit('leave-room', conversationId)
   }, [])
 
   const emitTyping = useCallback((conversationId: string) => {

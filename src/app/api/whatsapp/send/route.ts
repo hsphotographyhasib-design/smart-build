@@ -1,36 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth, createAuditLog } from '@/lib/auth'
+import { sendTextMessage, sendMediaMessage, sendDocument } from '@/lib/openwa-client'
 
-// POST — সরাসরি মেসেজ পাঠানো (টেমপ্লেট, টেকনিশিয়ানদের নোটিফিকেশন, স্ট্যাটাস আপডেট)
+// POST — Send text/media message via OpenWA
 export async function POST(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
     if (!authUser) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
     const body = await request.json()
-    const { to, content, templateName, templateParams, messageType = 'text' } = body
+    const {
+      chatId,
+      text,
+      mediaType,
+      mediaUrl,
+      caption,
+      fileName,
+      base64,
+      templateName,
+      templateParams,
+    } = body
 
-    if (!to) {
-      return NextResponse.json({ success: false, error: 'Recipient phone number is required' }, { status: 400 })
-    }
-
-    if (!content && !templateName) {
+    if (!chatId) {
       return NextResponse.json(
-        { success: false, error: 'Either content or templateName is required' },
+        { success: false, error: 'chatId is required' },
         { status: 400 }
       )
     }
 
-    const account = await db.whatsAppAccount.findFirst({ where: { isEnabled: true } })
-    if (!account?.accessToken) {
-      return NextResponse.json({ success: false, error: 'WhatsApp not configured or disabled' }, { status: 400 })
+    const account = await db.whatsAppAccount.findFirst({ where: { isActive: true, status: 'connected' } })
+    if (!account?.sessionId) {
+      return NextResponse.json({ success: false, error: 'WhatsApp not connected. Please scan QR code first.' }, { status: 400 })
     }
 
-    let waPayload: Record<string, unknown> | undefined
-    let finalContent = content
+    let finalText = text
+    let messageType = 'text'
+    let waMessageId: string | null = null
+    let sendSuccess = false
 
-    // টেমপ্লেট মেসেজ
+    // Template resolution
     if (templateName) {
       const template = await db.whatsAppMessageTemplate.findFirst({
         where: { name: templateName, isActive: true },
@@ -39,90 +48,89 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Template not found or inactive' }, { status: 404 })
       }
 
-      // টেমপ্লেট প্যারামিটার প্রতিস্থাপন করা হচ্ছে
-      finalContent = template.bodyText
+      finalText = template.content
       if (templateParams && Array.isArray(templateParams)) {
+        const vars: string[] = template.variables ? JSON.parse(template.variables) : []
         templateParams.forEach((param: string, idx: number) => {
-          finalContent = finalContent.replace(new RegExp(`\\{\\{${idx + 1}\\}\\}`, 'g'), param)
+          const placeholder = vars[idx] ? `{{${vars[idx]}}}` : `{{${idx + 1}}}`
+          finalText = (finalText || '').replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), param)
+        })
+
+        // Also replace numbered placeholders for backward compat
+        templateParams.forEach((param: string, idx: number) => {
+          finalText = (finalText || '').replace(new RegExp(`\\{\\{${idx + 1}\\}\\}`, 'g'), param)
         })
       }
 
-      if (template.waTemplateId) {
-        // WhatsApp-এর নেটিভ টেমপ্লেট API ব্যবহার করা হচ্ছে
-        waPayload = {
-          messaging_product: 'whatsapp',
-          to,
-          type: 'template',
-          template: {
-            name: template.waTemplateId,
-            language: { code: template.language },
-            components: templateParams
-              ? [
-                  {
-                    type: 'body',
-                    parameters: templateParams.map((p: string) => ({ type: 'text', text: p })),
-                  },
-                ]
-              : undefined,
-          },
-        }
-      }
+      messageType = 'template'
+      await db.whatsAppMessageTemplate.update({
+        where: { id: template.id },
+        data: { usageCount: { increment: 1 } },
+      })
     }
 
-    // টেক্সট মেসেজে ফলব্যাক করা হচ্ছে
-    if (!waPayload) {
-      waPayload = {
-        messaging_product: 'whatsapp',
-        to,
-        type: 'text',
-        text: { body: finalContent || content },
-      }
-    }
+    // Ensure chatId is in WhatsApp format
+    const formattedChatId = formatChatId(chatId)
 
-    // WhatsApp API-এর মাধ্যমে পাঠানো হচ্ছে
-    let waMessageId: string | null = null
-    let sendSuccess = false
+    // Send via OpenWA
     try {
-      const response = await fetch(
-        `https://graph.facebook.com/v21.0/${account.phoneNumberId}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${account.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(waPayload),
+      if (mediaType && (mediaUrl || base64)) {
+        if (mediaType === 'document' || fileName) {
+          const result = await sendDocument(
+            account.sessionId,
+            formattedChatId,
+            {
+              url: mediaUrl || undefined,
+              base64: base64 || undefined,
+              mimetype: guessMimeType(mediaType, mediaUrl, fileName),
+            },
+            fileName || 'document',
+            caption || finalText || undefined
+          )
+          waMessageId = result?.id || result?.key?.id || null
+          messageType = 'document'
+        } else {
+          const result = await sendMediaMessage(
+            account.sessionId,
+            formattedChatId,
+            mediaType,
+            {
+              url: mediaUrl || undefined,
+              base64: base64 || undefined,
+              mimetype: guessMimeType(mediaType, mediaUrl),
+            },
+            caption || undefined
+          )
+          waMessageId = result?.id || result?.key?.id || null
+          messageType = mediaType
         }
-      )
-      const result = await response.json()
-      if (result.messages?.[0]?.id) {
-        waMessageId = result.messages[0].id as string
-        sendSuccess = true
-      } else if (result.error) {
-        return NextResponse.json({
-          success: false,
-          error: 'WhatsApp API error: ' + (result.error.message || 'Unknown error'),
-        }, { status: 400 })
+      } else if (finalText) {
+        const result = await sendTextMessage(account.sessionId, formattedChatId, finalText)
+        waMessageId = result?.id || result?.key?.id || null
       }
-    } catch {
-      // API কল ব্যর্থ হয়েছে
+      sendSuccess = !!waMessageId
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Send failed'
+      // Still save the message to DB even if send fails
     }
 
-    // পরিচিতি খুঁজে বের করা বা তৈরি করা হচ্ছে
+    // Upsert contact
     const contact = await db.whatsAppContact.upsert({
-      where: { accountId_phone: { accountId: account.id, phone: to } },
+      where: { waId: formattedChatId },
       create: {
-        accountId: account.id,
-        waId: to,
-        phone: to,
-        lastMessageAt: new Date(),
+        waId: formattedChatId,
+        phoneNumber: formattedChatId.replace('@s.whatsapp.net', '').replace('@g.us', ''),
+        name: null,
+        lastSeenAt: new Date(),
+        updatedAt: new Date(),
       },
       update: {
-        lastMessageAt: new Date(),
+        lastSeenAt: new Date(),
+        updatedAt: new Date(),
       },
     })
 
-    // কথোপকথন খুঁজে বের করা বা তৈরি করা হচ্ছে
+    // Find or create conversation
     let conversation = await db.whatsAppConversation.findFirst({
       where: { contactId: contact.id, status: 'open' },
       orderBy: { lastMessageAt: 'desc' },
@@ -131,39 +139,42 @@ export async function POST(request: NextRequest) {
     if (!conversation) {
       conversation = await db.whatsAppConversation.create({
         data: {
-          accountId: account.id,
+          waChatId: formattedChatId,
           contactId: contact.id,
+          accountId: account.id,
           status: 'open',
-          lastMessageDir: 'outgoing',
           lastMessageAt: new Date(),
-          isBotConversation: true,
+          lastMessageType: messageType,
+          updatedAt: new Date(),
         },
       })
     }
 
-    // মেসেজ সংরক্ষণ করা হচ্ছে
+    // Save message
     const message = await db.whatsAppMessage.create({
       data: {
         conversationId: conversation.id,
+        contactId: contact.id,
         waMessageId,
+        sentByAccountId: account.id,
         direction: 'outgoing',
-        messageType: templateName ? 'template' : messageType,
-        content: finalContent || content,
-        templateName: templateName || null,
-        templateParams: templateParams ? JSON.stringify(templateParams) : null,
-        senderType: 'agent',
-        sentById: authUser.id,
-        isDelivered: sendSuccess,
+        messageType,
+        content: finalText,
+        mediaUrl: mediaUrl || null,
+        mediaType: mediaType ? guessMimeType(mediaType, mediaUrl) : null,
+        caption: caption || null,
+        fileName: fileName || null,
+        senderName: authUser.name,
       },
     })
 
-    // কথোপকথন আপডেট করা হচ্ছে
+    // Update conversation
     await db.whatsAppConversation.update({
       where: { id: conversation.id },
       data: {
-        lastMessageText: finalContent || content,
+        lastMessageText: finalText || `[${messageType}]`,
         lastMessageAt: new Date(),
-        lastMessageDir: 'outgoing',
+        lastMessageType: messageType,
       },
     })
 
@@ -187,4 +198,42 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Failed to send message'
     return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
+}
+
+function formatChatId(chatId: string): string {
+  // If already in WA format, return as-is
+  if (chatId.includes('@')) return chatId
+  // Otherwise treat as phone number and format
+  const cleaned = chatId.replace(/[^0-9]/g, '')
+  return `${cleaned}@s.whatsapp.net`
+}
+
+function guessMimeType(mediaType?: string, url?: string, fileName?: string): string {
+  if (mediaType) {
+    if (mediaType.includes('/')) return mediaType
+    const map: Record<string, string> = {
+      image: 'image/jpeg',
+      video: 'video/mp4',
+      audio: 'audio/mp3',
+      sticker: 'image/webp',
+    }
+    return map[mediaType] || 'application/octet-stream'
+  }
+  if (url) {
+    const ext = url.split('.').pop()?.toLowerCase()
+    const extMap: Record<string, string> = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+      mp4: 'video/mp4', avi: 'video/avi', mkv: 'video/x-matroska',
+      mp3: 'audio/mp3', ogg: 'audio/ogg', aac: 'audio/aac',
+      pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }
+    if (ext && extMap[ext]) return extMap[ext]
+  }
+  if (fileName) {
+    const ext = fileName.split('.').pop()?.toLowerCase()
+    if (ext === 'pdf') return 'application/pdf'
+    if (ext === 'doc' || ext === 'docx') return 'application/msword'
+  }
+  return 'application/octet-stream'
 }

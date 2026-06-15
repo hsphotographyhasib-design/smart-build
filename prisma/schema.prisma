@@ -1324,6 +1324,7 @@ model User {
   SalesInvoice                                       SalesInvoice[]
   Session                                            Session[]
   PasswordReset                                      PasswordReset[]
+  AssignedConversations WhatsAppConversation[]       @relation("AssignedConversations")
 }
 
 model WorkOrder {
@@ -1488,4 +1489,149 @@ model PasswordReset {
 
   @@index([token])
   @@index([userId])
+}
+
+// ============ WHATSAPP INTEGRATION MODELS ============
+
+model WhatsAppAccount {
+  id                String   @id @default(uuid())
+  phoneNumber       String   @unique
+  name              String
+  sessionId         String?  @unique  // OpenWA session ID
+  status            String   @default("disconnected")  // connected, disconnected, scanning
+  qrCode            String?             // Base64 QR code for scanning
+  lastSyncAt        DateTime?
+  isActive          Boolean  @default(true)
+  maxDailyMessages  Int      @default(1000)
+  businessName      String?
+  pushName          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+
+  conversations    WhatsAppConversation[]
+  sentMessages      WhatsAppMessage[]     @relation("SentMessages")
+  receivedMessages  WhatsAppMessage[]     @relation("ReceivedMessages")
+  templates         WhatsAppMessageTemplate[]
+}
+
+model WhatsAppContact {
+  id              String   @id @default(uuid())
+  waId            String   @unique              // WhatsApp ID (e.g., "628123456789@c.us")
+  phoneNumber     String
+  name            String?
+  pushName        String?
+  profilePicUrl   String?
+  isBusiness      Boolean  @default(false)
+  isBlocked       Boolean  @default(false)
+  tags            String?                            // JSON array of tags
+  notes           String?
+  lastSeenAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  conversations  WhatsAppConversation[]
+  messages       WhatsAppMessage[]     @relation("ContactMessages")
+}
+
+model WhatsAppConversation {
+  id              String   @id @default(uuid())
+  waChatId        String                          // WhatsApp chat ID
+  contactId       String
+  accountId       String
+  lastMessageAt   DateTime?
+  lastMessageText String?
+  lastMessageType String?
+  unreadCount     Int      @default(0)
+  status          String   @default("open")        // open, closed, pending
+  priority        String   @default("normal")       // low, normal, high, urgent
+  assignedToId    String?
+  assignedAt      DateTime?
+  isGroup         Boolean  @default(false)
+  groupName       String?
+  isArchived      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  contact         WhatsAppContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  account         WhatsAppAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  assignedTo      User?            @relation("AssignedConversations", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages        WhatsAppMessage[]
+  complaintLink   ComplaintWhatsAppLink?
+
+  @@index([contactId])
+  @@index([accountId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([lastMessageAt])
+  @@index([waChatId])
+}
+
+model WhatsAppMessage {
+  id              String   @id @default(uuid())
+  waMessageId     String?
+  conversationId  String
+  contactId       String
+  sentByAccountId     String?
+  receivedByAccountId String?
+  direction       String                          // incoming, outgoing
+  messageType     String   @default("text")       // text, image, video, audio, document, location, contact, sticker, interactive, template, system, deleted
+  content         String?
+  mediaUrl        String?
+  mediaType       String?                         // image/jpeg, video/mp4, etc.
+  fileName        String?
+  fileSize        Int?
+  caption         String?
+  thumbnailUrl    String?
+  location        String?                         // JSON { lat, lng, address }
+  contactVcard    String?
+  isStarred       Boolean  @default(false)
+  isDeleted       Boolean  @default(false)
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  repliedToId     String?
+  repliedToWaId   String?
+  senderName     String?
+  senderPhone     String?
+  waTimestamp     DateTime?
+  createdAt       DateTime @default(now())
+
+  conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  contact         WhatsAppContact  @relation("ContactMessages", fields: [contactId], references: [id])
+  sentByAccount   WhatsAppAccount?  @relation("SentMessages", fields: [sentByAccountId], references: [id])
+  receivedByAccount WhatsAppAccount? @relation("ReceivedMessages", fields: [receivedByAccountId], references: [id])
+
+  @@index([conversationId])
+  @@index([waMessageId])
+  @@index([sentByAccountId])
+  @@index([receivedByAccountId])
+  @@index([createdAt])
+}
+
+model WhatsAppMessageTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  content         String                           // Template text with {{variables}}
+  category        String   @default("utility")     // utility, marketing, authentication
+  language        String   @default("en")
+  variables       String?                         // JSON array of variable names
+  waTemplateId    String?                          // Meta template ID (if approved)
+  isApproved      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  accountId       String?
+  usageCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  account         WhatsAppAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+model ComplaintWhatsAppLink {
+  id              String   @id @default(uuid())
+  complaintId     String
+  conversationId  String   @unique
+  linkedAt        DateTime @default(now())
+
+  conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([complaintId])
 }

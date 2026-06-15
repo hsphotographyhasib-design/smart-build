@@ -528,3 +528,33 @@ The application is now **conditionally deployable** for internal use with the fo
 
 The RBAC system is now functional at the Edge level, protecting all API routes from unauthorized access. The authentication flow is complete with password reset and OTP verification. Dead code has been cleaned up significantly.
 
+
+---
+Task ID: wa-all
+Agent: Main Orchestrator
+Task: OpenWA WhatsApp Integration - Complete Implementation
+
+Work Log:
+- Explored existing WhatsApp subsystem (15 API routes, 8 components, 1 hook, 1 mini-service)
+- Identified 9 critical bugs: no Prisma models, API path mismatches, socket event mismatches, protocol issues
+- Researched OpenWA library (NestJS, whatsapp-web.js, REST API on port 2785)
+- Created docker-compose.openwa.yml for OpenWA service deployment
+- Added 6 WhatsApp Prisma models: WhatsAppAccount, WhatsAppContact, WhatsAppConversation, WhatsAppMessage, WhatsAppMessageTemplate, ComplaintWhatsAppLink
+- Created src/lib/openwa-client.ts - Full OpenWA REST API wrapper (sessions, messaging, contacts, groups, webhooks)
+- Rewrote 10 WhatsApp API routes to use OpenWA instead of Meta Business API
+- Created new QR code route (src/app/api/whatsapp/qr/route.ts)
+- Fixed 13 frontend API path mismatches across 4 component files
+- Fixed 6 socket event name mismatches in use-whatsapp-socket.ts
+- Updated middleware to restrict public routes (only webhook, qr, sessions public)
+- Updated .env with OPENWA_URL and OPENWA_API_KEY
+- All changes pass ESLint with 0 errors
+
+Stage Summary:
+- OpenWA integration is fully implemented and code-complete
+- The system no longer depends on Meta WhatsApp Business API
+- Uses whatsapp-web.js via OpenWA for direct WhatsApp connections
+- QR code scanning for account setup
+- Real-time messaging via Socket.IO mini-service
+- All frontend components now point to correct API routes
+- Socket events match between hook and mini-service
+

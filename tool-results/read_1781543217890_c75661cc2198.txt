@@ -1,0 +1,672 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+     4→     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→     5→import { api, useAppStore } from '@/lib/store'
+     6→     6→import { Input } from '@/components/ui/input'
+     7→     7→import { Button } from '@/components/ui/button'
+     8→     8→import { Badge } from '@/components/ui/badge'
+     9→     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→    10→import { ScrollArea } from '@/components/ui/scroll-area'
+    11→    11→import { Separator } from '@/components/ui/separator'
+    12→    12→import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+    13→    13→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    14→    14→import {
+    15→    15→  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+    16→    16→} from '@/components/ui/dropdown-menu'
+    17→    17→import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+    18→    18→import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    19→    19→import { useToast } from '@/hooks/use-toast'
+    20→    20→import { cn } from '@/lib/utils'
+    21→    21→import { useWhatsAppSocket } from '@/hooks/use-whatsapp-socket'
+    22→    22→import { WhatsAppConversationItem, type ConversationItem } from './whatsapp-conversation-item'
+    23→    23→import { WhatsAppMessageBubble, TypingIndicator, DateSeparator, type WhatsAppMessage } from './whatsapp-message-bubble'
+    24→    24→import { WhatsAppMessageInput } from './whatsapp-message-input'
+    25→    25→import { WhatsAppInboxDetail } from './whatsapp-inbox-detail'
+    26→    26→import {
+    27→    27→  Search, ArrowLeft, MoreVertical, CheckCheck, Star, Archive,
+    28→    28→  Info, Filter, MessageSquare, Circle, Users, Link2, WifiOff, Wifi,
+    29→    29→  PanelRightOpen, PanelRightClose, RefreshCw,
+    30→    30→} from 'lucide-react'
+    31→    31→
+    32→    32→// ─── প্রকারভেদ ───
+    33→    33→interface ConversationWithContact extends ConversationItem {
+    34→    34→  contact: NonNullable<ConversationItem['contact']>
+    35→    35→}
+    36→    36→
+    37→    37→type FilterTab = 'all' | 'unread' | 'open' | 'assigned' | 'mine' | 'has_ticket'
+    38→    38→
+    39→    39→// ─── ট্যাব গণনা সহায়ক ───
+    40→    40→interface TabCounts {
+    41→    41→  all: number
+    42→    42→  unread: number
+    43→    43→  open: number
+    44→    44→  assigned: number
+    45→    45→  mine: number
+    46→    46→  has_ticket: number
+    47→    47→}
+    48→    48→
+    49→    49→// ─── প্রধান উপাদান ───
+    50→    50→export default function WhatsAppComplaint() {
+    51→    51→  const { user, pageParams, navigate } = useAppStore()
+    52→    52→  const { toast } = useToast()
+    53→    53→  const queryClient = useQueryClient()
+    54→    54→
+    55→    55→  // স্থানীয় অবস্থা
+    56→    56→  const [searchQuery, setSearchQuery] = useState('')
+    57→    57→  const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
+    58→    58→  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
+    59→    59→    pageParams?.conversationId || null
+    60→    60→  )
+    61→    61→  const [replyingTo, setReplyingTo] = useState<WhatsAppMessage | null>(null)
+    62→    62→  const [showRightPanel, setShowRightPanel] = useState(true)
+    63→    63→  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
+    64→    64→  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
+    65→    65→
+    66→    66→  const messagesEndRef = useRef<HTMLDivElement>(null)
+    67→    67→  const messagesContainerRef = useRef<HTMLDivElement>(null)
+    68→    68→
+    69→    69→  // ─── সকেট ───
+    70→    70→  const {
+    71→    71→    isConnected,
+    72→    72→    joinConversation,
+    73→    73→    leaveConversation,
+    74→    74→    emitTyping,
+    75→    75→  } = useWhatsAppSocket({
+    76→    76→    onNewMessage: (data: any) => {
+    77→    77→      queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
+    78→    78→      if (data.conversationId === selectedConversationId) {
+    79→    79→        queryClient.invalidateQueries({ queryKey: ['wa-messages', selectedConversationId] })
+    80→    80→      }
+    81→    81→    },
+    82→    82→    onConversationUpdated: () => {
+    83→    83→      queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
+    84→    84→      if (selectedConversationId) {
+    85→    85→        queryClient.invalidateQueries({ queryKey: ['wa-conversation', selectedConversationId] })
+    86→    86→      }
+    87→    87→    },
+    88→    88→    onNotification: (data: any) => {
+    89→    89→      toast({ title: data.title || 'New notification', description: data.body })
+    90→    90→    },
+    91→    91→  })
+    92→    92→
+    93→    93→  // ─── কথোপকথন রুমে যোগদান/বাহির ───
+    94→    94→  useEffect(() => {
+    95→    95→    if (selectedConversationId && isConnected) {
+    96→    96→      joinConversation(selectedConversationId)
+    97→    97→    }
+    98→    98→    return () => {
+    99→    99→      if (selectedConversationId) {
+   100→   100→        leaveConversation(selectedConversationId)
+   101→   101→      }
+   102→   102→    }
+   103→   103→  }, [selectedConversationId, isConnected])
+   104→   104→
+   105→   105→  // ─── কথোপকথন আনা ───
+   106→   106→  const { data: conversations = [], isLoading: convLoading } = useQuery<ConversationWithContact[]>({
+   107→   107→    queryKey: ['wa-conversations', activeFilter, searchQuery],
+   108→   108→    queryFn: async () => {
+   109→   109→      const params = new URLSearchParams()
+   110→   110→      if (searchQuery) params.set('search', searchQuery)
+   111→   111→      params.set('filter', activeFilter)
+   112→   112→      const res = await api.get<ConversationWithContact[]>(`/api/maintenance/whatsapp/conversations?${params}`)
+   113→   113→      return res.success ? (res.data || []) : []
+   114→   114→    },
+   115→   115→    refetchInterval: 15000,
+   116→   116→  })
+   117→   117→
+   118→   118→  // ─── নির্বাচিত কথোপকথনের বিবরণ আনা ───
+   119→   119→  const { data: conversationDetail, isLoading: detailLoading } = useQuery({
+   120→   120→    queryKey: ['wa-conversation', selectedConversationId],
+   121→   121→    queryFn: async () => {
+   122→   122→      if (!selectedConversationId) return null
+   123→   123→      const res = await api.get(`/api/maintenance/whatsapp/conversations/${selectedConversationId}`)
+   124→   124→      return res.success ? res.data : null
+   125→   125→    },
+   126→   126→    enabled: !!selectedConversationId,
+   127→   127→  })
+   128→   128→
+   129→   129→  // ─── বার্তা আনা ───
+   130→   130→  const { data: messages = [], isLoading: msgsLoading } = useQuery<WhatsAppMessage[]>({
+   131→   131→    queryKey: ['wa-messages', selectedConversationId],
+   132→   132→    queryFn: async () => {
+   133→   133→      if (!selectedConversationId) return []
+   134→   134→      const res = await api.get<WhatsAppMessage[]>(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages`)
+   135→   135→      return res.success ? (res.data || []) : []
+   136→   136→    },
+   137→   137→    enabled: !!selectedConversationId,
+   138→   138→  })
+   139→   139→
+   140→   140→  // ─── বার্তা পাঠানো মিউটেশন ───
+   141→   141→  const sendMessageMutation = useMutation({
+   142→   142→    mutationFn: async ({ content, type, file }: { content: string; type: string; file?: File }) => {
+   143→   143→      if (file) {
+   144→   144→        const formData = new FormData()
+   145→   145→        formData.append('file', file)
+   146→   146→        formData.append('content', content)
+   147→   147→        formData.append('type', type)
+   148→   148→        if (replyingTo) formData.append('repliedToId', replyingTo.id)
+   149→   149→        const res = await fetch(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages?XTransformPort=3006`, {
+   150→   150→          method: 'POST',
+   151→   151→          headers: { Authorization: `Bearer ${useAppStore.getState().token}` },
+   152→   152→          body: formData,
+   153→   153→        })
+   154→   154→        return res.json()
+   155→   155→      }
+   156→   156→      return api.post(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages`, {
+   157→   157→        content,
+   158→   158→        type,
+   159→   159→        repliedToId: replyingTo?.id,
+   160→   160→      })
+   161→   161→    },
+   162→   162→    onSuccess: () => {
+   163→   163→      queryClient.invalidateQueries({ queryKey: ['wa-messages', selectedConversationId] })
+   164→   164→      queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
+   165→   165→      setReplyingTo(null)
+   166→   166→    },
+   167→   167→    onError: (err: any) => {
+   168→   168→      toast({ title: err.message || 'Failed to send message', variant: 'destructive' })
+   169→   169→    },
+   170→   170→  })
+   171→   171→
+   172→   172→  // ─── পঠিত হিসেবে চিহ্নিত ───
+   173→   173→  const markReadMutation = useMutation({
+   174→   174→    mutationFn: async (convId: string) => {
+   175→   175→      return api.put(`/api/maintenance/whatsapp/conversations/${convId}/read`, {})
+   176→   176→    },
+   177→   177→    onSuccess: () => {
+   178→   178→      queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
+   179→   179→      queryClient.invalidateQueries({ queryKey: ['wa-conversation', selectedConversationId] })
+   180→   180→    },
+   181→   181→  })
+   182→   182→
+   183→   183→  // ─── নির্বাচনে স্বয়ংক্রিয়ভাবে পঠিত হিসেবে চিহ্নিত ───
+   184→   184→  useEffect(() => {
+   185→   185→    if (selectedConversationId) {
+   186→   186→      const conv = conversations.find(c => c.id === selectedConversationId)
+   187→   187→      if (conv && conv.unreadCount > 0) {
+   188→   188→        markReadMutation.mutate(selectedConversationId)
+   189→   189→      }
+   190→   190→    }
+   191→   191→  }, [selectedConversationId])
+   192→   192→
+   193→   193→  // ─── নতুন বার্তায় নিচে স্ক্রল ───
+   194→   194→  useEffect(() => {
+   195→   195→    if (messages.length > 0) {
+   196→   196→      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+   197→   197→    }
+   198→   198→  }, [messages.length])
+   199→   199→
+   200→   200→  // ─── গণনাকৃত ট্যাব গণনা ───
+   201→   201→  const tabCounts = useMemo<TabCounts>(() => {
+   202→   202→    const counts: TabCounts = { all: conversations.length, unread: 0, open: 0, assigned: 0, mine: 0, has_ticket: 0 }
+   203→   203→    for (const c of conversations) {
+   204→   204→      if (c.unreadCount > 0) counts.unread++
+   205→   205→      if (c.status === 'open') counts.open++
+   206→   206→      if (c.assignedToId) counts.assigned++
+   207→   207→      if (c.assignedToId === user?.id) counts.mine++
+   208→   208→      if (c.ticketId) counts.has_ticket++
+   209→   209→    }
+   210→   210→    return counts
+   211→   211→  }, [conversations, user?.id])
+   212→   212→
+   213→   213→  // ─── নির্বাচিত কথোপকথনের তথ্য ───
+   214→   214→  const selectedConversation = conversations.find(c => c.id === selectedConversationId)
+   215→   215→  const contactData = conversationDetail?.contact || selectedConversation?.contact
+   216→   216→
+   217→   217→  // ─── তারিখ অনুযায়ী বার্তা গোষ্ঠীবদ্ধ করা ───
+   218→   218→  const groupedMessages = useMemo(() => {
+   219→   219→    const groups: { date: string; messages: WhatsAppMessage[] }[] = []
+   220→   220→    let currentDate = ''
+   221→   221→
+   222→   222→    for (const msg of messages) {
+   223→   223→      const msgDate = new Date(msg.createdAt).toDateString()
+   224→   224→      if (msgDate !== currentDate) {
+   225→   225→        currentDate = msgDate
+   226→   226→        groups.push({ date: msg.createdAt, messages: [msg] })
+   227→   227→      } else {
+   228→   228→        groups[groups.length - 1].messages.push(msg)
+   229→   229→      }
+   230→   230→    }
+   231→   231→    return groups
+   232→   232→  }, [messages])
+   233→   233→
+   234→   234→  // ─── হ্যান্ডলারসমূহ ───
+   235→   235→  const handleSelectConversation = (id: string) => {
+   236→   236→    setSelectedConversationId(id)
+   237→   237→    setReplyingTo(null)
+   238→   238→    setMobileView('chat')
+   239→   239→  }
+   240→   240→
+   241→   241→  const handleSendMessage = (content: string, type: 'text' | 'image' | 'document' | 'video' | 'audio', file?: File) => {
+   242→   242→    sendMessageMutation.mutate({ content, type, file })
+   243→   243→  }
+   244→   244→
+   245→   245→  const handleBackToList = () => {
+   246→   246→    setMobileView('list')
+   247→   247→  }
+   248→   248→
+   249→   249→  const handleRefresh = () => {
+   250→   250→    queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
+   251→   251→    queryClient.invalidateQueries({ queryKey: ['wa-conversation', selectedConversationId] })
+   252→   252→    queryClient.invalidateQueries({ queryKey: ['wa-messages', selectedConversationId] })
+   253→   253→  }
+   254→   254→
+   255→   255→  const handleNavigateToTicket = (ticketId: string) => {
+   256→   256→    navigate('maintenance-ticket-detail', { id: ticketId })
+   257→   257→  }
+   258→   258→
+   259→   259→  const handleNavigateToCustomer = (customerId: string) => {
+   260→   260→    navigate('customers', { id: customerId })
+   261→   261→  }
+   262→   262→
+   263→   263→  const handleStarMessage = (messageId: string) => {
+   264→   264→    api.put(`/api/maintenance/whatsapp/messages/${messageId}`, { isStarred: true }).then(() => {
+   265→   265→      queryClient.invalidateQueries({ queryKey: ['wa-messages', selectedConversationId] })
+   266→   266→    })
+   267→   267→  }
+   268→   268→
+   269→   269→  // ─── ফাঁকা চ্যাট অবস্থা ───
+   270→   270→  const renderEmptyChat = () => (
+   271→   271→    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50">
+   272→   272→      <div className="text-center space-y-3 px-6">
+   273→   273→        <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+   274→   274→          <MessageSquare className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
+   275→   275→        </div>
+   276→   276→        <div>
+   277→   277→          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">WhatsApp Inbox</h3>
+   278→   278→          <p className="text-sm text-gray-500 mt-1">
+   279→   279→            Select a conversation from the left panel to start chatting with customers.
+   280→   280→          </p>
+   281→   281→        </div>
+   282→   282→        {!isConnected && (
+   283→   283→          <div className="flex items-center justify-center gap-1.5 text-xs text-red-500">
+   284→   284→            <WifiOff className="h-3.5 w-3.5" />
+   285→   285→            Real-time disconnected
+   286→   286→          </div>
+   287→   287→        )}
+   288→   288→      </div>
+   289→   289→    </div>
+   290→   290→  )
+   291→   291→
+   292→   292→  // ─── চ্যাট লোডিং স্কেলেটন ───
+   293→   293→  const renderChatSkeleton = () => (
+   294→   294→    <div className="flex-1 flex flex-col bg-white dark:bg-gray-950">
+   295→   295→      <Skeleton className="h-16 border-b border-gray-200 dark:border-gray-800" />
+   296→   296→      <div className="flex-1 p-4 space-y-4">
+   297→   297→        {[...Array(6)].map((_, i) => (
+   298→   298→          <div key={i} className={cn('flex gap-2', i % 2 === 0 ? 'justify-start' : 'justify-end')}>
+   299→   299→            <Skeleton className={cn('h-16 rounded-2xl', i % 2 === 0 ? 'w-3/5' : 'w-2/5')} />
+   300→   300→          </div>
+   301→   301→        ))}
+   302→   302→      </div>
+   303→   303→    </div>
+   304→   304→  )
+   305→   305→
+   306→   306→  // ─── চ্যাট দৃশ্য ───
+   307→   307→  const renderChatView = () => {
+   308→   308→    if (!selectedConversationId || !selectedConversation) return renderEmptyChat()
+   309→   309→    if (msgsLoading && messages.length === 0) return renderChatSkeleton()
+   310→   310→
+   311→   311→    const contactName = selectedConversation.contact?.name || selectedConversation.contact?.pushName || selectedConversation.contact?.phone || 'Unknown'
+   312→   312→
+   313→   313→    return (
+   314→   314→      <div className="flex-1 flex flex-col bg-white dark:bg-gray-950 min-w-0">
+   315→   315→        {/* চ্যাট হেডার */}
+   316→   316→        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-shrink-0">
+   317→   317→          <div className="flex items-center gap-3 min-w-0">
+   318→   318→            {/* মোবাইল ব্যাক বাটন */}
+   319→   319→            <Button
+   320→   320→              variant="ghost"
+   321→   321→              size="icon"
+   322→   322→              className="lg:hidden h-9 w-9 flex-shrink-0"
+   323→   323→              onClick={handleBackToList}
+   324→   324→            >
+   325→   325→              <ArrowLeft className="h-5 w-5" />
+   326→   326→            </Button>
+   327→   327→
+   328→   328→            <Avatar className="h-10 w-10 flex-shrink-0">
+   329→   329→              {selectedConversation.contact?.profilePicUrl && (
+   330→   330→                <img src={selectedConversation.contact.profilePicUrl} alt={contactName} className="object-cover w-full h-full rounded-full" />
+   331→   331→              )}
+   332→   332→              <AvatarFallback className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+   333→   333→                {(selectedConversation.contact?.name || selectedConversation.contact?.phone || '??').substring(0, 2).toUpperCase()}
+   334→   334→              </AvatarFallback>
+   335→   335→            </Avatar>
+   336→   336→            <div className="min-w-0">
+   337→   337→              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{contactName}</h3>
+   338→   338→              <p className="text-xs text-gray-500 truncate">{selectedConversation.contact?.phone}</p>
+   339→   339→            </div>
+   340→   340→          </div>
+   341→   341→
+   342→   342→          <div className="flex items-center gap-1 flex-shrink-0">
+   343→   343→            {/* সংযোগ সূচক */}
+   344→   344→            <Tooltip>
+   345→   345→              <TooltipTrigger>
+   346→   346→                {isConnected ? (
+   347→   347→                  <Wifi className="h-4 w-4 text-emerald-500" />
+   348→   348→                ) : (
+   349→   349→                  <WifiOff className="h-4 w-4 text-red-400" />
+   350→   350→                )}
+   351→   351→              </TooltipTrigger>
+   352→   352→              <TooltipContent>
+   353→   353→                {isConnected ? 'Connected' : 'Disconnected'}
+   354→   354→              </TooltipContent>
+   355→   355→            </Tooltip>
+   356→   356→
+   357→   357→            {/* পঠিত হিসেবে চিহ্নিত */}
+   358→   358→            {selectedConversation.unreadCount > 0 && (
+   359→   359→              <Tooltip>
+   360→   360→                <TooltipTrigger asChild>
+   361→   361→                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => markReadMutation.mutate(selectedConversationId)}>
+   362→   362→                    <CheckCheck className="h-4 w-4 text-emerald-600" />
+   363→   363→                  </Button>
+   364→   364→                </TooltipTrigger>
+   365→   365→                <TooltipContent>Mark as read</TooltipContent>
+   366→   366→              </Tooltip>
+   367→   367→            )}
+   368→   368→
+   369→   369→            {/* ডান প্যানেল টগল */}
+   370→   370→            <Tooltip>
+   371→   371→              <TooltipTrigger asChild>
+   372→   372→                <Button
+   373→   373→                  variant="ghost"
+   374→   374→                  size="icon"
+   375→   375→                  className="h-8 w-8 hidden lg:flex"
+   376→   376→                  onClick={() => setShowRightPanel(!showRightPanel)}
+   377→   377→                >
+   378→   378→                  {showRightPanel ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+   379→   379→                </Button>
+   380→   380→              </TooltipTrigger>
+   381→   381→              <TooltipContent>{showRightPanel ? 'Hide details' : 'Show details'}</TooltipContent>
+   382→   382→            </Tooltip>
+   383→   383→
+   384→   384→            {/* তথ্য / মোবাইলে বিস্তারিত শিট খোলা */}
+   385→   385→            <Tooltip>
+   386→   386→              <TooltipTrigger asChild>
+   387→   387→                <Button
+   388→   388→                  variant="ghost"
+   389→   389→                  size="icon"
+   390→   390→                  className="h-8 w-8 lg:hidden"
+   391→   391→                  onClick={() => setDetailSheetOpen(true)}
+   392→   392→                >
+   393→   393→                  <Info className="h-4 w-4" />
+   394→   394→                </Button>
+   395→   395→              </TooltipTrigger>
+   396→   396→              <TooltipContent>Details</TooltipContent>
+   397→   397→            </Tooltip>
+   398→   398→
+   399→   399→            {/* আরো কার্যকলাপ */}
+   400→   400→            <DropdownMenu>
+   401→   401→              <DropdownMenuTrigger asChild>
+   402→   402→                <Button variant="ghost" size="icon" className="h-8 w-8">
+   403→   403→                  <MoreVertical className="h-4 w-4" />
+   404→   404→                </Button>
+   405→   405→              </DropdownMenuTrigger>
+   406→   406→              <DropdownMenuContent align="end" className="w-48">
+   407→   407→                <DropdownMenuItem onClick={() => markReadMutation.mutate(selectedConversationId)}>
+   408→   408→                  <CheckCheck className="h-4 w-4 mr-2" />
+   409→   409→                  Mark as Read
+   410→   410→                </DropdownMenuItem>
+   411→   411→                <DropdownMenuItem>
+   412→   412→                  <Star className="h-4 w-4 mr-2" />
+   413→   413→                  Star Conversation
+   414→   414→                </DropdownMenuItem>
+   415→   415→                <DropdownMenuSeparator />
+   416→   416→                <DropdownMenuItem className="text-red-600">
+   417→   417→                  <Archive className="h-4 w-4 mr-2" />
+   418→   418→                  Archive Chat
+   419→   419→                </DropdownMenuItem>
+   420→   420→              </DropdownMenuContent>
+   421→   421→            </DropdownMenu>
+   422→   422→          </div>
+   423→   423→        </div>
+   424→   424→
+   425→   425→        {/* বার্তা এলাকা */}
+   426→   426→        <div
+   427→   427→          ref={messagesContainerRef}
+   428→   428→          className="flex-1 overflow-y-auto px-3 py-3 bg-[#efeae2] dark:bg-gray-900 space-y-0.5"
+   429→   429→        >
+   430→   430→          {messages.length === 0 && !msgsLoading && (
+   431→   431→            <div className="flex items-center justify-center h-full">
+   432→   432→              <p className="text-sm text-gray-400">No messages yet</p>
+   433→   433→            </div>
+   434→   434→          )}
+   435→   435→
+   436→   436→          {groupedMessages.map((group) => (
+   437→   437→            <React.Fragment key={group.date}>
+   438→   438→              <DateSeparator date={group.date} />
+   439→   439→              {group.messages.map((msg) => (
+   440→   440→                <WhatsAppMessageBubble
+   441→   441→                  key={msg.id}
+   442→   442→                  message={msg}
+   443→   443→                  onReply={(m) => setReplyingTo(m)}
+   444→   444→                  onStar={handleStarMessage}
+   445→   445→                />
+   446→   446→              ))}
+   447→   447→            </React.Fragment>
+   448→   448→          ))}
+   449→   449→
+   450→   450→          <div ref={messagesEndRef} />
+   451→   451→        </div>
+   452→   452→
+   453→   453→        {/* বার্তা ইনপুট */}
+   454→   454→        <WhatsAppMessageInput
+   455→   455→          onSend={handleSendMessage}
+   456→   456→          onTyping={() => emitTyping(selectedConversationId)}
+   457→   457→          replyingTo={replyingTo}
+   458→   458→          onCancelReply={() => setReplyingTo(null)}
+   459→   459→          disabled={sendMessageMutation.isPending}
+   460→   460→        />
+   461→   461→      </div>
+   462→   462→    )
+   463→   463→  }
+   464→   464→
+   465→   465→  // ─── প্রধান বিন্যাস ───
+   466→   466→  return (
+   467→   467→    <div className="h-[calc(100vh-3.5rem)] flex flex-col bg-background">
+   468→   468→      {/* সংযোগ স্ট্যাটাস ও রিফ্রেশসহ শীর্ষ বার */}
+   469→   469→      <div className="h-11 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex-shrink-0">
+   470→   470→        <div className="flex items-center gap-2">
+   471→   471→          <MessageSquare className="h-4 w-4 text-emerald-600" />
+   472→   472→          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100">WhatsApp Inbox</h1>
+   473→   473→          <span className="text-xs text-gray-400">
+   474→   474→            ({tabCounts.all} conversations)
+   475→   475→          </span>
+   476→   476→        </div>
+   477→   477→        <div className="flex items-center gap-2">
+   478→   478→          <Badge
+   479→   479→            variant="secondary"
+   480→   480→            className={cn(
+   481→   481→              'text-[10px] px-2 py-0.5 gap-1',
+   482→   482→              isConnected
+   483→   483→                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+   484→   484→                : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+   485→   485→            )}
+   486→   486→          >
+   487→   487→            <Circle className={cn('h-1.5 w-1.5 fill-current', isConnected ? 'text-emerald-500' : 'text-red-500')} />
+   488→   488→            {isConnected ? 'Live' : 'Offline'}
+   489→   489→          </Badge>
+   490→   490→          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRefresh}>
+   491→   491→            <RefreshCw className="h-3.5 w-3.5" />
+   492→   492→          </Button>
+   493→   493→        </div>
+   494→   494→      </div>
+   495→   495→
+   496→   496→      {/* ৩-প্যানেল বিন্যাস */}
+   497→   497→      <div className="flex-1 flex overflow-hidden">
+   498→   498→        {/* বাম প্যানেল - কথোপকথন তালিকা */}
+   499→   499→        <div className={cn(
+   500→   500→          'w-full lg:w-80 xl:w-96 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-950 flex-shrink-0',
+   501→   501→          mobileView === 'chat' ? 'hidden lg:flex' : 'flex'
+   502→   502→        )}>
+   503→   503→          {/* অনুসন্ধান */}
+   504→   504→          <div className="p-3 pb-0">
+   505→   505→            <div className="relative">
+   506→   506→              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+   507→   507→              <Input
+   508→   508→                value={searchQuery}
+   509→   509→                onChange={e => setSearchQuery(e.target.value)}
+   510→   510→                placeholder="Search conversations…"
+   511→   511→                className="pl-9 h-9 text-sm"
+   512→   512→              />
+   513→   513→            </div>
+   514→   514→          </div>
+   515→   515→
+   516→   516→          {/* ফিল্টার ট্যাব */}
+   517→   517→          <div className="px-3 pt-2">
+   518→   518→            <Tabs value={activeFilter} onValueChange={v => setActiveFilter(v as FilterTab)}>
+   519→   519→              <TabsList className="w-full h-8 bg-gray-100 dark:bg-gray-800 p-0.5">
+   520→   520→                <TabsTrigger value="all" className="text-[11px] h-7 flex-1 gap-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">
+   521→   521→                  All
+   522→   522→                  {tabCounts.all > 0 && (
+   523→   523→                    <span className={cn(
+   524→   524→                      'text-[9px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-1',
+   525→   525→                      activeFilter === 'all' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'text-gray-500'
+   526→   526→                    )}>
+   527→   527→                      {tabCounts.all}
+   528→   528→                    </span>
+   529→   529→                  )}
+   530→   530→                </TabsTrigger>
+   531→   531→                <TabsTrigger value="unread" className="text-[11px] h-7 flex-1 gap-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">
+   532→   532→                  Unread
+   533→   533→                  {tabCounts.unread > 0 && (
+   534→   534→                    <span className={cn(
+   535→   535→                      'text-[9px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-1',
+   536→   536→                      activeFilter === 'unread' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-emerald-500 text-white'
+   537→   537→                    )}>
+   538→   538→                      {tabCounts.unread}
+   539→   539→                    </span>
+   540→   540→                  )}
+   541→   541→                </TabsTrigger>
+   542→   542→                <TabsTrigger value="open" className="text-[11px] h-7 flex-1 gap-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">
+   543→   543→                  Open
+   544→   544→                  {tabCounts.open > 0 && (
+   545→   545→                    <span className={cn(
+   546→   546→                      'text-[9px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-1',
+   547→   547→                      activeFilter === 'open' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'text-gray-500'
+   548→   548→                    )}>
+   549→   549→                      {tabCounts.open}
+   550→   550→                    </span>
+   551→   551→                  )}
+   552→   552→                </TabsTrigger>
+   553→   553→                <TabsTrigger value="mine" className="text-[11px] h-7 flex-1 gap-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">
+   554→   554→                  Mine
+   555→   555→                  {tabCounts.mine > 0 && (
+   556→   556→                    <span className={cn(
+   557→   557→                      'text-[9px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-1',
+   558→   558→                      activeFilter === 'mine' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'text-gray-500'
+   559→   559→                    )}>
+   560→   560→                      {tabCounts.mine}
+   561→   561→                    </span>
+   562→   562→                  )}
+   563→   563→                </TabsTrigger>
+   564→   564→                <TabsTrigger value="has_ticket" className="text-[11px] h-7 flex-1 gap-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">
+   565→   565→                  <span className="hidden sm:inline">Ticket</span>
+   566→   566→                  <Link2 className="sm:hidden h-3 w-3" />
+   567→   567→                  {tabCounts.has_ticket > 0 && (
+   568→   568→                    <span className={cn(
+   569→   569→                      'text-[9px] min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-1',
+   570→   570→                      activeFilter === 'has_ticket' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'text-gray-500'
+   571→   571→                    )}>
+   572→   572→                      {tabCounts.has_ticket}
+   573→   573→                    </span>
+   574→   574→                  )}
+   575→   575→                </TabsTrigger>
+   576→   576→              </TabsList>
+   577→   577→            </Tabs>
+   578→   578→          </div>
+   579→   579→
+   580→   580→          {/* কথোপকথন তালিকা */}
+   581→   581→          <ScrollArea className="flex-1 mt-2">
+   582→   582→            {convLoading ? (
+   583→   583→              <div className="space-y-0">
+   584→   584→                {[...Array(8)].map((_, i) => (
+   585→   585→                  <div key={i} className="flex items-center gap-3 px-3 py-3 border-b border-gray-50 dark:border-gray-800/50">
+   586→   586→                    <Skeleton className="h-11 w-11 rounded-full" />
+   587→   587→                    <div className="flex-1 space-y-2">
+   588→   588→                      <Skeleton className="h-3.5 w-3/4" />
+   589→   589→                      <Skeleton className="h-3 w-1/2" />
+   590→   590→                    </div>
+   591→   591→                  </div>
+   592→   592→                ))}
+   593→   593→              </div>
+   594→   594→            ) : conversations.length === 0 ? (
+   595→   595→              <div className="flex flex-col items-center justify-center py-16 px-6">
+   596→   596→                <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+   597→   597→                <p className="text-sm text-gray-500 text-center">No conversations found</p>
+   598→   598→                {searchQuery && (
+   599→   599→                  <Button variant="link" className="text-xs mt-2" onClick={() => setSearchQuery('')}>
+   600→   600→                    Clear search
+   601→   601→                  </Button>
+   602→   602→                )}
+   603→   603→              </div>
+   604→   604→            ) : (
+   605→   605→              <div>
+   606→   606→                {conversations.map((conv) => (
+   607→   607→                  <WhatsAppConversationItem
+   608→   608→                    key={conv.id}
+   609→   609→                    conversation={conv}
+   610→   610→                    isActive={conv.id === selectedConversationId}
+   611→   611→                    onClick={handleSelectConversation}
+   612→   612→                  />
+   613→   613→                ))}
+   614→   614→              </div>
+   615→   615→            )}
+   616→   616→          </ScrollArea>
+   617→   617→        </div>
+   618→   618→
+   619→   619→        {/* কেন্দ্রীয় প্যানেল - চ্যাট দৃশ্য */}
+   620→   620→        <div className={cn(
+   621→   621→          'flex-1 flex flex-col min-w-0',
+   622→   622→          mobileView === 'list' ? 'hidden lg:flex' : 'flex'
+   623→   623→        )}>
+   624→   624→          {renderChatView()}
+   625→   625→        </div>
+   626→   626→
+   627→   627→        {/* ডান প্যানেল - বিবরণ (শুধুমাত্র ডেস্কটপ) */}
+   628→   628→        {selectedConversationId && conversationDetail && showRightPanel && (
+   629→   629→          <div className="hidden lg:flex w-80 xl:w-96 flex-shrink-0">
+   630→   630→            <WhatsAppInboxDetail
+   631→   631→              conversation={conversationDetail}
+   632→   632→              contact={conversationDetail.contact || contactData}
+   633→   633→              messages={messages}
+   634→   634→              onAssign={() => {}}
+   635→   635→              onConvert={() => {}}
+   636→   636→              onTransfer={() => {}}
+   637→   637→              onClose={() => setSelectedConversationId(null)}
+   638→   638→              onRefresh={handleRefresh}
+   639→   639→              onNavigateToTicket={handleNavigateToTicket}
+   640→   640→              onNavigateToCustomer={handleNavigateToCustomer}
+   641→   641→            />
+   642→   642→          </div>
+   643→   643→        )}
+   644→   644→      </div>
+   645→   645→
+   646→   646→      {/* মোবাইল বিস্তারিত শিট */}
+   647→   647→      {selectedConversationId && conversationDetail && (
+   648→   648→        <Sheet open={detailSheetOpen} onOpenChange={setDetailSheetOpen}>
+   649→   649→          <SheetContent side="right" className="w-80 p-0">
+   650→   650→            <SheetHeader className="p-4 pb-0">
+   651→   651→              <SheetTitle className="text-sm">Conversation Details</SheetTitle>
+   652→   652→            </SheetHeader>
+   653→   653→            <div className="mt-2">
+   654→   654→              <WhatsAppInboxDetail
+   655→   655→                conversation={conversationDetail}
+   656→   656→                contact={conversationDetail.contact || contactData}
+   657→   657→                messages={messages}
+   658→   658→                onAssign={() => {}}
+   659→   659→                onConvert={() => {}}
+   660→   660→                onTransfer={() => {}}
+   661→   661→                onClose={() => { setSelectedConversationId(null); setDetailSheetOpen(false) }}
+   662→   662→                onRefresh={handleRefresh}
+   663→   663→                onNavigateToTicket={handleNavigateToTicket}
+   664→   664→                onNavigateToCustomer={handleNavigateToCustomer}
+   665→   665→              />
+   666→   666→            </div>
+   667→   667→          </SheetContent>
+   668→   668→        </Sheet>
+   669→   669→      )}
+   670→   670→    </div>
+   671→   671→  )
+   672→   672→}

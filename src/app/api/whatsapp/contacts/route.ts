@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — সার্চ এবং ফিল্টার সহ WhatsApp পরিচিতিগণের তালিকা
+// GET — Search and list WhatsApp contacts from Prisma with pagination
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -10,26 +10,27 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
-    const status = searchParams.get('status')
-    const hasCustomer = searchParams.get('hasCustomer')
+    const isBusiness = searchParams.get('isBusiness')
+    const isBlocked = searchParams.get('isBlocked')
     const page = parseInt(searchParams.get('page') || '1', 10)
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {}
 
-    if (status) where.status = status
-    if (hasCustomer === 'true') {
-      where.customerId = { not: null }
-    } else if (hasCustomer === 'false') {
-      where.customerId = null
-    }
+    if (isBusiness === 'true') where.isBusiness = true
+    else if (isBusiness === 'false') where.isBusiness = false
+
+    if (isBlocked === 'true') where.isBlocked = true
+    else if (isBlocked === 'false') where.isBlocked = false
+
     if (search) {
       where.OR = [
         { name: { contains: search } },
         { pushName: { contains: search } },
-        { phone: { contains: search } },
+        { phoneNumber: { contains: search } },
         { waId: { contains: search } },
+        { notes: { contains: search } },
       ]
     }
 
@@ -37,10 +38,11 @@ export async function GET(request: NextRequest) {
       db.whatsAppContact.findMany({
         where,
         include: {
-          customer: { select: { id: true, name: true, phone: true, email: true } },
-          _count: { select: { conversations: true, sentMessages: true, receivedMessages: true } },
+          _count: {
+            select: { conversations: true, messages: true },
+          },
         },
-        orderBy: { lastMessageAt: 'desc' },
+        orderBy: { lastSeenAt: 'desc' },
         skip,
         take: limit,
       }),

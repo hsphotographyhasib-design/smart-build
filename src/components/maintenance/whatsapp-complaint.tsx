@@ -109,7 +109,7 @@ export default function WhatsAppComplaint() {
       const params = new URLSearchParams()
       if (searchQuery) params.set('search', searchQuery)
       params.set('filter', activeFilter)
-      const res = await api.get<ConversationWithContact[]>(`/api/maintenance/whatsapp/conversations?${params}`)
+      const res = await api.get<ConversationWithContact[]>(`/api/whatsapp/conversations?${params}`)
       return res.success ? (res.data || []) : []
     },
     refetchInterval: 15000,
@@ -120,7 +120,7 @@ export default function WhatsAppComplaint() {
     queryKey: ['wa-conversation', selectedConversationId],
     queryFn: async () => {
       if (!selectedConversationId) return null
-      const res = await api.get(`/api/maintenance/whatsapp/conversations/${selectedConversationId}`)
+      const res = await api.get(`/api/whatsapp/conversations/${selectedConversationId}`)
       return res.success ? res.data : null
     },
     enabled: !!selectedConversationId,
@@ -131,7 +131,7 @@ export default function WhatsAppComplaint() {
     queryKey: ['wa-messages', selectedConversationId],
     queryFn: async () => {
       if (!selectedConversationId) return []
-      const res = await api.get<WhatsAppMessage[]>(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages`)
+      const res = await api.get<WhatsAppMessage[]>(`/api/whatsapp/conversations/${selectedConversationId}/messages`)
       return res.success ? (res.data || []) : []
     },
     enabled: !!selectedConversationId,
@@ -146,14 +146,14 @@ export default function WhatsAppComplaint() {
         formData.append('content', content)
         formData.append('type', type)
         if (replyingTo) formData.append('repliedToId', replyingTo.id)
-        const res = await fetch(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages?XTransformPort=3006`, {
+        const res = await fetch(`/api/whatsapp/conversations/${selectedConversationId}/messages?XTransformPort=3006`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${useAppStore.getState().token}` },
           body: formData,
         })
         return res.json()
       }
-      return api.post(`/api/maintenance/whatsapp/conversations/${selectedConversationId}/messages`, {
+      return api.post(`/api/whatsapp/conversations/${selectedConversationId}/messages`, {
         content,
         type,
         repliedToId: replyingTo?.id,
@@ -172,7 +172,7 @@ export default function WhatsAppComplaint() {
   // ─── পঠিত হিসেবে চিহ্নিত ───
   const markReadMutation = useMutation({
     mutationFn: async (convId: string) => {
-      return api.put(`/api/maintenance/whatsapp/conversations/${convId}/read`, {})
+      return api.put(`/api/whatsapp/conversations/${convId}/read`, {})
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wa-conversations'] })
@@ -261,7 +261,7 @@ export default function WhatsAppComplaint() {
   }
 
   const handleStarMessage = (messageId: string) => {
-    api.put(`/api/maintenance/whatsapp/messages/${messageId}`, { isStarred: true }).then(() => {
+    api.put(`/api/whatsapp/messages/${messageId}`, { isStarred: true }).then(() => {
       queryClient.invalidateQueries({ queryKey: ['wa-messages', selectedConversationId] })
     })
   }

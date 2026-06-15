@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-// GET — ফিল্টার সহ কথোপকথনের তালিকা
+// GET — List conversations with search/pagination/filters
 export async function GET(request: NextRequest) {
   try {
     const authUser = await verifyAuth(request)
@@ -14,46 +14,46 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get('priority')
     const assignedTo = searchParams.get('assignedTo')
     const search = searchParams.get('search')
-    const hasTicket = searchParams.get('hasTicket')
     const unread = searchParams.get('unread')
+    const isGroup = searchParams.get('isGroup')
+    const isArchived = searchParams.get('isArchived')
     const page = parseInt(searchParams.get('page') || '1', 10)
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {}
 
-    // ট্যাব ফিল্টারিং
+    // Tab filtering
     if (tab === 'unread') {
       where.unreadCount = { gt: 0 }
     } else if (tab === 'open') {
       where.status = 'open'
     } else if (tab === 'assigned_to_me') {
       where.assignedToId = authUser.id
-    } else if (tab === 'has_ticket') {
-      where.ticketId = { not: null }
+    } else if (tab === 'archived') {
+      where.isArchived = true
     }
 
-    // পৃথক ফিল্টার ট্যাব ওভাররাইড করছে
+    // Individual filters override tab
     if (status) where.status = status
     if (priority) where.priority = priority
     if (assignedTo) where.assignedToId = assignedTo
-    if (hasTicket === 'true') {
-      where.ticketId = { not: null }
-    } else if (hasTicket === 'false') {
-      where.ticketId = null
-    }
     if (unread === 'true') {
       where.unreadCount = { gt: 0 }
     }
+    if (isGroup === 'true') where.isGroup = true
+    else if (isGroup === 'false') where.isGroup = false
+    if (isArchived === 'true') where.isArchived = true
+    else if (isArchived === 'false') where.isArchived = false
 
-    // সার্চ
+    // Search
     if (search) {
       where.OR = [
         { lastMessageText: { contains: search } },
         { contact: { name: { contains: search } } },
         { contact: { pushName: { contains: search } } },
-        { contact: { phone: { contains: search } } },
-        { tags: { contains: search } },
+        { contact: { phoneNumber: { contains: search } } },
+        { groupName: { contains: search } },
       ]
     }
 
@@ -62,13 +62,20 @@ export async function GET(request: NextRequest) {
         where,
         include: {
           contact: {
-            include: {
-              customer: { select: { id: true, name: true, phone: true, email: true } },
+            select: {
+              id: true,
+              waId: true,
+              phoneNumber: true,
+              name: true,
+              pushName: true,
+              profilePicUrl: true,
+              isBusiness: true,
+              tags: true,
             },
           },
           assignedTo: { select: { id: true, name: true, avatar: true, role: true } },
-          ticket: { select: { id: true, ticketNo: true, status: true, subject: true } },
-          _count: { select: { messages: true, attachments: true } },
+          complaintLink: { select: { id: true, complaintId: true, linkedAt: true } },
+          _count: { select: { messages: true } },
         },
         orderBy: { lastMessageAt: 'desc' },
         skip,

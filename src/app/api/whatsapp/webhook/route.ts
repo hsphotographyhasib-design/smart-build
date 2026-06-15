@@ -1,407 +1,451 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import crypto from 'crypto'
+import { sendTextMessage } from '@/lib/openwa-client'
 
-const WA_SOCKET_PORT = 3096
+const REALTIME_BRIDGE_URL = 'http://localhost:3096/api/events'
 
-async function emitEvent(event: string, data: unknown) {
+async function emitEvent(room: string, event: string, data: unknown) {
   try {
-    await fetch(`http://localhost:${WA_SOCKET_PORT}/api/events`, {
+    await fetch(REALTIME_BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, data }),
+      body: JSON.stringify({ room, event, data }),
     })
   } catch {
-    // Socket সার্ভিস চলছে না হতে পারে
+    // Realtime service not available, non-blocking
   }
 }
 
-async function sendWhatsAppMessage(phoneNumberId: string, accessToken: string, to: string, message: string) {
-  try {
-    await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to,
-        type: 'text',
-        text: { body: message },
-      }),
-    })
-  } catch {
-    // স্বয়ংক্রিয় উত্তরের জন্য নীরব ব্যর্থতা
-  }
+// GET — Health check for OpenWA webhook verification
+export async function GET() {
+  return new NextResponse('OK', { status: 200, headers: { 'Content-Type': 'text/plain' } })
 }
 
-function extractMessageText(msg: Record<string, unknown>): string | null {
-  if (msg['text']) {
-    const textObj = msg['text'] as Record<string, unknown>
-    return (textObj['body'] as string) || null
-  }
-  if (msg['image']) {
-    const imgObj = msg['image'] as Record<string, unknown>
-    return (imgObj['caption'] as string) || '📷 Image'
-  }
-  if (msg['video']) {
-    const vidObj = msg['video'] as Record<string, unknown>
-    return (vidObj['caption'] as string) || '🎥 Video'
-  }
-  if (msg['audio']) return '🎤 Audio message'
-  if (msg['document']) {
-    const docObj = msg['document'] as Record<string, unknown>
-    return (docObj['caption'] as string) || '📄 Document'
-  }
-  if (msg['location']) return '📍 Location shared'
-  if (msg['contacts']) return '👤 Contact shared'
-  if (msg['sticker']) return '🏷️ Sticker'
-  return null
-}
-
-function getMessageType(msg: Record<string, unknown>): string {
-  const types = ['text', 'image', 'video', 'audio', 'document', 'location', 'contacts', 'sticker', 'interactive', 'button', 'template']
-  for (const t of types) {
-    if (msg[t]) return t
-  }
-  return 'text'
-}
-
-// GET — ওয়েবহুক যাচাই (কোনো অথেনটিকেশন নেই)
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const mode = searchParams.get('hub.mode')
-  const token = searchParams.get('hub.verify_token')
-  const challenge = searchParams.get('hub.challenge')
-
-  if (mode === 'subscribe' && token) {
-    const account = await db.whatsAppAccount.findFirst({
-      where: { verifyToken: token, isEnabled: true },
-    })
-    if (account) {
-      return new NextResponse(challenge, {
-        status: 200,
-        headers: { 'Content-Type': 'text/plain' },
-      })
-    }
-  }
-
-  return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
-}
-
-// POST — আগত WhatsApp মেসেজ গ্রহণ করা হচ্ছে (কোনো অথেনটিকেশন নেই)
+// POST — Receive messages/events from OpenWA webhook
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await request.json() as Record<string, unknown>
 
-    // উপস্থিত থাকলে X-Hub-Signature-256 যাচাই করা হচ্ছে
-    const signature = request.headers.get('x-hub-signature-256')
-    if (signature) {
-      const account = await db.whatsAppAccount.findFirst({ where: { isEnabled: true } })
-      if (account && account.accessToken) {
-        // HMAC যাচাইয়ের জন্য আমরা'd use the app secret, not access token
-        // অ্যাপ সিক্রেট আলাদাভাবে সংরক্ষণ করা উচিত; এখানে appSecret কনফিগার না থাকলে এড়িয়ে যাওয়া হচ্ছে
-        // প্রোডাকশনে, যাচাই করুন: crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex')
+    // OpenWA webhook payloads vary. Handle common formats:
+    // Format 1: { event: 'message', data: { ... } }
+    // Format 2: Direct message object from OpenWA
+    // Format 3: Array of events
+    const events: Array<Record<string, unknown>> = []
+    if (Array.isArray(body)) {
+      for (const item of body) {
+        if (item && typeof item === 'object') events.push(item as Record<string, unknown>)
       }
+    } else if (body.event === 'message' || body.event === 'messages.upsert') {
+      events.push(body)
+    } else if (body.data && typeof body.data === 'object' && body.data !== null) {
+      events.push(body.data as Record<string, unknown>)
+    } else {
+      events.push(body)
     }
 
-    // ওয়েবহুক নোটিফিকেশন পরিচালনা করা হচ্ছে (স্ট্যাটাস আপডেট ইত্যাদি)
-    const entry = body.entry
-    if (!Array.isArray(entry)) {
+    const account = await db.whatsAppAccount.findFirst({ where: { isActive: true } })
+    if (!account) {
       return NextResponse.json({ success: true })
     }
 
-    for (const ent of entry) {
-      const changes = ent.changes
-      if (!Array.isArray(changes)) continue
+    for (const evt of events) {
+      // Extract message from various payload formats
+      const msg = extractMessage(evt)
+      if (!msg) continue
 
-      for (const change of changes) {
-        const value = change.value
-        if (!value) continue
-
-        // স্ট্যাটাস আপডেট এবং মেসেজ নয় এমন ইভেন্ট এড়িয়ে যাওয়া হচ্ছে
-        if (value.statuses) continue
-        if (!value.messages || !Array.isArray(value.messages)) continue
-
-        const account = await db.whatsAppAccount.findFirst({ where: { isEnabled: true } })
-        if (!account) continue
-
-        for (const msg of value.messages) {
-          await processIncomingMessage(account.id, msg)
-        }
-      }
+      await processIncomingMessage(account.id, msg, evt)
     }
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Webhook processing failed'
-    console.error('Webhook error: ' + message)
+    console.error('Webhook error:', message)
     return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }
 
-async function processIncomingMessage(accountId: string, msg: Record<string, unknown>) {
-  const waMessageId = msg['id'] as string
-  const from = msg['from'] as string
-  const timestamp = msg['timestamp'] as string
-  const type = msg['type'] as string
-  const msgObj = (msg[type] || {}) as Record<string, unknown>
+function extractMessage(evt: Record<string, unknown>): Record<string, unknown> | null {
+  // OpenWA webhook message formats
+  if (evt.messages && Array.isArray(evt.messages) && evt.messages.length > 0) {
+    return evt.messages[0] as Record<string, unknown>
+  }
 
-  // ডুপ্লিকেট এড়ানো: waMessageId দিয়ে মেসেজ আগে থেকেই আছে কিনা যাচাই করা হচ্ছে
+  // Direct message object (has key or from field)
+  if ((evt.key || evt.from || evt.id) && (evt.message || evt.body || evt.conversation)) {
+    return evt
+  }
+
+  // whatsapp-web.js message format
+  if (evt.id && evt.from && evt.body !== undefined) {
+    return evt
+  }
+
+  return null
+}
+
+async function processIncomingMessage(
+  accountId: string,
+  msg: Record<string, unknown>,
+  rawEvt: Record<string, unknown>
+) {
+  // Extract message fields from various formats
+  const key = msg.key as Record<string, unknown> | undefined
+  const waMessageId = (msg['id'] || (key && key['id']) || rawEvt['id']) as string | null
+  if (!waMessageId) return
+
+  // Skip duplicates
   const existingByWaId = await db.whatsAppMessage.findFirst({
     where: { waMessageId },
   })
   if (existingByWaId) return
 
-  // পরিচিতি আপসার্ট করা হচ্ছে
+  // Extract sender/recipient
+  const from = (key?.['remoteJid'] || msg['from'] || msg['chatId']) as string | undefined
+  if (!from) return
+
+  const isGroup = !!(key?.['remoteJid'] && String(key['remoteJid']).endsWith('@g.us'))
+
+  // Extract message content
+  const messageObj = (msg['message'] || msg['msg'] || {}) as Record<string, unknown>
+  const textContent = extractTextContent(msg, messageObj)
+  const messageType = extractMessageType(msg, messageObj)
+
+  // Skip status broadcasts and system messages
+  if (messageType === 'system' || (key?.['fromMe'] === true && messageType === 'reaction')) return
+
+  const timestamp = extractTimestamp(msg)
+  const pushName = (msg['pushName'] || msg['notifyName'] || key?.['pushName']) as string | null
+  const senderPhone = from.replace('@s.whatsapp.net', '').replace('@g.us', '')
+
+  // Upsert contact
   const contact = await db.whatsAppContact.upsert({
-    where: { accountId_phone: { accountId, phone: from } },
+    where: { waId: from },
     create: {
-      accountId,
       waId: from,
-      phone: from,
-      name: (msg['from'] as string) || null,
-      pushName: (msgObj['from'] as string) || null,
-      lastSeenAt: new Date(),
-      lastMessageAt: new Date(),
+      phoneNumber: senderPhone,
+      name: pushName,
+      pushName,
+      lastSeenAt: timestamp,
+      updatedAt: timestamp,
     },
     update: {
-      lastSeenAt: new Date(),
-      lastMessageAt: new Date(),
+      name: pushName || undefined,
+      pushName: pushName || undefined,
+      lastSeenAt: timestamp,
+      updatedAt: timestamp,
     },
   })
 
-  // কথোপকথন খুঁজে বের করা বা তৈরি করা হচ্ছে
+  // Find or create conversation
+  const waChatId = from
   let conversation = await db.whatsAppConversation.findFirst({
     where: {
-      contactId: contact.id,
-      status: { in: ['open'] },
+      waChatId,
+      accountId,
+      status: { in: ['open', 'pending'] },
     },
     orderBy: { lastMessageAt: 'desc' },
   })
 
+  const groupName = isGroup ? String(msg['chatName'] || key?.['remoteJid'] || '') : null
+
   if (!conversation) {
     conversation = await db.whatsAppConversation.create({
       data: {
-        accountId,
+        waChatId,
         contactId: contact.id,
+        accountId,
         status: 'open',
-        lastMessageDir: 'incoming',
-        lastMessageAt: new Date(Number(timestamp) * 1000),
+        isGroup,
+        groupName,
+        lastMessageAt: timestamp,
+        lastMessageText: textContent || `[${messageType}]`,
+        lastMessageType: messageType,
         unreadCount: 1,
+        updatedAt: timestamp,
       },
     })
-
-    // নতুন গ্রাহকের প্রথম মেসেজের জন্য স্বয়ংক্রিয়ভাবে টিকেট তৈরি করা হচ্ছে
-    const hasExistingLink = await db.complaintWhatsAppLink.findFirst({
-      where: { conversationId: conversation.id },
-    })
-    if (!hasExistingLink && contact.customerId) {
-      await autoCreateTicket(conversation.id, contact.id, accountId, msgObj)
-    }
   } else {
     conversation = await db.whatsAppConversation.update({
       where: { id: conversation.id },
       data: {
-        lastMessageDir: 'incoming',
-        lastMessageAt: new Date(Number(timestamp) * 1000),
+        lastMessageAt: timestamp,
+        lastMessageText: textContent || `[${messageType}]`,
+        lastMessageType: messageType,
         unreadCount: { increment: 1 },
       },
     })
   }
 
-  const textContent = extractMessageText(msgObj)
-  const messageType = getMessageType(msg)
+  // Extract media info
+  const mediaInfo = extractMediaInfo(messageObj)
 
-  // মেসেজ রেকর্ড তৈরি করা হচ্ছে
+  // Save message
   const message = await db.whatsAppMessage.create({
     data: {
       conversationId: conversation.id,
+      contactId: contact.id,
+      receivedByAccountId: accountId,
       waMessageId,
       direction: 'incoming',
       messageType,
       content: textContent,
-      mediaUrl: (msgObj['id'] as string) || null,
-      mediaType: (msgObj['mime_type'] as string) || null,
-      mediaFileSize: msgObj['file_size'] ? Number(msgObj['file_size']) : null,
+      mediaUrl: mediaInfo.url,
+      mediaType: mediaInfo.mimeType,
+      fileName: mediaInfo.fileName,
+      fileSize: mediaInfo.fileSize,
+      caption: mediaInfo.caption,
       thumbnailUrl: null,
-      location: msgObj['location'] ? JSON.stringify(msgObj['location']) : null,
-      contactInfo: msgObj['contacts'] ? JSON.stringify(msgObj['contacts']) : null,
-      interactiveType: (msgObj['type'] as string) || null,
-      interactiveData: msgObj ? JSON.stringify(msgObj) : null,
-      senderType: 'customer',
-      contactSenderId: contact.id,
-      createdAt: new Date(Number(timestamp) * 1000),
+      location: mediaInfo.location,
+      contactVcard: mediaInfo.vcard,
+      senderName: pushName || contact.name || null,
+      senderPhone,
+      waTimestamp: timestamp,
+      createdAt: timestamp,
     },
   })
 
-  // কথোপকথন আপডেট করা হচ্ছে lastMessageText
-  await db.whatsAppConversation.update({
-    where: { id: conversation.id },
-    data: { lastMessageText: textContent || `[${messageType}]` },
-  })
-
-  // রিয়েল-টাইম ইভেন্ট ইমিট করা হচ্ছে
-  await emitEvent('new_message', {
+  // Emit realtime event to conversation room
+  await emitEvent(`conversation:${conversation.id}`, 'new_message', {
     conversationId: conversation.id,
     messageId: message.id,
     contactId: contact.id,
   })
 
-  // স্বয়ংক্রিয় উত্তর / বট ফ্লো / AI শ্রেণীবিভাগ
+  // Also emit to global room for badge counts
+  await emitEvent('whatsapp', 'new_message', {
+    conversationId: conversation.id,
+    messageId: message.id,
+  })
+
+  // Handle auto-features
   const account = await db.whatsAppAccount.findUnique({ where: { id: accountId } })
-  if (!account || !account.accessToken) return
+  if (!account || account.status !== 'connected' || !account.sessionId) return
 
-  if (textContent) {
-    // STATUS কমান্ড পরিচালনা করা হচ্ছে
-    if (textContent.trim().toUpperCase().startsWith('STATUS')) {
-      await handleStatusQuery(conversation, contact, account)
-      return
-    }
+  // Handle STATUS command
+  if (textContent && textContent.trim().toUpperCase().startsWith('STATUS')) {
+    await handleStatusQuery(conversation.id, contact, account.sessionId)
+    return
+  }
 
-    // বট ফ্লো: মেনু সহ স্বয়ংক্রিয় উত্তর পাঠানো হচ্ছে
-    if (account.botFlowEnabled) {
-      const menuMessage = `🏠 *SmartBuild Help Center*\n\nPlease choose an option:\n1️⃣ Report a Complaint\n2️⃣ Check Status (Reply "STATUS")\n3️⃣ Service Request\n4️⃣ Talk to Agent\n\n_Reply with a number or type your message._`
-      await sendWhatsAppMessage(account.phoneNumberId, account.accessToken, contact.phone, menuMessage)
-      await db.whatsAppMessage.create({
-        data: {
-          conversationId: conversation.id,
-          direction: 'outgoing',
-          messageType: 'text',
-          content: menuMessage,
-          senderType: 'bot',
-          isDelivered: true,
-        },
+  // AI classification
+  if (textContent && textContent.length > 5) {
+    try {
+      const sdk = await import('z-ai-web-dev-sdk')
+      const ZAI = (sdk as Record<string, unknown>).ZAI as { new (): { chat: (opts: { messages: Array<{ role: string; content: string }> }) => Promise<{ content?: string }> } }
+      const ai = new ZAI()
+      const classification = await ai.chat({
+        messages: [
+          {
+            role: 'system',
+            content: 'Classify this WhatsApp message into one of these categories: complaint, service_request, general_inquiry, feedback, status_query, emergency. Reply with ONLY the category name, nothing else.',
+          },
+          { role: 'user', content: textContent },
+        ],
       })
-    }
-
-    // AI শ্রেণীবিভাগ
-    if (account.aiClassification && textContent.length > 5) {
-      try {
-        const { ZAI } = await import('z-ai-web-dev-sdk')
-        const ai = new ZAI()
-        const classification = await ai.chat({
-          messages: [
-            {
-              role: 'system',
-              content: 'Classify this WhatsApp message into one of these categories: complaint, service_request, general_inquiry, feedback, status_query, emergency. Reply with ONLY the category name, nothing else.',
-            },
-            { role: 'user', content: textContent },
-          ],
+      const category = classification?.content?.trim().toLowerCase() || 'general_inquiry'
+      const existingTags: string[] = contact.tags ? JSON.parse(contact.tags) : []
+      if (!existingTags.includes(category)) {
+        existingTags.push(category)
+        await db.whatsAppContact.update({
+          where: { id: contact.id },
+          data: { tags: JSON.stringify(existingTags), updatedAt: new Date() },
         })
-        const category = classification?.content?.trim().toLowerCase() || 'general_inquiry'
+      }
+    } catch {
+      // AI classification failed silently
+    }
+  }
+}
 
-        // কথোপকথন আপডেট করা হচ্ছে tags with classification
-        const conv = await db.whatsAppConversation.findUnique({ where: { id: conversation.id } })
-        const existingTags: string[] = conv?.tags ? JSON.parse(conv.tags) : []
-        if (!existingTags.includes(category)) {
-          existingTags.push(category)
-          await db.whatsAppConversation.update({
-            where: { id: conversation.id },
-            data: { tags: JSON.stringify(existingTags) },
-          })
-        }
-      } catch {
-        // AI শ্রেণীবিভাগ failed silently
+function getNestedString(obj: Record<string, unknown>, ...keys: string[]): string | null {
+  let current: unknown = obj
+  for (const key of keys) {
+    if (current && typeof current === 'object' && current !== null) {
+      current = (current as Record<string, unknown>)[key]
+    } else {
+      return null
+    }
+  }
+  return typeof current === 'string' ? current : null
+}
+
+function getNestedObj(obj: Record<string, unknown>, ...keys: string[]): Record<string, unknown> | null {
+  let current: unknown = obj
+  for (const key of keys) {
+    if (current && typeof current === 'object' && current !== null) {
+      current = (current as Record<string, unknown>)[key]
+    } else {
+      return null
+    }
+  }
+  return current && typeof current === 'object' ? (current as Record<string, unknown>) : null
+}
+
+function extractTextContent(msg: Record<string, unknown>, messageObj: Record<string, unknown>): string | null {
+  // Direct body/conversation field (whatsapp-web.js format)
+  if (typeof msg['body'] === 'string') return msg['body']
+  if (typeof msg['conversation'] === 'string') return msg['conversation']
+
+  // Nested message object format (OpenWA webhook)
+  const text = getNestedString(messageObj, 'conversation')
+  if (text) return text
+
+  const extText = getNestedString(messageObj, 'extendedTextMessage', 'text')
+  if (extText) return extText
+
+  const imgCaption = getNestedString(messageObj, 'imageMessage', 'caption')
+  if (imgCaption) return imgCaption
+
+  const vidCaption = getNestedString(messageObj, 'videoMessage', 'caption')
+  if (vidCaption) return vidCaption
+
+  const docCaption = getNestedString(messageObj, 'documentMessage', 'caption')
+  if (docCaption) return docCaption
+
+  const dwcCaption = getNestedString(messageObj, 'documentWithCaptionMessage', 'message', 'documentMessage', 'caption')
+  if (dwcCaption) return dwcCaption
+
+  // Check for presence (return placeholder text)
+  if (messageObj['stickerMessage']) return '🏷️ Sticker'
+  if (messageObj['audioMessage']) return '🎤 Audio message'
+  if (messageObj['videoMessage']) return '🎥 Video message'
+  if (messageObj['imageMessage']) return '📷 Image'
+  if (messageObj['documentMessage']) return '📄 Document'
+  if (messageObj['locationMessage']) return '📍 Location shared'
+  if (messageObj['contactMessage']) return '👤 Contact shared'
+  if (messageObj['reactionMessage']) return null // Skip reactions
+
+  return null
+}
+
+function extractMessageType(msg: Record<string, unknown>, messageObj: Record<string, unknown>): string {
+  // Check for message sub-objects to determine type
+  const typeKeys = [
+    'conversation', 'extendedTextMessage', 'imageMessage', 'videoMessage',
+    'audioMessage', 'documentMessage', 'documentWithCaptionMessage',
+    'stickerMessage', 'locationMessage', 'contactMessage', 'reactionMessage',
+    'buttonsResponseMessage', 'listResponseMessage', 'templateButtonReplyMessage',
+  ]
+
+  for (const typeKey of typeKeys) {
+    if (messageObj[typeKey]) {
+      if (typeKey === 'reactionMessage') return 'reaction'
+      if (typeKey === 'conversation' || typeKey === 'extendedTextMessage') return 'text'
+      if (typeKey === 'documentMessage' || typeKey === 'documentWithCaptionMessage') return 'document'
+      if (typeKey === 'imageMessage') return 'image'
+      if (typeKey === 'videoMessage') return 'video'
+      if (typeKey === 'audioMessage') return 'audio'
+      if (typeKey === 'stickerMessage') return 'sticker'
+      if (typeKey === 'locationMessage') return 'location'
+      if (typeKey === 'contactMessage') return 'contact'
+      return typeKey.replace('Message', '').toLowerCase()
+    }
+  }
+
+  // Fallback: check if it looks like a text message
+  if (msg['body'] || msg['conversation'] || msg['text']) return 'text'
+
+  return 'text'
+}
+
+function extractTimestamp(msg: Record<string, unknown>): Date {
+  const ts = msg['messageTimestamp'] || msg['timestamp'] || msg['t']
+  if (ts) {
+    const num = typeof ts === 'number' ? ts : parseInt(String(ts), 10)
+    if (!isNaN(num)) {
+      // WhatsApp timestamps are in seconds
+      const ms = num > 1e12 ? num : num * 1000
+      return new Date(ms)
+    }
+  }
+  return new Date()
+}
+
+function extractMediaInfo(
+  messageObj: Record<string, unknown>
+): { url?: string; mimeType?: string; fileName?: string; fileSize?: number; caption?: string; location?: string | null; vcard?: string | null } {
+  const mediaMsgTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage', 'stickerMessage']
+
+  for (const type of mediaMsgTypes) {
+    const m = getNestedObj(messageObj, type)
+    if (m) {
+      return {
+        url: getNestedString(m, 'url') || getNestedString(m, 'fileUrl') || undefined,
+        mimeType: getNestedString(m, 'mimetype') || undefined,
+        fileName: getNestedString(m, 'fileName') || undefined,
+        fileSize: m['fileLength'] ? Number(m['fileLength']) : (m['fileSize'] ? Number(m['fileSize']) : undefined),
+        caption: getNestedString(m, 'caption') || undefined,
+        location: null,
+        vcard: null,
       }
     }
   }
+
+  // Document with caption wrapper
+  const innerDoc = getNestedObj(messageObj, 'documentWithCaptionMessage', 'message', 'documentMessage')
+  if (innerDoc) {
+    return {
+      url: getNestedString(innerDoc, 'url') || getNestedString(innerDoc, 'fileUrl') || undefined,
+      mimeType: getNestedString(innerDoc, 'mimetype') || undefined,
+      fileName: getNestedString(innerDoc, 'fileName') || undefined,
+      fileSize: innerDoc['fileLength'] ? Number(innerDoc['fileLength']) : undefined,
+      caption: getNestedString(innerDoc, 'caption') || undefined,
+      location: null,
+      vcard: null,
+    }
+  }
+
+  // Location
+  const locMsg = getNestedObj(messageObj, 'locationMessage')
+  if (locMsg) {
+    const loc = {
+      lat: locMsg['degreesLatitude'],
+      lng: locMsg['degreesLongitude'],
+      address: locMsg['address'] || null,
+    }
+    return { location: JSON.stringify(loc) }
+  }
+
+  // Contact / vCard
+  const contactMsg = getNestedObj(messageObj, 'contactMessage')
+  if (contactMsg) {
+    return { vcard: getNestedString(contactMsg, 'vcard') || undefined }
+  }
+
+  return { location: null, vcard: null }
 }
 
 async function handleStatusQuery(
-  conversation: { id: string; ticketId: string | null },
-  contact: { id: string; phone: string; name: string | null },
-  account: { phoneNumberId: string; accessToken: string }
+  conversationId: string,
+  contact: { id: string; waId: string; phoneNumber: string; name: string | null },
+  sessionId: string
 ) {
-  // সংযুক্ত টিকেট খুঁজে বের করা হচ্ছে
   const link = await db.complaintWhatsAppLink.findFirst({
-    where: { conversationId: conversation.id },
-    include: { ticket: true },
+    where: { conversationId },
   })
 
   let reply: string
-  if (link?.ticket) {
-    const t = link.ticket
-    reply = `📋 *Ticket Status Update*\n\n🎫 Ticket: ${t.ticketNo}\n📌 Subject: ${t.subject}\n📊 Status: ${t.status}\n🔥 Priority: ${t.priority}\n📅 Created: ${t.createdAt.toLocaleDateString()}\n\n_Thank you for your patience. We are working on your request._`
+  if (link) {
+    reply = `📋 *Complaint Status Update*\n\n🔖 Complaint ID: ${link.complaintId}\n📊 Linked to your conversation\n\n_Thank you for your patience. We are working on your request._`
   } else {
-    reply = `🔍 No active ticket found for your number.\n\nTo report a new issue, please describe your problem and our team will assist you.`
+    reply = `🔍 No active complaint found for your number.\n\nTo report a new issue, please describe your problem and our team will assist you.`
   }
 
-  await sendWhatsAppMessage(account.phoneNumberId, account.accessToken, contact.phone, reply)
+  try {
+    await sendTextMessage(sessionId, contact.waId, reply)
+  } catch {
+    // Send failed silently
+  }
+
   await db.whatsAppMessage.create({
     data: {
-      conversationId: conversation.id,
+      conversationId,
+      contactId: contact.id,
       direction: 'outgoing',
       messageType: 'text',
       content: reply,
-      senderType: 'bot',
-      isDelivered: true,
+      senderName: 'Bot',
     },
   })
-}
-
-async function autoCreateTicket(conversationId: string, contactId: string, accountId: string, msgObj: Record<string, unknown>) {
-  try {
-    const contact = await db.whatsAppContact.findUnique({ where: { id: contactId } })
-    if (!contact?.customerId) return
-
-    const textContent = extractMessageText(msgObj) || 'WhatsApp complaint'
-
-    // createdById-এর জন্য একজন বৈধ ইউজার খুঁজে বের করা হচ্ছে
-    const systemUser = await db.user.findFirst()
-    if (!systemUser) return
-
-    // টিকেট নম্বর তৈরি করা হচ্ছে
-    const year = new Date().getFullYear()
-    const lastTicket = await db.maintenanceTicket.findFirst({
-      where: { ticketNo: { startsWith: `CMP-${year}` } },
-      orderBy: { ticketNo: 'desc' },
-    })
-    let nextNum = 1
-    if (lastTicket) {
-      const parts = lastTicket.ticketNo.split('-')
-      nextNum = (parseInt(parts[2] || '0', 10) || 0) + 1
-    }
-    const ticketNo = `CMP-${year}-${String(nextNum).padStart(6, '0')}`
-
-    const ticket = await db.maintenanceTicket.create({
-      data: {
-        ticketNo,
-        type: 'complaint',
-        category: 'general_maintenance',
-        priority: 'medium',
-        status: 'new',
-        subject: textContent.substring(0, 200),
-        description: textContent,
-        customerId: contact.customerId,
-        contactPhone: contact.phone,
-        createdById: systemUser.id,
-      },
-    })
-
-    // কথোপকথন টিকেটের সাথে লিংক করা হচ্ছে
-    await db.complaintWhatsAppLink.create({
-      data: {
-        ticketId: ticket.id,
-        conversationId,
-        autoCreated: true,
-      },
-    })
-
-    // কথোপকথন আপডেট করা হচ্ছে with ticket
-    await db.whatsAppConversation.update({
-      where: { id: conversationId },
-      data: { ticketId: ticket.id },
-    })
-
-    // ইভেন্ট ইমিট করা হচ্ছে
-    await emitEvent('ticket_auto_created', {
-      conversationId,
-      ticketId: ticket.id,
-      ticketNo: ticket.ticketNo,
-    })
-  } catch {
-    // স্বয়ংক্রিয় তৈরি ব্যর্থ হয়েছে (নীরবে)
-  }
 }

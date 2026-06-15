@@ -60,7 +60,7 @@ export function WhatsAppAssignDialog({
   const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['whatsapp-agents'],
     queryFn: async () => {
-      const res = await api.get<Agent[]>('/api/maintenance/whatsapp/agents')
+      const res = await api.get<Agent[]>('/api/whatsapp/agents')
       if (res.success) return res.data || []
       return []
     },
@@ -81,7 +81,7 @@ export function WhatsAppAssignDialog({
 
     setIsSubmitting(true)
     try {
-      const res = await api.post('/api/maintenance/whatsapp/assign', {
+      const res = await api.post('/api/whatsapp/assign', {
         conversationId,
         assignToId: selectedAgentId,
         isTransfer,

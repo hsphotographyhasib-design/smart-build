@@ -141,7 +141,7 @@ export function WhatsAppInboxDetail({
     if (!newNote.trim()) return
     setIsAddingNote(true)
     try {
-      const res = await api.post('/api/maintenance/whatsapp/notes', {
+      const res = await api.post('/api/whatsapp/notes', {
         conversationId: conversation.id,
         note: newNote.trim(),
       })
@@ -162,7 +162,7 @@ export function WhatsAppInboxDetail({
   const handlePriorityChange = async (newPriority: string) => {
     setIsUpdatingPriority(true)
     try {
-      const res = await api.put(`/api/maintenance/whatsapp/conversations/${conversation.id}`, { priority: newPriority })
+      const res = await api.put(`/api/whatsapp/conversations/${conversation.id}`, { priority: newPriority })
       if (res.success) {
         toast({ title: 'Priority updated' })
         onRefresh()
@@ -178,7 +178,7 @@ export function WhatsAppInboxDetail({
 
   const handleCloseChat = async () => {
     try {
-      const res = await api.put(`/api/maintenance/whatsapp/conversations/${conversation.id}`, { status: 'closed' })
+      const res = await api.put(`/api/whatsapp/conversations/${conversation.id}`, { status: 'closed' })
       if (res.success) {
         toast({ title: 'Chat closed' })
         onRefresh()

@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth'
 
-const WA_SOCKET_PORT = 3096
+const REALTIME_BRIDGE_URL = 'http://localhost:3096/api/events'
 
-async function emitEvent(event: string, data: unknown) {
+async function emitEvent(room: string, event: string, data: unknown) {
   try {
-    await fetch(`http://localhost:${WA_SOCKET_PORT}/api/events`, {
+    await fetch(REALTIME_BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, data }),
+      body: JSON.stringify({ room, event, data }),
     })
   } catch {
-    // Socket সার্ভিস চলছে না হতে পারে
+    // Realtime service not available, non-blocking
   }
 }
 
-// POST — কথোপকথন পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
+// POST — Mark messages as read
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,23 +32,34 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 })
     }
 
-    // সব মেসেজ পড়া হয়েছে হিসেবে চিহ্নিত করা হচ্ছে
+    // Mark all unread incoming messages as read
     await db.whatsAppMessage.updateMany({
       where: {
         conversationId: id,
         direction: 'incoming',
         isRead: false,
       },
-      data: { isRead: true, receivedById: authUser.id },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
     })
 
-    // অপঠিত গণনা রিসেট করা হচ্ছে
+    // Reset unread count
     const updated = await db.whatsAppConversation.update({
       where: { id },
-      data: { unreadCount: 0 },
+      data: { unreadCount: 0, updatedAt: new Date() },
     })
 
-    await emitEvent('conversation_read', { conversationId: id, userId: authUser.id })
+    await emitEvent(`conversation:${id}`, 'conversation_read', {
+      conversationId: id,
+      userId: authUser.id,
+    })
+
+    await emitEvent('whatsapp', 'conversation_read', {
+      conversationId: id,
+      userId: authUser.id,
+    })
 
     return NextResponse.json({ success: true, data: updated })
   } catch (error: unknown) {
