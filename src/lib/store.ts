@@ -242,6 +242,24 @@ export const api = {
   del: <T = any>(url: string) => api.request<T>('DELETE', url),
 }
 
+// ============ ROLE-BASED HOME PAGE ============
+const ROLE_HOME_MAP: Record<string, AppPage> = {
+  super_admin: 'dashboard',
+  admin: 'dashboard',
+  supervisor: 'dashboard',
+  hr_manager: 'dashboard',
+  accountant: 'dashboard',
+  store_manager: 'dashboard',
+  auditor: 'dashboard',
+  client: 'client-dashboard',
+  vendor: 'dashboard',
+  labour: 'dashboard',
+}
+
+export function getRoleBasedHomePage(role: string): AppPage {
+  return ROLE_HOME_MAP[role] || 'dashboard'
+}
+
 // ============ QUERY KEY FACTORY ============
 export const queryKeys = {
   dashboard: ['dashboard'] as const,

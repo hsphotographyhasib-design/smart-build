@@ -21,6 +21,8 @@ model AIInsight {
   createdById      String?
   createdAt        DateTime  @default(now())
   expiresAt        DateTime?
+  Project          Project?  @relation(fields: [projectId], references: [id])
+  User             User?     @relation("AIInsight_createdByIdToUser", fields: [createdById], references: [id])
 
   @@index([severity])
   @@index([status])
@@ -55,6 +57,8 @@ model Announcement {
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
+  Project     Project?  @relation(fields: [projectId], references: [id])
+  User        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
 
   @@index([targetScope])
   @@index([createdAt])
@@ -99,6 +103,7 @@ model AssetIssue {
 
   @@index([status])
   @@index([assetId])
+  @@index([issuedById])
 }
 
 model AssetMaintenance {
@@ -164,6 +169,8 @@ model BOQ {
   updatedAt DateTime
   Project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   BOQItem   BOQItem[]
+
+  @@index([projectId])
 }
 
 model BOQItem {
@@ -282,6 +289,7 @@ model BudgetSnapshot {
   snapshotData   String
   createdById    String
   createdAt      DateTime @default(now())
+  User           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
   Budget         Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
@@ -351,6 +359,7 @@ model ClientComplaint {
   createdById    String
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
+  User           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
   Project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([severity])
@@ -382,17 +391,18 @@ model CostCode {
 }
 
 model Customer {
-  id           String         @id @default(uuid())
-  name         String
-  email        String?
-  phone        String?
-  address      String?
-  gstNo        String?
-  balance      Float          @default(0)
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  SalesInvoice SalesInvoice[]
+  id             String           @id @default(uuid())
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  gstNo          String?
+  balance        Float            @default(0)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  SalesInvoice   SalesInvoice[]
+  SalesQuotation SalesQuotation[]
 
   @@index([isActive])
 }
@@ -445,6 +455,7 @@ model DirectCost {
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime
+  User         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
   Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([date])
@@ -466,6 +477,7 @@ model Discussion {
   resolvedAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime
+  User              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
   Project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   DiscussionComment DiscussionComment[]
 
@@ -525,6 +537,7 @@ model Expense {
   @@index([date])
   @@index([category])
   @@index([projectId])
+  @@index([createdById])
 }
 
 model FeatureFlag {
@@ -710,6 +723,8 @@ model NotificationPreference {
   createdAt DateTime @default(now())
   updatedAt DateTime
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model OpenItem {
@@ -728,6 +743,7 @@ model OpenItem {
   createdById  String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
+  User         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
   Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([dueDate])
@@ -799,6 +815,7 @@ model PrimeContract {
   Project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
+  @@index([projectId])
 }
 
 model Product {
@@ -849,6 +866,8 @@ model Project {
   progress             Float                  @default(0)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime
+  AIInsight            AIInsight[]
+  Announcement         Announcement[]
   BOQ                  BOQ?
   Budget               Budget?
   ChangeEvent          ChangeEvent[]
@@ -1144,6 +1163,7 @@ model SalesQuotation {
   id         String   @id @default(uuid())
   quoteNo    String   @unique
   customerId String
+  Customer   Customer @relation(fields: [customerId], references: [id])
   validUntil DateTime
   subtotal   Float    @default(0)
   tax        Float    @default(0)
@@ -1281,21 +1301,29 @@ model User {
   createdAt                                          DateTime                @default(now())
   updatedAt                                          DateTime
   AssetIssue                                         AssetIssue[]
+  AIInsight_AIInsight_createdByIdToUser              AIInsight[]             @relation("AIInsight_createdByIdToUser")
+  Announcement_Announcement_createdByIdToUser        Announcement[]          @relation("Announcement_createdByIdToUser")
   AuditLog                                           AuditLog[]
   Budget_Budget_approvedByIdToUser                   Budget[]                @relation("Budget_approvedByIdToUser")
   Budget_Budget_createdByIdToUser                    Budget[]                @relation("Budget_createdByIdToUser")
+  BudgetSnapshot_BudgetSnapshot_createdByIdToUser    BudgetSnapshot[]        @relation("BudgetSnapshot_createdByIdToUser")
+  ClientComplaint_ClientComplaint_createdByIdToUser  ClientComplaint[]       @relation("ClientComplaint_createdByIdToUser")
   DailyNote                                          DailyNote[]
+  DirectCost_DirectCost_createdByIdToUser            DirectCost[]            @relation("DirectCost_createdByIdToUser")
+  Discussion_Discussion_createdByIdToUser            Discussion[]            @relation("Discussion_createdByIdToUser")
   Expense                                            Expense[]
   LeaveRequest_LeaveRequest_approvedByIdToUser       LeaveRequest[]          @relation("LeaveRequest_approvedByIdToUser")
   LeaveRequest_LeaveRequest_userIdToUser             LeaveRequest[]          @relation("LeaveRequest_userIdToUser")
   Notification                                       Notification[]
   NotificationPreference                             NotificationPreference?
+  OpenItem_OpenItem_createdByIdToUser                OpenItem[]              @relation("OpenItem_createdByIdToUser")
   ProjectMember                                      ProjectMember[]
   ProjectTask                                        ProjectTask[]
   PurchaseRequest_PurchaseRequest_approvedByIdToUser PurchaseRequest[]       @relation("PurchaseRequest_approvedByIdToUser")
   PurchaseRequest_PurchaseRequest_createdByIdToUser  PurchaseRequest[]       @relation("PurchaseRequest_createdByIdToUser")
   SalesInvoice                                       SalesInvoice[]
   Session                                            Session[]
+  PasswordReset                                      PasswordReset[]
 }
 
 model WorkOrder {
@@ -1446,4 +1474,18 @@ model worker_skills {
   skills      skills    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([skillId, workerType, workerId])
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  email     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }

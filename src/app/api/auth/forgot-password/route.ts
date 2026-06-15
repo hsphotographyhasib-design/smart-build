@@ -29,20 +29,45 @@ export async function POST(request: NextRequest) {
     if (validation.error) return validation.error
 
     const { email } = validation.data
+    const normalizedEmail = email.toLowerCase().trim()
 
-    // ব্যবহারকারী খোঁজা হচ্ছে – ইমেইল গণনা এড়াতে সর্বদা সফলতা প্রদান করা হচ্ছে
+    // ব্যবহারকারী খোঁজা হচ্ছে
     const user = await db.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: normalizedEmail },
     })
 
     if (user) {
-      // একটি রিসেট টোকেন তৈরি করে সংরক্ষণ করা হচ্ছে
       const resetToken = crypto.randomUUID()
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 1) // ১ ঘণ্টার মেয়াদ
 
-      // TODO: রিসেট টোকেন ডাটাবেজে সংরক্ষণ করুন (যেমন একটি PasswordReset টেবিল)
-      // TODO: টোকেনসহ রিসেট লিংক ইমেইল পাঠান
+      // এই ব্যবহারকারীর পূর্ববর্তী অব্যবহৃত রিসেট টোকেন নিষ্ক্রিয় করা হচ্ছে
+      await db.passwordReset.updateMany({
+        where: {
+          userId: user.id,
+          usedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        data: { usedAt: new Date() },
+      })
+
+      // নতুন রিসেট টোকেন সংরক্ষণ করা হচ্ছে
+      await db.passwordReset.create({
+        data: {
+          userId: user.id,
+          token: resetToken,
+          email: normalizedEmail,
+          expiresAt,
+        },
+      })
+
+      // প্রোডাকশনে এখানে টোকেনসহ রিসেট লিংক ইমেইল পাঠাতে হবে
+      // বর্তমানে ডেভেলপমেন্টের জন্য টোকেন প্রতিক্রিয়ায় ফেরত দেওয়া হচ্ছে
+      return NextResponse.json({
+        success: true,
+        message: 'If an account exists with that email, a reset link has been sent.',
+        token: resetToken,
+      })
     }
 
     // ইমেইল গণনা প্রতিরোধ করতে সর্বদা সফলতা প্রদান করা হচ্ছে

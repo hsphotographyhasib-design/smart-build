@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { useRegion } from '@/components/providers/regional-provider'
 import { convertCurrency } from '@/lib/regional/regional-config'
 
@@ -12,15 +12,13 @@ export function useFormat() {
   const decimalDigits = currency?.decimalDigits ?? 2
   const currencyLocale = (currency as any)?.locale ?? 'en'
 
-  // সম্পূর্ণ মুদ্রা ফরম্যাটিং: B$ 1,500.00
+  // Full currency formatting: B$ 1,500.00
   const formatCurrency = useCallback((amount: number, overrideCode?: string): string => {
-    // null/undefined/NaN নিয় গ্রেসফুলি হ্যান্ডেল হলে পরিচাল
     const safeAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0
     const code = overrideCode || currencyCode
     const cur = currency && !overrideCode ? currency : null
 
     if (!cur && overrideCode) {
-      // Try basic formatting for override codes
       try {
         return new Intl.NumberFormat('en', {
           style: 'currency',
@@ -38,18 +36,14 @@ export function useFormat() {
 
     const { symbolNative, decimalDigits: dd } = cur
 
-    // ওভাররাইড কোডের জন্য চেষ্টা করা হচ্ছে – ডট হাজার বিভাজক ব্যবহার
     if (code === 'IDR') {
       return `${symbolNative} ${Math.round(safeAmount).toLocaleString('id-ID')}`
     }
 
-    // VND, THB: দশমিক নেই
     if (code === 'VND' || code === 'THB') {
       return `${symbolNative} ${Math.round(safeAmount).toLocaleString()}`
     }
 
-    // Intl.NumberFormat দিয় সংখ্যা ফরম্যাটিং ব্যবহার, তারপর কাস্টম সিম্বল ব্যবহার
-    // (Intl-এর narrowSymbol "B" কে "B$" স্ট্রিপ করে, তাইম আমাদের নিজে সিম্বল ব্যবহার করা হচ্ছে)
     try {
       const formatted = new Intl.NumberFormat(cur.locale || 'en', {
         minimumFractionDigits: dd,
@@ -64,7 +58,7 @@ export function useFormat() {
     }
   }, [currency, currencyCode])
 
-  // কম্প্যাক্ট মুদ্রা ফরম্যাটিং: B$1.5M, S$245K, Rp560K
+  // Compact currency formatting: B$1.5M, S$245K, Rp560K
   const formatCurrencyCompact = useCallback((amount: number): string => {
     if (amount >= 1_000_000_000) {
       const val = amount / 1_000_000_000
@@ -81,56 +75,59 @@ export function useFormat() {
     return `${currencySymbol}${Math.round(amount).toLocaleString()}`
   }, [currencySymbol])
 
-  // বেস BND থেকে ব্যবহারীর স্থানীয় মুদ্রা রূপান্ট
+  // Convert from base BND to user's local currency and format
   const convertAndFormat = useCallback((bndAmount: number): string => {
     if (currencyCode === 'BND') return formatCurrency(bndAmount)
     const converted = convertCurrency(bndAmount, 'BND', currencyCode)
     return formatCurrency(converted)
   }, [currencyCode, formatCurrency])
 
-  // রূপান্ট + কম্যাক্ট ফরম্যাট প্রাইসিং প্রদর্শনের জন্য
+  // Convert + compact format for pricing displays
   const convertAndFormatCompact = useCallback((bndAmount: number): string => {
     if (currencyCode === 'BND') return formatCurrencyCompact(bndAmount)
     const converted = convertCurrency(bndAmount, 'BND', currencyCode)
     return formatCurrencyCompact(converted)
   }, [currencyCode, formatCurrencyCompact])
 
-  // শুধুমাত্র মুদ্রা প্রতীক
+  // Currency symbol only
   const getCurrencySymbol = useCallback((): string => {
     return currencySymbol
   }, [currencySymbol])
 
-  // শুধুমাত্র মুদ্রা কোড
+  // Currency code only
   const getCurrencyCode = useCallback((): string => {
     return currencyCode
   }, [currencyCode])
 
-  // সনাকেত দেশের জন্য ফোন প্লেসহোল্ডার প্রদান করা হচ্ছে
+  // Phone placeholder for selected country
   const getPhonePlaceholder = useCallback((): string => {
     return phonePlaceholder ?? '+673 7123456'
   }, [phonePlaceholder])
 
-  // কলিং কোড প্রদান করা হচ্ছে
+  // Calling code
   const getCallingCode = useCallback((): string => {
     return country?.callingCode ?? '+673'
   }, [country])
 
-  // দেশের পতাকা ইমোজি প্রদান করা হচ্ছে
+  // Country flag emoji
   const getCountryFlag = useCallback((): string => {
-    return country?.flagEmoji ?? '🇧🇳'
+    return country?.flagEmoji ?? '\u{1F1E7}\u{1F1F9}'
   }, [country])
 
-  // দেশের নাম প্রদান করা হচ্ছে
+  // Country name
   const getCountryName = useCallback((): string => {
     return country?.name ?? 'Brunei'
   }, [country])
 
-  // সিলেক্টর জন্য দেশের লেবেল: 🇧🇳 ব্রুনাই (BND)
+  // Country label for selector: BN Brunei (BND)
   const getCountryLabel = useCallback((): string => {
     return `${getCountryFlag()} ${getCountryName()} (${currencyCode})`
   }, [getCountryFlag, getCountryName, currencyCode])
 
-  // তারিখ ও স্ট্রিং ফরম্যাট করা হচ্ছে
+  // Date formatting
+  const locale = (currency as any)?.locale ?? 'en'
+
+  const formatDate = useCallback((date: Date | string): string => {
     const d = typeof date === 'string' ? new Date(date) : date
     if (isNaN(d.getTime())) return ''
 
@@ -153,34 +150,34 @@ export function useFormat() {
     const d = typeof date === 'string' ? new Date(date) : date
     if (isNaN(d.getTime())) return ''
 
-    // দৈনিক-সময় ফরম্যাট ফরম্যাট ব্যবহার করা হচ্ছে
-    // লোকেল-সচেব সচেয়া সময় ফরম্যাট করা হচ্ছে
     const time = d.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
     })
     return `${formatDate(date)} ${time}`
-  }, [dateFormat, formatDate, country])
+  }, [dateFormat, formatDate, locale])
 
-  // ফোন নম্বর ফরম্যাট করা হচ্ছে
+  // Phone number formatting
+  const formatPhone = useCallback((phone: string): string => {
     if (!country) return phone
     const cleaned = phone.replace(/^0+/, '')
     return `${country.callingCode} ${cleaned}`
   }, [country])
 
-  // কর হর নিয়ম ফরম্যাট করা হচ্ছে
+  // Tax formatting
+  const formatTax = useCallback((amount: number): string => {
     if (!taxRules || taxRules.rate === 0) return 'No tax'
     const taxAmount = amount * taxRules.rate
     return `${taxRules.name} (${(taxRules.rate * 100).toFixed(0)}%): ${formatCurrency(taxAmount)}`
   }, [taxRules, formatCurrency])
 
-  // ডায়নামিক ট্যাক রেজিস্ট্রেশন লেবেল (যেমন "GST No." ভারত, ব্রুনাই "Tax Reg. No." হবে)
+  // Dynamic tax registration label (e.g. "GST No." for India, "Tax Reg. No." for Brunei)
   const getTaxName = useCallback((): string => {
     if (!taxRules || taxRules.rate === 0) return 'Tax Reg. No.'
     return `${taxRules.name} No.`
   }, [taxRules])
 
-  // কলাম হেডারের জন্য লেবেল (যেমন "GST", "SST", শূন্য করের জন্য)
+  // Column header label (e.g. "GST", "SST", or "Tax" for zero tax)
   const getTaxShortName = useCallback((): string => {
     if (!taxRules || taxRules.rate === 0) return 'Tax'
     return taxRules.name
@@ -204,7 +201,6 @@ export function useFormat() {
     formatTax,
     getTaxName,
     getTaxShortName,
-    // কাঁচ মান প্রদান করা হচ্ছে
     currency,
     currencyCode,
     currencySymbol,

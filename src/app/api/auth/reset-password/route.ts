@@ -37,17 +37,63 @@ export async function POST(request: NextRequest) {
 
     const { token, password } = validation.data
 
-    // TODO: ডাটাবেজে রিসেট টোকেন খুঁজুন
-    // - টোকেন বিদ্যমান এবং মেয়াদ শেষ হয়নি তা যাচাই করুন
-    // - নতুন পাসওয়ার্ড হ্যাশ করে ব্যবহারকারী রেকর্ড আপডেট করুন
-    // - ব্যবহৃত রিসেট টোকেন মুছে ফেলুন
-    // - ব্যবহারকারীর সকল বিদ্যমান সেশন বাতিল করুন
+    // বৈধ, মেয়াদোত্তীর্ণ নয় এমন রিসেট টোকেন খুঁজা হচ্ছে
+    const resetRecord = await db.passwordReset.findUnique({
+      where: { token },
+      include: { User: true },
+    })
 
-    // স্থানধারক: টোকেন যাচাইকরণ এখনও ডাটাবেজের সাথে সংযুক্ত নয়
-    return NextResponse.json(
-      { success: false, error: 'Password reset not yet implemented' },
-      { status: 501 }
-    )
+    if (!resetRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired reset token' },
+        { status: 400 }
+      )
+    }
+
+    if (resetRecord.usedAt) {
+      return NextResponse.json(
+        { success: false, error: 'This reset token has already been used' },
+        { status: 400 }
+      )
+    }
+
+    if (resetRecord.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Reset token has expired' },
+        { status: 400 }
+      )
+    }
+
+    // নতুন পাসওয়ার্ড হ্যাশ করা হচ্ছে
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // ব্যবহারকারীর পাসওয়ার্ড আপডেট এবং অ্যাকাউন্ট আনলক করা হচ্ছে
+    await db.user.update({
+      where: { id: resetRecord.userId },
+      data: {
+        password: hashedPassword,
+        isLocked: false,
+        lockoutUntil: null,
+        failedLoginAttempts: 0,
+        updatedAt: new Date(),
+      },
+    })
+
+    // রিসেট টোকেন ব্যবহৃত হিসেবে চিহ্নিত করা হচ্ছে
+    await db.passwordReset.update({
+      where: { id: resetRecord.id },
+      data: { usedAt: new Date() },
+    })
+
+    // ব্যবহারকারীর সকল বিদ্যমান সেশন বাতিল করা হচ্ছে
+    await db.session.deleteMany({
+      where: { userId: resetRecord.userId },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Password has been reset successfully. Please log in with your new password.',
+    })
   } catch (error) {
     console.error('Reset password error:', error)
     return NextResponse.json(

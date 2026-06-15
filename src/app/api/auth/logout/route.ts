@@ -30,10 +30,15 @@ export async function POST(request: NextRequest) {
       ipAddress: request.headers.get('x-forwarded-for') || undefined,
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: { message: 'Logged out successfully' },
     })
+
+    // RBAC ভূমিকা কুকি মুছে ফেলা হচ্ছে
+    response.cookies.delete('sb-role')
+
+    return response
   } catch (error) {
     console.error('Logout error:', error)
     return NextResponse.json(

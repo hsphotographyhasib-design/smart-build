@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
 
     const totalRevenue = revenueAgg._sum.total || 0
     const collectedRevenue = revenueAgg._sum.paidAmount || 0
-    const totalExpenses = expenseAgg._sum.amount || 0
-    const netProfit = totalRevenue - totalExpenses
+    const totalExpenseAmount = expenseAgg._sum.amount || 0
+    const netProfit = totalRevenue - totalExpenseAmount
 
     // সক্রিয় প্রকল্পের বাজেট সমষ্টি
     const activeBudgetAgg = await db.project.aggregate({
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
         kpis: {
           totalRevenue: Math.round(totalRevenue),
           collectedRevenue: Math.round(collectedRevenue),
-          totalExpenses: Math.round(totalExpenses),
+          totalExpenses: Math.round(totalExpenseAmount),
           netProfit: Math.round(netProfit),
           activeProjects,
           completedProjects,

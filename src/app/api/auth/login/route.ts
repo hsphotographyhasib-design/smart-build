@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       ipAddress: ip,
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         token: session.token,
@@ -127,6 +127,16 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // মিডলওয়্যার RBAC পরীক্ষার জন্য httpOnly ভূমিকা কুকি সেট করা হচ্ছে
+    response.cookies.set('sb-role', user.role, {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // ৭ দিন (সেশনের মেয়াদের সাথে মিল)
+    })
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

@@ -200,3 +200,31 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000)
+
+/**
+ * অনুমতি অডিট লগ তৈরি করা হচ্ছে।
+ * RBAC লগ রেকর্ড করতে ব্যবহৃত হয় যখন কোনো ব্যবহারকারী কোনো রুটে অ্যাক্সেস করে।
+ */
+export async function logPermissionAudit(params: {
+  userId?: string
+  action: string
+  resource: string
+  route: string
+  method: string
+  allowed: boolean
+  ipAddress?: string
+}): Promise<void> {
+  try {
+    await db.auditLog.create({
+      data: {
+        userId: params.userId,
+        action: `${params.method} ${params.route}`,
+        entity: params.resource,
+        ipAddress: params.ipAddress,
+        newValues: JSON.stringify({ action: params.action, allowed: params.allowed }),
+      },
+    })
+  } catch {
+    // Permission audit logging failure should not block the main operation
+  }
+}

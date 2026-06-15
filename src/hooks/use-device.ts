@@ -1,13 +1,13 @@
 "use client"
 
-import { useSyncExternalStore, useCallback, useRef, useEffect } from "react"
+import { useSyncExternalStore, useCallback, useRef } from "react"
 
-// ── ব্রেকপয়েন্ট ধ্রুক ══════════════════════════════════════════────────────────
+// ── Breakpoint constants ──
 export const MOBILE_BREAKPOINT = 768
 export const TABLET_BREAKPOINT = 1024
 export const LAPTOP_BREAKPOINT = 1280
 
-// ── ধরন ════════════════════════════════════════════════───────────────────────────────
+// ── Types ──
 type DeviceType = "mobile" | "tablet" | "laptop" | "desktop"
 type Orientation = "portrait" | "landscape"
 
@@ -21,7 +21,7 @@ export interface DeviceInfo {
   isLaptop: boolean
 }
 
-// ── সহায়ক ফাংশন করা হচ্ছে ══════════════════════════════════─────────────────────────────
+// ── Helper functions ──
 
 function getDeviceType(width: number): DeviceType {
   if (width < MOBILE_BREAKPOINT) return "mobile"
@@ -49,12 +49,12 @@ function buildDeviceInfo(width: number, height: number): DeviceInfo {
   }
 }
 
-/** SSR-নিরাপদের ডিফল্ট (ডেস্কটপ অনুমানিত) */
+/** SSR-safe default (assumed desktop) */
 const SSR_DEFAULT: DeviceInfo = buildDeviceInfo(1280, 800)
 
-// ── বাহ্যার-স্টোর (মডিউল-স্তর) ════════════════════════════────────
-// আমরা শেষ স্ন্যাপশট রাখা হচ্ছে যাতে useSyncExternalStore স্থিতিউ রেফারেন্স প্রদান করে
-// ভিউপোর্ট পরিবর্তন না পরিবর্তন হলে ক্যাশে স্থিতিউ স্থিতিজ থাকে।
+// ── External store (module-level) ──
+// We keep a cached snapshot so useSyncExternalStore returns a stable reference
+// when the viewport hasn't changed.
 
 let cachedSnapshot: DeviceInfo = SSR_DEFAULT
 let cachedWidth = 1280
@@ -83,22 +83,20 @@ function getServerSnapshot(): DeviceInfo {
   return SSR_DEFAULT
 }
 
-/** ডিভাইস হুক ════════════════════════════════════════════════
-// সুবিধায় ডিভাইসের জন্য সুবিধিতান হুক। */────────────────────────
-
+/** Device hook - provides full device information */
 export function useDevice(): DeviceInfo {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const subscribe = useCallback((onStoreChange: () => void) => {
     const mediaQueryLists = BREAKPOINT_QUERIES.map((q) => window.matchMedia(q))
 
-  // সঠিক রিসাইজে ডিবাউন্স শ্রোতার জন্য ডিবাউন্স
-  const handleResize = () => {
+    // Debounced resize listener for accurate resize detection
+    const handleResize = () => {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(onStoreChange, 200)
     }
 
-    // matchMedia শ্রোতা কেবল ক্রস অতিক্রম শুধুমাত্র ব্রেকপয়েন্ট অতিক্রম হয়
+    // matchMedia listener only fires on breakpoint cross
     const handleMediaChange = () => {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(onStoreChange, 200)
@@ -121,10 +119,7 @@ export function useDevice(): DeviceInfo {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
 
-  // সুবিধিতান হুক ════════════════════════════════════════════
-
-export function useIsMobile(): boolean {────────────────
-
+/** Convenience hook - returns only isMobile boolean */
 export function useIsMobile(): boolean {
   const { isMobile } = useDevice()
   return isMobile

@@ -221,13 +221,7 @@ function ResponsiveModal({
 }: ResponsiveModalProps) {
   return (
     <Dialog>
-      {/* ট্রিগার কলার নিজেই <Dialog> দিয়ে মোড়ানো করার মাধ্যমে পরিচালিত হয় */}
-      /* আমরা শুধুমাত্র বিষয়বস্তু অংশ রেন্ডার করি; কলারকে এটি
-          <Dialog open={...} onOpenChange={...}> */}
-
-      /* এই কম্পোনেন্টটি ইতিমধ্যে খোলা একটি Dialog-এর ভেতরে ব্যবহারের জন্য তৈরি করা হয়েছে।
-          সুবিধার্থে আমরা একটি স্বয়ংসম্পূর্ণ র‍্যাপার প্রদান করি যা open/onOpenChange অন্তর্ভুক্ত করে,
-          কিন্তু প্রাথমিক প্যাটার্নটি হলো: কলার ডায়ালগ অবস্থা নিয়ন্ত্রণ করে এবং ResponsiveModal-এ চাইল্ড্রেন পাস করে। */}
+      {/* Trigger is managed by the caller wrapping <Dialog> */}
       <ResponsiveModalInner
         fullScreenMobile={fullScreenMobile}
         title={title}
