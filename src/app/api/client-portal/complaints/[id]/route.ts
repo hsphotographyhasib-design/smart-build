@@ -19,6 +19,11 @@ export async function GET(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { id } = await params
 
     const complaint = await db.clientComplaint.findUnique({
@@ -49,6 +54,11 @@ export async function PUT(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const { status, resolution, assignedTo, subject, description, category, severity } = body
@@ -56,6 +66,17 @@ export async function PUT(
     const existing = await db.clientComplaint.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
+    }
+
+    // For client role, verify ownership (complaint must belong to their project)
+    if (user.role === 'client') {
+      const project = await db.project.findUnique({
+        where: { id: existing.projectId },
+        select: { clientId: true },
+      })
+      if (!project || project.clientId !== user.id) {
+        return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
+      }
     }
 
     // Validate status transition
@@ -115,11 +136,27 @@ export async function DELETE(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { id } = await params
 
     const complaint = await db.clientComplaint.findUnique({ where: { id } })
     if (!complaint) {
       return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
+    }
+
+    // For client role, verify ownership (complaint must belong to their project)
+    if (user.role === 'client') {
+      const project = await db.project.findUnique({
+        where: { id: complaint.projectId },
+        select: { clientId: true },
+      })
+      if (!project || project.clientId !== user.id) {
+        return NextResponse.json({ success: false, error: 'Complaint not found' }, { status: 404 })
+      }
     }
 
     // Only open complaints can be deleted

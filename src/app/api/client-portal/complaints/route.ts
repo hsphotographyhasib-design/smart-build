@@ -7,12 +7,21 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const severity = searchParams.get('severity')
     const projectId = searchParams.get('projectId')
 
     const where: any = {}
+    if (user.role === 'client') {
+      // For client role, filter by projects belonging to them
+      where.project = { clientId: user.id }
+    }
     if (status) where.status = status
     if (severity) where.severity = severity
     if (projectId) where.projectId = projectId
@@ -39,11 +48,27 @@ export async function POST(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const body = await request.json()
     const { projectId, clientName, subject, description, category, severity } = body
 
     if (!projectId || !subject || !description || !category) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // For client role, verify the project belongs to them
+    if (user.role === 'client') {
+      const project = await db.project.findUnique({
+        where: { id: projectId },
+        select: { clientId: true },
+      })
+      if (!project || project.clientId !== user.id) {
+        return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
+      }
     }
 
     const complaint = await db.clientComplaint.create({

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyAuth, createAuditLog } from '@/lib/auth'
+import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!requireRole(user, ['admin', 'hr_manager', 'accountant'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -37,6 +41,10 @@ export async function POST(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!requireRole(user, ['admin', 'hr_manager', 'accountant'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
     }
 
     const body = await request.json()

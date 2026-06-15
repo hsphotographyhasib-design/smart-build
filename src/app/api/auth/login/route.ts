@@ -56,9 +56,27 @@ export async function POST(request: NextRequest) {
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      // Increment failed login attempts (simple approach - lock after 5 failed)
+      // Increment failed login attempts - lock after 5 failed within lockout window
+      const failedAttempts = (user as any).failedLoginAttempts || 0
+      const newAttempts = failedAttempts + 1
+      const lockoutMinutes = 15
+      const lockoutUntil = newAttempts >= 5
+        ? new Date(Date.now() + lockoutMinutes * 60 * 1000)
+        : null
+
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: newAttempts,
+          isLocked: newAttempts >= 5,
+          lockoutUntil,
+        },
+      })
+
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
+        { success: false, error: newAttempts >= 5
+          ? `Account is locked due to too many failed attempts. Try again in ${lockoutMinutes} minutes.`
+          : 'Invalid email or password' },
         { status: 401 }
       )
     }
@@ -70,6 +88,12 @@ export async function POST(request: NextRequest) {
         data: { isLocked: false, lockoutUntil: null },
       })
     }
+
+    // Reset failed login attempts on successful login
+    await db.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0, isLocked: false, lockoutUntil: null },
+    })
 
     // Create session
     const userAgent = request.headers.get('user-agent') || undefined

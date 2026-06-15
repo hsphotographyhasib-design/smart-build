@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyAuth, createAuditLog } from '@/lib/auth'
+import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 
 export async function POST(
   request: NextRequest,
@@ -9,6 +9,10 @@ export async function POST(
   try {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+    if (!requireRole(user, ['admin', 'store_manager'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
+    }
 
     const { id } = await params
 

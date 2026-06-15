@@ -1,0 +1,180 @@
+
+<style>
+  .dash { padding: 1.25rem 0; font-family: var(--font-sans); }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .top-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .top-sub { font-size: 13px; color: var(--color-text-secondary); margin: 2px 0 0; }
+  .badge { font-size: 11px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); background: var(--color-background-secondary); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .kpi-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; position: relative; overflow: hidden; }
+  .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 16px; }
+  .kpi-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0; line-height: 1.1; }
+  .kpi-sub { font-size: 11px; margin-top: 4px; }
+  .kpi-trend { display: flex; align-items: center; gap: 3px; font-size: 11px; margin-top: 6px; }
+  .up { color: #1D9E75; } .down { color: #E24B4A; } .neutral { color: var(--color-text-secondary); }
+  .section-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 14px; display: flex; align-items: center; gap: 6px; }
+  .progress-row { margin-bottom: 10px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .progress-bar { height: 5px; border-radius: 99px; background: var(--color-border-tertiary); overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; }
+  .activity-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .activity-row:last-child { border-bottom: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .act-text { font-size: 12px; color: var(--color-text-primary); line-height: 1.4; }
+  .act-time { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+  .status-list { display: flex; flex-direction: column; gap: 8px; }
+  .status-item { display: flex; align-items: center; justify-content: space-between; }
+  .status-label { font-size: 12px; color: var(--color-text-secondary); }
+  .status-pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+  .pill-green { background: #E1F5EE; color: #0F6E56; }
+  .pill-amber { background: #FAEEDA; color: #854F0B; }
+  .pill-blue { background: #E6F1FB; color: #185FA5; }
+  .pill-red { background: #FCEBEB; color: #A32D2D; }
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) { .section-row, .bottom-row { grid-template-columns: 1fr; } }
+</style>
+
+<div class="dash">
+  <h2 class="sr-only">Construction Operations KPI Dashboard for Hasanur Jaya Sdn Bhd</h2>
+  <div class="top-bar">
+    <div>
+      <p class="top-title">Dashboard</p>
+      <p class="top-sub">Hasanur Jaya Sdn Bhd &mdash; Overview of construction operations</p>
+    </div>
+    <span class="badge"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>June 2026</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#E1F5EE"><i class="ti ti-briefcase" style="color:#0F6E56" aria-hidden="true"></i></div>
+      <p class="kpi-label">Active projects</p>
+      <p class="kpi-value">1</p>
+      <div class="kpi-trend neutral"><i class="ti ti-minus" style="font-size:11px" aria-hidden="true"></i> No change</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#E6F1FB"><i class="ti ti-currency-dollar" style="color:#185FA5" aria-hidden="true"></i></div>
+      <p class="kpi-label">Total revenue</p>
+      <p class="kpi-value">B$0</p>
+      <div class="kpi-trend neutral"><i class="ti ti-minus" style="font-size:11px" aria-hidden="true"></i> Pending billing</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#FCEBEB"><i class="ti ti-file-invoice" style="color:#A32D2D" aria-hidden="true"></i></div>
+      <p class="kpi-label">Outstanding</p>
+      <p class="kpi-value">B$0</p>
+      <div class="kpi-trend up"><i class="ti ti-circle-check" style="font-size:11px" aria-hidden="true"></i> All settled</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#FAEEDA"><i class="ti ti-users" style="color:#854F0B" aria-hidden="true"></i></div>
+      <p class="kpi-label">Labour today</p>
+      <p class="kpi-value">0</p>
+      <div class="kpi-trend neutral"><i class="ti ti-minus" style="font-size:11px" aria-hidden="true"></i> No deployment</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#FAEEDA"><i class="ti ti-clock" style="color:#854F0B" aria-hidden="true"></i></div>
+      <p class="kpi-label">Pending tasks</p>
+      <p class="kpi-value">0</p>
+      <div class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:11px" aria-hidden="true"></i> On track</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#EEEDFE"><i class="ti ti-circle-check" style="color:#534AB7" aria-hidden="true"></i></div>
+      <p class="kpi-label">Pending approvals</p>
+      <p class="kpi-value">0</p>
+      <div class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:11px" aria-hidden="true"></i> All clear</div>
+    </div>
+  </div>
+
+  <div class="section-row">
+    <div class="card">
+      <p class="card-title"><i class="ti ti-chart-bar" style="font-size:15px;color:var(--color-text-secondary)" aria-hidden="true"></i>Project progress</p>
+      <div class="progress-row">
+        <div class="progress-label"><span>JKDN Electrical Installation</span><span style="font-weight:500;color:var(--color-text-primary)">35%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:35%;background:#378ADD"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label"><span>IBTE AC Maintenance</span><span style="font-weight:500;color:var(--color-text-primary)">60%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;background:#1D9E75"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label"><span>UTB AC Works</span><span style="font-weight:500;color:var(--color-text-primary)">80%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%;background:#BA7517"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-label"><span>JPE Street Lighting</span><span style="font-weight:500;color:var(--color-text-primary)">15%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:15%;background:#993556"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title"><i class="ti ti-activity" style="font-size:15px;color:var(--color-text-secondary)" aria-hidden="true"></i>Recent activity</p>
+      <div class="activity-row">
+        <div class="dot" style="background:#1D9E75"></div>
+        <div><div class="act-text">Quotation submitted to MOH State</div><div class="act-time">Today, 9:14 AM</div></div>
+      </div>
+      <div class="activity-row">
+        <div class="dot" style="background:#378ADD"></div>
+        <div><div class="act-text">BOQ for JKDN building finalised</div><div class="act-time">Yesterday, 3:40 PM</div></div>
+      </div>
+      <div class="activity-row">
+        <div class="dot" style="background:#BA7517"></div>
+        <div><div class="act-text">Supplier RFQ sent — Bobby Electrical</div><div class="act-time">2 days ago</div></div>
+      </div>
+      <div class="activity-row">
+        <div class="dot" style="background:#993556"></div>
+        <div><div class="act-text">IR test report completed (BS 7671)</div><div class="act-time">3 days ago</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="card">
+      <p class="card-title"><i class="ti ti-clipboard-list" style="font-size:15px;color:var(--color-text-secondary)" aria-hidden="true"></i>Tender pipeline</p>
+      <div class="status-list">
+        <div class="status-item">
+          <span class="status-label">JPE/SBH/BPP/052/2026</span>
+          <span class="status-pill pill-amber">In progress</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">IBTE/BPEK/QTN/2026-27/22</span>
+          <span class="status-pill pill-green">Submitted</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">UTB/QTN/2026-27/EST/04</span>
+          <span class="status-pill pill-blue">Awarded</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">JASTRe Waste Bin RFQ</span>
+          <span class="status-pill pill-amber">Pending</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">DES/MOD Electrical Works</span>
+          <span class="status-pill pill-green">Submitted</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title"><i class="ti ti-tool" style="font-size:15px;color:var(--color-text-secondary)" aria-hidden="true"></i>Work categories</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div class="progress-label"><span>Electrical works</span><span style="font-weight:500;color:var(--color-text-primary)">55%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:55%;background:#378ADD"></div></div>
+        </div>
+        <div>
+          <div class="progress-label"><span>HVAC / Air-con</span><span style="font-weight:500;color:var(--color-text-primary)">30%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:30%;background:#1D9E75"></div></div>
+        </div>
+        <div>
+          <div class="progress-label"><span>Civil / Construction</span><span style="font-weight:500;color:var(--color-text-primary)">10%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:10%;background:#BA7517"></div></div>
+        </div>
+        <div>
+          <div class="progress-label"><span>Other / Miscellaneous</span><span style="font-weight:500;color:var(--color-text-primary)">5%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:5%;background:#888780"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

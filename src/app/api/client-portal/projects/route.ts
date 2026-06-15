@@ -7,12 +7,23 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const clientId = searchParams.get('clientId')
     const status = searchParams.get('status')
 
     const where: any = {}
-    if (clientId) where.clientId = clientId
+    if (user.role === 'client') {
+      // Client role: ALWAYS filter by their own ID, ignore query param
+      where.clientId = user.id
+    } else {
+      // Admin/super_admin: allow clientId query param for support purposes
+      if (clientId) where.clientId = clientId
+    }
     if (status) where.status = status
 
     const projects = await db.project.findMany({

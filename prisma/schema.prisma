@@ -16,11 +16,12 @@ model User {
   name          String
   phone         String?
   avatar        String?
-  role          String   @default("labour") // admin, supervisor, hr_manager, accountant, store_manager, client, labour
-  isActive      Boolean  @default(true)
-  isLocked      Boolean  @default(false)
-  lockoutUntil  DateTime?
-  lastLoginAt   DateTime?
+  role              String   @default("labour") // super_admin, admin, supervisor, hr_manager, accountant, store_manager, client, labour, vendor, auditor
+  isActive          Boolean  @default(true)
+  isLocked          Boolean  @default(false)
+  lockoutUntil      DateTime?
+  failedLoginAttempts Int     @default(0)
+  lastLoginAt       DateTime?
   totpSecret    String?
   totpEnabled   Boolean  @default(false)
   createdAt     DateTime @default(now())

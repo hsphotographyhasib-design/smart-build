@@ -1,0 +1,826 @@
+     1→     1→/**
+     2→     2→ * SmartBuild ERP - Role-Based Access Control (RBAC) Configuration
+     3→     3→ *
+     4→     4→ * Defines which pages each role can access in the sidebar menu
+     5→     5→ * and which roles can perform which API operations.
+     6→     6→ *
+     7→     7→ * Role Hierarchy: super_admin > admin > {supervisor, hr_manager, accountant, store_manager, auditor} > client, labour, vendor
+     8→     8→ */
+     9→     9→
+    10→    10→// ============ ROLE DEFINITIONS ============
+    11→    11→export const ROLES = {
+    12→    12→  SUPER_ADMIN: 'super_admin',
+    13→    13→  ADMIN: 'admin',
+    14→    14→  SUPERVISOR: 'supervisor',
+    15→    15→  HR_MANAGER: 'hr_manager',
+    16→    16→  ACCOUNTANT: 'accountant',
+    17→    17→  STORE_MANAGER: 'store_manager',
+    18→    18→  CLIENT: 'client',
+    19→    19→  LABOUR: 'labour',
+    20→    20→  VENDOR: 'vendor',
+    21→    21→  AUDITOR: 'auditor',
+    22→    22→} as const
+    23→    23→
+    24→    24→export type Role = (typeof ROLES)[keyof typeof ROLES]
+    25→    25→
+    26→    26→// ============ ROLE LABELS ============
+    27→    27→export const ROLE_LABELS: Record<string, string> = {
+    28→    28→  super_admin: 'Super Admin',
+    29→    29→  admin: 'Admin',
+    30→    30→  supervisor: 'Supervisor',
+    31→    31→  hr_manager: 'HR Manager',
+    32→    32→  accountant: 'Accountant',
+    33→    33→  store_manager: 'Store Manager',
+    34→    34→  client: 'Client',
+    35→    35→  labour: 'Labour',
+    36→    36→  vendor: 'Vendor',
+    37→    37→  auditor: 'Auditor',
+    38→    38→}
+    39→    39→
+    40→    40→// ============ ROLE HIERARCHY (higher number = more permissions) ============
+    41→    41→const ROLE_LEVEL: Record<string, number> = {
+    42→    42→  super_admin: 100,
+    43→    43→  admin: 90,
+    44→    44→  supervisor: 70,
+    45→    45→  auditor: 65,
+    46→    46→  hr_manager: 60,
+    47→    47→  accountant: 60,
+    48→    48→  store_manager: 60,
+    49→    49→  client: 30,
+    50→    50→  vendor: 30,
+    51→    51→  labour: 20,
+    52→    52→}
+    53→    53→
+    54→    54→/**
+    55→    55→ * Check if user role has at least the minimum required level.
+    56→    56→ */
+    57→    57→export function hasMinRoleLevel(userRole: string, minRole: string): boolean {
+    58→    58→  const userLevel = ROLE_LEVEL[userRole] ?? 0
+    59→    59→  const minLevel = ROLE_LEVEL[minRole] ?? 0
+    60→    60→  return userLevel >= minLevel
+    61→    61→}
+    62→    62→
+    63→    63→// ============ MENU PAGE ACCESS BY ROLE ============
+    64→    64→// Each role maps to a set of pages they can see in the sidebar.
+    65→    65→// Use '*' to grant access to all pages.
+    66→    66→
+    67→    67→const PAGE_ACCESS: Record<string, string[] | '*'> = {
+    68→    68→  [ROLES.SUPER_ADMIN]: '*',
+    69→    69→  [ROLES.ADMIN]: '*',
+    70→    70→
+    71→    71→  [ROLES.SUPERVISOR]: [
+    72→    72→    // Main
+    73→    73→    'dashboard',
+    74→    74→    // Project Management
+    75→    75→    'projects', 'project-detail', 'project-tasks', 'project-finance',
+    76→    76→    'project-documents', 'project-daily-notes', 'scheduling',
+    77→    77→    // Operations
+    78→    78→    'subcontractors', 'work-orders', 'assets',
+    79→    79→    // Collaboration
+    80→    80→    'collaboration-dashboard', 'collaboration-rfis', 'collaboration-submittals',
+    81→    81→    'collaboration-discussions', 'collaboration-approvals', 'collaboration-announcements',
+    82→    82→    // Client Portal
+    83→    83→    'client-dashboard', 'client-progress', 'client-invoices', 'client-documents', 'client-complaints',
+    84→    84→    // AI & Analytics
+    85→    85→    'ai-dashboard', 'ai-insights', 'ai-forecast', 'project-analytics', 'advanced-reports',
+    86→    86→    // Resource (read-only)
+    87→    87→    'resource-dashboard', 'resource-planning', 'labour-resources', 'equipment-resources',
+    88→    88→    'vehicle-resources', 'tool-resources', 'crew-management', 'resource-requests',
+    89→    89→    'resource-productivity', 'resource-forecasting',
+    90→    90→    // Cost Control
+    91→    91→    'cost-control-dashboard', 'budget-management', 'cost-codes', 'budget-change-orders', 'cost-forecasting',
+    92→    92→    // Reports
+    93→    93→    'reports',
+    94→    94→    // Notifications
+    95→    95→    'notifications', 'audit-log',
+    96→    96→    // Settings
+    97→    97→    'settings',
+    98→    98→  ],
+    99→    99→
+   100→   100→  [ROLES.HR_MANAGER]: [
+   101→   101→    // Main
+   102→   102→    'dashboard',
+   103→   103→    // Labour & HR
+   104→   104→    'labour-groups', 'attendance', 'payroll', 'employees', 'leave',
+   105→   105→    // Project (read-only)
+   106→   106→    'projects', 'project-detail', 'scheduling',
+   107→   107→    // Operations
+   108→   108→    'subcontractors', 'work-orders',
+   109→   109→    // Notifications
+   110→   110→    'notifications', 'audit-log',
+   111→   111→    // Settings
+   112→   112→    'settings',
+   113→   113→    // Reports
+   114→   114→    'reports',
+   115→   115→  ],
+   116→   116→
+   117→   117→  [ROLES.ACCOUNTANT]: [
+   118→   118→    // Main
+   119→   119→    'dashboard',
+   120→   120→    // Finance
+   121→   121→    'invoices', 'payments', 'boq', 'daybook', 'cashflow',
+   122→   122→    // Procurement
+   123→   123→    'purchase-requests', 'purchase-orders', 'suppliers',
+   124→   124→    // Cost Control
+   125→   125→    'cost-control-dashboard', 'budget-management', 'cost-codes', 'budget-change-orders', 'cost-forecasting',
+   126→   126→    // Project (finance view)
+   127→   127→    'projects', 'project-detail', 'project-finance',
+   128→   128→    // Reports
+   129→   129→    'reports', 'advanced-reports',
+   130→   130→    // Notifications
+   131→   131→    'notifications', 'audit-log',
+   132→   132→    // Settings
+   133→   133→    'settings',
+   134→   134→  ],
+   135→   135→
+   136→   136→  [ROLES.STORE_MANAGER]: [
+   137→   137→    // Main
+   138→   138→    'dashboard',
+   139→   139→    // Procurement
+   140→   140→    'purchase-requests', 'purchase-orders', 'suppliers', 'inventory',
+   141→   141→    // Operations
+   142→   142→    'assets',
+   143→   143→    // Resources
+   144→   144→    'resource-dashboard', 'resource-planning', 'labour-resources', 'equipment-resources',
+   145→   145→    'vehicle-resources', 'tool-resources', 'crew-management', 'resource-requests',
+   146→   146→    'resource-productivity', 'resource-forecasting',
+   147→   147→    // Notifications
+   148→   148→    'notifications', 'audit-log',
+   149→   149→    // Settings
+   150→   150→    'settings',
+   151→   151→    // Reports
+   152→   152→    'reports',
+   153→   153→  ],
+   154→   154→
+   155→   155→  [ROLES.AUDITOR]: [
+   156→   156→    // Main
+   157→   157→    'dashboard',
+   158→   158→    // Audit & Reports
+   159→   159→    'audit-log', 'reports', 'advanced-reports',
+   160→   160→    // Finance (read-only)
+   161→   161→    'invoices', 'payments', 'boq', 'daybook', 'cashflow',
+   162→   162→    // Project (read-only)
+   163→   163→    'projects', 'project-detail', 'project-finance',
+   164→   164→    // Cost Control (read-only)
+   165→   165→    'cost-control-dashboard', 'budget-management', 'cost-codes', 'budget-change-orders', 'cost-forecasting',
+   166→   166→    // AI
+   167→   167→    'ai-dashboard', 'ai-insights', 'project-analytics',
+   168→   168→    // Settings
+   169→   169→    'settings',
+   170→   170→    // Notifications
+   171→   171→    'notifications',
+   172→   172→  ],
+   173→   173→
+   174→   174→  [ROLES.CLIENT]: [
+   175→   175→    // Client Portal
+   176→   176→    'dashboard',
+   177→   177→    'client-dashboard', 'client-progress', 'client-invoices', 'client-documents', 'client-complaints',
+   178→   178→    // Notifications
+   179→   179→    'notifications',
+   180→   180→    // Settings
+   181→   181→    'settings',
+   182→   182→  ],
+   183→   183→
+   184→   184→  [ROLES.LABOUR]: [
+   185→   185→    // Minimal
+   186→   186→    'dashboard',
+   187→   187→    'attendance',
+   188→   188→    'notifications',
+   189→   189→    'settings',
+   190→   190→  ],
+   191→   191→
+   192→   192→  [ROLES.VENDOR]: [
+   193→   193→    // Vendor Portal
+   194→   194→    'dashboard',
+   195→   195→    'purchase-orders',
+   196→   196→    'suppliers',
+   197→   197→    'notifications',
+   198→   198→    'settings',
+   199→   199→  ],
+   200→   200→}
+   201→   201→
+   202→   202→/**
+   203→   203→ * Check if a specific role can access a specific page.
+   204→   204→ */
+   205→   205→export function canAccessPage(role: string, page: string): boolean {
+   206→   206→  const access = PAGE_ACCESS[role]
+   207→   207→  if (!access) return false
+   208→   208→  if (access === '*') return true
+   209→   209→  return access.includes(page)
+   210→   210→}
+   211→   211→
+   212→   212→/**
+   213→   213→ * Get filtered nav items for a given role.
+   214→   214→ * Returns only the sections and items the role is allowed to see.
+   215→   215→ */
+   216→   216→export function filterNavForRole<T extends { page: string }>(
+   217→   217→  sections: { title: string; items: T[] }[],
+   218→   218→  role: string
+   219→   219→): { title: string; items: T[] }[] {
+   220→   220→  return sections
+   221→   221→    .map((section) => ({
+   222→   222→      ...section,
+   223→   223→      items: section.items.filter((item) => canAccessPage(role, item.page)),
+   224→   224→    }))
+   225→   225→    .filter((section) => section.items.length > 0)
+   226→   226→}
+   227→   227→
+   228→   228→// ============ API ROUTE PERMISSIONS ============
+   229→   229→// Maps API route patterns to allowed roles for each HTTP method.
+   230→   230→// Pattern format: "/api/module" or "/api/module/action"
+   231→   231→// "*" means all authenticated users, "admin+" means admin and super_admin only.
+   232→   232→
+   233→   233→export interface RoutePermission {
+   234→   234→  pattern: string
+   235→   235→  methods: {
+   236→   236→    GET?: string[]    // Roles that can read
+   237→   237→    POST?: string[]   // Roles that can create
+   238→   238→    PUT?: string[]    // Roles that can update
+   239→   239→    DELETE?: string[]  // Roles that can delete
+   240→   240→  }
+   241→   241→  description?: string
+   242→   242→}
+   243→   243→
+   244→   244→export const ROUTE_PERMISSIONS: RoutePermission[] = [
+   245→   245→  // ============ AUTH ============
+   246→   246→  { pattern: '/api/auth/login', methods: { POST: ['*'] }, description: 'Login (public)' },
+   247→   247→  { pattern: '/api/auth/register', methods: { POST: ['super_admin', 'admin'] }, description: 'Register user' },
+   248→   248→  { pattern: '/api/auth/me', methods: { GET: ['*'] }, description: 'Current user profile' },
+   249→   249→  { pattern: '/api/auth/logout', methods: { POST: ['*'] }, description: 'Logout' },
+   250→   250→  { pattern: '/api/auth/users', methods: {
+   251→   251→    GET: ['super_admin', 'admin', 'hr_manager'],
+   252→   252→    POST: ['super_admin', 'admin'],
+   253→   253→    PUT: ['super_admin', 'admin'],
+   254→   254→    DELETE: ['super_admin', 'admin'],
+   255→   255→  }, description: 'User management' },
+   256→   256→
+   257→   257→  // ============ DASHBOARD ============
+   258→   258→  { pattern: '/api/dashboard/stats', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'hr_manager', 'store_manager', 'auditor'] }, description: 'Dashboard stats' },
+   259→   259→  { pattern: '/api/dashboard/notifications', methods: { GET: ['*'] } },
+   260→   260→  { pattern: '/api/dashboard/notifications/mark-all-read', methods: { POST: ['*'] } },
+   261→   261→
+   262→   262→  // ============ PROJECTS ============
+   263→   263→  { pattern: '/api/projects', methods: {
+   264→   264→    GET: ['super_admin', 'admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'auditor', 'client'],
+   265→   265→    POST: ['super_admin', 'admin', 'supervisor'],
+   266→   266→  }, description: 'Project CRUD' },
+   267→   267→  { pattern: '/api/projects/[id]', methods: {
+   268→   268→    GET: ['*'],
+   269→   269→    PUT: ['super_admin', 'admin', 'supervisor'],
+   270→   270→    DELETE: ['super_admin', 'admin'],
+   271→   271→  }},
+   272→   272→  { pattern: '/api/projects/[id]/tasks', methods: {
+   273→   273→    GET: ['*'],
+   274→   274→    POST: ['super_admin', 'admin', 'supervisor', 'hr_manager'],
+   275→   275→  }},
+   276→   276→  { pattern: '/api/projects/[id]/tasks/[taskId]', methods: {
+   277→   277→    PUT: ['super_admin', 'admin', 'supervisor', 'hr_manager'],
+   278→   278→    DELETE: ['super_admin', 'admin', 'supervisor'],
+   279→   279→  }},
+   280→   280→  { pattern: '/api/projects/[id]/team', methods: {
+   281→   281→    GET: ['*'],
+   282→   282→    POST: ['super_admin', 'admin', 'supervisor'],
+   283→   283→  }},
+   284→   284→  { pattern: '/api/projects/[id]/team/[memberId]', methods: {
+   285→   285→    PUT: ['super_admin', 'admin', 'supervisor'],
+   286→   286→    DELETE: ['super_admin', 'admin'],
+   287→   287→  }},
+   288→   288→  { pattern: '/api/projects/[id]/documents', methods: {
+   289→   289→    GET: ['*'],
+   290→   290→    POST: ['super_admin', 'admin', 'supervisor'],
+   291→   291→    DELETE: ['super_admin', 'admin', 'supervisor'],
+   292→   292→  }},
+   293→   293→  { pattern: '/api/projects/[id]/daily-notes', methods: {
+   294→   294→    GET: ['*'],
+   295→   295→    POST: ['super_admin', 'admin', 'supervisor'],
+   296→   296→  }},
+   297→   297→  { pattern: '/api/projects/[id]/finance', methods: {
+   298→   298→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   299→   299→  }},
+   300→   300→  { pattern: '/api/projects/[id]/comments', methods: {
+   301→   301→    GET: ['*'],
+   302→   302→    POST: ['*'],
+   303→   303→  }},
+   304→   304→  { pattern: '/api/projects/[id]/open-items', methods: {
+   305→   305→    GET: ['*'],
+   306→   306→    POST: ['super_admin', 'admin', 'supervisor'],
+   307→   307→  }},
+   308→   308→  { pattern: '/api/projects/[id]/open-items/[itemId]', methods: {
+   309→   309→    PUT: ['super_admin', 'admin', 'supervisor'],
+   310→   310→    DELETE: ['super_admin', 'admin', 'supervisor'],
+   311→   311→  }},
+   312→   312→  { pattern: '/api/projects/[id]/prime-contract', methods: {
+   313→   313→    GET: ['super_admin', 'admin', 'supervisor', 'accountant'],
+   314→   314→    PUT: ['super_admin', 'admin'],
+   315→   315→  }},
+   316→   316→  { pattern: '/api/projects/[id]/commitments', methods: {
+   317→   317→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   318→   318→  }},
+   319→   319→  { pattern: '/api/projects/[id]/commitments/[commitmentId]', methods: {
+   320→   320→    PUT: ['super_admin', 'admin', 'accountant'],
+   321→   321→    DELETE: ['super_admin', 'admin'],
+   322→   322→  }},
+   323→   323→  { pattern: '/api/projects/[id]/direct-costs', methods: {
+   324→   324→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   325→   325→    POST: ['super_admin', 'admin', 'accountant'],
+   326→   326→  }},
+   327→   327→  { pattern: '/api/projects/[id]/direct-costs/[costId]', methods: {
+   328→   328→    PUT: ['super_admin', 'admin', 'accountant'],
+   329→   329→    DELETE: ['super_admin', 'admin', 'accountant'],
+   330→   330→  }},
+   331→   331→  { pattern: '/api/projects/[id]/insights', methods: {
+   332→   332→    GET: ['super_admin', 'admin', 'supervisor', 'auditor'],
+   333→   333→  }},
+   334→   334→  { pattern: '/api/projects/[id]/rfis', methods: {
+   335→   335→    GET: ['*'],
+   336→   336→    POST: ['super_admin', 'admin', 'supervisor'],
+   337→   337→  }},
+   338→   338→  { pattern: '/api/projects/[id]/rfis/[rfiId]', methods: {
+   339→   339→    GET: ['*'],
+   340→   340→    PUT: ['super_admin', 'admin', 'supervisor'],
+   341→   341→    DELETE: ['super_admin', 'admin'],
+   342→   342→  }},
+   343→   343→  { pattern: '/api/projects/[id]/rfis/[rfiId]/comments', methods: {
+   344→   344→    GET: ['*'],
+   345→   345→    POST: ['*'],
+   346→   346→  }},
+   347→   347→  { pattern: '/api/projects/[id]/change-orders', methods: {
+   348→   348→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   349→   349→    POST: ['super_admin', 'admin', 'supervisor'],
+   350→   350→  }},
+   351→   351→  { pattern: '/api/projects/[id]/change-orders/[coId]', methods: {
+   352→   352→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   353→   353→    PUT: ['super_admin', 'admin', 'supervisor'],
+   354→   354→    DELETE: ['super_admin', 'admin'],
+   355→   355→  }},
+   356→   356→  { pattern: '/api/projects/[id]/change-orders/[coId]/approve', methods: {
+   357→   357→    POST: ['super_admin', 'admin'],
+   358→   358→  }},
+   359→   359→  { pattern: '/api/projects/[id]/change-events', methods: {
+   360→   360→    GET: ['super_admin', 'admin', 'supervisor', 'auditor'],
+   361→   361→    POST: ['super_admin', 'admin', 'supervisor'],
+   362→   362→  }},
+   363→   363→  { pattern: '/api/projects/[id]/change-events/[eventId]', methods: {
+   364→   364→    GET: ['*'],
+   365→   365→    PUT: ['super_admin', 'admin', 'supervisor'],
+   366→   366→    DELETE: ['super_admin', 'admin'],
+   367→   367→  }},
+   368→   368→  { pattern: '/api/projects/[id]/change-events/[eventId]/approve', methods: {
+   369→   369→    POST: ['super_admin', 'admin'],
+   370→   370→  }},
+   371→   371→  { pattern: '/api/projects/[id]/change-events/[eventId]/reject', methods: {
+   372→   372→    POST: ['super_admin', 'admin'],
+   373→   373→  }},
+   374→   374→
+   375→   375→  // ============ FINANCE ============
+   376→   376→  { pattern: '/api/invoices', methods: {
+   377→   377→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   378→   378→    POST: ['super_admin', 'admin', 'accountant'],
+   379→   379→  }, description: 'Project invoices' },
+   380→   380→  { pattern: '/api/invoices/[id]', methods: {
+   381→   381→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor', 'client'],
+   382→   382→    PUT: ['super_admin', 'admin', 'accountant'],
+   383→   383→    DELETE: ['super_admin', 'admin', 'accountant'],
+   384→   384→  }},
+   385→   385→  { pattern: '/api/payments', methods: {
+   386→   386→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   387→   387→    POST: ['super_admin', 'admin', 'accountant'],
+   388→   388→  }},
+   389→   389→  { pattern: '/api/payments/[id]', methods: {
+   390→   390→    GET: ['*'],
+   391→   391→    PUT: ['super_admin', 'admin', 'accountant'],
+   392→   392→    DELETE: ['super_admin', 'admin', 'accountant'],
+   393→   393→  }},
+   394→   394→  { pattern: '/api/boq', methods: {
+   395→   395→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'store_manager', 'auditor'],
+   396→   396→    POST: ['super_admin', 'admin', 'supervisor', 'store_manager'],
+   397→   397→  }},
+   398→   398→  { pattern: '/api/daybook', methods: {
+   399→   399→    GET: ['super_admin', 'admin', 'accountant', 'auditor'],
+   400→   400→    POST: ['super_admin', 'admin', 'accountant'],
+   401→   401→  }},
+   402→   402→  { pattern: '/api/daybook/[id]', methods: {
+   403→   403→    PUT: ['super_admin', 'admin', 'accountant'],
+   404→   404→    DELETE: ['super_admin', 'admin', 'accountant'],
+   405→   405→  }},
+   406→   406→  { pattern: '/api/cashflow', methods: {
+   407→   407→    GET: ['super_admin', 'admin', 'accountant', 'auditor'],
+   408→   408→  }},
+   409→   409→  { pattern: '/api/loans', methods: {
+   410→   410→    GET: ['super_admin', 'admin', 'hr_manager', 'accountant'],
+   411→   411→    POST: ['super_admin', 'admin', 'hr_manager'],
+   412→   412→  }},
+   413→   413→  { pattern: '/api/reports', methods: {
+   414→   414→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'hr_manager', 'auditor'],
+   415→   415→  }},
+   416→   416→
+   417→   417→  // ============ PROCUREMENT ============
+   418→   418→  { pattern: '/api/purchase-requests', methods: {
+   419→   419→    GET: ['super_admin', 'admin', 'supervisor', 'store_manager', 'accountant', 'auditor'],
+   420→   420→    POST: ['super_admin', 'admin', 'supervisor', 'store_manager'],
+   421→   421→  }},
+   422→   422→  { pattern: '/api/purchase-requests/[id]', methods: {
+   423→   423→    GET: ['*'],
+   424→   424→    PUT: ['super_admin', 'admin', 'supervisor', 'store_manager'],
+   425→   425→    DELETE: ['super_admin', 'admin'],
+   426→   426→  }},
+   427→   427→  { pattern: '/api/purchase-requests/[id]/approve', methods: {
+   428→   428→    POST: ['super_admin', 'admin'],
+   429→   429→  }},
+   430→   430→  { pattern: '/api/purchase-requests/[id]/reject', methods: {
+   431→   431→    POST: ['super_admin', 'admin'],
+   432→   432→  }},
+   433→   433→  { pattern: '/api/purchase-orders', methods: {
+   434→   434→    GET: ['super_admin', 'admin', 'supervisor', 'store_manager', 'accountant', 'auditor', 'vendor'],
+   435→   435→    POST: ['super_admin', 'admin', 'store_manager'],
+   436→   436→  }},
+   437→   437→  { pattern: '/api/purchase-orders/[id]', methods: {
+   438→   438→    GET: ['*'],
+   439→   439→    PUT: ['super_admin', 'admin', 'store_manager'],
+   440→   440→    DELETE: ['super_admin', 'admin'],
+   441→   441→  }},
+   442→   442→  { pattern: '/api/suppliers', methods: {
+   443→   443→    GET: ['super_admin', 'admin', 'store_manager', 'accountant', 'auditor'],
+   444→   444→    POST: ['super_admin', 'admin', 'store_manager'],
+   445→   445→  }},
+   446→   446→  { pattern: '/api/suppliers/[id]', methods: {
+   447→   447→    GET: ['*'],
+   448→   448→    PUT: ['super_admin', 'admin', 'store_manager'],
+   449→   449→    DELETE: ['super_admin', 'admin'],
+   450→   450→  }},
+   451→   451→  { pattern: '/api/materials', methods: {
+   452→   452→    GET: ['super_admin', 'admin', 'store_manager', 'auditor'],
+   453→   453→    POST: ['super_admin', 'admin', 'store_manager'],
+   454→   454→  }},
+   455→   455→  { pattern: '/api/materials/[id]', methods: {
+   456→   456→    GET: ['*'],
+   457→   457→    PUT: ['super_admin', 'admin', 'store_manager'],
+   458→   458→    DELETE: ['super_admin', 'admin', 'store_manager'],
+   459→   459→  }},
+   460→   460→  { pattern: '/api/materials/[id]/adjust-stock', methods: {
+   461→   461→    POST: ['super_admin', 'admin', 'store_manager'],
+   462→   462→  }},
+   463→   463→
+   464→   464→  // ============ LABOUR & HR ============
+   465→   465→  { pattern: '/api/labour-groups', methods: {
+   466→   466→    GET: ['super_admin', 'admin', 'hr_manager', 'supervisor', 'store_manager'],
+   467→   467→    POST: ['super_admin', 'admin', 'hr_manager'],
+   468→   468→  }},
+   469→   469→  { pattern: '/api/labour-groups/[id]', methods: {
+   470→   470→    GET: ['*'],
+   471→   471→    PUT: ['super_admin', 'admin', 'hr_manager'],
+   472→   472→    DELETE: ['super_admin', 'admin'],
+   473→   473→  }},
+   474→   474→  { pattern: '/api/labour-groups/[id]/members', methods: {
+   475→   475→    GET: ['*'],
+   476→   476→    POST: ['super_admin', 'admin', 'hr_manager'],
+   477→   477→    DELETE: ['super_admin', 'admin', 'hr_manager'],
+   478→   478→  }},
+   479→   479→  { pattern: '/api/labour/[id]', methods: {
+   480→   480→    GET: ['*'],
+   481→   481→    PUT: ['super_admin', 'admin', 'hr_manager'],
+   482→   482→    DELETE: ['super_admin', 'admin', 'hr_manager'],
+   483→   483→  }},
+   484→   484→  { pattern: '/api/attendance', methods: {
+   485→   485→    GET: ['super_admin', 'admin', 'hr_manager', 'supervisor', 'labour'],
+   486→   486→    POST: ['super_admin', 'admin', 'hr_manager', 'supervisor'],
+   487→   487→  }},
+   488→   488→  { pattern: '/api/payroll', methods: {
+   489→   489→    GET: ['super_admin', 'admin', 'hr_manager', 'accountant', 'auditor'],
+   490→   490→  }},
+   491→   491→  { pattern: '/api/payroll/generate', methods: {
+   492→   492→    POST: ['super_admin', 'admin', 'hr_manager'],
+   493→   493→  }},
+   494→   494→  { pattern: '/api/payroll/[id]/pay', methods: {
+   495→   495→    POST: ['super_admin', 'admin', 'accountant'],
+   496→   496→  }},
+   497→   497→  { pattern: '/api/employees', methods: {
+   498→   498→    GET: ['super_admin', 'admin', 'hr_manager'],
+   499→   499→    POST: ['super_admin', 'admin', 'hr_manager'],
+   500→   500→  }},
+   501→   501→  { pattern: '/api/employees/[id]', methods: {
+   502→   502→    GET: ['*'],
+   503→   503→    PUT: ['super_admin', 'admin', 'hr_manager'],
+   504→   504→    DELETE: ['super_admin', 'admin', 'hr_manager'],
+   505→   505→  }},
+   506→   506→  { pattern: '/api/leave-requests', methods: {
+   507→   507→    GET: ['super_admin', 'admin', 'hr_manager', 'supervisor'],
+   508→   508→    POST: ['*'],
+   509→   509→  }},
+   510→   510→  { pattern: '/api/leave-requests/[id]/approve', methods: {
+   511→   511→    POST: ['super_admin', 'admin', 'hr_manager'],
+   512→   512→  }},
+   513→   513→  { pattern: '/api/leave-requests/[id]/reject', methods: {
+   514→   514→    POST: ['super_admin', 'admin', 'hr_manager'],
+   515→   515→  }},
+   516→   516→
+   517→   517→  // ============ OPERATIONS ============
+   518→   518→  { pattern: '/api/subcontractors', methods: {
+   519→   519→    GET: ['super_admin', 'admin', 'supervisor', 'store_manager'],
+   520→   520→    POST: ['super_admin', 'admin', 'supervisor'],
+   521→   521→  }},
+   522→   522→  { pattern: '/api/subcontractors/[id]', methods: {
+   523→   523→    GET: ['*'],
+   524→   524→    PUT: ['super_admin', 'admin', 'supervisor'],
+   525→   525→    DELETE: ['super_admin', 'admin'],
+   526→   526→  }},
+   527→   527→  { pattern: '/api/work-orders', methods: {
+   528→   528→    GET: ['super_admin', 'admin', 'supervisor', 'store_manager'],
+   529→   529→    POST: ['super_admin', 'admin', 'supervisor'],
+   530→   530→  }},
+   531→   531→  { pattern: '/api/work-orders/[id]', methods: {
+   532→   532→    GET: ['*'],
+   533→   533→    PUT: ['super_admin', 'admin', 'supervisor'],
+   534→   534→    DELETE: ['super_admin', 'admin'],
+   535→   535→  }},
+   536→   536→  { pattern: '/api/assets', methods: {
+   537→   537→    GET: ['super_admin', 'admin', 'store_manager', 'supervisor'],
+   538→   538→    POST: ['super_admin', 'admin', 'store_manager'],
+   539→   539→  }},
+   540→   540→  { pattern: '/api/assets/[id]', methods: {
+   541→   541→    GET: ['*'],
+   542→   542→    PUT: ['super_admin', 'admin', 'store_manager'],
+   543→   543→    DELETE: ['super_admin', 'admin', 'store_manager'],
+   544→   544→  }},
+   545→   545→  { pattern: '/api/scheduling', methods: {
+   546→   546→    GET: ['super_admin', 'admin', 'supervisor', 'hr_manager'],
+   547→   547→    POST: ['super_admin', 'admin', 'supervisor'],
+   548→   548→  }},
+   549→   549→
+   550→   550→  // ============ RESOURCES ============
+   551→   551→  { pattern: '/api/resources', methods: { GET: ['super_admin', 'admin', 'store_manager', 'supervisor', 'auditor'] }},
+   552→   552→  { pattern: '/api/resources/dashboard', methods: { GET: ['super_admin', 'admin', 'store_manager', 'supervisor'] }},
+   553→   553→  { pattern: '/api/resources/skills', methods: {
+   554→   554→    GET: ['*'],
+   555→   555→    POST: ['super_admin', 'admin', 'hr_manager', 'store_manager'],
+   556→   556→  }},
+   557→   557→  { pattern: '/api/resources/skills/[id]', methods: {
+   558→   558→    PUT: ['super_admin', 'admin', 'hr_manager', 'store_manager'],
+   559→   559→    DELETE: ['super_admin', 'admin'],
+   560→   560→  }},
+   561→   561→  { pattern: '/api/resources/worker-skills', methods: {
+   562→   562→    GET: ['*'],
+   563→   563→    POST: ['super_admin', 'admin', 'hr_manager'],
+   564→   564→    DELETE: ['super_admin', 'admin', 'hr_manager'],
+   565→   565→  }},
+   566→   566→  { pattern: '/api/resources/assignments', methods: {
+   567→   567→    GET: ['super_admin', 'admin', 'store_manager', 'supervisor'],
+   568→   568→    POST: ['super_admin', 'admin', 'store_manager', 'supervisor'],
+   569→   569→  }},
+   570→   570→  { pattern: '/api/resources/assignments/[id]', methods: {
+   571→   571→    PUT: ['super_admin', 'admin', 'store_manager'],
+   572→   572→    DELETE: ['super_admin', 'admin', 'store_manager'],
+   573→   573→  }},
+   574→   574→  { pattern: '/api/resources/crews', methods: {
+   575→   575→    GET: ['super_admin', 'admin', 'store_manager', 'supervisor', 'hr_manager'],
+   576→   576→    POST: ['super_admin', 'admin', 'store_manager'],
+   577→   577→  }},
+   578→   578→  { pattern: '/api/resources/crews/[id]', methods: {
+   579→   579→    PUT: ['super_admin', 'admin', 'store_manager'],
+   580→   580→    DELETE: ['super_admin', 'admin', 'store_manager'],
+   581→   581→  }},
+   582→   582→  { pattern: '/api/resources/requests', methods: {
+   583→   583→    GET: ['super_admin', 'admin', 'store_manager', 'supervisor'],
+   584→   584→    POST: ['*'],
+   585→   585→  }},
+   586→   586→  { pattern: '/api/resources/requests/[id]', methods: {
+   587→   587→    GET: ['*'],
+   588→   588→    PUT: ['super_admin', 'admin', 'store_manager'],
+   589→   589→  }},
+   590→   590→  { pattern: '/api/resources/requests/[id]/approve', methods: {
+   591→   591→    POST: ['super_admin', 'admin', 'store_manager'],
+   592→   592→  }},
+   593→   593→  { pattern: '/api/resources/requests/[id]/reject', methods: {
+   594→   594→    POST: ['super_admin', 'admin', 'store_manager'],
+   595→   595→  }},
+   596→   596→  { pattern: '/api/resources/productivity', methods: {
+   597→   597→    GET: ['super_admin', 'admin', 'store_manager', 'supervisor', 'auditor'],
+   598→   598→    POST: ['super_admin', 'admin', 'supervisor'],
+   599→   599→  }},
+   600→   600→  { pattern: '/api/resources/productivity/[id]', methods: {
+   601→   601→    PUT: ['super_admin', 'admin', 'supervisor'],
+   602→   602→  }},
+   603→   603→
+   604→   604→  // ============ COST CONTROL ============
+   605→   605→  { pattern: '/api/cost-control', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'] }},
+   606→   606→  { pattern: '/api/cost-control/dashboard', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'] }},
+   607→   607→  { pattern: '/api/cost-control/forecast', methods: { GET: ['super_admin', 'admin', 'accountant', 'auditor'] }},
+   608→   608→  { pattern: '/api/cost-control/cost-codes', methods: {
+   609→   609→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   610→   610→    POST: ['super_admin', 'admin', 'accountant'],
+   611→   611→  }},
+   612→   612→  { pattern: '/api/cost-control/cost-codes/[id]', methods: {
+   613→   613→    PUT: ['super_admin', 'admin', 'accountant'],
+   614→   614→    DELETE: ['super_admin', 'admin'],
+   615→   615→  }},
+   616→   616→  { pattern: '/api/cost-control/budgets', methods: {
+   617→   617→    GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'],
+   618→   618→    POST: ['super_admin', 'admin', 'accountant'],
+   619→   619→  }},
+   620→   620→  { pattern: '/api/cost-control/budgets/[id]', methods: {
+   621→   621→    GET: ['*'],
+   622→   622→    PUT: ['super_admin', 'admin', 'accountant'],
+   623→   623→    DELETE: ['super_admin', 'admin'],
+   624→   624→  }},
+   625→   625→  { pattern: '/api/cost-control/budgets/[id]/line-items', methods: {
+   626→   626→    GET: ['*'],
+   627→   627→    POST: ['super_admin', 'admin', 'accountant'],
+   628→   628→  }},
+   629→   629→  { pattern: '/api/cost-control/budgets/[id]/line-items/[itemId]', methods: {
+   630→   630→    PUT: ['super_admin', 'admin', 'accountant'],
+   631→   631→    DELETE: ['super_admin', 'admin', 'accountant'],
+   632→   632→  }},
+   633→   633→  { pattern: '/api/cost-control/budgets/[id]/snapshots', methods: {
+   634→   634→    GET: ['super_admin', 'admin', 'accountant'],
+   635→   635→    POST: ['super_admin', 'admin', 'accountant'],
+   636→   636→  }},
+   637→   637→  { pattern: '/api/cost-control/budgets/[id]/change-orders', methods: {
+   638→   638→    GET: ['*'],
+   639→   639→    POST: ['super_admin', 'admin', 'supervisor', 'accountant'],
+   640→   640→  }},
+   641→   641→  { pattern: '/api/cost-control/budgets/[id]/change-orders/[coId]', methods: {
+   642→   642→    GET: ['*'],
+   643→   643→    PUT: ['super_admin', 'admin', 'accountant'],
+   644→   644→    DELETE: ['super_admin', 'admin'],
+   645→   645→  }},
+   646→   646→
+   647→   647→  // ============ COLLABORATION ============
+   648→   648→  { pattern: '/api/collaboration', methods: { GET: ['*'] }},
+   649→   649→  { pattern: '/api/collaboration/dashboard', methods: { GET: ['*'] }},
+   650→   650→  { pattern: '/api/collaboration/rfis', methods: {
+   651→   651→    GET: ['*'],
+   652→   652→    POST: ['super_admin', 'admin', 'supervisor'],
+   653→   653→  }},
+   654→   654→  { pattern: '/api/collaboration/submittals', methods: {
+   655→   655→    GET: ['*'],
+   656→   656→    POST: ['super_admin', 'admin', 'supervisor'],
+   657→   657→  }},
+   658→   658→  { pattern: '/api/collaboration/submittals/[id]', methods: {
+   659→   659→    GET: ['*'],
+   660→   660→    PUT: ['super_admin', 'admin', 'supervisor'],
+   661→   661→    DELETE: ['super_admin', 'admin'],
+   662→   662→  }},
+   663→   663→  { pattern: '/api/collaboration/discussions', methods: {
+   664→   664→    GET: ['*'],
+   665→   665→    POST: ['*'],
+   666→   666→  }},
+   667→   667→  { pattern: '/api/collaboration/discussions/[id]', methods: {
+   668→   668→    GET: ['*'],
+   669→   669→    PUT: ['super_admin', 'admin'],
+   670→   670→    DELETE: ['super_admin', 'admin'],
+   671→   671→  }},
+   672→   672→  { pattern: '/api/collaboration/discussions/[id]/comments', methods: {
+   673→   673→    GET: ['*'],
+   674→   674→    POST: ['*'],
+   675→   675→  }},
+   676→   676→  { pattern: '/api/collaboration/announcements', methods: {
+   677→   677→    GET: ['*'],
+   678→   678→    POST: ['super_admin', 'admin', 'supervisor'],
+   679→   679→  }},
+   680→   680→  { pattern: '/api/collaboration/announcements/[id]', methods: {
+   681→   681→    PUT: ['super_admin', 'admin'],
+   682→   682→    DELETE: ['super_admin', 'admin'],
+   683→   683→  }},
+   684→   684→
+   685→   685→  // ============ SALES ============
+   686→   686→  { pattern: '/api/products', methods: {
+   687→   687→    GET: ['super_admin', 'admin', 'store_manager'],
+   688→   688→    POST: ['super_admin', 'admin', 'store_manager'],
+   689→   689→  }},
+   690→   690→  { pattern: '/api/products/[id]', methods: {
+   691→   691→    GET: ['*'],
+   692→   692→    PUT: ['super_admin', 'admin', 'store_manager'],
+   693→   693→    DELETE: ['super_admin', 'admin', 'store_manager'],
+   694→   694→  }},
+   695→   695→  { pattern: '/api/product-categories', methods: {
+   696→   696→    GET: ['*'],
+   697→   697→    POST: ['super_admin', 'admin', 'store_manager'],
+   698→   698→  }},
+   699→   699→  { pattern: '/api/customers', methods: {
+   700→   700→    GET: ['super_admin', 'admin', 'accountant'],
+   701→   701→    POST: ['super_admin', 'admin', 'accountant'],
+   702→   702→  }},
+   703→   703→  { pattern: '/api/customers/[id]', methods: {
+   704→   704→    GET: ['*'],
+   705→   705→    PUT: ['super_admin', 'admin', 'accountant'],
+   706→   706→    DELETE: ['super_admin', 'admin', 'accountant'],
+   707→   707→  }},
+   708→   708→  { pattern: '/api/sales-invoices', methods: {
+   709→   709→    GET: ['super_admin', 'admin', 'accountant', 'auditor'],
+   710→   710→    POST: ['super_admin', 'admin', 'accountant'],
+   711→   711→  }},
+   712→   712→  { pattern: '/api/sales-invoices/[id]', methods: {
+   713→   713→    GET: ['*'],
+   714→   714→    PUT: ['super_admin', 'admin', 'accountant'],
+   715→   715→    DELETE: ['super_admin', 'admin', 'accountant'],
+   716→   716→  }},
+   717→   717→
+   718→   718→  // ============ AI & ANALYTICS ============
+   719→   719→  { pattern: '/api/ai', methods: { GET: ['super_admin', 'admin', 'supervisor', 'auditor'] }},
+   720→   720→  { pattern: '/api/ai/forecast', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'] }},
+   721→   721→  { pattern: '/api/ai/insights', methods: { GET: ['super_admin', 'admin', 'supervisor', 'auditor'] }},
+   722→   722→  { pattern: '/api/ai/insights/[id]', methods: { GET: ['*'] }},
+   723→   723→  { pattern: '/api/analytics', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'] }},
+   724→   724→  { pattern: '/api/analytics/dashboard', methods: { GET: ['super_admin', 'admin', 'supervisor', 'auditor'] }},
+   725→   725→  { pattern: '/api/analytics/project', methods: { GET: ['super_admin', 'admin', 'supervisor', 'auditor'] }},
+   726→   726→  { pattern: '/api/analytics/reports', methods: { GET: ['super_admin', 'admin', 'supervisor', 'accountant', 'auditor'] }},
+   727→   727→
+   728→   728→  // ============ CLIENT PORTAL ============
+   729→   729→  { pattern: '/api/client-portal', methods: { GET: ['super_admin', 'admin', 'client'] }},
+   730→   730→  { pattern: '/api/client-portal/dashboard', methods: { GET: ['super_admin', 'admin', 'client'] }},
+   731→   731→  { pattern: '/api/client-portal/projects', methods: { GET: ['super_admin', 'admin', 'client'] }},
+   732→   732→  { pattern: '/api/client-portal/projects/[id]', methods: { GET: ['super_admin', 'admin', 'client'] }},
+   733→   733→  { pattern: '/api/client-portal/complaints', methods: {
+   734→   734→    GET: ['super_admin', 'admin', 'client'],
+   735→   735→    POST: ['super_admin', 'admin', 'client'],
+   736→   736→  }},
+   737→   737→  { pattern: '/api/client-portal/complaints/[id]', methods: {
+   738→   738→    GET: ['super_admin', 'admin', 'client'],
+   739→   739→    PUT: ['super_admin', 'admin', 'client'],
+   740→   740→    DELETE: ['super_admin', 'admin'],
+   741→   741→  }},
+   742→   742→
+   743→   743→  // ============ AUDIT ============
+   744→   744→  { pattern: '/api/audit-log', methods: {
+   745→   745→    GET: ['super_admin', 'admin', 'auditor'],
+   746→   746→  }},
+   747→   747→
+   748→   748→  // ============ NOTIFICATIONS ============
+   749→   749→  { pattern: '/api/notifications', methods: { GET: ['*'] }},
+   750→   750→]
+   751→   751→
+   752→   752→/**
+   753→   753→ * Check if a user with the given role can access a specific API route with the given method.
+   754→   754→ * Returns true if access is allowed.
+   755→   755→ */
+   756→   756→export function canAccessRoute(role: string, pathname: string, method: string): boolean {
+   757→   757→  // Super admin has access to everything
+   758→   758→  if (role === ROLES.SUPER_ADMIN) return true
+   759→   759→
+   760→   760→  // Find the most specific matching permission
+   761→   761→  let matched = false
+   762→   762→  for (const perm of ROUTE_PERMISSIONS) {
+   763→   763→    if (!matchRoutePattern(pathname, perm.pattern)) continue
+   764→   764→
+   765→   765→    const methodKey = method.toUpperCase() as keyof RoutePermission['methods']
+   766→   766→    const allowedRoles = perm.methods[methodKey]
+   767→   767→    if (!allowedRoles) continue
+   768→   768→
+   769→   769→    // '*' means any authenticated user
+   770→   770→    if (allowedRoles.includes('*')) {
+   771→   771→      matched = true
+   772→   772→      break
+   773→   773→    }
+   774→   774→
+   775→   775→    // Check if the user's role is in the allowed list
+   776→   776→    if (allowedRoles.includes(role)) {
+   777→   777→      matched = true
+   778→   778→      break
+   779→   779→    }
+   780→   780→  }
+   781→   781→
+   782→   782→  return matched
+   783→   783→}
+   784→   784→
+   785→   785→/**
+   786→   786→ * Match a URL pathname against a route pattern like "/api/projects/[id]"
+   787→   787→ */
+   788→   788→function matchRoutePattern(pathname: string, pattern: string): boolean {
+   789→   789→  // Exact match
+   790→   790→  if (pathname === pattern) return true
+   791→   791→
+   792→   792→  // Pattern match: replace [id] segments with regex
+   793→   793→  const patternParts = pattern.split('/')
+   794→   794→  const pathParts = pathname.split('/')
+   795→   795→
+   796→   796→  if (patternParts.length !== pathParts.length) return false
+   797→   797→
+   798→   798→  for (let i = 0; i < patternParts.length; i++) {
+   799→   799→    const patternPart = patternParts[i]
+   800→   800→    const pathPart = pathParts[i]
+   801→   801→
+   802→   802→    // [param] matches any value
+   803→   803→    if (patternPart.startsWith('[') && patternPart.endsWith(']')) {
+   804→   804→      continue
+   805→   805→    }
+   806→   806→
+   807→   807→    // Literal match
+   808→   808→    if (patternPart !== pathPart) {
+   809→   809→      return false
+   810→   810→    }
+   811→   811→  }
+   812→   812→
+   813→   813→  return true
+   814→   814→}
+   815→   815→
+   816→   816→/**
+   817→   817→ * Helper to create a middleware-compatible route checker.
+   818→   818→ * Returns 403 if the user doesn't have permission.
+   819→   819→ */
+   820→   820→export function checkRoutePermission(role: string, pathname: string, method: string): { allowed: boolean; statusCode?: number } {
+   821→   821→  if (canAccessRoute(role, pathname, method)) {
+   822→   822→    return { allowed: true }
+   823→   823→  }
+   824→   824→  return { allowed: false, statusCode: 403 }
+   825→   825→}
+   826→   826→

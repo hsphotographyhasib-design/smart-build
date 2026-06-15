@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
+import { filterNavForRole } from '@/lib/rbac'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -201,6 +202,10 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
 export function AppSidebar() {
   const { sidebarOpen, setSidebarOpen, user, logout } = useAppStore()
 
+  // Filter menu items based on user role
+  const userRole = user?.role || 'labour'
+  const visibleSections = filterNavForRole(navSections, userRole)
+
   return (
     <aside
       className={cn(
@@ -230,7 +235,7 @@ export function AppSidebar() {
       {/* Nav */}
       <ScrollArea className="flex-1 py-2">
         <div className="space-y-1 px-2">
-          {navSections.map((section) => (
+          {visibleSections.map((section) => (
             <React.Fragment key={section.title}>
               {sidebarOpen && (
                 <p className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAuth, createAuditLog } from '@/lib/auth'
+import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
@@ -51,6 +51,10 @@ export async function POST(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+    if (!requireRole(user, ['admin', 'accountant'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
+    }
 
     const body = await request.json()
     const { projectId, invoiceId, amount, method, reference, date, notes } = body

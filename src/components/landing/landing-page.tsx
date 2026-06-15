@@ -18,12 +18,19 @@ import { FAQ } from '@/components/landing/faq'
 import { CTA } from '@/components/landing/cta'
 import { Footer } from '@/components/landing/footer'
 import { useAppStore } from '@/lib/store'
+import { LoginPage } from '@/components/auth/login-page'
+import { useState } from 'react'
 
 export function LandingPage() {
   const { navigate } = useAppStore()
+  const [showLogin, setShowLogin] = useState(false)
 
   const handleLogin = () => {
-    navigate('dashboard')
+    setShowLogin(true)
+  }
+
+  if (showLogin) {
+    return <LoginPage />
   }
 
   return (

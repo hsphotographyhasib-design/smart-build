@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyAuth, createAuditLog } from '@/lib/auth'
+import { verifyAuth, requireRole, createAuditLog } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -41,6 +41,10 @@ export async function PUT(
     const user = await verifyAuth(request)
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!requireRole(user, ['admin', 'hr_manager'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
     }
 
     const { id } = await params
@@ -98,6 +102,10 @@ export async function DELETE(
     const user = await verifyAuth(request)
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!requireRole(user, ['admin', 'hr_manager'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
     }
 
     const { id } = await params

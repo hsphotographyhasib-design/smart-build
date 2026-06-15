@@ -18,20 +18,17 @@ export type AppPage =
   | 'purchase-orders'
   | 'suppliers'
   | 'inventory'
-  | 'stock-ledger'
   | 'labour-groups'
   | 'attendance'
   | 'payroll'
   | 'employees'
   | 'leave'
-  | 'loans'
   | 'subcontractors'
   | 'work-orders'
   | 'assets'
   | 'scheduling'
   | 'product-catalog'
   | 'customers'
-  | 'sales-orders'
   | 'sales-invoices'
   | 'reports'
   | 'notifications'
@@ -148,20 +145,17 @@ export const useAppStore = create<AppState>((set) => ({
       'purchase-orders': 'Purchase Orders',
       'suppliers': 'Suppliers',
       'inventory': 'Inventory',
-      'stock-ledger': 'Stock Ledger',
       'labour-groups': 'Labour Groups',
       'attendance': 'Attendance',
       'payroll': 'Payroll',
       'employees': 'Employees',
       'leave': 'Leave Management',
-      'loans': 'Loan Management',
       'subcontractors': 'Sub Contractors',
       'work-orders': 'Work Orders',
       'assets': 'Asset Management',
       'scheduling': 'Scheduling',
       'product-catalog': 'Product Catalog',
       'customers': 'Customers',
-      'sales-orders': 'Sales Orders',
       'sales-invoices': 'Sales Invoices',
       'reports': 'Reports',
       'notifications': 'Notifications',

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth'
+import { verifyAuth, requireRole } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+    if (!requireRole(user, ['admin', 'supervisor', 'accountant', 'hr_manager', 'auditor'])) {
+      return NextResponse.json({ success: false, error: 'Access denied. Insufficient permissions.' }, { status: 403 })
+    }
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || ''

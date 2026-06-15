@@ -10,7 +10,23 @@ export async function GET(
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
     const { id } = await params
+
+    // For client role, verify the project belongs to them
+    if (user.role === 'client') {
+      const project = await db.project.findUnique({
+        where: { id },
+        select: { clientId: true },
+      })
+      if (!project || project.clientId !== user.id) {
+        return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 })
+      }
+    }
 
     const invoices = await db.invoice.findMany({
       where: {

@@ -7,11 +7,22 @@ export async function GET(request: NextRequest) {
     const user = await verifyAuth(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-    // Get all projects
+    // Client portal access control
+    if (!['client', 'super_admin', 'admin'].includes(user.role)) {
+      return NextResponse.json({ success: false, error: 'Access denied. Client portal only.' }, { status: 403 })
+    }
+
+    // Build where clause with tenant isolation
+    const projectWhere: any = {
+      status: { in: ['planning', 'active', 'on_hold'] },
+    }
+    if (user.role === 'client') {
+      projectWhere.clientId = user.id
+    }
+
+    // Get projects (filtered by clientId for client role)
     const projects = await db.project.findMany({
-      where: {
-        status: { in: ['planning', 'active', 'on_hold'] },
-      },
+      where: projectWhere,
       select: {
         id: true,
         name: true,
