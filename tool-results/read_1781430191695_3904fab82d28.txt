@@ -1,0 +1,966 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import { Progress } from '@/components/ui/progress'
+    15→import { ScrollArea } from '@/components/ui/scroll-area'
+    16→import { Separator } from '@/components/ui/separator'
+    17→import {
+    18→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    19→} from '@/components/ui/select'
+    20→import {
+    21→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    22→} from '@/components/ui/table'
+    23→import {
+    24→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+    25→} from '@/components/ui/dialog'
+    26→import { useToast } from '@/hooks/use-toast'
+    27→import { cn } from '@/lib/utils'
+    28→import {
+    29→  AlertTriangle, ArrowUpRight, ArrowDownRight, Clock, Users, Zap,
+    30→  Search, Filter, UserPlus, Calendar, MapPin, Phone, Star,
+    31→  CheckCircle2, XCircle, Play, Pause, ChevronRight, Shield,
+    32→  Timer, Send, AlertOctagon, RotateCcw, TrendingUp, Hash,
+    33→  CircleDot, Wrench, ArrowRight, CheckCheck, X as XIcon,
+    34→  Siren, Radio, ListTodo, LayoutGrid, CalendarDays, Flame,
+    35→} from 'lucide-react'
+    36→
+    37→// ─── Types ───
+    38→interface DispatchTicket {
+    39→  id: string
+    40→  ticketNo: string
+    41→  type: string
+    42→  category: string
+    43→  priority: string
+    44→  subject: string
+    45→  status: string
+    46→  createdAt: string
+    47→  slaDeadline: string
+    48→  customer: { id: string; name: string } | null
+    49→  site: { id: string; name: string; address: string } | null
+    50→  technician: { id: string; name: string; employee: { phone?: string } | null } | null
+    51→  isOverdue: boolean
+    52→  responseMinutes?: number
+    53→}
+    54→
+    55→interface Technician {
+    56→  id: string
+    57→  employee: { id: string; name: string; phone?: string; email?: string } | null
+    58→  specializations: string[]
+    59→  status: string
+    60→  maxConcurrentJobs: number
+    61→  currentJobCount: number
+    62→  location: string
+    63→  rating: number
+    64→  completedJobs: number
+    65→}
+    66→
+    67→interface DispatchData {
+    68→  unassignedTickets: DispatchTicket[]
+    69→  emergencyTickets: DispatchTicket[]
+    70→  overdueTickets: DispatchTicket[]
+    71→  availableTechnicians: Technician[]
+    72→  stats: {
+    73→    unassignedCount: number
+    74→    emergencyCount: number
+    75→    overdueCount: number
+    76→    availableTechnicianCount: number
+    77→    avgResponseTime: number
+    78→    todayCompleted: number
+    79→  }
+    80→}
+    81→
+    82→// ─── Config ───
+    83→const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
+    84→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+    85→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+    86→  medium: { label: 'Medium', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', dotColor: 'bg-amber-500' },
+    87→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+    88→}
+    89→
+    90→const techStatusConfig: Record<string, { label: string; color: string; bg: string; dot: string }> = {
+    91→  available: { label: 'Available', color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30', dot: 'bg-emerald-500' },
+    92→  busy: { label: 'Busy', color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/30', dot: 'bg-amber-500' },
+    93→  offline: { label: 'Offline', color: 'text-gray-500 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-800', dot: 'bg-gray-400' },
+    94→  on_leave: { label: 'On Leave', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-950/30', dot: 'bg-red-500' },
+    95→}
+    96→
+    97→const categoryLabels: Record<string, string> = {
+    98→  corrective: 'Corrective',
+    99→  preventive: 'Preventive',
+   100→  emergency: 'Emergency',
+   101→  installation: 'Installation',
+   102→  inspection: 'Inspection',
+   103→  other: 'Other',
+   104→}
+   105→
+   106→const typeLabels: Record<string, string> = {
+   107→  repair: 'Repair',
+   108→  maintenance: 'Maintenance',
+   109→  installation: 'Installation',
+   110→  inspection: 'Inspection',
+   111→  replacement: 'Replacement',
+   112→  other: 'Other',
+   113→}
+   114→
+   115→function formatTimeAgo(dateStr: string): string {
+   116→  const diff = Date.now() - new Date(dateStr).getTime()
+   117→  const mins = Math.floor(diff / 60000)
+   118→  if (mins < 60) return `${mins}m ago`
+   119→  const hrs = Math.floor(mins / 60)
+   120→  if (hrs < 24) return `${hrs}h ago`
+   121→  return `${Math.floor(hrs / 24)}d ago`
+   122→}
+   123→
+   124→function getSLAStatus(ticket: DispatchTicket): { label: string; color: string; isBreach: boolean } {
+   125→  if (!ticket.slaDeadline) return { label: 'No SLA', color: 'bg-gray-100 text-gray-500', isBreach: false }
+   126→  const now = Date.now()
+   127→  const deadline = new Date(ticket.slaDeadline).getTime()
+   128→  const hoursLeft = (deadline - now) / (1000 * 60 * 60)
+   129→  if (hoursLeft < 0) return { label: 'Breached', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', isBreach: true }
+   130→  if (hoursLeft < 2) return { label: `<2h`, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', isBreach: false }
+   131→  if (hoursLeft < 6) return { label: `<6h`, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', isBreach: false }
+   132→  return { label: 'On Track', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', isBreach: false }
+   133→}
+   134→
+   135→// ─── Response Timer ───
+   136→function ResponseTimer({ createdAt, priority }: { createdAt: string; priority: string }) {
+   137→  const [elapsed, setElapsed] = useState(0)
+   138→
+   139→  useEffect(() => {
+   140→    const start = new Date(createdAt).getTime()
+   141→    const interval = setInterval(() => {
+   142→      setElapsed(Math.floor((Date.now() - start) / 1000))
+   143→    }, 1000)
+   144→    return () => clearInterval(interval)
+   145→  }, [createdAt])
+   146→
+   147→  const mins = Math.floor(elapsed / 60)
+   148→  const secs = elapsed % 60
+   149→  const targetMins = priority === 'emergency' ? 30 : priority === 'high' ? 60 : 120
+   150→  const isOverTarget = mins >= targetMins
+   151→
+   152→  return (
+   153→    <div className="flex items-center gap-1.5">
+   154→      <Timer className={cn('h-3.5 w-3.5', isOverTarget ? 'text-red-500 animate-pulse' : 'text-muted-foreground')} />
+   155→      <span className={cn('font-mono text-xs', isOverTarget ? 'text-red-600 font-semibold' : 'text-muted-foreground')}>
+   156→        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+   157→      </span>
+   158→      <span className="text-[10px] text-muted-foreground">/ {targetMins}m</span>
+   159→    </div>
+   160→  )
+   161→}
+   162→
+   163→// ─── Main Component ───
+   164→export function DispatchCenter() {
+   165→  const { toast } = useToast()
+   166→  const queryClient = useQueryClient()
+   167→  const [activeTab, setActiveTab] = useState('queue')
+   168→  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+   169→  const [selectedTicket, setSelectedTicket] = useState<DispatchTicket | null>(null)
+   170→  const [selectedTechId, setSelectedTechId] = useState('')
+   171→  const [techSearch, setTechSearch] = useState('')
+   172→  const [techFilter, setTechFilter] = useState('all')
+   173→  const [techLocationFilter, setTechLocationFilter] = useState('all')
+   174→  const [scheduleView, setScheduleView] = useState('week')
+   175→  const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set())
+   176→  const [batchAssignOpen, setBatchAssignOpen] = useState(false)
+   177→
+   178→  // Fetch dispatch data
+   179→  const { data, isLoading } = useQuery({
+   180→    queryKey: ['maintenance-dispatch'],
+   181→    queryFn: () => api.get<DispatchData>('/api/maintenance/dispatch').then(r => r.data!),
+   182→    refetchInterval: 30000,
+   183→  })
+   184→
+   185→  const dispatch = data as DispatchData | undefined
+   186→
+   187→  // Fetch all technicians for map/schedule
+   188→  const { data: techData } = useQuery({
+   189→    queryKey: ['maintenance-technicians-all'],
+   190→    queryFn: () => api.get<Technician[]>('/api/maintenance/technicians').then(r => r.data || []),
+   191→  })
+   192→
+   193→  // Fetch tickets for schedule
+   194→  const { data: allTicketsData } = useQuery({
+   195→    queryKey: ['maintenance-tickets-all'],
+   196→    queryFn: () => api.get<DispatchTicket[]>('/api/maintenance/tickets?status=assigned,in_progress').then(r => r.data || []),
+   197→  })
+   198→
+   199→  const technicians = techData || []
+   200→  const allTickets = allTicketsData || []
+   201→
+   202→  // Assign mutation
+   203→  const assignMutation = useMutation({
+   204→    mutationFn: ({ ticketId, technicianId }: { ticketId: string; technicianId: string }) =>
+   205→      api.post(`/api/maintenance/tickets/${ticketId}/assign`, { technicianId }),
+   206→    onSuccess: () => {
+   207→      queryClient.invalidateQueries({ queryKey: ['maintenance-dispatch'] })
+   208→      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+   209→      queryClient.invalidateQueries({ queryKey: ['maintenance-technicians'] })
+   210→      setAssignDialogOpen(false)
+   211→      setSelectedTicket(null)
+   212→      setSelectedTechId('')
+   213→      toast({ title: 'Technician Assigned', description: 'Ticket has been assigned successfully.' })
+   214→    },
+   215→    onError: (err: any) => {
+   216→      toast({ title: 'Assignment Failed', description: err.error || 'Failed to assign technician', variant: 'destructive' })
+   217→    },
+   218→  })
+   219→
+   220→  // Update ticket mutation
+   221→  const updateTicketMutation = useMutation({
+   222→    mutationFn: ({ id, ...body }: { id: string; [key: string]: any }) =>
+   223→      api.put(`/api/maintenance/tickets/${id}`, body),
+   224→    onSuccess: () => {
+   225→      queryClient.invalidateQueries({ queryKey: ['maintenance-dispatch'] })
+   226→      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+   227→      toast({ title: 'Ticket Updated', description: 'Status has been updated.' })
+   228→    },
+   229→    onError: (err: any) => {
+   230→      toast({ title: 'Update Failed', description: err.error || 'Failed to update ticket', variant: 'destructive' })
+   231→    },
+   232→  })
+   233→
+   234→  // Batch assign
+   235→  const batchAssignMutation = useMutation({
+   236→    mutationFn: ({ ticketIds, technicianId }: { ticketIds: string[]; technicianId: string }) =>
+   237→      Promise.all(ticketIds.map(tid => api.post(`/api/maintenance/tickets/${tid}/assign`, { technicianId }))),
+   238→    onSuccess: () => {
+   239→      queryClient.invalidateQueries({ queryKey: ['maintenance-dispatch'] })
+   240→      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+   241→      setBatchAssignOpen(false)
+   242→      setSelectedTickets(new Set())
+   243→      setSelectedTechId('')
+   244→      toast({ title: 'Batch Assign Complete', description: `${selectedTickets.size} tickets assigned.` })
+   245→    },
+   246→    onError: (err: any) => {
+   247→      toast({ title: 'Batch Assign Failed', description: err.error || 'Some assignments failed', variant: 'destructive' })
+   248→    },
+   249→  })
+   250→
+   251→  const handleAssign = (ticket: DispatchTicket) => {
+   252→    setSelectedTicket(ticket)
+   253→    setSelectedTechId('')
+   254→    setAssignDialogOpen(true)
+   255→  }
+   256→
+   257→  const confirmAssign = () => {
+   258→    if (selectedTicket && selectedTechId) {
+   259→      assignMutation.mutate({ ticketId: selectedTicket.id, technicianId: selectedTechId })
+   260→    }
+   261→  }
+   262→
+   263→  const handleBatchAssign = () => {
+   264→    if (selectedTechId && selectedTickets.size > 0) {
+   265→      batchAssignMutation.mutate({ ticketIds: Array.from(selectedTickets), technicianId: selectedTechId })
+   266→    }
+   267→  }
+   268→
+   269→  const toggleTicketSelect = (id: string) => {
+   270→    setSelectedTickets(prev => {
+   271→      const next = new Set(prev)
+   272→      if (next.has(id)) next.delete(id)
+   273→      else next.add(id)
+   274→      return next
+   275→    })
+   276→  }
+   277→
+   278→  const handleEscalate = (ticket: DispatchTicket) => {
+   279→    updateTicketMutation.mutate({ id: ticket.id, priority: 'emergency', status: 'escalated' })
+   280→  }
+   281→
+   282→  const handleReject = (ticket: DispatchTicket) => {
+   283→    updateTicketMutation.mutate({ id: ticket.id, status: 'rejected' })
+   284→  }
+   285→
+   286→  // Available technicians for assign dialog
+   287→  const availableTechs = (dispatch?.availableTechnicians || []).filter(t => {
+   288→    if (techSearch) {
+   289→      const q = techSearch.toLowerCase()
+   290→      return t.employee?.name?.toLowerCase().includes(q) || t.specializations.some(s => s.toLowerCase().includes(q))
+   291→    }
+   292→    return true
+   293→  })
+   294→
+   295→  // Technician map filters
+   296→  const uniqueLocations = useMemo(() => {
+   297→    const locs = new Set(technicians.map(t => t.location).filter(Boolean))
+   298→    return Array.from(locs)
+   299→  }, [technicians])
+   300→
+   301→  const filteredTechnicians = useMemo(() => {
+   302→    return technicians.filter(t => {
+   303→      if (techFilter !== 'all' && t.status !== techFilter) return false
+   304→      if (techLocationFilter !== 'all' && t.location !== techLocationFilter) return false
+   305→      return true
+   306→    })
+   307→  }, [technicians, techFilter, techLocationFilter])
+   308→
+   309→  // Week days for schedule
+   310→  const weekDays = useMemo(() => {
+   311→    const today = new Date()
+   312→    const dayOfWeek = today.getDay()
+   313→    const monday = new Date(today)
+   314→    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+   315→    return Array.from({ length: 7 }, (_, i) => {
+   316→      const d = new Date(monday)
+   317→      d.setDate(monday.getDate() + i)
+   318→      return { label: d.toLocaleDateString('en', { weekday: 'short' }), date: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }), full: d.toISOString().split('T')[0], isToday: d.toDateString() === today.toDateString() }
+   319→    })
+   320→  }, [])
+   321→
+   322→  // Schedule data: map technician to day slots
+   323→  const scheduleData = useMemo(() => {
+   324→    const techMap: Record<string, Technician> = {}
+   325→    technicians.forEach(t => { techMap[t.id] = t })
+   326→    return filteredTechnicians.map(tech => {
+   327→      const slots: Record<string, DispatchTicket[]> = {}
+   328→      weekDays.forEach(day => { slots[day.full] = [] })
+   329→      allTickets
+   330→        .filter(t => t.technician?.id === tech.id)
+   331→        .forEach(t => {
+   332→          const day = t.createdAt?.split('T')[0]
+   333→          if (day && slots[day]) slots[day].push(t)
+   334→        })
+   335→      return { tech, slots }
+   336→    })
+   337→  }, [filteredTechnicians, allTickets, weekDays])
+   338→
+   339→  // Loading state
+   340→  if (isLoading || !dispatch) {
+   341→    return (
+   342→      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   343→        <Skeleton className="h-8 w-64 mb-2" />
+   344→        <Skeleton className="h-4 w-96" />
+   345→        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   346→          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+   347→        </div>
+   348→        <Skeleton className="h-96 rounded-xl" />
+   349→      </div>
+   350→    )
+   351→  }
+   352→
+   353→  const stats = dispatch.stats
+   354→
+   355→  const kpis = [
+   356→    { label: 'Unassigned Tickets', value: stats.unassignedCount, icon: ListTodo, sub: 'Awaiting assignment', color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/50', trend: 'up', trendVal: '+3' },
+   357→    { label: 'Emergency Tickets', value: stats.emergencyCount, icon: Siren, sub: 'Immediate attention', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/30', trend: 'up', trendVal: stats.emergencyCount > 0 ? `${stats.emergencyCount} active` : '0' },
+   358→    { label: 'Overdue Tickets', value: stats.overdueCount, icon: AlertOctagon, sub: 'SLA breached', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-950/30', trend: 'down', trendVal: stats.overdueCount > 0 ? `${stats.overdueCount} overdue` : 'All on track' },
+   359→    { label: 'Available Technicians', value: stats.availableTechnicianCount, icon: Users, sub: `Avg response ${stats.avgResponseTime}m`, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30', trend: 'up', trendVal: `${stats.todayCompleted} done today` },
+   360→  ]
+   361→
+   362→  const allQueueTickets = [...dispatch.unassignedTickets, ...dispatch.overdueTickets]
+   363→
+   364→  return (
+   365→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   366→      {/* Header */}
+   367→      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+   368→        <div>
+   369→          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+   370→            <Radio className="h-6 w-6 text-rose-600" />
+   371→            Dispatch Center
+   372→          </h1>
+   373→          <p className="text-muted-foreground text-sm mt-1">Coordinate tickets, assign technicians, and manage emergencies</p>
+   374→        </div>
+   375→        <div className="flex flex-wrap gap-2">
+   376→          <Button
+   377→            variant="outline"
+   378→            size="sm"
+   379→            className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/30"
+   380→            onClick={() => toast({ title: 'Emergency Ticket', description: 'Create dialog would open here' })}
+   381→          >
+   382→            <Flame className="h-3.5 w-3.5" /> Emergency Ticket
+   383→          </Button>
+   384→          {selectedTickets.size > 0 && (
+   385→            <Button
+   386→              size="sm"
+   387→              className="gap-1.5 bg-slate-700 hover:bg-slate-800"
+   388→              onClick={() => { setSelectedTechId(''); setBatchAssignOpen(true) }}
+   389→            >
+   390→              <UserPlus className="h-3.5 w-3.5" /> Batch Assign ({selectedTickets.size})
+   391→            </Button>
+   392→          )}
+   393→          <Button
+   394→            variant="outline"
+   395→            size="sm"
+   396→            className="gap-1.5"
+   397→            onClick={() => {
+   398→              if (dispatch.overdueTickets.length === 0) {
+   399→                toast({ title: 'No Overdue Tickets', description: 'All tickets are within SLA.' })
+   400→                return
+   401→              }
+   402→              dispatch.overdueTickets.forEach(t => updateTicketMutation.mutate({ id: t.id, priority: 'high' }))
+   403→            }}
+   404→          >
+   405→            <ArrowUpRight className="h-3.5 w-3.5" /> Escalate Overdue
+   406→          </Button>
+   407→        </div>
+   408→      </div>
+   409→
+   410→      {/* Stat Cards */}
+   411→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   412→        {kpis.map((kpi) => (
+   413→          <Card key={kpi.label} className="relative overflow-hidden">
+   414→            <CardContent className="p-4">
+   415→              <div className="flex items-start justify-between">
+   416→                <div className="space-y-1">
+   417→                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
+   418→                  <p className={cn('text-2xl font-bold', kpi.color)}>{kpi.value}</p>
+   419→                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+   420→                    {kpi.trend === 'up' ? (
+   421→                      <ArrowUpRight className="h-3 w-3 text-emerald-500" />
+   422→                    ) : (
+   423→                      <ArrowDownRight className="h-3 w-3 text-orange-500" />
+   424→                    )}
+   425→                    {kpi.trendVal}
+   426→                  </p>
+   427→                </div>
+   428→                <div className={cn('p-2.5 rounded-lg', kpi.bg)}>
+   429→                  <kpi.icon className={cn('h-5 w-5', kpi.color)} />
+   430→                </div>
+   431→              </div>
+   432→            </CardContent>
+   433→          </Card>
+   434→        ))}
+   435→      </div>
+   436→
+   437→      {/* Tabs */}
+   438→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   439→        <TabsList className="grid w-full grid-cols-4">
+   440→          <TabsTrigger value="queue" className="gap-1.5 text-xs sm:text-sm">
+   441→            <ListTodo className="h-3.5 w-3.5" /> Ticket Queue
+   442→            {stats.unassignedCount > 0 && (
+   443→              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1 text-[10px] bg-slate-700 text-white">
+   444→                {stats.unassignedCount}
+   445→              </Badge>
+   446→            )}
+   447→          </TabsTrigger>
+   448→          <TabsTrigger value="technicians" className="gap-1.5 text-xs sm:text-sm">
+   449→            <LayoutGrid className="h-3.5 w-3.5" /> Technicians
+   450→          </TabsTrigger>
+   451→          <TabsTrigger value="schedule" className="gap-1.5 text-xs sm:text-sm">
+   452→            <CalendarDays className="h-3.5 w-3.5" /> Schedule
+   453→          </TabsTrigger>
+   454→          <TabsTrigger value="emergency" className="gap-1.5 text-xs sm:text-sm text-red-600">
+   455→            <Siren className="h-3.5 w-3.5" /> Emergency
+   456→            {stats.emergencyCount > 0 && (
+   457→              <Badge className="ml-1 h-5 min-w-5 px-1 text-[10px] bg-red-600 text-white">
+   458→                {stats.emergencyCount}
+   459→              </Badge>
+   460→            )}
+   461→          </TabsTrigger>
+   462→        </TabsList>
+   463→
+   464→        {/* Tab 1: Ticket Queue */}
+   465→        <TabsContent value="queue" className="mt-4">
+   466→          <Card>
+   467→            <CardContent className="p-0">
+   468→              {allQueueTickets.length === 0 ? (
+   469→                <div className="flex flex-col items-center justify-center py-16">
+   470→                  <CheckCheck className="h-10 w-10 text-emerald-300 mb-2" />
+   471→                  <p className="text-sm text-muted-foreground">All tickets are assigned</p>
+   472→                  <p className="text-xs text-muted-foreground mt-1">No pending tickets in the queue</p>
+   473→                </div>
+   474→              ) : (
+   475→                <div className="max-h-[calc(100vh-280px)] overflow-y-auto overflow-x-auto">
+   476→                  <Table>
+   477→                    <TableHeader>
+   478→                      <TableRow>
+   479→                        <TableHead className="w-8">
+   480→                          <input
+   481→                            type="checkbox"
+   482→                            checked={selectedTickets.size === allQueueTickets.length && allQueueTickets.length > 0}
+   483→                            onChange={(e) => {
+   484→                              if (e.target.checked) setSelectedTickets(new Set(allQueueTickets.map(t => t.id)))
+   485→                              else setSelectedTickets(new Set())
+   486→                            }}
+   487→                            className="rounded"
+   488→                          />
+   489→                        </TableHead>
+   490→                        <TableHead className="text-xs">Ticket#</TableHead>
+   491→                        <TableHead className="text-xs">Type</TableHead>
+   492→                        <TableHead className="text-xs">Category</TableHead>
+   493→                        <TableHead className="text-xs">Priority</TableHead>
+   494→                        <TableHead className="text-xs">Customer</TableHead>
+   495→                        <TableHead className="text-xs">Site</TableHead>
+   496→                        <TableHead className="text-xs">Created</TableHead>
+   497→                        <TableHead className="text-xs">SLA Status</TableHead>
+   498→                        <TableHead className="text-xs w-24">Action</TableHead>
+   499→                      </TableRow>
+   500→                    </TableHeader>
+   501→                    <TableBody>
+   502→                      {allQueueTickets.map((ticket) => {
+   503→                        const pri = priorityConfig[ticket.priority] || priorityConfig.medium
+   504→                        const sla = getSLAStatus(ticket)
+   505→                        const isEmergency = ticket.priority === 'emergency'
+   506→                        const isOverdue = ticket.isOverdue
+   507→                        return (
+   508→                          <TableRow
+   509→                            key={ticket.id}
+   510→                            className={cn(
+   511→                              isEmergency && 'bg-red-50/50 dark:bg-red-950/20',
+   512→                              isOverdue && !isEmergency && 'bg-orange-50/50 dark:bg-orange-950/20',
+   513→                            )}
+   514→                          >
+   515→                            <TableCell>
+   516→                              <input
+   517→                                type="checkbox"
+   518→                                checked={selectedTickets.has(ticket.id)}
+   519→                                onChange={() => toggleTicketSelect(ticket.id)}
+   520→                                className="rounded"
+   521→                              />
+   522→                            </TableCell>
+   523→                            <TableCell className="text-xs font-mono font-medium">{ticket.ticketNo}</TableCell>
+   524→                            <TableCell className="text-xs">{typeLabels[ticket.type] || ticket.type}</TableCell>
+   525→                            <TableCell>
+   526→                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+   527→                                {categoryLabels[ticket.category] || ticket.category}
+   528→                              </Badge>
+   529→                            </TableCell>
+   530→                            <TableCell>
+   531→                              <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', pri.color)}>
+   532→                                <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+   533→                                {pri.label}
+   534→                              </Badge>
+   535→                            </TableCell>
+   536→                            <TableCell className="text-xs">{ticket.customer?.name || '—'}</TableCell>
+   537→                            <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">{ticket.site?.name || '—'}</TableCell>
+   538→                            <TableCell className="text-xs text-muted-foreground">{formatTimeAgo(ticket.createdAt)}</TableCell>
+   539→                            <TableCell>
+   540→                              <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', sla.color)}>
+   541→                                {sla.label}
+   542→                              </Badge>
+   543→                            </TableCell>
+   544→                            <TableCell>
+   545→                              <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => handleAssign(ticket)}>
+   546→                                <UserPlus className="h-3 w-3" /> Assign
+   547→                              </Button>
+   548→                            </TableCell>
+   549→                          </TableRow>
+   550→                        )
+   551→                      })}
+   552→                    </TableBody>
+   553→                  </Table>
+   554→                </div>
+   555→              )}
+   556→            </CardContent>
+   557→          </Card>
+   558→        </TabsContent>
+   559→
+   560→        {/* Tab 2: Technician Map (Grid) */}
+   561→        <TabsContent value="technicians" className="mt-4 space-y-4">
+   562→          <Card>
+   563→            <CardContent className="p-4">
+   564→              <div className="flex flex-col sm:flex-row gap-3">
+   565→                <div className="relative flex-1">
+   566→                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   567→                  <Input
+   568→                    placeholder="Search technicians or specializations..."
+   569→                    value={techSearch}
+   570→                    onChange={(e) => setTechSearch(e.target.value)}
+   571→                    className="pl-9"
+   572→                  />
+   573→                </div>
+   574→                <Select value={techFilter} onValueChange={setTechFilter}>
+   575→                  <SelectTrigger className="sm:w-40">
+   576→                    <SelectValue placeholder="All Status" />
+   577→                  </SelectTrigger>
+   578→                  <SelectContent>
+   579→                    <SelectItem value="all">All Status</SelectItem>
+   580→                    {Object.entries(techStatusConfig).map(([key, val]) => (
+   581→                      <SelectItem key={key} value={key}>{val.label}</SelectItem>
+   582→                    ))}
+   583→                  </SelectContent>
+   584→                </Select>
+   585→                <Select value={techLocationFilter} onValueChange={setTechLocationFilter}>
+   586→                  <SelectTrigger className="sm:w-44">
+   587→                    <SelectValue placeholder="All Locations" />
+   588→                  </SelectTrigger>
+   589→                  <SelectContent>
+   590→                    <SelectItem value="all">All Locations</SelectItem>
+   591→                    {uniqueLocations.map(loc => (
+   592→                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+   593→                    ))}
+   594→                  </SelectContent>
+   595→                </Select>
+   596→              </div>
+   597→            </CardContent>
+   598→          </Card>
+   599→
+   600→          {filteredTechnicians.length === 0 ? (
+   601→            <Card>
+   602→              <CardContent className="flex flex-col items-center justify-center py-16">
+   603→                <Users className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   604→                <p className="text-sm text-muted-foreground">No technicians found</p>
+   605→              </CardContent>
+   606→            </Card>
+   607→          ) : (
+   608→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   609→              {filteredTechnicians.map((tech) => {
+   610→                const status = techStatusConfig[tech.status] || techStatusConfig.offline
+   611→                const isAvailable = tech.status === 'available'
+   612→                const loadPct = tech.maxConcurrentJobs > 0 ? (tech.currentJobCount / tech.maxConcurrentJobs) * 100 : 0
+   613→                return (
+   614→                  <Card key={tech.id} className={cn('relative overflow-hidden border-2 transition-colors', isAvailable ? 'border-emerald-200 dark:border-emerald-900' : 'border-transparent')}>
+   615→                    <CardContent className="p-4">
+   616→                      <div className="flex items-start justify-between mb-3">
+   617→                        <div className="flex items-center gap-3">
+   618→                          <div className={cn('h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm', status.bg, status.color.replace('text-', 'bg-').replace('-700', '-500').replace('-400', '-500'))}>
+   619→                            {tech.employee?.name?.charAt(0) || '?'}
+   620→                          </div>
+   621→                          <div>
+   622→                            <p className="font-semibold text-sm">{tech.employee?.name || 'Unknown'}</p>
+   623→                            <div className="flex items-center gap-1.5">
+   624→                              <span className={cn('h-2 w-2 rounded-full', status.dot)} />
+   625→                              <span className={cn('text-[11px]', status.color)}>{status.label}</span>
+   626→                            </div>
+   627→                          </div>
+   628→                        </div>
+   629→                        <div className="flex items-center gap-0.5">
+   630→                          <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+   631→                          <span className="text-xs font-medium">{tech.rating?.toFixed(1) || '0.0'}</span>
+   632→                        </div>
+   633→                      </div>
+   634→
+   635→                      {tech.specializations.length > 0 && (
+   636→                        <div className="flex flex-wrap gap-1 mb-3">
+   637→                          {tech.specializations.map((spec, i) => (
+   638→                            <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-100 dark:bg-slate-800">
+   639→                              {spec}
+   640→                            </Badge>
+   641→                          ))}
+   642→                        </div>
+   643→                      )}
+   644→
+   645→                      <div className="space-y-2 mb-3">
+   646→                        <div className="flex items-center justify-between text-xs">
+   647→                          <span className="text-muted-foreground">Workload</span>
+   648→                          <span className="font-medium">{tech.currentJobCount} / {tech.maxConcurrentJobs} jobs</span>
+   649→                        </div>
+   650→                        <Progress value={loadPct} className={cn('h-1.5', loadPct >= 100 ? '[&>div]:bg-red-500' : loadPct >= 75 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500')} />
+   651→                      </div>
+   652→
+   653→                      {tech.location && (
+   654→                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+   655→                          <MapPin className="h-3 w-3" />
+   656→                          <span>{tech.location}</span>
+   657→                        </div>
+   658→                      )}
+   659→
+   660→                      {tech.employee?.phone && (
+   661→                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+   662→                          <Phone className="h-3 w-3" />
+   663→                          <span>{tech.employee.phone}</span>
+   664→                        </div>
+   665→                      )}
+   666→
+   667→                      <div className="flex gap-2">
+   668→                        <Button
+   669→                          size="sm"
+   670→                          className="h-7 gap-1 text-xs flex-1 bg-rose-600 hover:bg-rose-700"
+   671→                          disabled={!isAvailable}
+   672→                          onClick={() => {
+   673→                            setSelectedTicket(null)
+   674→                            setSelectedTechId(tech.id)
+   675→                            toast({ title: 'Technician Selected', description: `Select a ticket to assign to ${tech.employee?.name}` })
+   676→                          }}
+   677→                        >
+   678→                          <UserPlus className="h-3 w-3" /> Quick Assign
+   679→                        </Button>
+   680→                        <Button size="sm" variant="outline" className="h-7 text-xs">
+   681→                          <Phone className="h-3 w-3" />
+   682→                        </Button>
+   683→                      </div>
+   684→                    </CardContent>
+   685→                  </Card>
+   686→                )
+   687→              })}
+   688→            </div>
+   689→          )}
+   690→        </TabsContent>
+   691→
+   692→        {/* Tab 3: Schedule View */}
+   693→        <TabsContent value="schedule" className="mt-4">
+   694→          <Card>
+   695→            <CardContent className="p-0">
+   696→              {scheduleData.length === 0 ? (
+   697→                <div className="flex flex-col items-center justify-center py-16">
+   698→                  <CalendarDays className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   699→                  <p className="text-sm text-muted-foreground">No schedule data available</p>
+   700→                </div>
+   701→              ) : (
+   702→                <ScrollArea className="w-full">
+   703→                  <div className="min-w-[800px]">
+   704→                    <Table>
+   705→                      <TableHeader>
+   706→                        <TableRow>
+   707→                          <TableHead className="text-xs sticky left-0 bg-background z-10 min-w-[180px]">Technician</TableHead>
+   708→                          {weekDays.map(day => (
+   709→                            <TableHead key={day.full} className={cn('text-xs text-center min-w-[140px]', day.isToday && 'bg-rose-50 dark:bg-rose-950/30')}>
+   710→                              <div>{day.label}</div>
+   711→                              <div className="text-[10px] font-normal text-muted-foreground">{day.date}</div>
+   712→                            </TableHead>
+   713→                          ))}
+   714→                        </TableRow>
+   715→                      </TableHeader>
+   716→                      <TableBody>
+   717→                        {scheduleData.map(({ tech, slots }) => {
+   718→                          const status = techStatusConfig[tech.status] || techStatusConfig.offline
+   719→                          return (
+   720→                            <TableRow key={tech.id}>
+   721→                              <TableCell className="sticky left-0 bg-background z-10">
+   722→                                <div className="flex items-center gap-2">
+   723→                                  <span className={cn('h-2 w-2 rounded-full', status.dot)} />
+   724→                                  <div>
+   725→                                    <p className="text-xs font-medium">{tech.employee?.name || 'Unknown'}</p>
+   726→                                    <p className="text-[10px] text-muted-foreground">{tech.currentJobCount} jobs</p>
+   727→                                  </div>
+   728→                                </div>
+   729→                              </TableCell>
+   730→                              {weekDays.map(day => {
+   731→                                const dayTickets = slots[day.full] || []
+   732→                                return (
+   733→                                  <TableCell key={day.full} className={cn('p-1 align-top', day.isToday && 'bg-rose-50/50 dark:bg-rose-950/10')}>
+   734→                                    {dayTickets.length > 0 ? (
+   735→                                      <div className="space-y-1">
+   736→                                        {dayTickets.slice(0, 2).map(t => (
+   737→                                          <div
+   738→                                            key={t.id}
+   739→                                            className="text-[10px] p-1.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+   740→                                            onClick={() => handleAssign(t)}
+   741→                                          >
+   742→                                            <div className="font-medium truncate">{t.ticketNo}</div>
+   743→                                            <div className="text-muted-foreground truncate">{t.subject}</div>
+   744→                                          </div>
+   745→                                        ))}
+   746→                                        {dayTickets.length > 2 && (
+   747→                                          <p className="text-[10px] text-muted-foreground text-center">+{dayTickets.length - 2} more</p>
+   748→                                        )}
+   749→                                      </div>
+   750→                                    ) : (
+   751→                                      <div className="h-8" />
+   752→                                    )}
+   753→                                  </TableCell>
+   754→                                )
+   755→                              })}
+   756→                            </TableRow>
+   757→                          )
+   758→                        })}
+   759→                      </TableBody>
+   760→                    </Table>
+   761→                  </div>
+   762→                </ScrollArea>
+   763→              )}
+   764→            </CardContent>
+   765→          </Card>
+   766→        </TabsContent>
+   767→
+   768→        {/* Tab 4: Emergency Board */}
+   769→        <TabsContent value="emergency" className="mt-4">
+   770→          {dispatch.emergencyTickets.length === 0 ? (
+   771→            <Card>
+   772→              <CardContent className="flex flex-col items-center justify-center py-16">
+   773→                <Shield className="h-10 w-10 text-emerald-300 mb-2" />
+   774→                <p className="text-sm text-muted-foreground">No active emergencies</p>
+   775→                <p className="text-xs text-muted-foreground mt-1">All clear - no emergency tickets require attention</p>
+   776→              </CardContent>
+   777→            </Card>
+   778→          ) : (
+   779→            <div className="space-y-3">
+   780→              {dispatch.emergencyTickets.map((ticket) => (
+   781→                <Card key={ticket.id} className="border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20">
+   782→                  <CardContent className="p-4">
+   783→                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+   784→                      <div className="flex-1 space-y-2">
+   785→                        <div className="flex items-center gap-2 flex-wrap">
+   786→                          <Badge className="bg-red-600 text-white text-xs gap-1">
+   787→                            <Siren className="h-3 w-3" /> EMERGENCY
+   788→                          </Badge>
+   789→                          <span className="text-xs font-mono font-medium">{ticket.ticketNo}</span>
+   790→                          {ticket.isOverdue && (
+   791→                            <Badge variant="secondary" className="text-[10px] bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200">
+   792→                              <AlertOctagon className="h-3 w-3 mr-0.5" /> OVERDUE
+   793→                            </Badge>
+   794→                          )}
+   795→                        </div>
+   796→                        <p className="font-semibold text-sm">{ticket.subject}</p>
+   797→                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+   798→                          <span className="flex items-center gap-1">
+   799→                            <Users className="h-3 w-3" /> {ticket.customer?.name || 'Unknown'}
+   800→                          </span>
+   801→                          <span className="flex items-center gap-1">
+   802→                            <MapPin className="h-3 w-3" /> {ticket.site?.name || 'Unknown'}
+   803→                          </span>
+   804→                          <span>{categoryLabels[ticket.category] || ticket.category}</span>
+   805→                        </div>
+   806→                      </div>
+   807→
+   808→                      <div className="flex flex-col items-end gap-2">
+   809→                        <ResponseTimer createdAt={ticket.createdAt} priority={ticket.priority} />
+   810→                        <div className="flex gap-2">
+   811→                          <Button size="sm" className="h-8 gap-1 text-xs bg-rose-600 hover:bg-rose-700" onClick={() => handleAssign(ticket)}>
+   812→                            <UserPlus className="h-3 w-3" /> Assign
+   813→                          </Button>
+   814→                          <Button size="sm" variant="outline" className="h-8 gap-1 text-xs text-amber-600 border-amber-200" onClick={() => handleEscalate(ticket)}>
+   815→                            <ArrowUpRight className="h-3 w-3" /> Escalate
+   816→                          </Button>
+   817→                          <Button size="sm" variant="outline" className="h-8 gap-1 text-xs text-red-600 border-red-200" onClick={() => handleReject(ticket)}>
+   818→                            <XIcon className="h-3 w-3" /> Reject
+   819→                          </Button>
+   820→                        </div>
+   821→                      </div>
+   822→                    </div>
+   823→                  </CardContent>
+   824→                </Card>
+   825→              ))}
+   826→            </div>
+   827→          )}
+   828→        </TabsContent>
+   829→      </Tabs>
+   830→
+   831→      {/* Assign Dialog */}
+   832→      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+   833→        <DialogContent className="sm:max-w-md">
+   834→          <DialogHeader>
+   835→            <DialogTitle>Assign Technician</DialogTitle>
+   836→            <p className="text-sm text-muted-foreground">
+   837→              {selectedTicket ? `Assign ${selectedTicket.ticketNo}: ${selectedTicket.subject}` : 'Select a technician'}
+   838→            </p>
+   839→          </DialogHeader>
+   840→          <div className="space-y-4">
+   841→            {selectedTicket && (
+   842→              <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-sm space-y-1">
+   843→                <div className="flex justify-between">
+   844→                  <span className="text-muted-foreground">Customer:</span>
+   845→                  <span className="font-medium">{selectedTicket.customer?.name || '—'}</span>
+   846→                </div>
+   847→                <div className="flex justify-between">
+   848→                  <span className="text-muted-foreground">Site:</span>
+   849→                  <span className="font-medium">{selectedTicket.site?.name || '—'}</span>
+   850→                </div>
+   851→                <div className="flex justify-between">
+   852→                  <span className="text-muted-foreground">Priority:</span>
+   853→                  <Badge variant="secondary" className={cn('text-[10px]', priorityConfig[selectedTicket.priority]?.color)}>
+   854→                    {priorityConfig[selectedTicket.priority]?.label}
+   855→                  </Badge>
+   856→                </div>
+   857→              </div>
+   858→            )}
+   859→            <div className="space-y-2">
+   860→              <Label>Select Technician</Label>
+   861→              <div className="relative">
+   862→                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   863→                <Input
+   864→                  placeholder="Search by name or specialization..."
+   865→                  value={techSearch}
+   866→                  onChange={(e) => setTechSearch(e.target.value)}
+   867→                  className="pl-9"
+   868→                />
+   869→              </div>
+   870→            </div>
+   871→            <ScrollArea className="max-h-60">
+   872→              <div className="space-y-1">
+   873→                {availableTechs.length === 0 ? (
+   874→                  <p className="text-sm text-muted-foreground text-center py-4">No available technicians</p>
+   875→                ) : (
+   876→                  availableTechs.map(tech => {
+   877→                    const status = techStatusConfig[tech.status] || techStatusConfig.offline
+   878→                    return (
+   879→                      <button
+   880→                        key={tech.id}
+   881→                        className={cn(
+   882→                          'w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-colors text-sm',
+   883→                          selectedTechId === tech.id
+   884→                            ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/30'
+   885→                            : 'border-transparent hover:bg-muted'
+   886→                        )}
+   887→                        onClick={() => setSelectedTechId(tech.id)}
+   888→                      >
+   889→                        <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold', status.bg, status.color)}>
+   890→                          {tech.employee?.name?.charAt(0) || '?'}
+   891→                        </div>
+   892→                        <div className="flex-1 min-w-0">
+   893→                          <p className="font-medium text-xs">{tech.employee?.name || 'Unknown'}</p>
+   894→                          <p className="text-[10px] text-muted-foreground truncate">{tech.specializations.join(', ')}</p>
+   895→                        </div>
+   896→                        <div className="text-right">
+   897→                          <div className="flex items-center gap-1">
+   898→                            <span className={cn('h-1.5 w-1.5 rounded-full', status.dot)} />
+   899→                            <span className="text-[10px] text-muted-foreground">{tech.currentJobCount}/{tech.maxConcurrentJobs}</span>
+   900→                          </div>
+   901→                        </div>
+   902→                      </button>
+   903→                    )
+   904→                  })
+   905→                )}
+   906→              </div>
+   907→            </ScrollArea>
+   908→          </div>
+   909→          <DialogFooter>
+   910→            <DialogClose asChild>
+   911→              <Button variant="outline">Cancel</Button>
+   912→            </DialogClose>
+   913→            <Button
+   914→              className="bg-rose-600 hover:bg-rose-700"
+   915→              onClick={confirmAssign}
+   916→              disabled={!selectedTechId || assignMutation.isPending}
+   917→            >
+   918→              {assignMutation.isPending ? 'Assigning...' : 'Assign Technician'}
+   919→            </Button>
+   920→          </DialogFooter>
+   921→        </DialogContent>
+   922→      </Dialog>
+   923→
+   924→      {/* Batch Assign Dialog */}
+   925→      <Dialog open={batchAssignOpen} onOpenChange={setBatchAssignOpen}>
+   926→        <DialogContent className="sm:max-w-md">
+   927→          <DialogHeader>
+   928→            <DialogTitle>Batch Assign Tickets</DialogTitle>
+   929→            <p className="text-sm text-muted-foreground">
+   930→              Assign {selectedTickets.size} tickets to one technician
+   931→            </p>
+   932→          </DialogHeader>
+   933→          <div className="space-y-4">
+   934→            <div className="space-y-2">
+   935→              <Label>Select Technician</Label>
+   936→              <Select value={selectedTechId} onValueChange={setSelectedTechId}>
+   937→                <SelectTrigger>
+   938→                  <SelectValue placeholder="Choose a technician..." />
+   939→                </SelectTrigger>
+   940→                <SelectContent>
+   941→                  {(dispatch?.availableTechnicians || []).map(tech => (
+   942→                    <SelectItem key={tech.id} value={tech.id}>
+   943→                      {tech.employee?.name || 'Unknown'} ({tech.currentJobCount}/{tech.maxConcurrentJobs} jobs)
+   944→                    </SelectItem>
+   945→                  ))}
+   946→                </SelectContent>
+   947→              </Select>
+   948→            </div>
+   949→          </div>
+   950→          <DialogFooter>
+   951→            <DialogClose asChild>
+   952→              <Button variant="outline">Cancel</Button>
+   953→            </DialogClose>
+   954→            <Button
+   955→              className="bg-slate-700 hover:bg-slate-800"
+   956→              onClick={handleBatchAssign}
+   957→              disabled={!selectedTechId || batchAssignMutation.isPending}
+   958→            >
+   959→              {batchAssignMutation.isPending ? 'Assigning...' : `Assign ${selectedTickets.size} Tickets`}
+   960→            </Button>
+   961→          </DialogFooter>
+   962→        </DialogContent>
+   963→      </Dialog>
+   964→    </div>
+   965→  )
+   966→}

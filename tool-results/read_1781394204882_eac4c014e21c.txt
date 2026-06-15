@@ -1,0 +1,375 @@
+     1→   401→   401→   401→                        </TableBody>
+     2→   402→   402→   402→                      </Table>
+     3→   403→   403→   403→                    </ScrollArea>
+     4→   404→   404→   404→                  </CardContent>
+     5→   405→   405→   405→                </Card>
+     6→   406→   406→   406→              </div>
+     7→   407→   407→   407→
+     8→   408→   408→   408→              {/* Quick Actions */}
+     9→   409→   409→   409→              <div className="flex flex-wrap gap-3">
+    10→   410→   410→   410→                <Button onClick={() => setCreateOpen(true)} className="gap-2">
+    11→   411→   411→   411→                  <Plus className="h-4 w-4" /> Create Invoice
+    12→   412→   412→   412→                </Button>
+    13→   413→   413→   413→                <Button variant="outline" onClick={() => setActiveTab('list')} className="gap-2">
+    14→   414→   414→   414→                  <FileText className="h-4 w-4" /> View All Invoices
+    15→   415→   415→   415→                </Button>
+    16→   416→   416→   416→              </div>
+    17→   417→   417→   417→            </>
+    18→   418→   418→   418→          )}
+    19→   419→   419→   419→        </TabsContent>
+    20→   420→   420→   420→
+    21→   421→   421→   421→        {/* ─── List Tab ─── */}
+    22→   422→   422→   422→        <TabsContent value="list" className="space-y-4 mt-4">
+    23→   423→   423→   423→          {/* Filters */}
+    24→   424→   424→   424→          <Card>
+    25→   425→   425→   425→            <CardContent className="p-4">
+    26→   426→   426→   426→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+    27→   427→   427→   427→                <div className="relative sm:col-span-2 lg:col-span-1 xl:col-span-1">
+    28→   428→   428→   428→                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    29→   429→   429→   429→                  <Input placeholder="Search invoices..." value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
+    30→   430→   430→   430→                </div>
+    31→   431→   431→   431→                <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1) }}>
+    32→   432→   432→   432→                  <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+    33→   433→   433→   433→                  <SelectContent>
+    34→   434→   434→   434→                    <SelectItem value="all">All Statuses</SelectItem>
+    35→   435→   435→   435→                    {allStatuses.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+    36→   436→   436→   436→                  </SelectContent>
+    37→   437→   437→   437→                </Select>
+    38→   438→   438→   438→                <Select value={typeFilter} onValueChange={v => { setTypeFilter(v); setPage(1) }}>
+    39→   439→   439→   439→                  <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+    40→   440→   440→   440→                  <SelectContent>
+    41→   441→   441→   441→                    <SelectItem value="all">All Types</SelectItem>
+    42→   442→   442→   442→                    {invoiceTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+    43→   443→   443→   443→                  </SelectContent>
+    44→   444→   444→   444→                </Select>
+    45→   445→   445→   445→                <Select value={projectFilter} onValueChange={v => { setProjectFilter(v); setPage(1) }}>
+    46→   446→   446→   446→                  <SelectTrigger><SelectValue placeholder="Project" /></SelectTrigger>
+    47→   447→   447→   447→                  <SelectContent>
+    48→   448→   448→   448→                    <SelectItem value="all">All Projects</SelectItem>
+    49→   449→   449→   449→                    {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name || p.code}</SelectItem>)}
+    50→   450→   450→   450→                  </SelectContent>
+    51→   451→   451→   451→                </Select>
+    52→   452→   452→   452→                <Select value={paymentFilter} onValueChange={v => { setPaymentFilter(v); setPage(1) }}>
+    53→   453→   453→   453→                  <SelectTrigger><SelectValue placeholder="Payment" /></SelectTrigger>
+    54→   454→   454→   454→                  <SelectContent>
+    55→   455→   455→   455→                    <SelectItem value="all">All Payment Status</SelectItem>
+    56→   456→   456→   456→                    {Object.entries(paymentStatusConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+    57→   457→   457→   457→                  </SelectContent>
+    58→   458→   458→   458→                </Select>
+    59→   459→   459→   459→                <div className="flex gap-2">
+    60→   460→   460→   460→                  <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1) }} className="text-xs" placeholder="From" />
+    61→   461→   461→   461→                  <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1) }} className="text-xs" placeholder="To" />
+    62→   462→   462→   462→                </div>
+    63→   463→   463→   463→              </div>
+    64→   464→   464→   464→            </CardContent>
+    65→   465→   465→   465→          </Card>
+    66→   466→   466→   466→
+    67→   467→   467→   467→          {/* Table */}
+    68→   468→   468→   468→          <Card>
+    69→   469→   469→   469→            <CardContent className="p-0">
+    70→   470→   470→   470→              <div className="overflow-x-auto">
+    71→   471→   471→   471→                <Table>
+    72→   472→   472→   472→                  <TableHeader>
+    73→   473→   473→   473→                    <TableRow>
+    74→   474→   474→   474→                      <TableHead className="text-xs">Invoice No</TableHead>
+    75→   475→   475→   475→                      <TableHead className="text-xs">Project</TableHead>
+    76→   476→   476→   476→                      <TableHead className="text-xs">Type</TableHead>
+    77→   477→   477→   477→                      <TableHead className="text-xs">Vendor</TableHead>
+    78→   478→   478→   478→                      <TableHead className="text-xs">Issue Date</TableHead>
+    79→   479→   479→   479→                      <TableHead className="text-xs">Due Date</TableHead>
+    80→   480→   480→   480→                      <TableHead className="text-xs text-right">Amount</TableHead>
+    81→   481→   481→   481→                      <TableHead className="text-xs">Status</TableHead>
+    82→   482→   482→   482→                      <TableHead className="text-xs">Payment</TableHead>
+    83→   483→   483→   483→                      <TableHead className="text-xs text-right">Actions</TableHead>
+    84→   484→   484→   484→                    </TableRow>
+    85→   485→   485→   485→                  </TableHeader>
+    86→   486→   486→   486→                  <TableBody>
+    87→   487→   487→   487→                    {listLoading ? (
+    88→   488→   488→   488→                      Array.from({ length: 5 }).map((_, i) => (
+    89→   489→   489→   489→                        <TableRow key={i}>
+    90→   490→   490→   490→                          {Array.from({ length: 10 }).map((_, j) => (
+    91→   491→   491→   491→                            <TableCell key={j}><Skeleton className="h-4 w-16" /></TableCell>
+    92→   492→   492→   492→                          ))}
+    93→   493→   493→   493→                        </TableRow>
+    94→   494→   494→   494→                      ))
+    95→   495→   495→   495→                    ) : invoices.length === 0 ? (
+    96→   496→   496→   496→                      <TableRow>
+    97→   497→   497→   497→                        <TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-12">
+    98→   498→   498→   498→                          No invoices found. Create your first invoice.
+    99→   499→   499→   499→                        </TableCell>
+   100→   500→   500→   500→                      </TableRow>
+   101→   501→   501→   501→                    ) : (
+   102→   502→   502→   502→                      invoices.map((inv: Invoice) => {
+   103→   503→   503→   503→                        const sc = statusConfig[inv.status] || statusConfig.draft
+   104→   504→   504→   504→                        const tc = typeConfig[inv.type] || { label: inv.type, className: 'bg-gray-50 text-gray-600' }
+   105→   505→   505→   505→                        const pc = paymentStatusConfig[inv.paymentStatus || 'unpaid'] || paymentStatusConfig.unpaid
+   106→   506→   506→   506→                        return (
+   107→   507→   507→   507→                          <TableRow
+   108→   508→   508→   508→                            key={inv.id}
+   109→   509→   509→   509→                            className="cursor-pointer hover:bg-muted/50"
+   110→   510→   510→   510→                            onClick={() => navigate('invoice-detail', { id: inv.id })}
+   111→   511→   511→   511→                          >
+   112→   512→   512→   512→                            <TableCell className="text-xs font-mono font-medium">{inv.invoiceNo}</TableCell>
+   113→   513→   513→   513→                            <TableCell className="text-xs max-w-[120px] truncate">{inv.project?.name || '—'}</TableCell>
+   114→   514→   514→   514→                            <TableCell>
+   115→   515→   515→   515→                              <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', tc.className)}>{tc.label}</Badge>
+   116→   516→   516→   516→                            </TableCell>
+   117→   517→   517→   517→                            <TableCell className="text-xs max-w-[120px] truncate">{inv.vendorName || inv.vendor?.name || '—'}</TableCell>
+   118→   518→   518→   518→                            <TableCell className="text-xs">{inv.issueDate ? formatDate(inv.issueDate) : '—'}</TableCell>
+   119→   519→   519→   519→                            <TableCell className="text-xs">{inv.dueDate ? formatDate(inv.dueDate) : '—'}</TableCell>
+   120→   520→   520→   520→                            <TableCell className="text-xs text-right font-medium">{formatCurrency(inv.total)}</TableCell>
+   121→   521→   521→   521→                            <TableCell>
+   122→   522→   522→   522→                              <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', sc.className)}>{sc.label}</Badge>
+   123→   523→   523→   523→                            </TableCell>
+   124→   524→   524→   524→                            <TableCell>
+   125→   525→   525→   525→                              <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', pc.className)}>{pc.label}</Badge>
+   126→   526→   526→   526→                            </TableCell>
+   127→   527→   527→   527→                            <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+   128→   528→   528→   528→                              <div className="flex items-center justify-end gap-1">
+   129→   529→   529→   529→                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate('invoice-detail', { id: inv.id })}>
+   130→   530→   530→   530→                                  <Eye className="h-3.5 w-3.5" />
+   131→   531→   531→   531→                                </Button>
+   132→   532→   532→   532→                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate('invoice-detail', { id: inv.id })}>
+   133→   533→   533→   533→                                  <Pencil className="h-3.5 w-3.5" />
+   134→   534→   534→   534→                                </Button>
+   135→   535→   535→   535→                                <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => setDeleteDialog(inv.id)}>
+   136→   536→   536→   536→                                  <Trash2 className="h-3.5 w-3.5" />
+   137→   537→   537→   537→                                </Button>
+   138→   538→   538→   538→                              </div>
+   139→   539→   539→   539→                            </TableCell>
+   140→   540→   540→   540→                          </TableRow>
+   141→   541→   541→   541→                        )
+   142→   542→   542→   542→                      })
+   143→   543→   543→   543→                    )}
+   144→   544→   544→   544→                  </TableBody>
+   145→   545→   545→   545→                </Table>
+   146→   546→   546→   546→              </div>
+   147→   547→   547→   547→
+   148→   548→   548→   548→              {/* Pagination */}
+   149→   549→   549→   549→              {totalPages > 1 && (
+   150→   550→   550→   550→                <div className="flex items-center justify-between px-4 py-3 border-t">
+   151→   551→   551→   551→                  <p className="text-xs text-muted-foreground">
+   152→   552→   552→   552→                    Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, totalItems)} of {totalItems}
+   153→   553→   553→   553→                  </p>
+   154→   554→   554→   554→                  <div className="flex gap-1">
+   155→   555→   555→   555→                    <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+   156→   556→   556→   556→                      <ChevronLeft className="h-4 w-4" />
+   157→   557→   557→   557→                    </Button>
+   158→   558→   558→   558→                    <span className="flex items-center px-3 text-xs">{page} / {totalPages}</span>
+   159→   559→   559→   559→                    <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+   160→   560→   560→   560→                      <ChevronRight className="h-4 w-4" />
+   161→   561→   561→   561→                    </Button>
+   162→   562→   562→   562→                  </div>
+   163→   563→   563→   563→                </div>
+   164→   564→   564→   564→              )}
+   165→   565→   565→   565→            </CardContent>
+   166→   566→   566→   566→          </Card>
+   167→   567→   567→   567→        </TabsContent>
+   168→   568→   568→   568→      </Tabs>
+   169→   569→   569→   569→
+   170→   570→   570→   570→      {/* ─── Create Invoice Dialog ─── */}
+   171→   571→   571→   571→      <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) resetForm() }}>
+   172→   572→   572→   572→        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+   173→   573→   573→   573→          <DialogHeader>
+   174→   574→   574→   574→            <DialogTitle>Create Invoice</DialogTitle>
+   175→   575→   575→   575→            <DialogDescription>Fill in the invoice details. It will be saved as a draft.</DialogDescription>
+   176→   576→   576→   576→          </DialogHeader>
+   177→   577→   577→   577→
+   178→   578→   578→   578→          <div className="space-y-4">
+   179→   579→   579→   579→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   180→   580→   580→   580→              <div className="space-y-2">
+   181→   581→   581→   581→                <Label>Project *</Label>
+   182→   582→   582→   582→                <Select value={form.projectId} onValueChange={v => setForm(f => ({ ...f, projectId: v }))}>
+   183→   583→   583→   583→                  <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+   184→   584→   584→   584→                  <SelectContent>
+   185→   585→   585→   585→                    {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name || p.code}</SelectItem>)}
+   186→   586→   586→   586→                  </SelectContent>
+   187→   587→   587→   587→                </Select>
+   188→   588→   588→   588→              </div>
+   189→   589→   589→   589→              <div className="space-y-2">
+   190→   590→   590→   590→                <Label>Invoice Type *</Label>
+   191→   591→   591→   591→                <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v }))}>
+   192→   592→   592→   592→                  <SelectTrigger><SelectValue /></SelectTrigger>
+   193→   593→   593→   593→                  <SelectContent>
+   194→   594→   594→   594→                    {invoiceTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+   195→   595→   595→   595→                  </SelectContent>
+   196→   596→   596→   596→                </Select>
+   197→   597→   597→   597→              </div>
+   198→   598→   598→   598→            </div>
+   199→   599→   599→   599→
+   200→   600→   600→   600→            {showVendorFields && (
+   201→   601→   601→   601→              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   202→   602→   602→   602→                <div className="space-y-2">
+   203→   603→   603→   603→                  <Label>Vendor Name *</Label>
+   204→   604→   604→   604→                  <Input value={form.vendorName} onChange={e => setForm(f => ({ ...f, vendorName: e.target.value }))} placeholder="Enter vendor name" />
+   205→   605→   605→   605→                </div>
+   206→   606→   606→   606→                <div className="space-y-2">
+   207→   607→   607→   607→                  <Label>Vendor Type</Label>
+   208→   608→   608→   608→                  <Select value={form.vendorType} onValueChange={v => setForm(f => ({ ...f, vendorType: v }))}>
+   209→   609→   609→   609→                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+   210→   610→   610→   610→                    <SelectContent>
+   211→   611→   611→   611→                      <SelectItem value="subcontractor">Subcontractor</SelectItem>
+   212→   612→   612→   612→                      <SelectItem value="supplier">Supplier</SelectItem>
+   213→   613→   613→   613→                      <SelectItem value="consultant">Consultant</SelectItem>
+   214→   614→   614→   614→                      <SelectItem value="other">Other</SelectItem>
+   215→   615→   615→   615→                    </SelectContent>
+   216→   616→   616→   616→                  </Select>
+   217→   617→   617→   617→                </div>
+   218→   618→   618→   618→              </div>
+   219→   619→   619→   619→            )}
+   220→   620→   620→   620→
+   221→   621→   621→   621→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   222→   622→   622→   622→              <div className="space-y-2">
+   223→   623→   623→   623→                <Label>Contract No</Label>
+   224→   624→   624→   624→                <Input value={form.contractNo} onChange={e => setForm(f => ({ ...f, contractNo: e.target.value }))} placeholder="CON-001" />
+   225→   625→   625→   625→              </div>
+   226→   626→   626→   626→              <div className="space-y-2">
+   227→   627→   627→   627→                <Label>Reference No</Label>
+   228→   628→   628→   628→                <Input value={form.referenceNo} onChange={e => setForm(f => ({ ...f, referenceNo: e.target.value }))} placeholder="REF-001" />
+   229→   629→   629→   629→              </div>
+   230→   630→   630→   630→              <div className="space-y-2">
+   231→   631→   631→   631→                <Label>Issue Date *</Label>
+   232→   632→   632→   632→                <Input type="date" value={form.issueDate} onChange={e => setForm(f => ({ ...f, issueDate: e.target.value }))} />
+   233→   633→   633→   633→              </div>
+   234→   634→   634→   634→              <div className="space-y-2">
+   235→   635→   635→   635→                <Label>Due Date</Label>
+   236→   636→   636→   636→                <Input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
+   237→   637→   637→   637→              </div>
+   238→   638→   638→   638→            </div>
+   239→   639→   639→   639→
+   240→   640→   640→   640→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   241→   641→   641→   641→              <div className="space-y-2">
+   242→   642→   642→   642→                <Label>Cost Code</Label>
+   243→   643→   643→   643→                <Select value={form.costCodeId} onValueChange={v => setForm(f => ({ ...f, costCodeId: v }))}>
+   244→   644→   644→   644→                  <SelectTrigger><SelectValue placeholder="Select cost code" /></SelectTrigger>
+   245→   645→   645→   645→                  <SelectContent>
+   246→   646→   646→   646→                    {costCodes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.code} — {c.name}</SelectItem>)}
+   247→   647→   647→   647→                  </SelectContent>
+   248→   648→   648→   648→                </Select>
+   249→   649→   649→   649→              </div>
+   250→   650→   650→   650→              <div className="space-y-2">
+   251→   651→   651→   651→                <Label>Currency</Label>
+   252→   652→   652→   652→                <Select value={form.currency} onValueChange={v => setForm(f => ({ ...f, currency: v }))}>
+   253→   653→   653→   653→                  <SelectTrigger><SelectValue /></SelectTrigger>
+   254→   654→   654→   654→                  <SelectContent>
+   255→   655→   655→   655→                    {['SGD', 'USD', 'EUR', 'GBP', 'MYR', 'BND', 'AUD', 'IDR'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+   256→   656→   656→   656→                  </SelectContent>
+   257→   657→   657→   657→                </Select>
+   258→   658→   658→   658→              </div>
+   259→   659→   659→   659→              <div className="space-y-2">
+   260→   660→   660→   660→                <Label>Tax Rate (%)</Label>
+   261→   661→   661→   661→                <Input type="number" min={0} max={100} step={0.5} value={form.taxRate} onChange={e => setForm(f => ({ ...f, taxRate: Number(e.target.value) }))} />
+   262→   662→   662→   662→              </div>
+   263→   663→   663→   663→              <div className="space-y-2">
+   264→   664→   664→   664→                <Label>Retention (%)</Label>
+   265→   665→   665→   665→                <Input type="number" min={0} max={30} step={0.5} value={form.retentionRate} onChange={e => setForm(f => ({ ...f, retentionRate: Number(e.target.value) }))} />
+   266→   666→   666→   666→              </div>
+   267→   667→   667→   667→            </div>
+   268→   668→   668→   668→
+   269→   669→   669→   669→            {/* Progress Billing */}
+   270→   670→   670→   670→            {isProgressClaim && (
+   271→   671→   671→   671→              <div className="space-y-3 rounded-lg border p-4 bg-muted/30">
+   272→   672→   672→   672→                <h4 className="font-semibold text-sm">Progress Billing</h4>
+   273→   673→   673→   673→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   274→   674→   674→   674→                  <div className="space-y-2">
+   275→   675→   675→   675→                    <Label>Original Contract Value</Label>
+   276→   676→   676→   676→                    <Input type="number" value={form.originalContractValue} onChange={e => setForm(f => ({ ...f, originalContractValue: Number(e.target.value) }))} placeholder="0.00" />
+   277→   677→   677→   677→                  </div>
+   278→   678→   678→   678→                  <div className="space-y-2">
+   279→   679→   679→   679→                    <Label>Work Completed This Period (%)</Label>
+   280→   680→   680→   680→                    <Input type="number" min={0} max={100} step={0.1} value={form.workCompletedPct} onChange={e => setForm(f => ({ ...f, workCompletedPct: Number(e.target.value) }))} placeholder="0" />
+   281→   681→   681→   681→                  </div>
+   282→   682→   682→   682→                </div>
+   283→   683→   683→   683→                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+   284→   684→   684→   684→                  <div className="rounded-md bg-background p-2"><span className="text-muted-foreground text-xs">Work This Period</span><p className="font-semibold">{formatCurrency(form.originalContractValue * (form.workCompletedPct / 100))}</p></div>
+   285→   685→   685→   685→                  <div className="rounded-md bg-background p-2"><span className="text-muted-foreground text-xs">Retention</span><p className="font-semibold">{formatCurrency(form.originalContractValue * (form.workCompletedPct / 100) * (form.retentionRate / 100))}</p></div>
+   286→   686→   686→   686→                  <div className="rounded-md bg-background p-2"><span className="text-muted-foreground text-xs">Certified Amount</span><p className="font-semibold">{formatCurrency(form.originalContractValue * (form.workCompletedPct / 100) * (1 - form.retentionRate / 100))}</p></div>
+   287→   687→   687→   687→                  <div className="rounded-md bg-background p-2"><span className="text-muted-foreground text-xs">Balance Remaining</span><p className="font-semibold">{formatCurrency(form.originalContractValue * (1 - form.workCompletedPct / 100))}</p></div>
+   288→   688→   688→   688→                </div>
+   289→   689→   689→   689→              </div>
+   290→   690→   690→   690→            )}
+   291→   691→   691→   691→
+   292→   692→   692→   692→            {/* Line Items */}
+   293→   693→   693→   693→            <div className="space-y-3">
+   294→   694→   694→   694→              <div className="flex items-center justify-between">
+   295→   695→   695→   695→                <h4 className="font-semibold text-sm">Line Items</h4>
+   296→   696→   696→   696→                <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setLineItems(items => [...items, emptyLineItem()])}>
+   297→   697→   697→   697→                  <Plus className="h-3 w-3" /> Add Item
+   298→   698→   698→   698→                </Button>
+   299→   699→   699→   699→              </div>
+   300→   700→   700→   700→              <div className="rounded-lg border overflow-hidden">
+   301→   701→   701→   701→                <Table>
+   302→   702→   702→   702→                  <TableHeader>
+   303→   703→   703→   703→                    <TableRow>
+   304→   704→   704→   704→                      <TableHead className="text-xs">Description</TableHead>
+   305→   705→   705→   705→                      <TableHead className="text-xs w-20 text-right">Qty</TableHead>
+   306→   706→   706→   706→                      <TableHead className="text-xs w-20">Unit</TableHead>
+   307→   707→   707→   707→                      <TableHead className="text-xs w-28 text-right">Unit Price</TableHead>
+   308→   708→   708→   708→                      <TableHead className="text-xs w-28 text-right">Amount</TableHead>
+   309→   709→   709→   709→                      <TableHead className="text-xs w-10"></TableHead>
+   310→   710→   710→   710→                    </TableRow>
+   311→   711→   711→   711→                  </TableHeader>
+   312→   712→   712→   712→                  <TableBody>
+   313→   713→   713→   713→                    {lineItems.map((item, idx) => (
+   314→   714→   714→   714→                      <TableRow key={idx}>
+   315→   715→   715→   715→                        <TableCell><Input className="h-8 text-xs" value={item.description} onChange={e => { const n = [...lineItems]; n[idx] = { ...n[idx], description: e.target.value }; setLineItems(n) }} placeholder="Description" /></TableCell>
+   316→   716→   716→   716→                        <TableCell><Input type="number" className="h-8 text-xs text-right" value={item.qty} min={0} onChange={e => { const n = [...lineItems]; n[idx] = { ...n[idx], qty: Number(e.target.value) }; setLineItems(n) }} /></TableCell>
+   317→   717→   717→   717→                        <TableCell><Input className="h-8 text-xs" value={item.unit} onChange={e => { const n = [...lineItems]; n[idx] = { ...n[idx], unit: e.target.value }; setLineItems(n) }} /></TableCell>
+   318→   718→   718→   718→                        <TableCell><Input type="number" className="h-8 text-xs text-right" value={item.unitPrice} min={0} step={0.01} onChange={e => { const n = [...lineItems]; n[idx] = { ...n[idx], unitPrice: Number(e.target.value) }; setLineItems(n) }} /></TableCell>
+   319→   719→   719→   719→                        <TableCell className="text-right text-xs font-medium">{formatCurrency(item.qty * item.unitPrice)}</TableCell>
+   320→   720→   720→   720→                        <TableCell>
+   321→   721→   721→   721→                          {lineItems.length > 1 && (
+   322→   722→   722→   722→                            <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => setLineItems(items => items.filter((_, i) => i !== idx))}>
+   323→   723→   723→   723→                              <Trash2 className="h-3 w-3" />
+   324→   724→   724→   724→                            </Button>
+   325→   725→   725→   725→                          )}
+   326→   726→   726→   726→                        </TableCell>
+   327→   727→   727→   727→                      </TableRow>
+   328→   728→   728→   728→                    ))}
+   329→   729→   729→   729→                  </TableBody>
+   330→   730→   730→   730→                </Table>
+   331→   731→   731→   731→              </div>
+   332→   732→   732→   732→              <div className="flex justify-end">
+   333→   733→   733→   733→                <div className="text-sm space-y-1 text-right">
+   334→   734→   734→   734→                  <div className="flex gap-8"><span className="text-muted-foreground">Subtotal:</span><span className="font-medium">{formatCurrency(subtotal)}</span></div>
+   335→   735→   735→   735→                  <div className="flex gap-8"><span className="text-muted-foreground">Tax ({form.taxRate}%):</span><span className="font-medium">{formatCurrency(taxAmt)}</span></div>
+   336→   736→   736→   736→                  <Separator />
+   337→   737→   737→   737→                  <div className="flex gap-8 text-base"><span className="font-semibold">Total:</span><span className="font-bold">{formatCurrency(total)}</span></div>
+   338→   738→   738→   738→                </div>
+   339→   739→   739→   739→              </div>
+   340→   740→   740→   740→            </div>
+   341→   741→   741→   741→
+   342→   742→   742→   742→            <div className="space-y-2">
+   343→   743→   743→   743→              <Label>Notes</Label>
+   344→   744→   744→   744→              <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Additional notes..." rows={2} />
+   345→   745→   745→   745→            </div>
+   346→   746→   746→   746→          </div>
+   347→   747→   747→   747→
+   348→   748→   748→   748→          <DialogFooter>
+   349→   749→   749→   749→            <Button variant="outline" onClick={() => { setCreateOpen(false); resetForm() }}>Cancel</Button>
+   350→   750→   750→   750→            <Button onClick={handleCreate} disabled={createMutation.isPending || !form.projectId} className="gap-2">
+   351→   751→   751→   751→              {createMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+   352→   752→   752→   752→              Create Invoice
+   353→   753→   753→   753→            </Button>
+   354→   754→   754→   754→          </DialogFooter>
+   355→   755→   755→   755→        </DialogContent>
+   356→   756→   756→   756→      </Dialog>
+   357→   757→   757→   757→
+   358→   758→   758→   758→      {/* ─── Delete Dialog ─── */}
+   359→   759→   759→   759→      <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
+   360→   760→   760→   760→        <AlertDialogContent>
+   361→   761→   761→   761→          <AlertDialogHeader>
+   362→   762→   762→   762→            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+   363→   763→   763→   763→            <AlertDialogDescription>Are you sure you want to delete this invoice? This action cannot be undone.</AlertDialogDescription>
+   364→   764→   764→   764→          </AlertDialogHeader>
+   365→   765→   765→   765→          <AlertDialogFooter>
+   366→   766→   766→   766→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   367→   767→   767→   767→            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteDialog && deleteMutation.mutate(deleteDialog)} disabled={deleteMutation.isPending}>
+   368→   768→   768→   768→              Delete
+   369→   769→   769→   769→            </AlertDialogAction>
+   370→   770→   770→   770→          </AlertDialogFooter>
+   371→   771→   771→   771→        </AlertDialogContent>
+   372→   772→   772→   772→      </AlertDialog>
+   373→   773→   773→   773→    </div>
+   374→   774→   774→   774→  )
+   375→   775→   775→   775→}

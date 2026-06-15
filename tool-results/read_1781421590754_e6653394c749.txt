@@ -1,0 +1,560 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api } from '@/lib/store'
+     6→import { useFormat } from '@/hooks/use-format'
+     7→import { cn } from '@/lib/utils'
+     8→import { toast } from 'sonner'
+     9→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    10→import { Button } from '@/components/ui/button'
+    11→import { Badge } from '@/components/ui/badge'
+    12→import { Input } from '@/components/ui/input'
+    13→import { Label } from '@/components/ui/label'
+    14→import { Textarea } from '@/components/ui/textarea'
+    15→import { Skeleton } from '@/components/ui/skeleton'
+    16→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    17→import { ScrollArea } from '@/components/ui/scroll-area'
+    18→import { Separator } from '@/components/ui/separator'
+    19→import {
+    20→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    21→} from '@/components/ui/table'
+    22→import {
+    23→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+    24→} from '@/components/ui/dialog'
+    25→import {
+    26→  Plus, Search, Eye, Pencil, Trash2, ChevronLeft, ChevronRight,
+    27→  Star, Building2, Mail, Phone, Globe, Users, Award, Trophy, X,
+    28→} from 'lucide-react'
+    29→
+    30→// ─── Types ───
+    31→interface Vendor {
+    32→  id: string
+    33→  companyName: string
+    34→  contactPerson: string
+    35→  email: string
+    36→  phone: string
+    37→  country: string
+    38→  trade: string
+    39→  category: string
+    40→  rating: number
+    41→  status: string
+    42→  totalBids: number
+    43→  successRate: number
+    44→  address?: string
+    45→  website?: string
+    46→  registrationNo?: string
+    47→  taxId?: string
+    48→  pastBids?: { id: string; packageNo: string; name: string; status: string; amount: number; result: string }[]
+    49→  awards?: { id: string; packageNo: string; name: string; amount: number; awardedDate: string }[]
+    50→}
+    51→
+    52→// ─── Config Maps ───
+    53→const statusConfig: Record<string, { label: string; className: string }> = {
+    54→  approved: { label: 'Approved', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    55→  pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    56→  rejected: { label: 'Rejected', className: 'bg-red-50 text-red-700 border-red-200' },
+    57→  suspended: { label: 'Suspended', className: 'bg-gray-100 text-gray-500 border-gray-200' },
+    58→}
+    59→
+    60→const tradeOptions = [
+    61→  'Civil & Structural', 'Mechanical', 'Electrical', 'Plumbing & Sanitary',
+    62→  'HVAC', 'Fire Protection', 'Landscaping', 'Interior Fit-out',
+    63→  'Painting & Decoration', 'Piling & Foundation', 'Steel Works',
+    64→  'Roofing', ' waterproofing', 'Glass & Aluminum', 'Elevator & Escalator',
+    65→  'Consultancy', 'Specialist Works',
+    66→]
+    67→
+    68→const emptyVendorForm = () => ({
+    69→  companyName: '',
+    70→  contactPerson: '',
+    71→  email: '',
+    72→  phone: '',
+    73→  country: '',
+    74→  trade: '',
+    75→  category: '',
+    76→  address: '',
+    77→  website: '',
+    78→  registrationNo: '',
+    79→  taxId: '',
+    80→})
+    81→
+    82→// ─── Component ───
+    83→export function TenderVendorsPage() {
+    84→  const { navigate } = useAppStore()
+    85→  const { formatDate } = useFormat()
+    86→  const queryClient = useQueryClient()
+    87→
+    88→  const [addOpen, setAddOpen] = useState(false)
+    89→  const [viewVendor, setViewVendor] = useState<Vendor | null>(null)
+    90→  const [search, setSearch] = useState('')
+    91→  const [categoryFilter, setCategoryFilter] = useState('all')
+    92→  const [statusFilter, setStatusFilter] = useState('all')
+    93→  const [tradeFilter, setTradeFilter] = useState('all')
+    94→  const [page, setPage] = useState(1)
+    95→  const pageSize = 20
+    96→
+    97→  const [form, setForm] = useState(emptyVendorForm())
+    98→
+    99→  // ─── Queries ───
+   100→  const listParams = useMemo(() => {
+   101→    const p = new URLSearchParams()
+   102→    if (search) p.set('search', search)
+   103→    if (categoryFilter !== 'all') p.set('category', categoryFilter)
+   104→    if (statusFilter !== 'all') p.set('status', statusFilter)
+   105→    if (tradeFilter !== 'all') p.set('trade', tradeFilter)
+   106→    p.set('page', String(page))
+   107→    p.set('limit', String(pageSize))
+   108→    return p.toString()
+   109→  }, [search, categoryFilter, statusFilter, tradeFilter, page])
+   110→
+   111→  const { data: listData, isLoading } = useQuery({
+   112→    queryKey: ['tender-vendors', listParams],
+   113→    queryFn: () => api.get<any>(`/api/tender/vendors?${listParams}`),
+   114→  })
+   115→
+   116→  const { data: vendorDetailData } = useQuery({
+   117→    queryKey: ['tender-vendor-detail', viewVendor?.id],
+   118→    queryFn: () => api.get<Vendor>(`/api/tender/vendors/${viewVendor?.id}`),
+   119→    enabled: !!viewVendor?.id,
+   120→  })
+   121→
+   122→  const vendors = listData?.data?.vendors || listData?.data || []
+   123→  const totalItems = listData?.data?.total || vendors.length
+   124→  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+   125→  const detailVendor = vendorDetailData?.data || viewVendor
+   126→
+   127→  // ─── Mutations ───
+   128→  const createMutation = useMutation({
+   129→    mutationFn: (body: any) => api.post('/api/tender/vendors', body),
+   130→    onSuccess: () => {
+   131→      toast.success('Vendor added')
+   132→      setAddOpen(false)
+   133→      setForm(emptyVendorForm())
+   134→      queryClient.invalidateQueries({ queryKey: ['tender-vendors'] })
+   135→    },
+   136→    onError: (err: any) => toast.error(err?.error || 'Failed to add vendor'),
+   137→  })
+   138→
+   139→  const deleteMutation = useMutation({
+   140→    mutationFn: (id: string) => api.del(`/api/tender/vendors/${id}`),
+   141→    onSuccess: () => {
+   142→      toast.success('Vendor removed')
+   143→      queryClient.invalidateQueries({ queryKey: ['tender-vendors'] })
+   144→    },
+   145→    onError: (err: any) => toast.error(err?.error || 'Failed to remove'),
+   146→  })
+   147→
+   148→  const renderStars = (rating: number) => (
+   149→    <div className="flex items-center gap-0.5">
+   150→      {Array.from({ length: 5 }).map((_, i) => (
+   151→        <Star
+   152→          key={i}
+   153→          className={cn('h-3 w-3', i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300')}
+   154→        />
+   155→      ))}
+   156→      <span className="text-xs text-muted-foreground ml-1">({rating.toFixed(1)})</span>
+   157→    </div>
+   158→  )
+   159→
+   160→  return (
+   161→    <div className="space-y-6">
+   162→      {/* Header */}
+   163→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   164→        <div>
+   165→          <h1 className="text-2xl font-bold tracking-tight">Vendor Database</h1>
+   166→          <p className="text-sm text-muted-foreground">Manage vendors for tender invitations and evaluations</p>
+   167→        </div>
+   168→        <Button onClick={() => setAddOpen(true)} className="gap-2">
+   169→          <Plus className="h-4 w-4" /> Add Vendor
+   170→        </Button>
+   171→      </div>
+   172→
+   173→      {/* Filters */}
+   174→      <Card>
+   175→        <CardContent className="p-4">
+   176→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+   177→            <div className="relative sm:col-span-2 lg:col-span-1">
+   178→              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+   179→              <Input
+   180→                placeholder="Search vendors..."
+   181→                value={search}
+   182→                onChange={e => { setSearch(e.target.value); setPage(1) }}
+   183→                className="pl-9"
+   184→              />
+   185→            </div>
+   186→            <Select value={categoryFilter} onValueChange={v => { setCategoryFilter(v); setPage(1) }}>
+   187→              <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+   188→              <SelectContent>
+   189→                <SelectItem value="all">All Categories</SelectItem>
+   190→                {tradeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+   191→              </SelectContent>
+   192→            </Select>
+   193→            <Select value={tradeFilter} onValueChange={v => { setTradeFilter(v); setPage(1) }}>
+   194→              <SelectTrigger><SelectValue placeholder="Trade" /></SelectTrigger>
+   195→              <SelectContent>
+   196→                <SelectItem value="all">All Trades</SelectItem>
+   197→                {tradeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+   198→              </SelectContent>
+   199→            </Select>
+   200→            <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1) }}>
+   201→              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+   202→              <SelectContent>
+   203→                <SelectItem value="all">All Statuses</SelectItem>
+   204→                <SelectItem value="approved">Approved</SelectItem>
+   205→                <SelectItem value="pending">Pending</SelectItem>
+   206→                <SelectItem value="rejected">Rejected</SelectItem>
+   207→                <SelectItem value="suspended">Suspended</SelectItem>
+   208→              </SelectContent>
+   209→            </Select>
+   210→          </div>
+   211→        </CardContent>
+   212→      </Card>
+   213→
+   214→      {/* Table */}
+   215→      <Card>
+   216→        <CardContent className="p-0">
+   217→          {isLoading ? (
+   218→            <div className="p-4 space-y-3">
+   219→              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+   220→            </div>
+   221→          ) : (
+   222→            <div className="overflow-x-auto">
+   223→              <Table>
+   224→                <TableHeader>
+   225→                  <TableRow>
+   226→                    <TableHead className="text-xs">Company Name</TableHead>
+   227→                    <TableHead className="text-xs">Contact Person</TableHead>
+   228→                    <TableHead className="text-xs">Email</TableHead>
+   229→                    <TableHead className="text-xs">Phone</TableHead>
+   230→                    <TableHead className="text-xs">Country</TableHead>
+   231→                    <TableHead className="text-xs">Trade</TableHead>
+   232→                    <TableHead className="text-xs">Rating</TableHead>
+   233→                    <TableHead className="text-xs">Status</TableHead>
+   234→                    <TableHead className="text-xs text-center">Total Bids</TableHead>
+   235→                    <TableHead className="text-xs text-center">Success Rate</TableHead>
+   236→                    <TableHead className="text-xs text-right">Actions</TableHead>
+   237→                  </TableRow>
+   238→                </TableHeader>
+   239→                <TableBody>
+   240→                  {vendors.map((v: Vendor) => {
+   241→                    const sc = statusConfig[v.status] || statusConfig.pending
+   242→                    return (
+   243→                      <TableRow key={v.id} className="hover:bg-muted/50">
+   244→                        <TableCell className="text-xs font-medium">
+   245→                          <div className="flex items-center gap-2">
+   246→                            <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+   247→                            <span className="max-w-[150px] truncate">{v.companyName}</span>
+   248→                          </div>
+   249→                        </TableCell>
+   250→                        <TableCell className="text-xs">{v.contactPerson}</TableCell>
+   251→                        <TableCell className="text-xs max-w-[150px] truncate">{v.email}</TableCell>
+   252→                        <TableCell className="text-xs">{v.phone}</TableCell>
+   253→                        <TableCell className="text-xs">{v.country}</TableCell>
+   254→                        <TableCell className="text-xs max-w-[100px] truncate">
+   255→                          <Badge variant="outline" className="bg-violet-50 text-violet-700 text-[10px] px-1.5 py-0">
+   256→                            {v.trade}
+   257→                          </Badge>
+   258→                        </TableCell>
+   259→                        <TableCell>{renderStars(v.rating)}</TableCell>
+   260→                        <TableCell>
+   261→                          <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', sc.className)}>
+   262→                            {sc.label}
+   263→                          </Badge>
+   264→                        </TableCell>
+   265→                        <TableCell className="text-xs text-center font-medium">{v.totalBids}</TableCell>
+   266→                        <TableCell className="text-xs text-center">
+   267→                          <span className={cn(
+   268→                            'font-semibold',
+   269→                            v.successRate >= 50 ? 'text-emerald-600' : v.successRate >= 25 ? 'text-amber-600' : 'text-red-600'
+   270→                          )}>
+   271→                            {v.successRate}%
+   272→                          </span>
+   273→                        </TableCell>
+   274→                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+   275→                          <div className="flex items-center justify-end gap-1">
+   276→                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setViewVendor(v)}>
+   277→                              <Eye className="h-3.5 w-3.5" />
+   278→                            </Button>
+   279→                            <Button variant="ghost" size="icon" className="h-7 w-7">
+   280→                              <Pencil className="h-3.5 w-3.5" />
+   281→                            </Button>
+   282→                            <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => deleteMutation.mutate(v.id)}>
+   283→                              <Trash2 className="h-3.5 w-3.5" />
+   284→                            </Button>
+   285→                          </div>
+   286→                        </TableCell>
+   287→                      </TableRow>
+   288→                    )
+   289→                  })}
+   290→                  {vendors.length === 0 && (
+   291→                    <TableRow>
+   292→                      <TableCell colSpan={11} className="text-center text-sm text-muted-foreground py-8">
+   293→                        No vendors found.{' '}
+   294→                        <Button variant="link" className="h-auto p-0 text-xs" onClick={() => setAddOpen(true)}>
+   295→                          Add one now
+   296→                        </Button>
+   297→                      </TableCell>
+   298→                    </TableRow>
+   299→                  )}
+   300→                </TableBody>
+   301→              </Table>
+   302→            </div>
+   303→          )}
+   304→
+   305→          {/* Pagination */}
+   306→          {totalPages > 1 && (
+   307→            <div className="flex items-center justify-between px-4 py-3 border-t">
+   308→              <p className="text-xs text-muted-foreground">
+   309→                Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, totalItems)} of {totalItems}
+   310→              </p>
+   311→              <div className="flex gap-1">
+   312→                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+   313→                  <ChevronLeft className="h-4 w-4" />
+   314→                </Button>
+   315→                <span className="flex items-center px-3 text-xs">{page} / {totalPages}</span>
+   316→                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+   317→                  <ChevronRight className="h-4 w-4" />
+   318→                </Button>
+   319→              </div>
+   320→            </div>
+   321→          )}
+   322→        </CardContent>
+   323→      </Card>
+   324→
+   325→      {/* ─── Add Vendor Dialog ─── */}
+   326→      <Dialog open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) setForm(emptyVendorForm()) }}>
+   327→        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+   328→          <DialogHeader>
+   329→            <DialogTitle>Add Vendor</DialogTitle>
+   330→            <DialogDescription>Add a new vendor to the tender vendor database.</DialogDescription>
+   331→          </DialogHeader>
+   332→          <div className="space-y-4">
+   333→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   334→              <div className="space-y-2">
+   335→                <Label>Company Name *</Label>
+   336→                <Input value={form.companyName} onChange={e => setForm(f => ({ ...f, companyName: e.target.value }))} placeholder="Acme Engineering Pte Ltd" />
+   337→              </div>
+   338→              <div className="space-y-2">
+   339→                <Label>Contact Person *</Label>
+   340→                <Input value={form.contactPerson} onChange={e => setForm(f => ({ ...f, contactPerson: e.target.value }))} placeholder="John Doe" />
+   341→              </div>
+   342→            </div>
+   343→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   344→              <div className="space-y-2">
+   345→                <Label>Email *</Label>
+   346→                <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="contact@acme.com" />
+   347→              </div>
+   348→              <div className="space-y-2">
+   349→                <Label>Phone *</Label>
+   350→                <Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+65 6123 4567" />
+   351→              </div>
+   352→            </div>
+   353→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   354→              <div className="space-y-2">
+   355→                <Label>Country</Label>
+   356→                <Input value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} placeholder="Singapore" />
+   357→              </div>
+   358→              <div className="space-y-2">
+   359→                <Label>Trade</Label>
+   360→                <Select value={form.trade} onValueChange={v => setForm(f => ({ ...f, trade: v }))}>
+   361→                  <SelectTrigger><SelectValue placeholder="Select trade" /></SelectTrigger>
+   362→                  <SelectContent>
+   363→                    {tradeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+   364→                  </SelectContent>
+   365→                </Select>
+   366→              </div>
+   367→              <div className="space-y-2">
+   368→                <Label>Category</Label>
+   369→                <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
+   370→                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+   371→                  <SelectContent>
+   372→                    <SelectItem value="subcontractor">Subcontractor</SelectItem>
+   373→                    <SelectItem value="supplier">Supplier</SelectItem>
+   374→                    <SelectItem value="consultant">Consultant</SelectItem>
+   375→                    <SelectItem value="specialist">Specialist</SelectItem>
+   376→                  </SelectContent>
+   377→                </Select>
+   378→              </div>
+   379→            </div>
+   380→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   381→              <div className="space-y-2">
+   382→                <Label>Registration No</Label>
+   383→                <Input value={form.registrationNo} onChange={e => setForm(f => ({ ...f, registrationNo: e.target.value }))} placeholder="REG-001" />
+   384→              </div>
+   385→              <div className="space-y-2">
+   386→                <Label>Tax ID</Label>
+   387→                <Input value={form.taxId} onChange={e => setForm(f => ({ ...f, taxId: e.target.value }))} placeholder="Tax-001" />
+   388→              </div>
+   389→            </div>
+   390→            <div className="space-y-2">
+   391→              <Label>Website</Label>
+   392→              <Input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://www.acme.com" />
+   393→            </div>
+   394→            <div className="space-y-2">
+   395→              <Label>Address</Label>
+   396→              <Textarea value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="Full address..." rows={2} />
+   397→            </div>
+   398→          </div>
+   399→          <DialogFooter>
+   400→            <Button variant="outline" onClick={() => { setAddOpen(false); setForm(emptyVendorForm()) }}>Cancel</Button>
+   401→            <Button
+   402→              onClick={() => {
+   403→                if (!form.companyName || !form.contactPerson || !form.email) {
+   404→                  toast.error('Please fill required fields')
+   405→                  return
+   406→                }
+   407→                createMutation.mutate(form)
+   408→              }}
+   409→              disabled={createMutation.isPending}
+   410→              className="gap-2"
+   411→            >
+   412→              {createMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+   413→              Add Vendor
+   414→            </Button>
+   415→          </DialogFooter>
+   416→        </DialogContent>
+   417→      </Dialog>
+   418→
+   419→      {/* ─── View Vendor Dialog ─── */}
+   420→      <Dialog open={!!viewVendor} onOpenChange={open => { if (!open) setViewVendor(null) }}>
+   421→        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+   422→          <DialogHeader>
+   423→            <DialogTitle className="flex items-center gap-2">
+   424→              <Building2 className="h-5 w-5" />
+   425→              {detailVendor?.companyName || viewVendor?.companyName}
+   426→            </DialogTitle>
+   427→            <DialogDescription>Vendor details and tender history</DialogDescription>
+   428→          </DialogHeader>
+   429→
+   430→          {detailVendor && (
+   431→            <div className="space-y-6">
+   432→              {/* Vendor Info Grid */}
+   433→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+   434→                <div className="flex items-center gap-2">
+   435→                  <Users className="h-4 w-4 text-muted-foreground" />
+   436→                  <div><span className="text-muted-foreground">Contact:</span><p className="font-medium">{detailVendor.contactPerson}</p></div>
+   437→                </div>
+   438→                <div className="flex items-center gap-2">
+   439→                  <Mail className="h-4 w-4 text-muted-foreground" />
+   440→                  <div><span className="text-muted-foreground">Email:</span><p className="font-medium">{detailVendor.email}</p></div>
+   441→                </div>
+   442→                <div className="flex items-center gap-2">
+   443→                  <Phone className="h-4 w-4 text-muted-foreground" />
+   444→                  <div><span className="text-muted-foreground">Phone:</span><p className="font-medium">{detailVendor.phone}</p></div>
+   445→                </div>
+   446→                <div className="flex items-center gap-2">
+   447→                  <Globe className="h-4 w-4 text-muted-foreground" />
+   448→                  <div><span className="text-muted-foreground">Country:</span><p className="font-medium">{detailVendor.country}</p></div>
+   449→                </div>
+   450→                <div>
+   451→                  <span className="text-muted-foreground">Trade:</span>
+   452→                  <p className="font-medium">{detailVendor.trade}</p>
+   453→                </div>
+   454→                <div>
+   455→                  <span className="text-muted-foreground">Rating:</span>
+   456→                  <div className="mt-0.5">{renderStars(detailVendor.rating)}</div>
+   457→                </div>
+   458→                <div>
+   459→                  <span className="text-muted-foreground">Status:</span>
+   460→                  <div className="mt-1">
+   461→                    <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', (statusConfig[detailVendor.status] || statusConfig.pending).className)}>
+   462→                      {(statusConfig[detailVendor.status] || statusConfig.pending).label}
+   463→                    </Badge>
+   464→                  </div>
+   465→                </div>
+   466→                <div>
+   467→                  <span className="text-muted-foreground">Total Bids:</span>
+   468→                  <p className="font-medium text-lg">{detailVendor.totalBids}</p>
+   469→                </div>
+   470→                <div>
+   471→                  <span className="text-muted-foreground">Success Rate:</span>
+   472→                  <p className={cn(
+   473→                    'font-medium text-lg',
+   474→                    detailVendor.successRate >= 50 ? 'text-emerald-600' : detailVendor.successRate >= 25 ? 'text-amber-600' : 'text-red-600'
+   475→                  )}>
+   476→                    {detailVendor.successRate}%
+   477→                  </p>
+   478→                </div>
+   479→              </div>
+   480→
+   481→              {detailVendor.address && (
+   482→                <div className="text-sm">
+   483→                  <span className="text-muted-foreground">Address:</span>
+   484→                  <p className="font-medium">{detailVendor.address}</p>
+   485→                </div>
+   486→              )}
+   487→
+   488→              <Separator />
+   489→
+   490→              {/* Past Bids */}
+   491→              <div>
+   492→                <h3 className="font-semibold text-sm mb-3">Past Bids</h3>
+   493→                {(detailVendor.pastBids || []).length > 0 ? (
+   494→                  <div className="overflow-x-auto">
+   495→                    <Table>
+   496→                      <TableHeader>
+   497→                        <TableRow>
+   498→                          <TableHead className="text-xs">Package</TableHead>
+   499→                          <TableHead className="text-xs">Name</TableHead>
+   500→                          <TableHead className="text-xs text-right">Amount</TableHead>
+   501→                          <TableHead className="text-xs">Result</TableHead>
+   502→                        </TableRow>
+   503→                      </TableHeader>
+   504→                      <TableBody>
+   505→                        {detailVendor.pastBids.map((bid) => (
+   506→                          <TableRow key={bid.id}>
+   507→                            <TableCell className="text-xs font-mono">{bid.packageNo}</TableCell>
+   508→                            <TableCell className="text-xs">{bid.name}</TableCell>
+   509→                            <TableCell className="text-xs text-right font-medium">{new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(bid.amount)}</TableCell>
+   510→                            <TableCell>
+   511→                              <Badge variant="outline" className={cn(
+   512→                                'text-[10px] px-1.5 py-0',
+   513→                                bid.result === 'won' ? 'bg-emerald-50 text-emerald-700' :
+   514→                                bid.result === 'lost' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-600'
+   515→                              )}>
+   516→                                {bid.result === 'won' ? 'Won' : bid.result === 'lost' ? 'Lost' : bid.result}
+   517→                              </Badge>
+   518→                            </TableCell>
+   519→                          </TableRow>
+   520→                        ))}
+   521→                      </TableBody>
+   522→                    </Table>
+   523→                  </div>
+   524→                ) : (
+   525→                  <p className="text-sm text-muted-foreground text-center py-4">No past bids</p>
+   526→                )}
+   527→              </div>
+   528→
+   529→              {/* Awards */}
+   530→              <div>
+   531→                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+   532→                  <Trophy className="h-4 w-4 text-amber-500" /> Awards Won ({detailVendor.awards?.length || 0})
+   533→                </h3>
+   534→                {(detailVendor.awards || []).length > 0 ? (
+   535→                  <ScrollArea className="max-h-48">
+   536→                    <div className="space-y-2">
+   537→                      {detailVendor.awards.map((award) => (
+   538→                        <div key={award.id} className="flex items-center justify-between rounded-lg border p-3">
+   539→                          <div>
+   540→                            <p className="text-sm font-medium">{award.name}</p>
+   541→                            <p className="text-xs text-muted-foreground">{award.packageNo} · {formatDate(award.awardedDate)}</p>
+   542→                          </div>
+   543→                          <div className="text-sm font-semibold text-emerald-600">
+   544→                            {new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(award.amount)}
+   545→                          </div>
+   546→                        </div>
+   547→                      ))}
+   548→                    </div>
+   549→                  </ScrollArea>
+   550→                ) : (
+   551→                  <p className="text-sm text-muted-foreground text-center py-4">No awards yet</p>
+   552→                )}
+   553→              </div>
+   554→            </div>
+   555→          )}
+   556→        </DialogContent>
+   557→      </Dialog>
+   558→    </div>
+   559→  )
+   560→}

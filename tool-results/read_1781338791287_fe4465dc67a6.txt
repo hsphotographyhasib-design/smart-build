@@ -1,0 +1,501 @@
+   501→                            {loginError}
+   502→                          </motion.div>
+   503→                        )}
+   504→
+   505→                        {/* Email field */}
+   506→                        <motion.div custom={0} variants={fieldVariants} initial="initial" animate="animate" className="space-y-1.5">
+   507→                          <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+   508→                            Email Address
+   509→                          </Label>
+   510→                          <div className="relative">
+   511→                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+   512→                            <Input
+   513→                              id="login-email"
+   514→                              type="email"
+   515→                              placeholder="you@company.com"
+   516→                              value={email}
+   517→                              onChange={(e) => { setEmail(e.target.value); setLoginError('') }}
+   518→                              required
+   519→                              className="h-12 pl-11 rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white transition-colors focus:border-orange-400 focus:ring-orange-400/20"
+   520→                            />
+   521→                          </div>
+   522→                        </motion.div>
+   523→
+   524→                        {/* Password field */}
+   525→                        <motion.div custom={1} variants={fieldVariants} initial="initial" animate="animate" className="space-y-1.5">
+   526→                          <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">
+   527→                            Password
+   528→                          </Label>
+   529→                          <div className="relative">
+   530→                            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   531→                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   532→                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   533→                            </svg>
+   534→                            <Input
+   535→                              id="login-password"
+   536→                              type={showPassword ? 'text' : 'password'}
+   537→                              placeholder="Enter your password"
+   538→                              value={password}
+   539→                              onChange={(e) => { setPassword(e.target.value); setLoginError('') }}
+   540→                              required
+   541→                              className="h-12 pl-11 pr-11 rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white transition-colors focus:border-orange-400 focus:ring-orange-400/20"
+   542→                            />
+   543→                            <button
+   544→                              type="button"
+   545→                              onClick={() => setShowPassword(!showPassword)}
+   546→                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+   547→                              tabIndex={-1}
+   548→                              aria-label={showPassword ? 'Hide password' : 'Show password'}
+   549→                            >
+   550→                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   551→                            </button>
+   552→                          </div>
+   553→                        </motion.div>
+   554→
+   555→                        {/* Remember me & forgot password */}
+   556→                        <motion.div custom={2} variants={fieldVariants} initial="initial" animate="animate" className="flex items-center justify-between">
+   557→                          <label className="flex items-center gap-2 cursor-pointer group">
+   558→                            <Checkbox
+   559→                              checked={rememberMe}
+   560→                              onCheckedChange={(v) => setRememberMe(!!v)}
+   561→                              className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 rounded"
+   562→                            />
+   563→                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+   564→                              Remember me
+   565→                            </span>
+   566→                          </label>
+   567→                          <Link
+   568→                            href="/contact"
+   569→                            className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
+   570→                          >
+   571→                            Forgot Password?
+   572→                          </Link>
+   573→                        </motion.div>
+   574→
+   575→                        {/* Submit button */}
+   576→                        <motion.div custom={3} variants={fieldVariants} initial="initial" animate="animate">
+   577→                          <Button
+   578→                            type="submit"
+   579→                            disabled={loginLoading}
+   580→                            className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   581→                          >
+   582→                            {loginLoading ? (
+   583→                              <span className="flex items-center gap-2">
+   584→                                <Loader2 className="w-4 h-4 animate-spin" />
+   585→                                Signing in...
+   586→                              </span>
+   587→                            ) : (
+   588→                              <span className="flex items-center gap-2">
+   589→                                Sign In
+   590→                                <ArrowRight className="w-4 h-4" />
+   591→                              </span>
+   592→                            )}
+   593→                          </Button>
+   594→                        </motion.div>
+   595→                      </form>
+   596→                    </motion.div>
+   597→                  ) : (
+   598→                    <motion.div
+   599→                      key="whatsapp-login"
+   600→                      initial={{ opacity: 0, y: 10 }}
+   601→                      animate={{ opacity: 1, y: 0 }}
+   602→                      exit={{ opacity: 0, y: -10 }}
+   603→                      transition={{ duration: 0.25 }}
+   604→                      className="space-y-5"
+   605→                    >
+   606→                      {otpError && (
+   607→                        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+   608→                          <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   609→                            <span className="text-red-500 text-xs font-bold">!</span>
+   610→                          </div>
+   611→                          {otpError}
+   612→                        </div>
+   613→                      )}
+   614→
+   615→                      {!otpSent ? (
+   616→                        <>
+   617→                          <div className="space-y-1.5">
+   618→                            <Label htmlFor="whatsapp-phone" className="text-sm font-medium text-gray-700">
+   619→                              Phone Number
+   620→                            </Label>
+   621→                            <div className="flex gap-2">
+   622→                              <div className="flex items-center gap-1.5 px-3 h-12 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-600 shrink-0 font-medium">
+   623→                                <Phone className="w-4 h-4 text-gray-400" />
+   624→                                <span>{getCallingCode()}</span>
+   625→                              </div>
+   626→                              <Input
+   627→                                id="whatsapp-phone"
+   628→                                type="tel"
+   629→                                placeholder={getPhonePlaceholder()}
+   630→                                value={phoneNumber}
+   631→                                onChange={(e) => { setPhoneNumber(e.target.value); setOtpError('') }}
+   632→                                className="flex-1 h-12 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   633→                              />
+   634→                            </div>
+   635→                          </div>
+   636→
+   637→                          <Button
+   638→                            onClick={handleSendOtp}
+   639→                            disabled={otpLoading}
+   640→                            className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   641→                          >
+   642→                            {otpLoading ? (
+   643→                              <span className="flex items-center gap-2">
+   644→                                <Loader2 className="w-4 h-4 animate-spin" />
+   645→                                Sending OTP...
+   646→                              </span>
+   647→                            ) : (
+   648→                              <span className="flex items-center gap-2">
+   649→                                Send OTP Code
+   650→                                <ArrowRight className="w-4 h-4" />
+   651→                              </span>
+   652→                            )}
+   653→                          </Button>
+   654→                        </>
+   655→                      ) : (
+   656→                        <>
+   657→                          <div className="text-center space-y-1.5 p-4 rounded-xl bg-gray-50 border border-gray-100">
+   658→                            <p className="text-sm text-gray-500">
+   659→                              Enter the 6-digit code sent to
+   660→                            </p>
+   661→                            <p className="text-sm font-semibold text-gray-900">
+   662→                              {getCallingCode()} {phoneNumber}
+   663→                            </p>
+   664→                          </div>
+   665→
+   666→                          <div className="flex justify-center py-2">
+   667→                            <InputOTP
+   668→                              maxLength={6}
+   669→                              value={otpValue}
+   670→                              onChange={(val) => { setOtpValue(val); setOtpError('') }}
+   671→                            >
+   672→                              <InputOTPGroup>
+   673→                                <InputOTPSlot index={0} className="h-14 w-12 rounded-lg" />
+   674→                                <InputOTPSlot index={1} className="h-14 w-12 rounded-lg" />
+   675→                                <InputOTPSlot index={2} className="h-14 w-12 rounded-lg" />
+   676→                              </InputOTPGroup>
+   677→                              <div className="w-3 flex items-center justify-center text-gray-300 text-xl font-bold">-</div>
+   678→                              <InputOTPGroup>
+   679→                                <InputOTPSlot index={3} className="h-14 w-12 rounded-lg" />
+   680→                                <InputOTPSlot index={4} className="h-14 w-12 rounded-lg" />
+   681→                                <InputOTPSlot index={5} className="h-14 w-12 rounded-lg" />
+   682→                              </InputOTPGroup>
+   683→                            </InputOTP>
+   684→                          </div>
+   685→
+   686→                          <Button
+   687→                            onClick={handleVerifyOtp}
+   688→                            disabled={otpVerifyLoading}
+   689→                            className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   690→                          >
+   691→                            {otpVerifyLoading ? (
+   692→                              <span className="flex items-center gap-2">
+   693→                                <Loader2 className="w-4 h-4 animate-spin" />
+   694→                                Verifying...
+   695→                              </span>
+   696→                            ) : (
+   697→                              <span className="flex items-center gap-2">
+   698→                                Verify & Login
+   699→                                <CheckCircle2 className="w-4 h-4" />
+   700→                              </span>
+   701→                            )}
+   702→                          </Button>
+   703→
+   704→                          <div className="text-center">
+   705→                            {resendTimer > 0 ? (
+   706→                              <p className="text-sm text-gray-500">
+   707→                                Resend code in{' '}
+   708→                                <span className="font-semibold text-orange-600">{resendTimer}s</span>
+   709→                              </p>
+   710→                            ) : (
+   711→                              <button
+   712→                                onClick={handleResendOtp}
+   713→                                className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
+   714→                              >
+   715→                                Resend OTP Code
+   716→                              </button>
+   717→                            )}
+   718→                          </div>
+   719→                        </>
+   720→                      )}
+   721→                    </motion.div>
+   722→                  )}
+   723→                </AnimatePresence>
+   724→
+   725→                {/* Divider */}
+   726→                <div className="relative my-6">
+   727→                  <Separator className="bg-gray-200" />
+   728→                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-gray-400 uppercase tracking-wider">
+   729→                    or continue with
+   730→                  </span>
+   731→                </div>
+   732→
+   733→                {/* Social Login */}
+   734→                <div className="grid grid-cols-2 gap-3">
+   735→                  <Button
+   736→                    variant="outline"
+   737→                    className="h-11 gap-2 font-medium text-sm rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+   738→                    type="button"
+   739→                  >
+   740→                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+   741→                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+   742→                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+   743→                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+   744→                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+   745→                    </svg>
+   746→                    Google
+   747→                  </Button>
+   748→                  <Button
+   749→                    variant="outline"
+   750→                    className="h-11 gap-2 font-medium text-sm rounded-xl border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+   751→                    type="button"
+   752→                  >
+   753→                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+   754→                      <rect x="1" y="1" width="10" height="10" fill="#F25022" />
+   755→                      <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
+   756→                      <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
+   757→                      <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+   758→                    </svg>
+   759→                    Microsoft
+   760→                  </Button>
+   761→                </div>
+   762→
+   763→                {/* Bottom link */}
+   764→                <p className="text-center text-sm text-gray-500 mt-6">
+   765→                  Don&apos;t have an account?{' '}
+   766→                  <button
+   767→                    onClick={() => setView('register')}
+   768→                    className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+   769→                  >
+   770→                    Create Account
+   771→                  </button>
+   772→                </p>
+   773→
+   774→                {/* Footer links */}
+   775→                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-400">
+   776→                  <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">Privacy</Link>
+   777→                  <span>·</span>
+   778→                  <Link href="/terms-of-service" className="hover:text-gray-600 transition-colors">Terms</Link>
+   779→                  <span>·</span>
+   780→                  <Link href="/contact" className="hover:text-gray-600 transition-colors">Support</Link>
+   781→                </div>
+   782→              </motion.div>
+   783→            ) : (
+   784→              /* ──── REGISTER VIEW ──── */
+   785→              <motion.div key="register-form" variants={formVariants} initial="initial" animate="animate" exit="exit">
+   786→                {/* Mobile-only header */}
+   787→                <div className="lg:hidden mb-6">
+   788→                  <h1 className="text-2xl font-bold text-gray-900 mb-1">Create Account</h1>
+   789→                  <p className="text-sm text-gray-500">Get started with SmartBuild for free</p>
+   790→                </div>
+   791→
+   792→                {/* Desktop heading */}
+   793→                <div className="hidden lg:block mb-6">
+   794→                  <h2 className="text-2xl font-bold text-gray-900 mb-1">Create Your Account</h2>
+   795→                  <p className="text-sm text-gray-500">
+   796→                    Fill in your details to get started. Free 14-day trial included.
+   797→                  </p>
+   798→                </div>
+   799→
+   800→                <form onSubmit={handleRegister} className="space-y-4">
+   801→                  {regError && (
+   802→                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+   803→                      <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   804→                        <span className="text-red-500 text-xs font-bold">!</span>
+   805→                      </div>
+   806→                      {regError}
+   807→                    </div>
+   808→                  )}
+   809→
+   810→                  {/* Name row */}
+   811→                  <div className="grid grid-cols-2 gap-3">
+   812→                    <div className="space-y-1.5">
+   813→                      <Label htmlFor="reg-first" className="text-sm font-medium text-gray-700">First Name</Label>
+   814→                      <Input
+   815→                        id="reg-first"
+   816→                        placeholder="John"
+   817→                        value={regFirstName}
+   818→                        onChange={(e) => { setRegFirstName(e.target.value); setRegError('') }}
+   819→                        required
+   820→                        className="h-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   821→                      />
+   822→                    </div>
+   823→                    <div className="space-y-1.5">
+   824→                      <Label htmlFor="reg-last" className="text-sm font-medium text-gray-700">Last Name</Label>
+   825→                      <Input
+   826→                        id="reg-last"
+   827→                        placeholder="Doe"
+   828→                        value={regLastName}
+   829→                        onChange={(e) => { setRegLastName(e.target.value); setRegError('') }}
+   830→                        required
+   831→                        className="h-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   832→                      />
+   833→                    </div>
+   834→                  </div>
+   835→
+   836→                  {/* Email */}
+   837→                  <div className="space-y-1.5">
+   838→                    <Label htmlFor="reg-email" className="text-sm font-medium text-gray-700">Email Address</Label>
+   839→                    <div className="relative">
+   840→                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+   841→                      <Input
+   842→                        id="reg-email"
+   843→                        type="email"
+   844→                        placeholder="john@company.com"
+   845→                        value={regEmail}
+   846→                        onChange={(e) => { setRegEmail(e.target.value); setRegError('') }}
+   847→                        required
+   848→                        className="h-11 pl-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   849→                      />
+   850→                    </div>
+   851→                  </div>
+   852→
+   853→                  {/* Phone */}
+   854→                  <div className="space-y-1.5">
+   855→                    <Label htmlFor="reg-phone" className="text-sm font-medium text-gray-700">
+   856→                      Phone Number
+   857→                    </Label>
+   858→                    <div className="flex gap-2">
+   859→                      <div className="flex items-center gap-1.5 px-3 h-11 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-600 shrink-0 font-medium">
+   860→                        <span>{country?.flagEmoji ?? '🇧🇳'}</span>
+   861→                        <span>{getCallingCode()}</span>
+   862→                      </div>
+   863→                      <Input
+   864→                        id="reg-phone"
+   865→                        type="tel"
+   866→                        placeholder={getPhonePlaceholder()}
+   867→                        value={regPhone}
+   868→                        onChange={(e) => { setRegPhone(e.target.value); setRegError('') }}
+   869→                        className="flex-1 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   870→                      />
+   871→                    </div>
+   872→                  </div>
+   873→
+   874→                  {/* Company & Position */}
+   875→                  <div className="grid grid-cols-2 gap-3">
+   876→                    <div className="space-y-1.5">
+   877→                      <Label htmlFor="reg-company" className="text-sm font-medium text-gray-700">Company</Label>
+   878→                      <div className="relative">
+   879→                        <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+   880→                        <Input
+   881→                          id="reg-company"
+   882→                          placeholder="Company Name"
+   883→                          value={regCompany}
+   884→                          onChange={(e) => setRegCompany(e.target.value)}
+   885→                          className="h-11 pl-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   886→                        />
+   887→                      </div>
+   888→                    </div>
+   889→                    <div className="space-y-1.5">
+   890→                      <Label htmlFor="reg-position" className="text-sm font-medium text-gray-700">Position</Label>
+   891→                      <div className="relative">
+   892→                        <HardHat className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+   893→                        <Input
+   894→                          id="reg-position"
+   895→                          placeholder="Project Manager"
+   896→                          value={regPosition}
+   897→                          onChange={(e) => setRegPosition(e.target.value)}
+   898→                          className="h-11 pl-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   899→                        />
+   900→                      </div>
+   901→                    </div>
+   902→                  </div>
+   903→
+   904→                  {/* Password */}
+   905→                  <div className="space-y-1.5">
+   906→                    <Label htmlFor="reg-password" className="text-sm font-medium text-gray-700">Password</Label>
+   907→                    <div className="relative">
+   908→                      <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   909→                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   910→                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   911→                      </svg>
+   912→                      <Input
+   913→                        id="reg-password"
+   914→                        type={regShowPassword ? 'text' : 'password'}
+   915→                        placeholder="Min. 6 characters"
+   916→                        value={regPassword}
+   917→                        onChange={(e) => { setRegPassword(e.target.value); setRegError('') }}
+   918→                        required
+   919→                        className="h-11 pl-11 pr-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   920→                      />
+   921→                      <button
+   922→                        type="button"
+   923→                        onClick={() => setRegShowPassword(!regShowPassword)}
+   924→                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+   925→                        tabIndex={-1}
+   926→                      >
+   927→                        {regShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   928→                      </button>
+   929→                    </div>
+   930→                  </div>
+   931→
+   932→                  {/* Confirm Password */}
+   933→                  <div className="space-y-1.5">
+   934→                    <Label htmlFor="reg-confirm" className="text-sm font-medium text-gray-700">Confirm Password</Label>
+   935→                    <div className="relative">
+   936→                      <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   937→                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   938→                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   939→                      </svg>
+   940→                      <Input
+   941→                        id="reg-confirm"
+   942→                        type={regShowPassword ? 'text' : 'password'}
+   943→                        placeholder="Re-enter your password"
+   944→                        value={regConfirmPassword}
+   945→                        onChange={(e) => { setRegConfirmPassword(e.target.value); setRegError('') }}
+   946→                        required
+   947→                        className="h-11 pl-11 rounded-xl border-gray-200 bg-gray-50/50 focus:border-orange-400 focus:ring-orange-400/20 transition-colors"
+   948→                      />
+   949→                    </div>
+   950→                  </div>
+   951→
+   952→                  {/* Terms */}
+   953→                  <label className="flex items-start gap-2.5 cursor-pointer">
+   954→                    <Checkbox className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 rounded mt-0.5" />
+   955→                    <span className="text-xs text-gray-500 leading-relaxed">
+   956→                      I agree to the{' '}
+   957→                      <Link href="/terms-of-service" className="text-orange-600 hover:underline">Terms of Service</Link>
+   958→                      {' '}and{' '}
+   959→                      <Link href="/privacy-policy" className="text-orange-600 hover:underline">Privacy Policy</Link>
+   960→                    </span>
+   961→                  </label>
+   962→
+   963→                  {/* Submit button */}
+   964→                  <Button
+   965→                    type="submit"
+   966→                    disabled={regLoading}
+   967→                    className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   968→                  >
+   969→                    {regLoading ? (
+   970→                      <span className="flex items-center gap-2">
+   971→                        <Loader2 className="w-4 h-4 animate-spin" />
+   972→                        Creating Account...
+   973→                      </span>
+   974→                    ) : (
+   975→                      <span className="flex items-center gap-2">
+   976→                        Create Account
+   977→                        <ArrowRight className="w-4 h-4" />
+   978→                      </span>
+   979→                    )}
+   980→                  </Button>
+   981→                </form>
+   982→
+   983→                {/* Switch to login */}
+   984→                <p className="text-center text-sm text-gray-500 mt-6">
+   985→                  Already have an account?{' '}
+   986→                  <button
+   987→                    onClick={() => setView('login')}
+   988→                    className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+   989→                  >
+   990→                    Sign In
+   991→                  </button>
+   992→                </p>
+   993→              </motion.div>
+   994→            )}
+   995→          </AnimatePresence>
+   996→        </div>
+   997→      </div>
+   998→    </div>
+   999→  )
+  1000→}
+  1001→

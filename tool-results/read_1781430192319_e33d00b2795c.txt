@@ -1,0 +1,1094 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import { Progress } from '@/components/ui/progress'
+    15→import { Separator } from '@/components/ui/separator'
+    16→import { ScrollArea } from '@/components/ui/scroll-area'
+    17→import {
+    18→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    19→} from '@/components/ui/select'
+    20→import {
+    21→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    22→} from '@/components/ui/table'
+    23→import {
+    24→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger,
+    25→} from '@/components/ui/dialog'
+    26→import { useToast } from '@/hooks/use-toast'
+    27→import { cn } from '@/lib/utils'
+    28→import {
+    29→  CheckCircle2, Clock, Star, AlertTriangle, Play, Pause, Package,
+    30→  Plus, ArrowDownUp, ChevronDown, ChevronUp, Wrench, Calendar,
+    31→  MapPin, Timer, Award, TrendingUp, BarChart3, Zap, Phone,
+    32→  FileText, ShoppingCart, CircleCheck, CircleX, CircleAlert,
+    33→  Briefcase, Users, ThumbsUp, ListChecks, ClipboardCheck,
+    34→  LogIn, LogOut, Circle, PackageOpen, PackageCheck, Hourglass,
+    35→  Truck, ArrowRight,
+    36→} from 'lucide-react'
+    37→
+    38→// ─── Types ───
+    39→interface TechTicket {
+    40→  id: string
+    41→  ticketNo: string
+    42→  subject: string
+    43→  priority: string
+    44→  status: string
+    45→  type: string
+    46→  createdAt: string
+    47→  slaDeadline: string
+    48→  startedAt?: string
+    49→  completedAt?: string
+    50→  customer: { id: string; name: string } | null
+    51→  site: { id: string; name: string; address: string } | null
+    52→  workOrder?: { id: string; woNo: string }
+    53→  isOverdue: boolean
+    54→  description?: string
+    55→}
+    56→
+    57→interface ScheduleItem {
+    58→  ticketNo: string
+    59→  subject: string
+    60→  customerName: string
+    61→  siteName: string
+    62→  siteAddress: string
+    63→  scheduledTime: string
+    64→  status: string
+    65→  ticketId: string
+    66→  priority: string
+    67→}
+    68→
+    69→interface MaterialRequest {
+    70→  id: string
+    71→  mrNo: string
+    72→  ticketNo: string
+    73→  status: string
+    74→  createdAt: string
+    75→  items: Array<{
+    76→    id: string
+    77→    name: string
+    78→    quantity: number
+    79→    unit: string
+    80→    requestedQty: number
+    81→  }>
+    82→  ticket?: { ticketNo: string; subject: string }
+    83→}
+    84→
+    85→interface PerformanceData {
+    86→  totalJobs: number
+    87→  completedJobs: number
+    88→  completionRate: number
+    89→  avgResponseTime: number
+    90→  avgResolutionTime: number
+    91→  customerRating: number
+    92→  totalRatings: number
+    93→  monthlyTrend: Array<{
+    94→    month: string
+    95→    completed: number
+    96→    avgRating: number
+    97→    avgResponse: number
+    98→  }>
+    99→  skills: string[]
+   100→  certifications: string[]
+   101→}
+   102→
+   103→// ─── Config ───
+   104→const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
+   105→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+   106→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+   107→  medium: { label: 'Medium', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', dotColor: 'bg-amber-500' },
+   108→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+   109→}
+   110→
+   111→const ticketStatusConfig: Record<string, { label: string; color: string; step: number }> = {
+   112→  assigned: { label: 'Assigned', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', step: 0 },
+   113→  accepted: { label: 'Accepted', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 1 },
+   114→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 2 },
+   115→  on_hold: { label: 'On Hold', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', step: 2 },
+   116→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 3 },
+   117→  verified: { label: 'Verified', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300', step: 4 },
+   118→  closed: { label: 'Closed', color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400', step: 5 },
+   119→}
+   120→
+   121→const materialStatusConfig: Record<string, { label: string; color: string; icon: any }> = {
+   122→  requested: { label: 'Requested', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', icon: Hourglass },
+   123→  supervisor_approved: { label: 'Supervisor Approved', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', icon: CircleCheck },
+   124→  store_approved: { label: 'Store Approved', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', icon: PackageCheck },
+   125→  issued: { label: 'Issued', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', icon: Truck },
+   126→  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', icon: CircleX },
+   127→}
+   128→
+   129→function formatTimeAgo(dateStr: string): string {
+   130→  const diff = Date.now() - new Date(dateStr).getTime()
+   131→  const mins = Math.floor(diff / 60000)
+   132→  if (mins < 60) return `${mins}m ago`
+   133→  const hrs = Math.floor(mins / 60)
+   134→  if (hrs < 24) return `${hrs}h ago`
+   135→  return `${Math.floor(hrs / 24)}d ago`
+   136→}
+   137→
+   138→function formatDuration(minutes: number): string {
+   139→  if (minutes < 60) return `${minutes}m`
+   140→  const hrs = Math.floor(minutes / 60)
+   141→  const m = minutes % 60
+   142→  return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`
+   143→}
+   144→
+   145→// ─── Main Component ───
+   146→export function TechnicianPortal() {
+   147→  const { toast } = useToast()
+   148→  const queryClient = useQueryClient()
+   149→  const [activeTab, setActiveTab] = useState('my-jobs')
+   150→  const [expandedJob, setExpandedJob] = useState<string | null>(null)
+   151→  const [expandedCompleted, setExpandedCompleted] = useState<string | null>(null)
+   152→  const [materialDialogOpen, setMaterialDialogOpen] = useState(false)
+   153→  const [selectedJobForMaterial, setSelectedJobForMaterial] = useState<TechTicket | null>(null)
+   154→
+   155→  // Fetch my tickets (assigned/in_progress)
+   156→  const { data: myJobsData, isLoading: myJobsLoading } = useQuery({
+   157→    queryKey: ['tech-my-jobs'],
+   158→    queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress,on_hold').then(r => r.data || []),
+   159→    refetchInterval: 30000,
+   160→  })
+   161→
+   162→  // Fetch completed tickets
+   163→  const { data: completedData, isLoading: completedLoading } = useQuery({
+   164→    queryKey: ['tech-completed-jobs'],
+   165→    queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=completed,verified,closed').then(r => r.data || []),
+   166→  })
+   167→
+   168→  // Fetch today's schedule (use assigned tickets for today)
+   169→  const { data: scheduleData, isLoading: scheduleLoading } = useQuery({
+   170→    queryKey: ['tech-schedule-today'],
+   171→    queryFn: () => api.get<ScheduleItem[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress&limit=20').then(r => r.data || []),
+   172→  })
+   173→
+   174→  // Fetch material requests
+   175→  const { data: materialsData, isLoading: materialsLoading } = useQuery({
+   176→    queryKey: ['tech-materials'],
+   177→    queryFn: () => api.get<MaterialRequest[]>('/api/maintenance/materials').then(r => r.data || []),
+   178→  })
+   179→
+   180→  // Fetch performance data
+   181→  const { data: perfData, isLoading: perfLoading } = useQuery({
+   182→    queryKey: ['tech-performance'],
+   183→    queryFn: () => api.get<PerformanceData>('/api/maintenance/reports?type=technician_performance').then(r => r.data!),
+   184→  })
+   185→
+   186→  const myJobs = myJobsData || []
+   187→  const completedJobs = completedData || []
+   188→  const scheduleItems = scheduleData || []
+   189→  const materialRequests = materialsData || []
+   190→  const performance = perfData as PerformanceData | undefined
+   191→
+   192→  // Update ticket mutation
+   193→  const updateTicketMutation = useMutation({
+   194→    mutationFn: ({ id, ...body }: { id: string; [key: string]: any }) =>
+   195→      api.put(`/api/maintenance/tickets/${id}`, body),
+   196→    onSuccess: () => {
+   197→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   198→      queryClient.invalidateQueries({ queryKey: ['tech-completed-jobs'] })
+   199→      queryClient.invalidateQueries({ queryKey: ['tech-schedule-today'] })
+   200→      toast({ title: 'Job Updated', description: 'Status has been updated successfully.' })
+   201→    },
+   202→    onError: (err: any) => {
+   203→      toast({ title: 'Update Failed', description: err.error || 'Failed to update job', variant: 'destructive' })
+   204→    },
+   205→  })
+   206→
+   207→  // Create material request mutation
+   208→  const createMaterialMutation = useMutation({
+   209→    mutationFn: (body: any) => api.post('/api/maintenance/materials', body),
+   210→    onSuccess: () => {
+   211→      queryClient.invalidateQueries({ queryKey: ['tech-materials'] })
+   212→      setMaterialDialogOpen(false)
+   213→      toast({ title: 'Request Submitted', description: 'Material request has been created.' })
+   214→    },
+   215→    onError: (err: any) => {
+   216→      toast({ title: 'Request Failed', description: err.error || 'Failed to create material request', variant: 'destructive' })
+   217→    },
+   218→  })
+   219→
+   220→  const handleJobAction = (ticket: TechTicket, action: string) => {
+   221→    const statusMap: Record<string, string> = {
+   222→      accept: 'accepted',
+   223→      start: 'in_progress',
+   224→      pause: 'on_hold',
+   225→      complete: 'completed',
+   226→    }
+   227→    updateTicketMutation.mutate({ id: ticket.id, status: statusMap[action] })
+   228→  }
+   229→
+   230→  const handleRequestMaterials = (ticket: TechTicket) => {
+   231→    setSelectedJobForMaterial(ticket)
+   232→    setMaterialDialogOpen(true)
+   233→  }
+   234→
+   235→  const myJobsGrouped = useMemo(() => {
+   236→    const urgent = myJobs.filter(t => t.priority === 'emergency')
+   237→    const high = myJobs.filter(t => t.priority === 'high')
+   238→    const others = myJobs.filter(t => t.priority !== 'emergency' && t.priority !== 'high')
+   239→    return { urgent, high, others }
+   240→  }, [myJobs])
+   241→
+   242→  return (
+   243→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   244→      {/* Header */}
+   245→      <div>
+   246→        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+   247→          <Wrench className="h-6 w-6 text-rose-600" />
+   248→          Technician Portal
+   249→        </h1>
+   250→        <p className="text-muted-foreground text-sm mt-1">Manage your assignments, schedule, and materials</p>
+   251→      </div>
+   252→
+   253→      {/* Tabs */}
+   254→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   255→        <TabsList className="grid w-full grid-cols-5">
+   256→          <TabsTrigger value="my-jobs" className="gap-1.5 text-xs sm:text-sm">
+   257→            <Briefcase className="h-3.5 w-3.5" /> My Jobs
+   258→            {myJobs.length > 0 && (
+   259→              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1 text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300">
+   260→                {myJobs.length}
+   261→              </Badge>
+   262→            )}
+   263→          </TabsTrigger>
+   264→          <TabsTrigger value="schedule" className="gap-1.5 text-xs sm:text-sm">
+   265→            <Calendar className="h-3.5 w-3.5" /> Today
+   266→          </TabsTrigger>
+   267→          <TabsTrigger value="completed" className="gap-1.5 text-xs sm:text-sm">
+   268→            <CheckCircle2 className="h-3.5 w-3.5" /> Completed
+   269→          </TabsTrigger>
+   270→          <TabsTrigger value="materials" className="gap-1.5 text-xs sm:text-sm">
+   271→            <Package className="h-3.5 w-3.5" /> Materials
+   272→          </TabsTrigger>
+   273→          <TabsTrigger value="performance" className="gap-1.5 text-xs sm:text-sm">
+   274→            <BarChart3 className="h-3.5 w-3.5" /> Performance
+   275→          </TabsTrigger>
+   276→        </TabsList>
+   277→
+   278→        {/* Tab 1: My Jobs */}
+   279→        <TabsContent value="my-jobs" className="mt-4 space-y-4">
+   280→          {myJobsLoading ? (
+   281→            <div className="space-y-3">
+   282→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 rounded-xl" />)}
+   283→            </div>
+   284→          ) : myJobs.length === 0 ? (
+   285→            <Card>
+   286→              <CardContent className="flex flex-col items-center justify-center py-16">
+   287→                <ClipboardCheck className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   288→                <p className="text-sm text-muted-foreground">No active jobs</p>
+   289→                <p className="text-xs text-muted-foreground mt-1">You have no assignments at the moment</p>
+   290→              </CardContent>
+   291→            </Card>
+   292→          ) : (
+   293→            <>
+   294→              {/* Urgent Jobs */}
+   295→              {myJobsGrouped.urgent.length > 0 && (
+   296→                <div className="space-y-3">
+   297→                  <div className="flex items-center gap-2">
+   298→                    <AlertTriangle className="h-4 w-4 text-red-500" />
+   299→                    <h3 className="text-sm font-semibold text-red-600">Emergency Jobs</h3>
+   300→                  </div>
+   301→                  {myJobsGrouped.urgent.map(ticket => (
+   302→                    <JobCard
+   303→                      key={ticket.id}
+   304→                      ticket={ticket}
+   305→                      expanded={expandedJob === ticket.id}
+   306→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   307→                      onAction={handleJobAction}
+   308→                      onMaterial={handleRequestMaterials}
+   309→                      updating={updateTicketMutation.isPending}
+   310→                    />
+   311→                  ))}
+   312→                </div>
+   313→              )}
+   314→
+   315→              {/* High Priority */}
+   316→              {myJobsGrouped.high.length > 0 && (
+   317→                <div className="space-y-3">
+   318→                  <div className="flex items-center gap-2">
+   319→                    <Zap className="h-4 w-4 text-orange-500" />
+   320→                    <h3 className="text-sm font-semibold text-orange-600">High Priority</h3>
+   321→                  </div>
+   322→                  {myJobsGrouped.high.map(ticket => (
+   323→                    <JobCard
+   324→                      key={ticket.id}
+   325→                      ticket={ticket}
+   326→                      expanded={expandedJob === ticket.id}
+   327→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   328→                      onAction={handleJobAction}
+   329→                      onMaterial={handleRequestMaterials}
+   330→                      updating={updateTicketMutation.isPending}
+   331→                    />
+   332→                  ))}
+   333→                </div>
+   334→              )}
+   335→
+   336→              {/* Other Jobs */}
+   337→              {myJobsGrouped.others.length > 0 && (
+   338→                <div className="space-y-3">
+   339→                  <div className="flex items-center gap-2">
+   340→                    <ListChecks className="h-4 w-4 text-slate-500" />
+   341→                    <h3 className="text-sm font-semibold">Other Jobs</h3>
+   342→                  </div>
+   343→                  {myJobsGrouped.others.map(ticket => (
+   344→                    <JobCard
+   345→                      key={ticket.id}
+   346→                      ticket={ticket}
+   347→                      expanded={expandedJob === ticket.id}
+   348→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   349→                      onAction={handleJobAction}
+   350→                      onMaterial={handleRequestMaterials}
+   351→                      updating={updateTicketMutation.isPending}
+   352→                    />
+   353→                  ))}
+   354→                </div>
+   355→              )}
+   356→            </>
+   357→          )}
+   358→        </TabsContent>
+   359→
+   360→        {/* Tab 2: Today's Schedule */}
+   361→        <TabsContent value="schedule" className="mt-4">
+   362→          <Card>
+   363→            <CardHeader className="pb-3">
+   364→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   365→                <Calendar className="h-4 w-4 text-rose-600" />
+   366→                Today&apos;s Schedule
+   367→              </CardTitle>
+   368→              <CardDescription className="text-xs">{new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
+   369→            </CardHeader>
+   370→            <CardContent>
+   371→              {scheduleLoading ? (
+   372→                <div className="space-y-3">
+   373→                  {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}
+   374→                </div>
+   375→              ) : scheduleItems.length === 0 ? (
+   376→                <div className="flex flex-col items-center justify-center py-12">
+   377→                  <Calendar className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   378→                  <p className="text-sm text-muted-foreground">No schedule for today</p>
+   379→                  <p className="text-xs text-muted-foreground mt-1">Check your assigned jobs for upcoming work</p>
+   380→                </div>
+   381→              ) : (
+   382→                <div className="space-y-2">
+   383→                  {scheduleItems.map((item, idx) => {
+   384→                    const pri = priorityConfig[item.priority] || priorityConfig.medium
+   385→                    const stat = ticketStatusConfig[item.status] || ticketStatusConfig.assigned
+   386→                    return (
+   387→                      <div
+   388→                        key={idx}
+   389→                        className={cn(
+   390→                          'flex items-center gap-4 p-3 rounded-lg border transition-colors',
+   391→                          item.status === 'in_progress' ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900 dark:bg-rose-950/20' : 'border-border hover:bg-muted/50'
+   392→                        )}
+   393→                      >
+   394→                        <div className="flex flex-col items-center min-w-[60px]">
+   395→                          <span className="text-xs font-mono text-muted-foreground">
+   396→                            {item.scheduledTime ? new Date(item.scheduledTime).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }) : '—'}
+   397→                          </span>
+   398→                        </div>
+   399→                        <Separator orientation="vertical" className="h-10" />
+   400→                        <div className="flex-1 min-w-0">
+   401→                          <div className="flex items-center gap-2 mb-1">
+   402→                            <span className="text-xs font-mono font-medium">{item.ticketNo}</span>
+   403→                            <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', pri.color)}>
+   404→                              {pri.label}
+   405→                            </Badge>
+   406→                            <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', stat.color)}>
+   407→                              {stat.label}
+   408→                            </Badge>
+   409→                          </div>
+   410→                          <p className="text-sm font-medium truncate">{item.subject}</p>
+   411→                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+   412→                            <span className="flex items-center gap-1">
+   413→                              <Users className="h-3 w-3" /> {item.customerName}
+   414→                            </span>
+   415→                            <span className="flex items-center gap-1">
+   416→                              <MapPin className="h-3 w-3" /> {item.siteName}
+   417→                            </span>
+   418→                          </div>
+   419→                        </div>
+   420→                        <div className="flex gap-1.5">
+   421→                          {item.status === 'assigned' || item.status === 'accepted' ? (
+   422→                            <Button size="sm" className="h-8 gap-1 text-xs bg-rose-600 hover:bg-rose-700" onClick={() => {
+   423→                              if (item.ticketId) updateTicketMutation.mutate({ id: item.ticketId, status: 'in_progress' })
+   424→                            }}>
+   425→                              <LogIn className="h-3 w-3" /> Check In
+   426→                            </Button>
+   427→                          ) : item.status === 'in_progress' ? (
+   428→                            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs" onClick={() => {
+   429→                              if (item.ticketId) updateTicketMutation.mutate({ id: item.ticketId, status: 'completed' })
+   430→                            }}>
+   431→                              <LogOut className="h-3 w-3" /> Check Out
+   432→                            </Button>
+   433→                          ) : null}
+   434→                        </div>
+   435→                      </div>
+   436→                    )
+   437→                  })}
+   438→                </div>
+   439→              )}
+   440→            </CardContent>
+   441→          </Card>
+   442→        </TabsContent>
+   443→
+   444→        {/* Tab 3: Completed Jobs */}
+   445→        <TabsContent value="completed" className="mt-4">
+   446→          <Card>
+   447→            <CardContent className="p-0">
+   448→              {completedLoading ? (
+   449→                <div className="p-6 space-y-3">
+   450→                  {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   451→                </div>
+   452→              ) : completedJobs.length === 0 ? (
+   453→                <div className="flex flex-col items-center justify-center py-16">
+   454→                  <CheckCircle2 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   455→                  <p className="text-sm text-muted-foreground">No completed jobs yet</p>
+   456→                </div>
+   457→              ) : (
+   458→                <div className="max-h-96 overflow-y-auto overflow-x-auto">
+   459→                  <Table>
+   460→                    <TableHeader>
+   461→                      <TableRow>
+   462→                        <TableHead className="w-8"></TableHead>
+   463→                        <TableHead className="text-xs">Ticket#</TableHead>
+   464→                        <TableHead className="text-xs">Subject</TableHead>
+   465→                        <TableHead className="text-xs">Customer</TableHead>
+   466→                        <TableHead className="text-xs">Completed</TableHead>
+   467→                        <TableHead className="text-xs">Rating</TableHead>
+   468→                        <TableHead className="text-xs">Time Spent</TableHead>
+   469→                      </TableRow>
+   470→                    </TableHeader>
+   471→                    <TableBody>
+   472→                      {completedJobs.map((ticket) => {
+   473→                        const isExpanded = expandedCompleted === ticket.id
+   474→                        const timeSpent = ticket.startedAt && ticket.completedAt
+   475→                          ? Math.round((new Date(ticket.completedAt).getTime() - new Date(ticket.startedAt).getTime()) / 60000)
+   476→                          : 0
+   477→                        return (
+   478→                          <React.Fragment key={ticket.id}>
+   479→                            <TableRow
+   480→                              className="cursor-pointer hover:bg-muted/40"
+   481→                              onClick={() => setExpandedCompleted(prev => prev === ticket.id ? null : ticket.id)}
+   482→                            >
+   483→                              <TableCell className="py-3">
+   484→                                {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+   485→                              </TableCell>
+   486→                              <TableCell className="text-xs font-mono">{ticket.ticketNo}</TableCell>
+   487→                              <TableCell className="text-xs font-medium">{ticket.subject}</TableCell>
+   488→                              <TableCell className="text-xs text-muted-foreground">{ticket.customer?.name || '—'}</TableCell>
+   489→                              <TableCell className="text-xs text-muted-foreground">
+   490→                                {ticket.completedAt ? new Date(ticket.completedAt).toLocaleDateString() : '—'}
+   491→                              </TableCell>
+   492→                              <TableCell>
+   493→                                <div className="flex items-center gap-1">
+   494→                                  <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+   495→                                  <span className="text-xs">—</span>
+   496→                                </div>
+   497→                              </TableCell>
+   498→                              <TableCell className="text-xs text-muted-foreground">
+   499→                                {timeSpent > 0 ? formatDuration(timeSpent) : '—'}
+   500→                              </TableCell>
+   501→                            </TableRow>
+   502→                            {isExpanded && (
+   503→                              <TableRow>
+   504→                                <TableCell colSpan={7} className="bg-muted/20 px-6 py-4">
+   505→                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   506→                                    <div>
+   507→                                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Details</h4>
+   508→                                      <div className="space-y-1.5 text-sm">
+   509→                                        <div className="flex justify-between">
+   510→                                          <span className="text-muted-foreground">Type:</span>
+   511→                                          <span className="font-medium">{ticket.type}</span>
+   512→                                        </div>
+   513→                                        <div className="flex justify-between">
+   514→                                          <span className="text-muted-foreground">Site:</span>
+   515→                                          <span className="font-medium">{ticket.site?.name || '—'}</span>
+   516→                                        </div>
+   517→                                        <div className="flex justify-between">
+   518→                                          <span className="text-muted-foreground">Status:</span>
+   519→                                          <Badge variant="secondary" className={cn('text-[10px]', ticketStatusConfig[ticket.status]?.color)}>
+   520→                                            {ticketStatusConfig[ticket.status]?.label}
+   521→                                          </Badge>
+   522→                                        </div>
+   523→                                        {ticket.workOrder && (
+   524→                                          <div className="flex justify-between">
+   525→                                            <span className="text-muted-foreground">Work Order:</span>
+   526→                                            <span className="font-mono text-xs font-medium">{ticket.workOrder.woNo}</span>
+   527→                                          </div>
+   528→                                        )}
+   529→                                      </div>
+   530→                                    </div>
+   531→                                    <div>
+   532→                                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Timeline</h4>
+   533→                                      <div className="space-y-1.5 text-sm">
+   534→                                        <div className="flex justify-between">
+   535→                                          <span className="text-muted-foreground">Created:</span>
+   536→                                          <span className="text-xs">{new Date(ticket.createdAt).toLocaleString()}</span>
+   537→                                        </div>
+   538→                                        <div className="flex justify-between">
+   539→                                          <span className="text-muted-foreground">Started:</span>
+   540→                                          <span className="text-xs">{ticket.startedAt ? new Date(ticket.startedAt).toLocaleString() : '—'}</span>
+   541→                                        </div>
+   542→                                        <div className="flex justify-between">
+   543→                                          <span className="text-muted-foreground">Completed:</span>
+   544→                                          <span className="text-xs">{ticket.completedAt ? new Date(ticket.completedAt).toLocaleString() : '—'}</span>
+   545→                                        </div>
+   546→                                        <div className="flex justify-between">
+   547→                                          <span className="text-muted-foreground">Duration:</span>
+   548→                                          <span className="text-xs font-medium">{timeSpent > 0 ? formatDuration(timeSpent) : '—'}</span>
+   549→                                        </div>
+   550→                                      </div>
+   551→                                    </div>
+   552→                                  </div>
+   553→                                </TableCell>
+   554→                              </TableRow>
+   555→                            )}
+   556→                          </React.Fragment>
+   557→                        )
+   558→                      })}
+   559→                    </TableBody>
+   560→                  </Table>
+   561→                </div>
+   562→              )}
+   563→            </CardContent>
+   564→          </Card>
+   565→        </TabsContent>
+   566→
+   567→        {/* Tab 4: Material Requests */}
+   568→        <TabsContent value="materials" className="mt-4 space-y-4">
+   569→          <div className="flex justify-end">
+   570→            <Dialog open={materialDialogOpen} onOpenChange={(open) => { setMaterialDialogOpen(open); if (!open) setSelectedJobForMaterial(null) }}>
+   571→              <DialogTrigger asChild>
+   572→                <Button size="sm" className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   573→                  <Plus className="h-3.5 w-3.5" /> New Request
+   574→                </Button>
+   575→              </DialogTrigger>
+   576→              <DialogContent className="sm:max-w-lg">
+   577→                <DialogHeader>
+   578→                  <DialogTitle>New Material Request</DialogTitle>
+   579→                  <p className="text-sm text-muted-foreground">
+   580→                    {selectedJobForMaterial ? `For ${selectedJobForMaterial.ticketNo}: ${selectedJobForMaterial.subject}` : 'Select a job first'}
+   581→                  </p>
+   582→                </DialogHeader>
+   583→                <MaterialRequestForm
+   584→                  ticketId={selectedJobForMaterial?.id || ''}
+   585→                  ticketNo={selectedJobForMaterial?.ticketNo || ''}
+   586→                  onSubmit={(data) => createMaterialMutation.mutate(data)}
+   587→                  loading={createMaterialMutation.isPending}
+   588→                />
+   589→              </DialogContent>
+   590→            </Dialog>
+   591→          </div>
+   592→
+   593→          {materialsLoading ? (
+   594→            <div className="space-y-3">
+   595→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
+   596→            </div>
+   597→          ) : materialRequests.length === 0 ? (
+   598→            <Card>
+   599→              <CardContent className="flex flex-col items-center justify-center py-16">
+   600→                <ShoppingCart className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   601→                <p className="text-sm text-muted-foreground">No material requests</p>
+   602→                <Button size="sm" variant="outline" className="mt-3 gap-1.5" onClick={() => {
+   603→                  if (myJobs.length > 0) {
+   604→                    setSelectedJobForMaterial(myJobs[0])
+   605→                    setMaterialDialogOpen(true)
+   606→                  } else {
+   607→                    toast({ title: 'No Jobs', description: 'You need an active job to request materials', variant: 'destructive' })
+   608→                  }
+   609→                }}>
+   610→                  <Plus className="h-3.5 w-3.5" /> Create Request
+   611→                </Button>
+   612→              </CardContent>
+   613→            </Card>
+   614→          ) : (
+   615→            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   616→              {materialRequests.map((mr) => {
+   617→                const status = materialStatusConfig[mr.status] || materialStatusConfig.requested
+   618→                const StatusIcon = status.icon
+   619→                return (
+   620→                  <Card key={mr.id}>
+   621→                    <CardContent className="p-4">
+   622→                      <div className="flex items-start justify-between mb-3">
+   623→                        <div>
+   624→                          <p className="font-mono text-xs font-medium">{mr.mrNo}</p>
+   625→                          <p className="text-xs text-muted-foreground mt-0.5">
+   626→                            {mr.ticket?.ticketNo || mr.ticketNo} — {mr.ticket?.subject || 'Material request'}
+   627→                          </p>
+   628→                        </div>
+   629→                        <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', status.color)}>
+   630→                          <StatusIcon className="h-3 w-3" />
+   631→                          {status.label}
+   632→                        </Badge>
+   633→                      </div>
+   634→                      {mr.items.length > 0 && (
+   635→                        <div className="space-y-1.5">
+   636→                          {mr.items.map((item, idx) => (
+   637→                            <div key={idx} className="flex items-center justify-between text-xs p-2 rounded bg-muted/50">
+   638→                              <span className="font-medium">{item.name}</span>
+   639→                              <span className="text-muted-foreground">
+   640→                                {item.requestedQty} {item.unit}
+   641→                              </span>
+   642→                            </div>
+   643→                          ))}
+   644→                        </div>
+   645→                      )}
+   646→                      <p className="text-[10px] text-muted-foreground mt-2">
+   647→                        Requested {formatTimeAgo(mr.createdAt)}
+   648→                      </p>
+   649→                    </CardContent>
+   650→                  </Card>
+   651→                )
+   652→              })}
+   653→            </div>
+   654→          )}
+   655→        </TabsContent>
+   656→
+   657→        {/* Tab 5: Performance */}
+   658→        <TabsContent value="performance" className="mt-4 space-y-4">
+   659→          {perfLoading ? (
+   660→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   661→              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+   662→            </div>
+   663→          ) : performance ? (
+   664→            <>
+   665→              {/* Stat Cards */}
+   666→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   667→                <Card>
+   668→                  <CardContent className="p-4">
+   669→                    <div className="flex items-start justify-between">
+   670→                      <div className="space-y-1">
+   671→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Jobs</p>
+   672→                        <p className="text-2xl font-bold">{performance.totalJobs}</p>
+   673→                        <p className="text-xs text-muted-foreground">{performance.completedJobs} completed</p>
+   674→                      </div>
+   675→                      <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30">
+   676→                        <Briefcase className="h-5 w-5 text-rose-600" />
+   677→                      </div>
+   678→                    </div>
+   679→                  </CardContent>
+   680→                </Card>
+   681→                <Card>
+   682→                  <CardContent className="p-4">
+   683→                    <div className="flex items-start justify-between">
+   684→                      <div className="space-y-1">
+   685→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Completion Rate</p>
+   686→                        <p className="text-2xl font-bold">{performance.completionRate.toFixed(1)}%</p>
+   687→                        <Progress value={performance.completionRate} className="mt-1 h-1.5 [&>div]:bg-rose-600" />
+   688→                      </div>
+   689→                      <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+   690→                        <TrendingUp className="h-5 w-5 text-emerald-600" />
+   691→                      </div>
+   692→                    </div>
+   693→                  </CardContent>
+   694→                </Card>
+   695→                <Card>
+   696→                  <CardContent className="p-4">
+   697→                    <div className="flex items-start justify-between">
+   698→                      <div className="space-y-1">
+   699→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Response</p>
+   700→                        <p className="text-2xl font-bold">{formatDuration(performance.avgResponseTime)}</p>
+   701→                        <p className="text-xs text-muted-foreground">time to accept</p>
+   702→                      </div>
+   703→                      <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+   704→                        <Timer className="h-5 w-5 text-blue-600" />
+   705→                      </div>
+   706→                    </div>
+   707→                  </CardContent>
+   708→                </Card>
+   709→                <Card>
+   710→                  <CardContent className="p-4">
+   711→                    <div className="flex items-start justify-between">
+   712→                      <div className="space-y-1">
+   713→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Customer Rating</p>
+   714→                        <div className="flex items-center gap-1">
+   715→                          <p className="text-2xl font-bold">{performance.customerRating.toFixed(1)}</p>
+   716→                          <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+   717→                        </div>
+   718→                        <p className="text-xs text-muted-foreground">{performance.totalRatings} ratings</p>
+   719→                      </div>
+   720→                      <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+   721→                        <ThumbsUp className="h-5 w-5 text-amber-600" />
+   722→                      </div>
+   723→                    </div>
+   724→                  </CardContent>
+   725→                </Card>
+   726→              </div>
+   727→
+   728→              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   729→                {/* Monthly Trend */}
+   730→                <Card>
+   731→                  <CardHeader className="pb-2">
+   732→                    <CardTitle className="text-sm font-semibold">Monthly Trend</CardTitle>
+   733→                    <CardDescription className="text-xs">Last 6 months performance</CardDescription>
+   734→                  </CardHeader>
+   735→                  <CardContent>
+   736→                    {performance.monthlyTrend.length > 0 ? (
+   737→                      <div className="space-y-2">
+   738→                        {performance.monthlyTrend.map((m, i) => (
+   739→                          <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+   740→                            <span className="text-xs font-mono text-muted-foreground w-16">{m.month}</span>
+   741→                            <div className="flex-1">
+   742→                              <div className="flex items-center gap-2">
+   743→                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+   744→                                  <div
+   745→                                    className="h-full rounded-full bg-rose-500 transition-all"
+   746→                                    style={{ width: `${Math.min(100, (m.completed / Math.max(1, performance.totalJobs)) * 100)}%` }}
+   747→                                  />
+   748→                                </div>
+   749→                              </div>
+   750→                            </div>
+   751→                            <div className="flex items-center gap-3 text-xs min-w-[140px] justify-end">
+   752→                              <span className="text-muted-foreground">{m.completed} jobs</span>
+   753→                              <span className="flex items-center gap-0.5">
+   754→                                <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+   755→                                {m.avgRating.toFixed(1)}
+   756→                              </span>
+   757→                              <span className="text-muted-foreground">{formatDuration(m.avgResponse)}</span>
+   758→                            </div>
+   759→                          </div>
+   760→                        ))}
+   761→                      </div>
+   762→                    ) : (
+   763→                      <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
+   764→                        No trend data available
+   765→                      </div>
+   766→                    )}
+   767→                  </CardContent>
+   768→                </Card>
+   769→
+   770→                {/* Skills & Certifications */}
+   771→                <Card>
+   772→                  <CardHeader className="pb-2">
+   773→                    <CardTitle className="text-sm font-semibold">Skills & Certifications</CardTitle>
+   774→                    <CardDescription className="text-xs">Your qualifications and specializations</CardDescription>
+   775→                  </CardHeader>
+   776→                  <CardContent className="space-y-4">
+   777→                    {performance.skills && performance.skills.length > 0 && (
+   778→                      <div>
+   779→                        <p className="text-xs font-medium text-muted-foreground mb-2">Specializations</p>
+   780→                        <div className="flex flex-wrap gap-2">
+   781→                          {performance.skills.map((skill, i) => (
+   782→                            <Badge key={i} variant="secondary" className="gap-1 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+   783→                              <Wrench className="h-3 w-3" /> {skill}
+   784→                            </Badge>
+   785→                          ))}
+   786→                        </div>
+   787→                      </div>
+   788→                    )}
+   789→                    {performance.certifications && performance.certifications.length > 0 && (
+   790→                      <div>
+   791→                        <p className="text-xs font-medium text-muted-foreground mb-2">Certifications</p>
+   792→                        <div className="flex flex-wrap gap-2">
+   793→                          {performance.certifications.map((cert, i) => (
+   794→                            <Badge key={i} variant="secondary" className="gap-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+   795→                              <Award className="h-3 w-3" /> {cert}
+   796→                            </Badge>
+   797→                          ))}
+   798→                        </div>
+   799→                      </div>
+   800→                    )}
+   801→                    {(!performance.skills?.length && !performance.certifications?.length) && (
+   802→                      <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">
+   803→                        No skills data available
+   804→                      </div>
+   805→                    )}
+   806→                    <Separator />
+   807→                    <div className="grid grid-cols-2 gap-4 text-sm">
+   808→                      <div className="flex justify-between">
+   809→                        <span className="text-muted-foreground">Avg Resolution:</span>
+   810→                        <span className="font-medium">{formatDuration(performance.avgResolutionTime)}</span>
+   811→                      </div>
+   812→                      <div className="flex justify-between">
+   813→                        <span className="text-muted-foreground">Total Ratings:</span>
+   814→                        <span className="font-medium">{performance.totalRatings}</span>
+   815→                      </div>
+   816→                    </div>
+   817→                  </CardContent>
+   818→                </Card>
+   819→              </div>
+   820→            </>
+   821→          ) : (
+   822→            <Card>
+   823→              <CardContent className="flex flex-col items-center justify-center py-16">
+   824→                <BarChart3 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   825→                <p className="text-sm text-muted-foreground">Performance data unavailable</p>
+   826→              </CardContent>
+   827→            </Card>
+   828→          )}
+   829→        </TabsContent>
+   830→      </Tabs>
+   831→    </div>
+   832→  )
+   833→}
+   834→
+   835→// ─── Job Card Sub-Component ───
+   836→function JobCard({
+   837→  ticket,
+   838→  expanded,
+   839→  onToggle,
+   840→  onAction,
+   841→  onMaterial,
+   842→  updating,
+   843→}: {
+   844→  ticket: TechTicket
+   845→  expanded: boolean
+   846→  onToggle: () => void
+   847→  onAction: (ticket: TechTicket, action: string) => void
+   848→  onMaterial: (ticket: TechTicket) => void
+   849→  updating: boolean
+   850→}) {
+   851→  const pri = priorityConfig[ticket.priority] || priorityConfig.medium
+   852→  const stat = ticketStatusConfig[ticket.status] || ticketStatusConfig.assigned
+   853→
+   854→  const actions = useMemo(() => {
+   855→    switch (ticket.status) {
+   856→      case 'assigned':
+   857→        return [
+   858→          { key: 'accept', label: 'Accept', icon: CheckCircle2, variant: 'default' as const, color: 'bg-emerald-600 hover:bg-emerald-700' },
+   859→          { key: 'start', label: 'Start', icon: Play, variant: 'outline' as const, color: 'bg-rose-600 hover:bg-rose-700' },
+   860→        ]
+   861→      case 'accepted':
+   862→        return [
+   863→          { key: 'start', label: 'Start Work', icon: Play, variant: 'default' as const, color: 'bg-rose-600 hover:bg-rose-700' },
+   864→        ]
+   865→      case 'in_progress':
+   866→        return [
+   867→          { key: 'pause', label: 'Pause', icon: Pause, variant: 'outline' as const, color: '' },
+   868→          { key: 'material', label: 'Materials', icon: Package, variant: 'outline' as const, color: '' },
+   869→          { key: 'complete', label: 'Complete', icon: CheckCircle2, variant: 'default' as const, color: 'bg-emerald-600 hover:bg-emerald-700' },
+   870→        ]
+   871→      case 'on_hold':
+   872→        return [
+   873→          { key: 'start', label: 'Resume', icon: Play, variant: 'default' as const, color: 'bg-rose-600 hover:bg-rose-700' },
+   874→          { key: 'material', label: 'Materials', icon: Package, variant: 'outline' as const, color: '' },
+   875→        ]
+   876→      default:
+   877→        return []
+   878→    }
+   879→  }, [ticket.status])
+   880→
+   881→  return (
+   882→    <Card className={cn('overflow-hidden transition-colors', ticket.isOverdue && 'border-orange-300 dark:border-orange-800')}>
+   883→      <CardContent className="p-4">
+   884→        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+   885→          <div className="flex-1 min-w-0">
+   886→            <div className="flex items-center gap-2 flex-wrap mb-1">
+   887→              <span className="text-xs font-mono font-medium">{ticket.ticketNo}</span>
+   888→              <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', pri.color)}>
+   889→                <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+   890→                {pri.label}
+   891→              </Badge>
+   892→              <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', stat.color)}>
+   893→                {stat.label}
+   894→              </Badge>
+   895→              {ticket.isOverdue && (
+   896→                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 gap-0.5">
+   897→                  <AlertTriangle className="h-3 w-3" /> OVERDUE
+   898→                </Badge>
+   899→              )}
+   900→            </div>
+   901→            <p className="font-semibold text-sm mb-1">{ticket.subject}</p>
+   902→            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+   903→              <span className="flex items-center gap-1">
+   904→                <Users className="h-3 w-3" /> {ticket.customer?.name || 'Unknown'}
+   905→              </span>
+   906→              <span className="flex items-center gap-1">
+   907→                <MapPin className="h-3 w-3" /> {ticket.site?.name || 'Unknown'}
+   908→              </span>
+   909→              <span className="flex items-center gap-1">
+   910→                <Clock className="h-3 w-3" /> SLA: {ticket.slaDeadline ? new Date(ticket.slaDeadline).toLocaleString() : '—'}
+   911→              </span>
+   912→              <span>{formatTimeAgo(ticket.createdAt)}</span>
+   913→            </div>
+   914→          </div>
+   915→
+   916→          <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+   917→            {actions.map(action => (
+   918→              <Button
+   919→                key={action.key}
+   920→                size="sm"
+   921→                variant={action.variant}
+   922→                className={cn('h-7 gap-1 text-xs', action.color)}
+   923→                disabled={updating}
+   924→                onClick={(e) => {
+   925→                  e.stopPropagation()
+   926→                  if (action.key === 'material') onMaterial(ticket)
+   927→                  else onAction(ticket, action.key)
+   928→                }}
+   929→              >
+   930→                <action.icon className="h-3 w-3" /> {action.label}
+   931→              </Button>
+   932→            ))}
+   933→          </div>
+   934→        </div>
+   935→
+   936→        {expanded && (
+   937→          <>
+   938→            <Separator className="my-3" />
+   939→            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+   940→              <div>
+   941→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Details</h4>
+   942→                <div className="space-y-1">
+   943→                  <div className="flex justify-between">
+   944→                    <span className="text-muted-foreground">Type:</span>
+   945→                    <span className="font-medium capitalize">{ticket.type}</span>
+   946→                  </div>
+   947→                  <div className="flex justify-between">
+   948→                    <span className="text-muted-foreground">Work Order:</span>
+   949→                    <span className="font-mono text-xs font-medium">{ticket.workOrder?.woNo || '—'}</span>
+   950→                  </div>
+   951→                </div>
+   952→              </div>
+   953→              <div>
+   954→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Location</h4>
+   955→                <p className="text-xs">{ticket.site?.address || ticket.site?.name || 'Not specified'}</p>
+   956→              </div>
+   957→              <div>
+   958→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Timeline</h4>
+   959→                <div className="space-y-1 text-xs">
+   960→                  <div className="flex justify-between">
+   961→                    <span className="text-muted-foreground">Created:</span>
+   962→                    <span>{new Date(ticket.createdAt).toLocaleString()}</span>
+   963→                  </div>
+   964→                  {ticket.slaDeadline && (
+   965→                    <div className="flex justify-between">
+   966→                      <span className="text-muted-foreground">SLA:</span>
+   967→                      <span className={ticket.isOverdue ? 'text-red-600 font-medium' : ''}>
+   968→                        {new Date(ticket.slaDeadline).toLocaleString()}
+   969→                      </span>
+   970→                    </div>
+   971→                  )}
+   972→                </div>
+   973→              </div>
+   974→            </div>
+   975→          </>
+   976→        )}
+   977→
+   978→        <button
+   979→          className="w-full mt-2 text-[10px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors"
+   980→          onClick={onToggle}
+   981→        >
+   982→          {expanded ? 'Show Less' : 'Show More'}
+   983→          {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+   984→        </button>
+   985→      </CardContent>
+   986→    </Card>
+   987→  )
+   988→}
+   989→
+   990→// ─── Material Request Form ───
+   991→function MaterialRequestForm({
+   992→  ticketId,
+   993→  ticketNo,
+   994→  onSubmit,
+   995→  loading,
+   996→}: {
+   997→  ticketId: string
+   998→  ticketNo: string
+   999→  onSubmit: (data: any) => void
+  1000→  loading: boolean
+  1001→}) {
+  1002→  const [items, setItems] = useState([
+  1003→    { name: '', quantity: 1, unit: 'pcs' },
+  1004→  ])
+  1005→
+  1006→  const addItem = () => {
+  1007→    setItems([...items, { name: '', quantity: 1, unit: 'pcs' }])
+  1008→  }
+  1009→
+  1010→  const removeItem = (idx: number) => {
+  1011→    if (items.length > 1) setItems(items.filter((_, i) => i !== idx))
+  1012→  }
+  1013→
+  1014→  const updateItem = (idx: number, field: string, value: any) => {
+  1015→    setItems(items.map((item, i) => i === idx ? { ...item, [field]: value } : item))
+  1016→  }
+  1017→
+  1018→  const handleSubmit = (e: React.FormEvent) => {
+  1019→    e.preventDefault()
+  1020→    if (!ticketId) return
+  1021→    const validItems = items.filter(it => it.name.trim())
+  1022→    if (validItems.length === 0) return
+  1023→    onSubmit({
+  1024→      ticketId,
+  1025→      ticketNo,
+  1026→      items: validItems.map(it => ({ name: it.name, quantity: Number(it.quantity), unit: it.unit, requestedQty: Number(it.quantity) })),
+  1027→    })
+  1028→    setItems([{ name: '', quantity: 1, unit: 'pcs' }])
+  1029→  }
+  1030→
+  1031→  return (
+  1032→    <form onSubmit={handleSubmit} className="space-y-4">
+  1033→      <div className="space-y-3">
+  1034→        <div className="flex items-center justify-between">
+  1035→          <Label>Items</Label>
+  1036→          <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={addItem}>
+  1037→            <Plus className="h-3 w-3" /> Add Item
+  1038→          </Button>
+  1039→        </div>
+  1040→        <ScrollArea className="max-h-48">
+  1041→          <div className="space-y-2">
+  1042→            {items.map((item, idx) => (
+  1043→              <div key={idx} className="flex items-center gap-2">
+  1044→                <Input
+  1045→                  placeholder="Item name"
+  1046→                  value={item.name}
+  1047→                  onChange={(e) => updateItem(idx, 'name', e.target.value)}
+  1048→                  className="flex-1 h-8 text-xs"
+  1049→                />
+  1050→                <Input
+  1051→                  type="number"
+  1052→                  min="1"
+  1053→                  value={item.quantity}
+  1054→                  onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+  1055→                  className="w-16 h-8 text-xs"
+  1056→                />
+  1057→                <Select value={item.unit} onValueChange={(v) => updateItem(idx, 'unit', v)}>
+  1058→                  <SelectTrigger className="w-20 h-8 text-xs">
+  1059→                    <SelectValue />
+  1060→                  </SelectTrigger>
+  1061→                  <SelectContent>
+  1062→                    <SelectItem value="pcs">pcs</SelectItem>
+  1063→                    <SelectItem value="kg">kg</SelectItem>
+  1064→                    <SelectItem value="m">m</SelectItem>
+  1065→                    <SelectItem value="l">l</SelectItem>
+  1066→                    <SelectItem value="box">box</SelectItem>
+  1067→                    <SelectItem value="set">set</SelectItem>
+  1068→                  </SelectContent>
+  1069→                </Select>
+  1070→                {items.length > 1 && (
+  1071→                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeItem(idx)}>
+  1072→                    <CircleX className="h-3.5 w-3.5" />
+  1073→                  </Button>
+  1074→                )}
+  1075→              </div>
+  1076→            ))}
+  1077→          </div>
+  1078→        </ScrollArea>
+  1079→      </div>
+  1080→      <DialogFooter>
+  1081→        <DialogClose asChild>
+  1082→          <Button type="button" variant="outline">Cancel</Button>
+  1083→        </DialogClose>
+  1084→        <Button
+  1085→          type="submit"
+  1086→          className="bg-rose-600 hover:bg-rose-700"
+  1087→          disabled={loading || !ticketId || items.every(it => !it.name.trim())}
+  1088→        >
+  1089→          {loading ? 'Submitting...' : 'Submit Request'}
+  1090→        </Button>
+  1091→      </DialogFooter>
+  1092→    </form>
+  1093→  )
+  1094→}

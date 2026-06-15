@@ -1,0 +1,1298 @@
+     1→# SmartBuild Worklog
+     2→
+     3→---
+     4→Task ID: 1
+     5→Agent: Main Orchestrator
+     6→Task: Design and push Prisma schema for Maintenance Management System
+     7→
+     8→Work Log:
+     9→- Added 12 new models: MaintenanceSite, TechnicianProfile, MaintenanceTicket, MaintenanceTimeline, MaintenanceWorkOrder, SLATemplate, PMSchedule, AMCContract, MaterialRequest, ServiceRating, MaintenanceInvoice
+    10→- Updated User model with 12 new maintenance relations
+    11→- Updated Customer model with 8 new maintenance relations
+    12→- Updated Employee model with technicianProfile relation
+    13→- Updated Asset model with maintenanceTickets relation
+    14→- Updated Project model with maintenanceTickets relation
+    15→- Fixed schema validation errors (unique constraints, one-to-one relations, opposite relations)
+    16→- Successfully pushed schema to SQLite database
+    17→
+    18→Stage Summary:
+    19→- Total models: ~85 (was 73)
+    20→- All 12 new maintenance models validated and pushed
+    21→- Prisma client regenerated successfully
+    22→
+    23→---
+    24→Task ID: 2-a
+    25→Agent: API Routes Builder
+    26→Task: Build all maintenance API routes
+    27→
+    28→Work Log:
+    29→- Created 23 API route files covering all maintenance modules
+    30→- src/app/api/maintenance/dashboard/route.ts (GET) - Dashboard stats with ticket counts, SLA breach, technician availability
+    31→- src/app/api/maintenance/tickets/route.ts (GET, POST) - List with filters/pagination, create with auto ticketNo + SLA deadlines
+    32→- src/app/api/maintenance/tickets/[id]/route.ts (GET, PUT, DELETE) - Single ticket with all relations, status transitions, soft delete
+    33→- src/app/api/maintenance/tickets/[id]/timeline/route.ts (GET, POST) - Timeline entries, optional ticket status update
+    34→- src/app/api/maintenance/tickets/[id]/assign/route.ts (POST) - Technician assignment with capacity check
+    35→- src/app/api/maintenance/work-orders/route.ts (GET, POST) - List with filters, create from ticket with auto WO number
+    36→- src/app/api/maintenance/work-orders/[id]/route.ts (GET, PUT) - Single work order, update costs/status
+    37→- src/app/api/maintenance/dispatch/route.ts (GET) - Dispatch center: unassigned, emergency, overdue tickets + available technicians
+    38→- src/app/api/maintenance/technicians/route.ts (GET, POST) - List with specializations, create profile
+    39→- src/app/api/maintenance/technicians/[id]/route.ts (GET, PUT, DELETE) - Full CRUD with active job check on delete
+    40→- src/app/api/maintenance/sites/route.ts (GET, POST) - List with filters, create with auto code
+    41→- src/app/api/maintenance/sites/[id]/route.ts (GET, PUT, DELETE) - Full CRUD
+    42→- src/app/api/maintenance/sla/route.ts (GET, POST) - List templates, create with unique priority check
+    43→- src/app/api/maintenance/sla/[id]/route.ts (GET, PUT, DELETE) - Full CRUD with priority uniqueness on update
+    44→- src/app/api/maintenance/pm-schedules/route.ts (GET, POST) - List with filters, create with auto PM number
+    45→- src/app/api/maintenance/pm-schedules/[id]/route.ts (GET, PUT, DELETE) - Full CRUD
+    46→- src/app/api/maintenance/amc/route.ts (GET, POST) - List with filters, create with auto AMC number
+    47→- src/app/api/maintenance/amc/[id]/route.ts (GET, PUT, DELETE) - Full CRUD
+    48→- src/app/api/maintenance/materials/route.ts (GET, POST) - List with filters, create with auto MR number
+    49→- src/app/api/maintenance/materials/[id]/route.ts (GET, PUT) - Get, approval workflow (supervisor→store→issued)
+    50→- src/app/api/maintenance/invoices/route.ts (GET, POST) - List with filters, create with auto MIV number + auto total calc
+    51→- src/app/api/maintenance/invoices/[id]/route.ts (GET, PUT) - Get, update with auto total recalculation
+    52→- src/app/api/maintenance/reports/route.ts (GET) - 9 report types: complaints, response_time, resolution_time, technician_performance, customer_satisfaction, amc, pm_compliance, sla, revenue
+    53→
+    54→Stage Summary:
+    55→- Total API routes created: 23 files (33 endpoints)
+    56→- All routes pass lint with zero errors
+    57→- All routes use verifyAuth for authentication
+    58→- Auto-generated sequential numbers: CMP, WO, PM, AMC, MR, MIV prefixes
+    59→- Consistent response format: { success: true, data } / { success: false, error }
+    60→- Audit logging on all create/update/delete operations
+    61→
+    62→---
+    63→Task ID: 2-b
+    64→Agent: Frontend Builder - Dashboard & Client Portal
+    65→Task: Build maintenance dashboard, service requests, ticket detail
+    66→
+    67→Work Log:
+    68→- Created src/components/maintenance/maintenance-dashboard.tsx — Main dashboard with 6 KPI stat cards (Total Tickets, Open, Emergency, Completed Today, SLA Breaches, Avg Response Time), pie chart for category breakdown, bar chart for priority breakdown, recent tickets table with expandable rows and workflow stepper, quick action buttons
+    69→- Created src/components/maintenance/service-requests.tsx — Tabbed interface (All Requests, My Requests, Create New), comprehensive create form with all fields (type, category, priority, subject, description, customer/site selectors, building/floor/room, equipment, location, preferred visit date/time, contact info, photo/video/document URL fields), table view with filters (status, priority, category, type, customer, site, search), expandable rows showing workflow stepper and full details, SLA countdown timer per ticket
+    70→- Created src/components/maintenance/ticket-detail.tsx — Full ticket view with 11-stage progress stepper, two-column detail layout (ticket details + site/equipment/contact info), chronological activity timeline with colored action dots, work orders section, material requests section, action buttons (Assign Technician, Update Status, Create Work Order, Add Note) with dialog forms, customer approval section with star rating (1-5), feedback textarea, and signature field
+    71→- Updated src/lib/store.ts — Added 5 new AppPage types: maintenance-dashboard, maintenance-service-requests, maintenance-ticket-detail, maintenance-dispatch, maintenance-technicians with labels
+    72→- Updated src/app/page.tsx — Added imports and switch cases for MaintenanceDashboard, ServiceRequests, TicketDetail routing
+    73→
+    74→Stage Summary:
+    75→- Components created: 3 (maintenance-dashboard, service-requests, ticket-detail)
+    76→- All 3 components use rose/red color scheme as specified
+    77→- All pass ESLint with zero errors
+    78→- Pattern: useQuery/useMutation + api.get/post/put + useAppStore + useToast (consistent with codebase)
+    79→- 11-stage status workflow implemented with colored stepper across all components
+    80→
+    81→---
+    82→Task ID: 2-c
+    83→Agent: Frontend Builder - Dispatch & Technician Portal
+    84→Task: Build dispatch center, technician portal, work orders
+    85→
+    86→Work Log:
+    87→- Created src/components/maintenance/dispatch-center.tsx — Full dispatch center with 4 KPI stat cards (Unassigned, Emergency, Overdue, Available Technicians) with trend indicators, 4-tab layout: Ticket Queue (table with checkboxes, batch assign, SLA status badges, emergency/overdue row highlighting), Technician Map (grid cards with status dot, workload progress bar, specializations, search/filter by status/location, quick assign button), Schedule View (week calendar table with technician rows and day columns, ticket cards in cells, today column highlighted), Emergency Board (full-width emergency cards with live response timer countdown, quick action buttons for Assign/Escalate/Reject), Assign Technician dialog with search and capacity display, Batch Assign dialog, Quick action buttons (Emergency Ticket, Batch Assign, Escalate Overdue)
+    88→- Created src/components/maintenance/technician-portal.tsx — 5-tab technician interface: My Jobs (grouped by priority — Emergency/High/Other, expandable job cards with contextual action buttons: Accept/Start/Pause/Request Materials/Complete, overdue indicators, SLA deadline display), Today's Schedule (timeline view with check-in/check-out buttons, status and priority badges), Completed Jobs (table with expandable rows showing details and timeline, duration calculation), Material Requests (card grid with status workflow badges — Requested→Supervisor Approved→Store Approved→Issued, create request dialog with dynamic item list), Performance (4 stat cards — Total Jobs/Completion Rate/Avg Response/Customer Rating, monthly trend text-based display, skills/certifications badges)
+    89→- Created src/components/maintenance/work-orders.tsx — Admin work order management with 5 stat cards (Total WOs, Pending, In Progress, Completed, Total Cost), table with expandable rows showing service info/notes/cost breakdown/material requests/photos/invoice links, filters (search, status, customer, technician, date range), Create Work Order dialog (ticket selector with preview, date fields, service notes, cost inputs), Detail dialog (full scrollable view with all sections), Status Update dialog with workflow transitions
+    90→
+    91→Stage Summary:
+    92→- Components created: 3 (dispatch-center, technician-portal, work-orders)
+    93→- All 3 components pass ESLint with zero errors
+    94→- Rose/red primary color scheme with slate/blue dispatch accents as specified
+    95→- Responsive design with mobile-first approach
+    96→- Loading skeletons and empty states on all views
+    97→- useQuery/useMutation + api.get/post/put pattern consistent with codebase
+    98→- Real-time dispatch data with 30s refetch interval
+    99→- Live response timer with countdown for emergency tickets
+   100→
+   101→---
+   102→Task ID: 2-d
+   103→Agent: Frontend Builder - SLA, PM Schedules, AMC, Reports & Invoicing
+   104→Task: Build management pages for SLA, PM, AMC, materials, invoices, reports
+   105→
+   106→Work Log:
+   107→- Created src/components/maintenance/sla-management.tsx — SLA template management with 4-card priority grid (Emergency/High/Medium/Low) showing response/resolution times, active toggle via Switch, create/edit dialogs, compliance tab with stats (total tickets, breached, compliance %, avg breach duration), compliance-by-priority table, breached tickets table with filter tabs
+   108→- Created src/components/maintenance/pm-schedules.tsx — Preventive maintenance with tabs (Active/All), 4 stat cards (Active PMs, Upcoming 7d, Overdue, Completed This Month), table with progress bars (visits/total), next visit color coding (red=overdue, amber=within 3d, green=upcoming), create/edit dialogs with customer/site/technician selectors, radio group for schedule type (Monthly/Quarterly/Semi-Annual/Annual), auto-generate work order toggle, deactivate action
+   109→- Created src/components/maintenance/amc-contracts.tsx — AMC contract management with 4 stat cards (Active, Expiring 30d, Expired, Total Annual Value), filter buttons, table with visit utilization progress bars, status badges (active=green, expired=red, cancelled=gray, pending=yellow), create/edit dialogs with date pickers, frequency selector, annual value, SLA priority, auto-renew toggle, covered equipment JSON textarea, view details dialog
+   110→- Created src/components/maintenance/material-requests.tsx — Material request management with tabs (Pending/Approved/Issued/All), 4 stat cards (Pending, Waiting for Store, Issued Today, Total Value), expandable rows showing items sub-table and 4-step approval chain (Requested→Supervisor Approved→Store Approved→Issued) with timestamps/names, approve/reject buttons per status, create dialog with dynamic item add/remove, auto-calculated total cost, work order/ticket linking
+   111→- Created src/components/maintenance/maintenance-invoices.tsx — Invoice management with 5 stat cards (Total, Draft, Sent, Paid, Revenue), status filter buttons, table with action buttons (Send/Paid/Cancel), create dialog with customer selector, ticket linking, cost inputs (labour/materials/transport/service), tax % / discount, auto-calculated total display, view details dialog, edit dialog, summary totals bar
+   112→- Created src/components/maintenance/maintenance-reports.tsx — Comprehensive reporting dashboard with 9 report types (Complaints, Response Time, Resolution Time, Technician Performance, Customer Satisfaction, AMC, PM Compliance, SLA, Revenue), tabbed report selector, date range filter, each report with 4 stat cards and data tables, report-specific metrics and color-coded badges
+   113→
+   114→Stage Summary:
+   115→- Components created: 6 (sla-management, pm-schedules, amc-contracts, material-requests, maintenance-invoices, maintenance-reports)
+   116→- All 6 components pass ESLint with zero errors
+   117→- Color scheme: rose/red primary, orange/amber for SLA alerts, emerald/green for AMC, cyan/blue for PM, violet/purple for reports
+   118→- Loading skeletons and empty states on all views
+   119→- Responsive design with mobile-first approach
+   120→- max-h-96 overflow-y-auto for long tables with sticky headers
+   121→- useQuery/useMutation + api.get/post/put pattern consistent with codebase
+   122→
+   123→
+   124→---
+   125→Task ID: 3
+   126→Agent: Main Orchestrator
+   127→Task: Integrate maintenance module into store, layout, and routing
+   128→
+   129→Work Log:
+   130→- Added 12 new AppPage types to store.ts (maintenance-dashboard, maintenance-service-requests, maintenance-ticket-detail, maintenance-dispatch, maintenance-technician-portal, maintenance-work-orders, maintenance-sla, maintenance-pm, maintenance-amc, maintenance-materials, maintenance-invoices, maintenance-reports, maintenance-sites)
+   131→- Added 13 new page labels to navigate function
+   132→- Updated page.tsx with 12 new imports and switch cases
+   133→- Added "Maintenance" section to app-layout.tsx sidebar with 11 nav items (Dashboard, Service Requests, Dispatch Center, Technician Portal, Work Orders, SLA Management, PM Schedules, AMC Contracts, Materials, Invoicing, Reports)
+   134→- Added Shield, MapPin, Zap, Clock4, FileCheck, Star icons from lucide-react
+   135→
+   136→Stage Summary:
+   137→- Store: 13 new page types (total ~85)
+   138→- Sidebar: 11 new nav items in Maintenance section
+   139→- Page.tsx: 12 new imports + switch cases
+   140→
+   141→---
+   142→Task ID: 4
+   143→Agent: Main Orchestrator
+   144→Task: Seed maintenance data
+   145→
+   146→Work Log:
+   147→- Created seed-maintenance.ts with comprehensive seed data
+   148→- Seeded 4 SLA templates (Emergency/High/Medium/Low)
+   149→- Seeded 8 maintenance sites across 5 customers
+   150→- Created 5 technician users with profiles (specializations, certifications, availability)
+   151→- Seeded 6 maintenance assets (AC, Generator, Fire Alarm, Elevator, Water Pump, CCTV)
+   152→- Created 13 maintenance tickets across all statuses (new → closed)
+   153→- Created 35 timeline entries
+   154→- Created 5 work orders
+   155→- Created 4 PM schedules (monthly, quarterly, semi-annual, annual)
+   156→- Created 3 AMC contracts
+   157→- Created 3 material requests with approval workflow
+   158→- Created 3 service ratings
+   159→- Created 3 maintenance invoices
+   160→
+   161→Stage Summary:
+   162→- All seed data populated in SQLite database
+   163→- Real data connected to actual customers, users, assets
+   164→
+   165→---
+   166→Task ID: 5
+   167→Agent: Main Orchestrator
+   168→Task: Lint, verify, and finalize
+   169→
+   170→Work Log:
+   171→- Ran bun run lint: 0 errors
+   172→- Server compiled successfully: GET / 200
+   173→- API routes return proper responses
+   174→- All 12 frontend components import correctly
+   175→- All 23 API routes created
+   176→
+   177→Stage Summary:
+   178→- Total new files created: 35 (12 frontend + 23 API routes)
+   179→- Lint: 0 errors
+   180→- Server compilation: successful
+   181→- Full maintenance management system integrated
+   182→
+   183→---
+   184→Task ID: 4
+   185→Agent: Full-Stack Developer - Client Portal Enhancement
+   186→Task: Build client portal service requests page with maintenance integration
+   187→
+   188→Work Log:
+   189→- Created src/components/client-portal/client-service-requests.tsx
+   190→- Features: Client dashboard stats (6 KPI cards with icons/trends), quick submit buttons (6 types), full complaint form, request tracking with tabs, ticket detail with 11-stage workflow stepper, service history, upcoming PM visits
+   191→- Connected to maintenance API routes (tickets, sites, pm-schedules, timeline)
+   192→- Approve/Reject actions for pending_customer status
+   193→- Star rating (1-5) and feedback for completed tickets
+   194→- SLA countdown timer per ticket
+   195→- Connected to customer sites from /api/maintenance/sites?customerId=X
+   196→
+   197→Stage Summary:
+   198→- Component created: client-service-requests.tsx
+   199→- Emerald/green color scheme consistent with client portal
+   200→- Client can submit complaints, track requests, approve completions
+   201→- Passes ESLint with zero errors
+   202→
+   203→---
+   204→Task ID: 3
+   205→Agent: Full-Stack Developer - WhatsApp Component
+   206→Task: Build WhatsApp-style complaint submission interface
+   207→
+   208→Work Log:
+   209→- Created src/components/maintenance/whatsapp-complaint.tsx
+   210→- Features: WhatsApp chat UI, auto-complaint flow, category/priority selection, photo upload
+   211→- Connected to /api/maintenance/tickets for ticket creation
+   212→- Connected to /api/maintenance/sites for site dropdown selection
+   213→- Added 'maintenance-whatsapp' AppPage type to store.ts with label 'WhatsApp Complaints'
+   214→- Added routing case in page.tsx for maintenance-whatsapp page
+   215→- Fixed pre-existing lint error in client-portal/client-service-requests.tsx (setState in effect)
+   216→
+   217→Stage Summary:
+   218→- Component created: whatsapp-complaint.tsx
+   219→- WhatsApp green color scheme (emerald-600, emerald-50, emerald-500)
+   220→- Interactive chat-based complaint submission with step-by-step flow
+   221→- Typing indicator animation (3 bouncing dots)
+   222→- Category chips with icons (AC, Electrical, Plumbing, etc.)
+   223→- Priority buttons (Emergency/red, High/orange, Medium/yellow, Low/green)
+   224→- Site dropdown from real API + custom location typing
+   225→- Photo URL input with add/skip/done workflow
+   226→- Recent complaints sidebar with status badges
+   227→- Ticket creation via useMutation → POST /api/maintenance/tickets
+   228→- Passes ESLint with zero errors
+   229→
+   230→---
+   231→Task ID: 2
+   232→Agent: Full-Stack Developer - Sites Page
+   233→Task: Build maintenance sites management page
+   234→
+   235→Work Log:
+   236→- Created src/components/maintenance/maintenance-sites.tsx
+   237→- Features: 4 KPI stat cards (Total Sites, Active Sites, Sites with Active Tickets, PM Schedules), sites table with search/customer/status filters, Create Site dialog with full form (customer dropdown, name, address, lat/lng, contact info, notes), Edit Site dialog with active toggle, Site Details dialog with 4 tabs (Site Info, Tickets, PM Schedules, AMC Contracts), equipment/asset display from tickets, responsive design with mobile-first approach
+   238→- Connected to existing API routes at /api/maintenance/sites/ and /api/maintenance/amc/
+   239→- Updated src/app/page.tsx to import MaintenanceSites and wire to maintenance-sites route
+   240→- Fixed missing DialogTrigger import for ESLint compliance
+   241→
+   242→Stage Summary:
+   243→- Component created: maintenance-sites.tsx
+   244→- Uses rose/red color scheme consistent with maintenance module
+   245→- Passes ESLint with zero errors
+   246→- Dev server compiles successfully
+   247→
+   248→---
+   249→Task ID: 5
+   250→Agent: Full-Stack Developer - Socket.IO Service
+   251→Task: Build Socket.IO mini-service for real-time maintenance notifications
+   252→
+   253→Work Log:
+   254→- Created mini-services/maintenance-notify/ with package.json and index.ts
+   255→- Created src/hooks/use-maintenance-socket.ts React hook
+   256→- Socket service runs on port 3005 with explicit httpServer (matching example pattern)
+   257→- Events: ticket:created, ticket:assigned, ticket:status-changed, ticket:note-added, material:request-created, material:status-changed, sla:breach-warning, emergency:alert
+   258→- Room support: maintenance, ticket-{id}, technician-{id}, client-{id}
+   259→- Heartbeat broadcast every 60 seconds to maintenance room
+   260→- Exported emission helper functions for future HTTP bridge usage
+   261→- Frontend hook with room join/leave and all event handler callbacks
+   262→- Installed socket.io-client@4.8.3 in main project
+   263→- Used path: '/' for Caddy gateway compatibility
+   264→- Graceful shutdown handlers (SIGTERM/SIGINT)
+   265→
+   266→Stage Summary:
+   267→- Mini-service: maintenance-notify on port 3005
+   268→- Hook: useMaintenanceSocket for frontend components
+   269→- socket.io-client installed in main project
+   270→- Lint: 0 errors
+   271→
+   272→---
+   273→Task ID: 6
+   274→Agent: Main Orchestrator
+   275→Task: Integration and auth flow fix for maintenance complaint system
+   276→
+   277→Work Log:
+   278→- Added client-service-requests and maintenance-whatsapp AppPage types to store.ts
+   279→- Added imports for MaintenanceSites, WhatsAppComplaint, ClientServiceRequests, LoginDialog to page.tsx
+   280→- Added switch cases for maintenance-sites, maintenance-whatsapp, client-service-requests in page.tsx
+   281→- Added LoginDialog render globally (both landing and authenticated views)
+   282→- Added Sites and WhatsApp nav items to Maintenance sidebar section (total 13 items)
+   283→- Added Service Requests nav item to Client Portal sidebar section (total 6 items)
+   284→- Fixed RequestQuote import error in client-service-requests.tsx (replaced with FileQuestion)
+   285→- Verified all 14 maintenance components, 12 API dirs, 3 hooks, 1 mini-service properly integrated
+   286→- Final lint: 0 errors
+   287→
+   288→Stage Summary:
+   289→- Total maintenance module: 14 frontend components, 12 API route dirs, 1 Socket.IO service
+   290→- Store page types: 89 total (14 maintenance + 6 client portal)
+   291→- Sidebar nav: 13 maintenance items, 6 client portal items
+   292→- Auth flow: Landing page → Login Dialog (email/password) → /api/auth/login → Role-based dashboard
+   293→- All code passes ESLint with zero errors
+   294→- Server compiles and returns HTTP 200
+   295→
+   296→---
+   297→Task ID: fix-landing-page
+   298→Agent: Main Orchestrator
+   299→Task: Fix landing page not working - duplicate LoginDialog and auth init issues
+   300→
+   301→Work Log:
+   302→- Diagnosed landing page: server running (200 OK), page renders content, no JS errors
+   303→- Found root cause 1: LoginDialog was rendered TWICE - once inside LandingPage component (landing-page.tsx line 53) and once in page.tsx (line 239), causing duplicate stacked dialogs on login click
+   304→- Found root cause 2: useEffect in page.tsx had empty dependency array reading `token` from closure, with nav() called during render causing state-update-during-render
+   305→- Fixed landing-page.tsx: removed duplicate `<LoginDialog />` and its import
+   306→- Fixed page.tsx: rewrote HomePage component with useRef to prevent double-init, moved auth redirect to proper useEffect with dependencies, used localStorage directly in init instead of stale closure token
+   307→- Verified with agent-browser: landing page loads correctly, single login dialog on click, login with admin@smartbuild.com succeeds, redirects to dashboard with full app layout, no console errors
+   308→- Lint passes clean
+   309→
+   310→Stage Summary:
+   311→- Landing page now works correctly: single LoginDialog, proper auth flow, no duplicate rendering
+   312→- Files modified: src/components/landing/landing-page.tsx, src/app/page.tsx
+   313→- No new files created
+   314→
+   315→---
+   316→Task ID: profile-logout-header
+   317→Agent: Main Orchestrator
+   318→Task: Add profile dropdown and logout feature to the top-right header
+   319→
+   320→Work Log:
+   321→- Updated AppHeader component in app-layout.tsx to include a user profile dropdown
+   322→- Added DropdownMenu with user avatar (initials), name, role, and email in the dropdown header
+   323→- Added "My Profile" and "Settings" menu items linking to settings page
+   324→- Added "Log out" menu item with red styling that calls logout() and redirects to landing page
+   325→- Avatar shows role-based color coding (amber for admin, blue for supervisor, etc.)
+   326→- Responsive: on mobile (sm breakpoint), only avatar and chevron show (name/role hidden)
+   327→- Cleaned up duplicate lucide-react imports
+   328→- Lint passes clean
+   329→- Verified: login → see profile in header → click dropdown → see My Profile/Settings/Logout → click logout → redirected to landing page
+   330→
+   331→Stage Summary:
+   332→- Profile dropdown with logout now in the top-right header bar
+   333→- Files modified: src/components/layout/app-layout.tsx
+   334→
+   335→---
+   336→Task ID: 4
+   337→Agent: Full-Stack Developer - Mobile Header
+   338→Task: Create mobile-specific header with hamburger menu and Sheet sidebar
+   339→
+   340→Work Log:
+   341→- Created src/components/layout/mobile-header.tsx
+   342→- Mobile-only header (md:hidden) with sticky top-0 z-50, h-14, bg-card with bottom border
+   343→- Left: Hamburger Menu button (lucide-react Menu icon) that opens a Sheet sidebar
+   344→- Center: SmartBuild logo (amber-600 rounded-lg with HardHat icon) + "SMARTBUILD" text
+   345→- Right: Notification bell button with static "3" badge counter (red, rounded-full) + user avatar (h-8 w-8, role-based color initials)
+   346→- Sheet sidebar (side="left", w-72) with:
+   347→  - User profile card at top (avatar, name, role, email)
+   348→  - 3-section navigation: Overview (Dashboard), Management (Projects, Finance, Procurement, Labour & HR, Attendance, Maintenance), Insights (Reports, Settings)
+   349→  - Active item highlighted in amber with dot indicator
+   350→  - All nav items have h-11 min touch targets
+   351→  - Red-styled logout button at bottom
+   352→- Navigation items mapped to AppPage types as specified
+   353→- Uses useAppStore() for user, logout, navigate, currentPage
+   354→- Local useState for sheet open/close state
+   355→- No blue/indigo colors used
+   356→- Lint passes clean (pre-existing error in use-device.ts is unrelated)
+   357→
+   358→Stage Summary:
+   359→- Component created: mobile-header.tsx
+   360→- Mobile header with Sheet-based sidebar navigation
+   361→- All nav items use amber highlight for active state
+   362→- Avatar initials use role-based colors with dark mode support
+   363→
+   364→---
+   365→Task ID: 2 + 3
+   366→Agent: Full-Stack Developer - Mobile Bottom Nav & More Drawer
+   367→Task: Create fixed mobile bottom navigation bar and full-screen "More" drawer
+   368→
+   369→Work Log:
+   370→- Updated src/lib/store.ts: Added showMobileMoreDrawer boolean state, setShowMobileMoreDrawer action, and initial value false to AppState interface and store
+   371→- Created src/components/layout/mobile-bottom-nav.tsx:
+   372→  - Fixed bottom nav bar (fixed bottom-0 left-0 right-0, z-50, h-[70px], bg-white, border-t shadow)
+   373→  - Hidden on md+ breakpoints via md:hidden class
+   374→  - iOS safe area padding via pb-safe
+   375→  - Role-based tab configurations:
+   376→    - Default (6 tabs): Dashboard, Projects, Complaints, Tasks, Notifications, More
+   377→    - Client (6 tabs): Dashboard, Complaints, Service Requests, Invoices, Notifications, More
+   378→    - Technician (6 tabs): Jobs, Attendance, Materials, Tasks, Notifications, More
+   379→    - Admin (5 tabs, wider): Dashboard, Projects, Approvals, Notifications, More
+   380→    - Supervisor (6 tabs): Dashboard, Team, Approvals, Projects, Notifications, More
+   381→  - Each tab: lucide-react icon + text label, min-h-[70px] touch target
+   382→  - Active state: amber-600 color for icon (stroke-[2.5]) and text (font-semibold)
+   383→  - Inactive: muted-foreground with active:amber-500 press feedback
+   384→  - "More" tab sets showMobileMoreDrawer to true in store
+   385→  - Proper ARIA roles (tablist, tab, aria-selected)
+   386→- Created src/components/layout/mobile-more-drawer.tsx:
+   387→  - Uses shadcn/ui Sheet component (side="right", full-width on mobile, sm:max-w-sm)
+   388→  - Controlled by showMobileMoreDrawer from store via onOpenChange
+   389→  - Header with "More" title and description
+   390→  - User profile card: amber-50 background, avatar with initials, name, role (capitalized), email with Mail icon
+   391→  - 9 navigation items with icons: Maintenance Dashboard, Resource Management, Attendance, Procurement, Inventory, Finance, Assets, Reports, Settings
+   392→  - Each item: full-width Button h-12, gap-3, icon + label, ghost variant
+   393→  - Active page highlighted with amber-50/amber-800 background/text
+   394→  - Closes drawer on navigation
+   395→  - Red-styled Log Out button at bottom that closes drawer and calls logout()
+   396→- All 3 files (store.ts, mobile-bottom-nav.tsx, mobile-more-drawer.tsx) pass ESLint with zero errors (pre-existing error in use-device.ts is unrelated)
+   397→
+   398→Stage Summary:
+   399→- Files created: 2 (mobile-bottom-nav.tsx, mobile-more-drawer.tsx)
+   400→- Files modified: 1 (store.ts)
+   401→- Role-based mobile bottom navigation with 5 role configurations
+   402→- Sheet-based "More" drawer with 9 nav items + user profile + logout
+   403→- No blue/indigo colors; amber/orange active states throughout
+   404→- Lint: 0 errors on new/modified files
+   405→
+   406→---
+   407→Task ID: 6
+   408→Agent: Full-Stack Developer - Mobile Dashboard
+   409→Task: Create mobile-optimized dashboard with cards-only layout
+   410→
+   411→Work Log:
+   412→- Created src/components/dashboard/mobile-dashboard.tsx
+   413→- Mobile-only component (md:hidden class) with cards-only layout, no tables
+   414→- KPI Cards Row: 5 horizontally scrollable stat cards (Active Projects, Open Complaints, Pending Approvals, Today's Attendance, Budget Utilization) with snap-x scroll snapping, min-w-[140px], amber/emerald/orange icon backgrounds
+   415→- Quick Actions Section: 2-column grid of 6 action buttons (New Complaint, New Project, Log Attendance, Submit Expense, Purchase Request, View Reports) using Button variant="outline" with h-auto py-4 rounded-xl
+   416→- My Tasks Section: Card list from API (upcomingTasks), each showing title, project name, priority badge (High=red, Medium=amber, Low=emerald), due date, status badge; click navigates to project-tasks
+   417→- Recent Activities Section: Timeline-style list with colored dot per action type (CREATE=emerald, UPDATE=amber, DELETE=red), activity text with userName, time ago display, max-h-64 overflow scroll
+   418→- Today's Schedule Section: 4 mock schedule items with time badges (amber-600), title, and location with MapPin icon
+   419→- Floating Action Button (FAB): Fixed bottom-[84px] right-4, h-14 w-14 rounded-full, amber-500→amber-600 gradient, Plus icon, z-40, md:hidden. Uses shadcn/ui Popover with 3 quick-create options (New Complaint, New Work Request, New Project), each with 44px min touch targets
+   420→- Greeting header with time-of-day awareness (morning/afternoon/evening)
+   421→- Loading states: Skeleton components for KPI cards, task cards, and activity items
+   422→- Data fetching: useEffect + api.get('/api/dashboard/stats') from @/lib/store
+   423→- Store: useAppStore() for navigate and user
+   424→- No blue/indigo colors; amber/orange/emerald theme throughout
+   425→- Touch-friendly: all interactive elements min 44px
+   426→- Passes ESLint with zero errors
+   427→
+   428→Stage Summary:
+   429→- Component created: mobile-dashboard.tsx
+   430→- 6 sections: KPI row, Quick Actions, My Tasks, Recent Activities, Today's Schedule, FAB
+   431→- Cards-only mobile layout with horizontal scroll KPI cards
+   432→- FAB with Popover quick-create menu
+   433→- Lint: 0 errors
+   434→
+   435→---
+   436→Task ID: 1
+   437→Agent: General-Purpose
+   438→Task: Create useDevice hook
+   439→
+   440→Work Log:
+   441→- Created src/hooks/use-device.ts with full DeviceInfo detection
+   442→- Breakpoint constants: MOBILE_BREAKPOINT=768, TABLET_BREAKPOINT=1024, LAPTOP_BREAKPOINT=1280
+   443→- Device classification: mobile (≤767px), tablet (768–1023px), laptop (1024–1279px), desktop (≥1280px)
+   444→- Uses useSyncExternalStore for React-idiomatic subscription to browser viewport (avoids setState-in-effect lint error)
+   445→- Module-level snapshot cache for referential stability (same object ref when viewport unchanged)
+   446→- Subscribes to 4 matchMedia listeners (one per breakpoint) + debounced window resize (200ms)
+   447→- SSR-safe: getServerSnapshot returns desktop defaults (1280×800)
+   448→- Exported: useDevice() hook, useIsMobile() convenience hook, 3 breakpoint constants, DeviceInfo interface
+   449→- Lint: 0 errors
+   450→
+   451→Stage Summary:
+   452→- File created: src/hooks/use-device.ts
+   453→- Pattern: useSyncExternalStore (no useState/useEffect, no cascading renders)
+   454→- Exports: useDevice, useIsMobile, MOBILE_BREAKPOINT, TABLET_BREAKPOINT, LAPTOP_BREAKPOINT, DeviceInfo
+   455→
+   456→---
+   457→Task ID: 8
+   458→Agent: Main Orchestrator
+   459→Task: Set up PWA features (manifest, icons, meta tags)
+   460→
+   461→Work Log:
+   462→- Created /public/manifest.json with full PWA manifest (name, icons, theme color, standalone display)
+   463→- Created /public/icons/ directory
+   464→- Created /public/icons/icon.svg — amber gradient rounded-square with white hard hat, building accent lines, and "S" letter
+   465→- Added PWA meta tags to src/app/layout.tsx <head> section:
+   466→  - application-name, apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style
+   467→  - apple-mobile-web-app-title, description, format-detection, mobile-web-app-capable
+   468→  - theme-color (#d97706), viewport with viewport-fit=cover and maximum-scale=5
+   469→  - manifest link, apple-touch-icon link
+   470→- Ran bun run lint — no errors
+   471→
+   472→Stage Summary:
+   473→- PWA manifest and meta tags fully configured
+   474→- SVG icon placeholder created for apple-touch-icon
+   475→- App is now installable as a PWA with standalone display mode
+   476→
+   477→---
+   478→Task ID: 7
+   479→Agent: General-Purpose
+   480→Task: Create responsive utility components
+   481→
+   482→Work Log:
+   483→- Created src/components/ui/responsive.tsx with 6 responsive utility components
+   484→- ResponsiveTable: Full table on md+, card layout on mobile with label-value pairs; supports onRowClick, emptyMessage, cardTitle, cardSubtitle
+   485→- ResponsiveGrid: CSS grid with responsive column classes (grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4), configurable cols/gap
+   486→- ResponsiveModal: Uses shadcn Dialog; full-screen on mobile (h-full w-full, no rounded corners), centered max-w-lg on desktop; also exports ResponsiveModalContent for use with external Dialog state
+   487→- ResponsiveChart: Collapsible chart on mobile (title + chevron toggle), always visible on desktop
+   488→- MobileOnly / DesktopOnly: Simple show/hide wrappers using md:hidden / hidden md:block
+   489→- ResponsivePagination: Mobile shows prev/next + "Page X of Y"; desktop shows full page numbers with ellipsis logic
+   490→- All components use shadcn/ui (Dialog, Table, Card, Button) + Lucide icons (ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2)
+   491→- No blue/indigo colors used
+   492→- Lint: 0 errors
+   493→
+   494→Stage Summary:
+   495→- File created: src/components/ui/responsive.tsx
+   496→- 6 components: ResponsiveTable, ResponsiveGrid, ResponsiveModal (+ ResponsiveModalContent), ResponsiveChart, MobileOnly, DesktopOnly, ResponsivePagination
+   497→- All types exported alongside components
+   498→
+   499→
+   500→---
+   501→Task ID: responsive-device-aware-ui
+   502→Agent: Main Orchestrator + 6 sub-agents
+   503→Task: Build fully responsive device-aware UI system for SmartBuild
+   504→
+   505→Work Log:
+   506→- Created useDevice() hook with matchMedia-based detection (mobile ≤767, tablet 768-1023, laptop 1024-1279, desktop ≥1280)
+   507→- Created mobile-bottom-nav.tsx: 70px fixed bottom nav with role-based tabs (admin/supervisor/client/technician)
+   508→- Created mobile-more-drawer.tsx: Full-sheet drawer with 9 nav items + profile card + logout
+   509→- Created mobile-header.tsx: Sticky mobile header with hamburger menu, logo, notifications badge, avatar
+   510→- Created hamburger sidebar sheet (left): User profile card + 3 nav sections + logout
+   511→- Created mobile-dashboard.tsx: KPI scroll cards, quick actions grid, tasks list, activities timeline, schedule, FAB
+   512→- Updated AppLayout: Dual rendering — mobile layout (md:hidden) vs desktop layout (hidden md:flex)
+   513→- Updated DashboardPage: Wrapper that renders MobileDashboard + DesktopDashboardContent based on viewport
+   514→- Created responsive.tsx: ResponsiveTable, ResponsiveGrid, ResponsiveModal, ResponsiveChart, MobileOnly/DesktopOnly, ResponsivePagination
+   515→- Created PWA manifest.json with amber theme, standalone display, all icon sizes
+   516→- Created SVG app icon with amber HardHat branding
+   517→- Updated layout.tsx with PWA meta tags, apple-mobile-web-app support, viewport-fit=cover
+   518→- All verified via agent-browser at 320px, 375px, 768px, and 1280px viewports
+   519→
+   520→Stage Summary:
+   521→- 10 new files created, 3 existing files modified
+   522→- Complete responsive device-aware UI system operational
+   523→- Mobile: bottom nav + hamburger sidebar + mobile dashboard + FAB + More drawer
+   524→- Desktop: full sidebar + header with profile dropdown + rich dashboard
+   525→- Tablet: uses desktop layout (sidebar collapsible via existing toggle)
+   526→- PWA: manifest, meta tags, apple-touch-icon, theme-color all configured
+   527→- Lint: 0 errors
+   528→
+   529→---
+   530→Task ID: 1
+   531→Agent: Layout Components Builder
+   532→Task: Create marketing navbar and footer shared layout components
+   533→
+   534→Work Log:
+   535→- Created src/components/marketing/marketing-navbar.tsx
+   536→  - Fixed top, white bg, border-bottom, shadow-sm, h-16
+   537→  - Left: SmartBuild logo (amber gradient icon + "SMARTBUILD" + "Construction ERP" subtitle) matching landing page style
+   538→  - Center: Desktop nav links (Solutions, Features, Pricing, Resources, About, Contact) using Next.js Link
+   539→  - Solutions mega dropdown with two columns: By Industry (8 items) and By Use Case (6 items) with icons
+   540→  - Right: Login (outline) + Request Demo (amber gradient) buttons
+   541→  - Mobile: Hamburger → Sheet (side="right") with Collapsible for Solutions sub-items
+   542→  - usePathname() for active page highlighting (amber text + bg)
+   543→  - Hover-based dropdown with 150ms delay on leave
+   544→  - All amber/orange color scheme, NO blue or indigo
+   545→- Created src/components/marketing/marketing-footer.tsx
+   546→  - Dark bg (bg-gray-900), max-w-7xl container
+   547→  - 5-column grid (lg): Brand, Products (7 links), Solutions (5 links), Resources (5 links), Company (5 links)
+   548→  - Brand: logo + tagline + social icons (GitHub, Twitter, LinkedIn)
+   549→  - Mobile: collapsible sections with ChevronDown toggle (useState)
+   550→  - Newsletter row: email input + amber gradient Subscribe button
+   551→  - Bottom bar: © 2025 SmartBuild + Privacy Policy, Terms of Service, Cookie Policy links
+   552→  - All navigation uses Next.js Link, all colors amber/orange/stone, NO blue or indigo
+   553→- Removed auto-close-on-route-change useEffect to fix react-hooks/set-state-in-effect lint error
+   554→
+   555→Stage Summary:
+   556→- 2 new files created in src/components/marketing/
+   557→- Both use 'use client' directive
+   558→- Both pass ESLint with 0 errors
+   559→- Consistent amber/orange theme throughout
+   560→- Fully responsive (mobile Sheet + Collapsible, desktop mega dropdown)
+   561→
+   562→---
+   563→Task ID: 5
+   564→Agent: Main Developer
+   565→Task: Create Request Demo and Login marketing pages
+   566→
+   567→Work Log:
+   568→- Added DemoRequest model to prisma/schema.prisma (15 fields: fullName, email, phone, company, position, country, industry, employeeCount, currentTools, requirements, preferredDate, preferredTime, timezone, referralSource, status)
+   569→- Pushed schema to SQLite database and regenerated Prisma client
+   570→- Created POST /api/demo-request/route.ts with validation (name + email required, email regex check)
+   571→- Created src/app/(marketing)/request-demo/page.tsx — multi-step form (3 steps: About You, Your Needs, Schedule)
+   572→  - Progress indicator with step numbers, icons, and connecting lines
+   573→  - Step 1: fullName, email, phone, company, position (Select dropdown)
+   574→  - Step 2: country, industry (Select), employeeCount (Select), currentTools (Checkbox multi-select), requirements (Textarea)
+   575→  - Step 3: preferredDate (date input), preferredTime (Select), timezone (auto-detected + Select), referralSource (Select)
+   576→  - Back/Next navigation, Submit on final step, loading state, success message
+   577→- Created src/app/(marketing)/login/page.tsx — centered login card on gradient background
+   578→  - Tabs: "Email Login" | "WhatsApp OTP"
+   579→  - Email tab: email + password (with show/hide toggle), Remember me checkbox, Forgot Password link, Sign In button (amber gradient), calls POST /api/auth/login, stores token in localStorage/sessionStorage, redirects to /
+   580→  - WhatsApp OTP tab: phone input with +1 prefix, Send OTP button, 6-digit OTP input (InputOTP component with separator), Verify & Login button, resend timer (60s countdown)
+   581→  - Social login buttons (Google, Microsoft) — styled, not functional
+   582→  - "Don't have an account?" → Request Demo link
+   583→- All components use shadcn/ui: Button, Input, Label, Card, Textarea, Checkbox, Select, Separator, Tabs, InputOTP
+   584→- Amber/orange theme, no blue/indigo
+   585→- ESLint passes with 0 errors
+   586→
+   587→Stage Summary:
+   588→- 4 new files: prisma model update, API route, request-demo page, login page
+   589→- DemoRequest model with 15 fields + 3 indexes
+   590→- Full multi-step demo request form with validation and success state
+   591→- Complete login page with email auth + WhatsApp OTP UI
+   592→- All lint checks pass
+   593→
+   594→---
+   595→Task ID: 4
+   596→Agent: Frontend Builder
+   597→Task: Create marketing pages - Pricing and Resources
+   598→
+   599→Work Log:
+   600→- Created /src/app/(marketing)/pricing/page.tsx with full pricing page
+   601→  - Hero section with H1, subtitle, and Monthly/Annual toggle (20% discount)
+   602→  - 4 pricing cards (Starter $29/$23, Professional $79/$63, Enterprise $149/$119, Custom)
+   603→  - Professional card has "Most Popular" badge with ring-2 ring-amber-500
+   604→  - Amber gradient CTA button on Professional card, outline on others
+   605→  - Compare Plans section with responsive table (desktop) and mobile card layout
+   606→  - 4 feature categories: Users & Projects, Core Features, Advanced Features, Support
+   607→  - FAQ section with 6 pricing questions using Radix accordion
+   608→  - CTA section "Not Sure Which Plan?" with link to /contact
+   609→- Created /src/app/(marketing)/pricing/layout.tsx for SEO metadata
+   610→- Created /src/app/(marketing)/resources/page.tsx with full resources hub
+   611→  - Hero with H1, subtitle, decorative search bar
+   612→  - 8 resource category cards (Blog, Case Studies, Documentation, Guides, Videos, Downloads, Product Updates, Industry News)
+   613→  - Each card has icon, title, description, count badge, and link
+   614→  - 3 featured resource cards with gradient placeholders
+   615→  - 4 latest blog posts with category badges, dates, read times, excerpts
+   616→  - Newsletter CTA section with email input on dark background
+   617→- Created /src/app/(marketing)/resources/layout.tsx for SEO metadata
+   618→- Both pages use "use client", Link from next/link, amber/orange/stone color palette
+   619→- Responsive design with mobile-first approach
+   620→- Framer Motion animations on all sections
+   621→- ESLint passes clean
+   622→
+   623→Stage Summary:
+   624→- 4 files created (2 page.tsx + 2 layout.tsx)
+   625→- Zero lint errors
+   626→- All sections functional with real content
+   627→
+   628→---
+   629→Task ID: 2
+   630→Agent: Marketing Pages Builder
+   631→Task: Create 3 marketing pages - Solutions, About, Contact
+   632→
+   633→Work Log:
+   634→- Created /src/app/(marketing)/solutions/page.tsx — Server component with static metadata export
+   635→  - Hero: dark gradient bg, H1 "Solutions for Every Construction Need", subtitle, 2 CTA buttons (View Features → /features, Request Demo → /request-demo)
+   636→  - 8 industry cards in responsive grid (1/2/3/4 cols): Construction Companies (Building2), Facility Management (Building), HVAC Contractors (Thermometer), Electrical Contractors (Zap), MEP Contractors (Wrench), Property Management (Home), Government Projects (Landmark), Maintenance Companies (Settings)
+   637→  - Each card: rounded-xl border, colored icon circle, title, description paragraph, "Learn More" link
+   638→  - Benefits section: 2x2 grid with 4 benefit cards (Reduce Costs 30%, Improve Project Delivery, Enhance Compliance, Real-time Visibility) each with stat + icon + description
+   639→  - Case Studies: 3 cards (Pacific Coast Builders, Metro Facility Group, National MEP Services) with company name, project type, 3 result bullets each
+   640→  - CTA: "Ready to Transform Your Operations?" dark gradient section with 2 buttons
+   641→- Created /src/app/(marketing)/about/page.tsx — Server component with static metadata export
+   642→  - Hero: dark gradient bg, "Building the Future of Construction Management"
+   643→  - Company Story: 3 paragraphs about founding, co-founders' backgrounds, early growth
+   644→  - Mission & Vision: 2 side-by-side cards (Target icon + Eye icon)
+   645→  - Why SmartBuild: 4 key differentiators (Innovation, Reliability, Data-Driven, Customer-Centric) with icons
+   646→  - Leadership Team: 4 team member cards (Sarah Chen CEO, Marcus Rivera CTO, Priya Patel CPO, David Okafor VP CS) with colored circle initials + bios
+   647→  - Core Values: 4 values grid (Innovation, Reliability, Transparency, Partnership) with icons
+   648→  - Roadmap: 5-milestone timeline (2020 Founded, 2021 v1, 2022 Mobile, 2023 AI, 2024 Enterprise) with alternating layout and vertical line
+   649→  - Partners: 6 partner placeholder boxes (ProCore, Autodesk, Oracle, Azure, Sage, Trimble)
+   650→  - CTA: "Join Us in Building Better" → /careers + /contact
+   651→- Created /src/app/(marketing)/contact/contact-form.tsx — Client component for form interactivity
+   652→  - Fields: Name, Email, Company, Phone, Subject (select dropdown), Message (textarea)
+   653→  - Validation: Name, Email, Subject, Message required
+   654→  - Submit state: shows success message with "Send Another Message" button
+   655→  - Amber gradient submit button, focus ring styling, proper labels
+   656→- Created /src/app/(marketing)/contact/page.tsx — Server component with static metadata export, imports ContactForm client component
+   657→  - Hero: dark gradient bg, "Get in Touch"
+   658→  - Contact Info Grid: 3 cards (Phone +1 800 555-BUILD, Email hello@smartbuild.com, Address 123 Construction Ave)
+   659→  - Two-column layout: ContactForm (2/3) + Office Info sidebar (1/3)
+   660→  - Office Info: Business Hours (Mon-Fri 9-6, Sat 10-2), Enterprise Support (24/7), WhatsApp
+   661→  - Map Placeholder: gray box with Map icon
+   662→  - FAQ Section: 4 questions with full paragraph answers
+   663→- All pages use amber/orange/stone/emerald theme — NO blue or indigo
+   664→- All pages fully responsive (mobile-first grid breakpoints)
+   665→- All pages use lucide-react icons imported at top
+   666→- All pages use Link from 'next/link' for internal navigation
+   667→- ESLint passes with 0 errors
+   668→
+   669→Stage Summary:
+   670→- 4 files created (3 page.tsx + 1 contact-form.tsx client component)
+   671→- Solutions: 8 industry cards, 4 benefits, 3 case studies, hero + CTA
+   672→- About: company story, mission/vision, 4 differentiators, 4 team members, 4 values, 5-milestone timeline, 6 partners
+   673→- Contact: 3 info cards, interactive form (client component), office details, map placeholder, 4 FAQs
+   674→- Zero lint errors
+   675→- All server components except contact-form.tsx (client for form state)
+   676→
+   677→---
+   678→Task ID: 3
+   679→Agent: Features Page Builder
+   680→Task: Create Features section — listing page and dynamic detail page
+   681→
+   682→Work Log:
+   683→- Created `/src/app/(marketing)/features/page.tsx` (client component)
+   684→  - Dark gradient hero with H1 "Everything You Need to Build Smarter", subtitle, stats row
+   685→  - 17 feature cards in responsive grid (1/2/3 cols) with colored icon circles, titles, descriptions, "Learn More →" links
+   686→  - Colors rotate through amber/emerald/orange/teal — no blue/indigo
+   687→  - CTA section linking to `/request-demo`
+   688→- Created `/src/app/(marketing)/features/[slug]/page.tsx` (client component)
+   689→  - Uses `useParams()` from `next/navigation` for slug access
+   690→  - 17-slug feature data map with 6 detailed entries (project-management, resource-management, complaint-management, finance, procurement, hr) and 11 generic entries
+   691→  - Each entry: title, metaTitle, metaDescription, overview (2-3 paragraphs), keyFeatures (4-6 items with icons), benefits (3-4 cards), workflow (3 steps), faq (3-4 Q&As)
+   692→  - Sections: Hero with breadcrumb, Overview, Key Features grid, Benefits, How It Works, FAQ, CTA, Prev/Next navigation
+   693→  - Fallback feature for unknown slugs
+   694→  - All Lucide icons imported and used (no blue/indigo)
+   695→- Lint passed (0 new errors; 1 pre-existing error in unrelated careers/page.tsx)
+   696→
+   697→Stage Summary:
+   698→- 2 files created in `/src/app/(marketing)/features/`
+   699→- 17 feature cards with real content for 6 modules and relevant generic content for 11 others
+   700→- Full responsive design with dark hero, neutral sections, amber accent CTA
+   701→- Navigation between feature pages with prev/next links
+   702→
+   703→---
+   704→Task ID: 6
+   705→Agent: Main Developer
+   706→Task: Create 8 footer/legal marketing pages
+   707→
+   708→Work Log:
+   709→- Created /src/app/(marketing)/privacy-policy/page.tsx
+   710→  - 9 sections: Introduction, Information We Collect (2.1 Provided, 2.2 Automatic), How We Use Information, Data Sharing, Data Security, Cookies (with cross-link to cookie-policy), Your Rights (7 rights listed), Changes to Policy, Contact Us
+   711→  - Realistic SaaS legal language for a construction management platform
+   712→  - Contact section with email, phone, mailing address, DPO
+   713→  - Related links to Terms of Service and Cookie Policy
+   714→- Created /src/app/(marketing)/terms-of-service/page.tsx
+   715→  - 10 sections: Acceptance of Terms, Service Description (7 service categories), User Accounts, Acceptable Use Policy (8 prohibitions), Payment Terms (6 terms), Intellectual Property, Limitation of Liability (ALL CAPS legal language), Termination (90-day data retention), Governing Law (Texas), Contact Us
+   716→  - Realistic legal language covering billing, IP, liability caps
+   717→- Created /src/app/(marketing)/cookie-policy/page.tsx
+   718→  - 7 sections: What Are Cookies, Types (4 categories with detailed cookie tables), How We Use Cookies (5 purposes), Managing Cookies (preference center, browser, opt-out links), Third-Party Cookies (4 providers: Analytics, Ads, Payments, Communication), Changes to Policy, Contact Us
+   719→  - Cookie tables with name, purpose, and duration columns
+   720→  - Links to NAI, DAA, and Google Analytics opt-out pages
+   721→- Created /src/app/(marketing)/careers/page.tsx
+   722→  - Hero: "Build the Future of Construction Tech"
+   723→  - Why SmartBuild section: 6 benefit cards (Compensation, Benefits, Flexible Work, Tech Stack, Team, Growth)
+   724→  - Open Positions: 8 job listings (Sr Full-Stack Engineer, Product Designer, DevOps Engineer, Customer Success Manager, Technical Writer, Enterprise AE, Data Engineer, Construction Industry Specialist)
+   725→  - Each job card: title, department badge (color-coded), location, type, Apply button
+   726→  - Our Culture: 3 culture cards (Build Together, Owner Mentality, Impact Over Ego)
+   727→  - Application Process: 4-step flow (Apply → Screen → Technical → Final)
+   728→  - CTA with email and learn more links
+   729→- Created /src/app/(marketing)/partners/page.tsx
+   730→  - Hero: "Partner with SmartBuild" with 2 CTA buttons
+   731→  - Partner Program stats: 200+ partners, 15K+ customers, 4.8/5 satisfaction
+   732→  - 3 Partner Types: Technology Partners (Cpu icon), Integration Partners (Puzzle icon), Reseller Partners (TrendingUp icon) — each with 4 benefits
+   733→  - Benefits section: 4 cards (Revenue Sharing, Co-Selling, Business Intelligence, Priority Support)
+   734→  - Current Partners: 8 placeholder boxes (AutoDesk, Procore, Sage, Oracle, Trimble, Microsoft Azure, Viewpoint, PlanGrid)
+   735→  - CTA: dark gradient card with Apply + Download buttons
+   736→- Created /src/app/(marketing)/blog/page.tsx
+   737→  - Hero: "Insights & Updates"
+   738→  - Featured Post: large dark gradient card with full article preview
+   739→  - Category filter: interactive state-based filtering (All, Project Management, Finance, Technology, Industry, Product Updates)
+   740→  - Blog Posts Grid: 6 cards with image placeholder, category badge, title, excerpt, date, author, read time
+   741→  - Empty state when filtering returns no results
+   742→  - Newsletter subscription CTA section
+   743→- Created /src/app/(marketing)/support/page.tsx
+   744→  - Hero: "How Can We Help?" with search bar
+   745→  - Quick Links: 3 cards (Documentation, API Reference, Community Forum)
+   746→  - Help Topics: 6 topic cards with icons, descriptions, article counts
+   747→  - Contact Support: 3 cards (Email, Phone, Live Chat) with details
+   748→  - FAQ: 4 expandable accordion questions with full answers
+   749→  - Still Need Help CTA section
+   750→- Created /src/app/(marketing)/documentation/page.tsx
+   751→  - Hero: "Documentation"
+   752→  - Quick Start Guide: 3-step flow (Create Account → Set Up Project → Start Building)
+   753→  - Product Documentation: 8 module cards (Project Management, Financial, HR, Maintenance, Reports, Inventory, Mobile, Integrations)
+   754→  - API Reference: dark code-style card with base URL, auth info, 5 example endpoints with method badges (GET/POST)
+   755→  - SDKs & Libraries: 3 cards (JavaScript/Node.js, Python, OpenAPI 3.0 Spec)
+   756→  - Release Notes: 3 recent versions (v4.2.0, v4.1.0, v4.0.0) with 5 bullet points each
+   757→  - Need More Help CTA
+   758→
+   759→Stage Summary:
+   760→- 8 page files created in /src/app/(marketing)/
+   761→- All pages use 'use client' directive
+   762→- All pages use Link from 'next/link' for internal navigation
+   763→- All pages use lucide-react icons
+   764→- NO blue/indigo colors — emerald, stone, amber, rose, violet, orange palette
+   765→- All pages responsive with mobile-first design
+   766→- All pages have real, substantial content (legal language, job listings, blog posts, API docs)
+   767→- ESLint passes with 0 errors (fixed missing Mail import in careers page)
+   768→- Fixed: Added missing `Mail` import to careers/page.tsx
+   769→
+   770→
+   771→---
+   772→Task ID: marketing-pages
+   773→Agent: Main Orchestrator + 6 sub-agents
+   774→Task: Build all landing page marketing pages with dedicated routes, SEO, and working navigation
+   775→
+   776→Work Log:
+   777→- Created (marketing) route group under src/app/ with shared layout (navbar + footer)
+   778→- Created MarketingNavbar with mega menu (Solutions dropdown with 2 columns: By Industry + By Use Case), responsive mobile hamburger sheet
+   779→- Created MarketingFooter with 5-column grid, all links using Next.js Link components, newsletter signup, legal links
+   780→- Created Solutions page: 8 industry cards, 4 benefits, 3 case studies, CTA
+   781→- Created Features page: 17 feature cards with colored icons, link to detail pages
+   782→- Created dynamic [slug] feature detail pages: 17 feature detail pages with hero, overview, key features, benefits, workflow, FAQ, CTA
+   783→- Created Pricing page: 4 pricing cards (Starter/Professional/Enterprise/Custom), monthly/annual toggle, compare table, FAQ
+   784→- Created Resources page: 8 category cards, 3 featured resources, 4 blog posts, newsletter
+   785→- Created About page: company story, mission/vision, 4 team members, core values, timeline, partners
+   786→- Created Contact page: info grid, interactive form, office info, map placeholder, FAQ
+   787→- Created Request Demo page: 3-step multi-step form with progress indicator, stores via DemoRequest API
+   788→- Created Login page: Email/WhatsApp OTP tabs, remember me, forgot password, social login buttons
+   789→- Created 8 footer pages: Privacy Policy, Terms of Service, Cookie Policy, Careers, Partners, Blog, Support, Documentation
+   790→- Updated landing page navbar: all nav items now use Link to marketing routes
+   791→- Updated landing page footer: all links use Link components, added Cookie Policy link
+   792→- Created DemoRequest Prisma model + /api/demo-request POST endpoint
+   793→- All 33 routes verified returning HTTP 200
+   794→
+   795→Stage Summary:
+   796→- 23 files created (21 pages + 2 components), 2 files modified (landing navbar + footer)
+   797→- 33 total working routes (18 main pages + 15 feature detail pages)
+   798→- Zero dead links, zero placeholder-only pages
+   799→- All pages have real content, responsive design, amber/orange theme
+   800→
+   801→---
+   802→Task ID: 1
+   803→Agent: Main Agent
+   804→Task: Add professional construction-themed hero images to landing page
+   805→
+   806→Work Log:
+   807→- Generated 5 AI hero images (1344x768 each): construction site, HVAC maintenance, facility management, resource planning, cost control
+   808→- Created `/src/components/landing/hero-visual.tsx` with image carousel, floating glassmorphism cards, auto-rotation
+   809→- Integrated HeroVisual into `/src/components/landing/hero.tsx`, replacing old dashboard mockup
+   810→- Features: 6 floating glassmorphism metric cards (Project Progress 87%, Open Complaints 24, Active Work Orders 156, Labour Utilization 92%, Monthly Revenue BND 145K, Equipment Status 98% Active)
+   811→- Auto-rotating slides every 6 seconds with AnimatePresence transitions
+   812→- Navigation arrows + progress dots for manual control
+   813→- Responsive: desktop (image on right), mobile (stacked below content)
+   814→- Next.js Image optimization with responsive sizes and priority loading
+   815→- SEO alt text on all images
+   816→- Fixed Login button blending with Watch Video (ghost vs outline variant)
+   817→
+   818→Stage Summary:
+   819→- 5 hero images saved to `/public/images/hero/`
+   820→- New component: `hero-visual.tsx` (image carousel + floating cards)
+   821→- Updated: `hero.tsx` (old dashboard mockup replaced with HeroVisual)
+   822→- Updated: `navbar.tsx` (Login button now ghost variant when unscrolled)
+   823→- Verified via VLM: enterprise-grade quality, slide rotation working, mobile responsive
+   824→
+   825→---
+   826→Task ID: 3
+   827→Agent: Frontend Agent
+   828→Task: Build frontend regional hooks, context provider, formatting, selectors
+   829→
+   830→Work Log:
+   831→- Extended Zustand store (`src/lib/store.ts`) with 7 new regional fields: regionCountry, regionCurrency, regionLanguage, regionTimezone, regionDateFormat, regionLoaded, regionConfig
+   832→- Added `setRegionConfig` action that unpacks config object into individual store fields
+   833→- Created `src/components/providers/regional-provider.tsx` — React context provider with full TypeScript types (RegionConfig, RegionalContextValue)
+   834→  - Detects region via `/api/regional/detect` on mount
+   835→  - Falls back to `Intl.DateTimeFormat().resolvedOptions()` for timezone and `navigator.language` for locale
+   836→  - Syncs detected config to Zustand store
+   837→  - Exposes `updatePreference()` to PUT changes to `/api/regional/preferences`
+   838→  - Guards against double-initialization with `useRef`
+   839→- Created `src/hooks/use-format.ts` — formatting hook using regional context
+   840→  - `formatCurrency()` — Intl.NumberFormat with special handling for IDR (dot thousands, no decimals), VND, THB, JPY, KRW
+   841→  - `formatDate()` — Supports DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD patterns
+   842→  - `formatDateTime()` — Combines date + time formatting
+   843→  - `formatPhone()` — Prepends country calling code
+   844→- Created `src/components/ui/currency-selector.tsx` — shadcn/ui Select dropdown
+   845→  - Fetches currency list from `/api/regional/currencies` on open
+   846→  - Shows symbolNative + code + name, responsive truncation
+   847→  - Calls `updatePreference({ currencyCode })` on change
+   848→- Created `src/components/ui/country-selector.tsx` — shadcn/ui Select dropdown
+   849→  - Fetches country list from `/api/regional/countries` on open
+   850→  - Shows flagEmoji + name + callingCode
+   851→  - Calls `updatePreference({ countryCode })` on change
+   852→- Integrated `RegionalProvider` into `src/app/page.tsx` wrapping both authenticated and unauthenticated render paths
+   853→- ESLint passes clean with zero errors
+   854→- Dev log confirms `/api/regional/detect` is being called (returns 404 — expected, backend not yet built)
+   855→
+   856→Stage Summary:
+   857→- 4 new files created: regional-provider.tsx, use-format.ts, currency-selector.tsx, country-selector.tsx
+   858→- 2 files modified: store.ts (regional state), page.tsx (provider integration)
+   859→- All components are 'use client', fully typed, responsive, use existing shadcn/ui Select
+   860→- Provider gracefully degrades to browser APIs when backend is unavailable
+   861→- Frontend is ready to consume regional API once backend agent completes task 3-b
+   862→
+   863→---
+   864→Task ID: 2
+   865→Agent: Backend Agent
+   866→Task: Build regional config service, seed data, API routes, formatting utilities
+   867→
+   868→Work Log:
+   869→- Created `/src/lib/regional/regional-config.ts` with 13 countries, 13 currencies, 9 languages registries
+   870→- Created `/src/lib/regional/format.ts` with formatCurrency, formatDate, formatPhone, formatAddress utilities
+   871→- Created `/src/lib/regional/seed-regional.ts` with idempotent seed for all regional data
+   872→- Updated `/src/lib/seed.ts` to call seedRegionalData()
+   873→- Ran seed successfully: 13 currencies, 13 countries, 26 regional currency links, 19 country-language links, 13 tax rules, 24 exchange rates, 1 regional setting
+   874→- Created 7 API routes under `/api/regional/`:
+   875→  - GET /detect - auto-detect country from headers (locale, timezone, IP)
+   876→  - GET+PUT /preferences - user preference CRUD (auth required)
+   877→  - GET /countries - all countries with currencies/languages/tax
+   878→  - GET /currencies - all currencies with optional conversion (?from=BND&to=MYR&amount=1500)
+   879→  - GET+POST /exchange-rates - exchange rate management (admin)
+   880→  - GET /tax-rules - all tax rules with optional country filter
+   881→  - GET+PUT /settings - system regional settings (admin)
+   882→
+   883→Stage Summary:
+   884→- Backend regional system fully operational
+   885→- Verified: BND→SGD detection, MY→SST 10%, AE→VAT 5%, US→Sales Tax
+   886→- Currency conversion working: B$ 1,500 = RM 3,270
+   887→
+   888→---
+   889→Task ID: 3
+   890→Agent: Frontend Agent
+   891→Task: Build frontend regional hooks, context provider, formatting, selectors
+   892→
+   893→Work Log:
+   894→- Created `/src/components/providers/regional-provider.tsx` - React context with auto-detection via /api/regional/detect
+   895→- Created `/src/hooks/use-format.ts` - useFormat() hook with formatCurrency, formatDate, formatDateTime, formatPhone, formatTax
+   896→- Created `/src/components/ui/currency-selector.tsx` - Dropdown for currency selection
+   897→- Created `/src/components/ui/country-selector.tsx` - Dropdown for country selection
+   898→- Updated `/src/lib/store.ts` with 7 regional state fields + setRegionConfig action
+   899→- Updated `/src/app/page.tsx` to wrap both auth/unauth render paths with RegionalProvider
+   900→
+   901→Stage Summary:
+   902→- Frontend regional system integrated
+   903→- RegionalProvider auto-detects on mount and syncs to Zustand store
+   904→- All 7 API routes verified working (200 status)
+   905→- /api/regional/detect called automatically on page load
+   906→
+   907→---
+   908→Task ID: 4
+   909→Agent: Main Agent
+   910→Task: Connect "Request Demo" buttons with demo request contact form
+   911→
+   912→Work Log:
+   913→- Created `/src/components/landing/demo-request-dialog.tsx` - Professional modal dialog with 9 form fields (name, email, phone, company, position, country, industry, team size, requirements) connected to POST /api/demo-request
+   914→- Added `showDemoDialog` + `setShowDemoDialog` to Zustand store
+   915→- Fixed `landing-page.tsx` handleRequestDemo: now opens demo dialog instead of login dialog
+   916→- Fixed `navbar.tsx` desktop: replaced `<Link href="/request-demo">` with onClick onRequestDemo
+   917→- Fixed `cta.tsx`: added onRequestDemo prop, connected "Book a Demo" and "Contact Sales" buttons
+   918→- Fixed `contact-form.tsx`: replaced fake handleSubmit with real POST /api/demo-request API call
+   919→- Verified full flow: click Request Demo → dialog opens → fill form → submit → success message → data saved to DB
+   920→
+   921→Stage Summary:
+   922→- 3 bugs fixed: hero button opened login dialog, CTA was dead, contact form was fake
+   923→- All "Request Demo" buttons now open the demo request dialog
+   924→- Demo request data persists to SQLite via /api/demo-request
+   925→- Contact form on /contact page also saves to same database
+   926→---
+   927→Task ID: 1
+   928→Agent: main
+   929→Task: Fix auto location detection for phone, country, currency & pricing across SmartBuild
+   930→
+   931→Work Log:
+   932→- Audited entire codebase for hardcoded +1, USD, en-US, en-IN, $ values (~111 instances in 45 files)
+   933→- Enhanced regional-config.ts with phonePlaceholder and phoneFormat for all 13 countries
+   934→- Enhanced RegionalProvider with changeCountry() function, phonePlaceholder in context, and sessionStorage storage
+   935→- Updated detect API to accept ?country= override parameter
+   936→- Enhanced useFormat hook with formatCurrencyCompact, convertAndFormat, convertAndFormatCompact, getPhonePlaceholder, getCallingCode, getCountryFlag, getCountryName, getCountryLabel
+   937→- Updated hero-visual.tsx floating cards to use dynamic currency (BND 145K → S$145K → RM145K)
+   938→- Updated demo-request-dialog.tsx with auto-fill country/phone, country selector dropdown, currency indicator
+   939→- Updated roi-calculator.tsx to use dynamic currency symbol and prefix
+   940→- Updated cost-control.tsx mockup to use dynamic currency symbol
+   941→- Added country/currency selector dropdown to navbar (13 countries with flags)
+   942→- Updated footer with dynamic regional contact info and country badge
+   943→- Fixed ROI calculator variable-before-initialization bug (costSaved)
+   944→- Created marketing-providers.tsx and wrapped marketing layout with RegionalProvider
+   945→- Fixed all 8 marketing pages (login, register, contact, request-demo, support, privacy, terms, cookie) to use dynamic phone/country
+   946→
+   947→Stage Summary:
+   948→- All landing page components now dynamically respond to detected/selected country
+   949→- Country selector in navbar allows instant switching between 13 countries
+   950→- Currency, phone prefix, phone placeholder all update live without page refresh
+   951→- Demo request form auto-fills country and phone based on detected location
+   952→---
+   953→Task ID: 2
+   954→Agent: main
+   955→Task: Redesign login & register page UI with split-screen layout
+   956→
+   957→Work Log:
+   958→- Analyzed uploaded design image for visual reference (split-screen, red-orange gradient, modern SaaS style)
+   959→- Completely redesigned login/page.tsx with 50/50 split-screen layout
+   960→- Left panel: gradient background, SmartBuild branding, floating animated shapes, stat pills, CTA buttons
+   961→- Right panel: clean form with email login, WhatsApp OTP, social login (Google/Microsoft), register switch
+   962→- Added Register view with all fields: First Name, Last Name, Email, Phone, Company, Position, Password, Confirm Password, Terms checkbox
+   963→- Framer Motion animations: panel transitions, field stagger animations, tab switch, view switch
+   964→- Responsive design: split-screen on desktop, single column on mobile with mobile logo
+   965→- All existing auth functionality preserved (email login, WhatsApp OTP, social login, validation)
+   966→- Verified with agent browser: split-screen renders, view switching works, WhatsApp OTP tab works
+   967→
+   968→Stage Summary:
+   969→- Login page fully redesigned with premium SaaS split-screen layout
+   970→- Register form integrated (view switch between login/register)
+   971→- All auth functionality preserved, only UI changed
+   972→- Responsive across desktop/tablet/mobile
+   973→
+   974→
+   975→---
+   976→Task ID: regional-fix-verify
+   977→Agent: Main Orchestrator
+   978→Task: Verify and fix remaining hardcoded US values in SmartBuild regional detection system
+   979→
+   980→Work Log:
+   981→- Verified `getAllCountries()` is properly exported from `src/lib/regional/regional-config.ts` (line 238)
+   982→- Checked all 21 marketing/app pages under `src/app/(marketing)/` for hardcoded +1/USD/US values
+   983→- Found and fixed 3 client portal files with hardcoded USD:
+   984→  - `src/components/client-portal/client-invoices.tsx`: Removed standalone `formatCurrency()` using USD, replaced with `useFormat().formatCurrency` hook
+   985→  - `src/components/client-portal/client-dashboard.tsx`: Same fix - removed USD formatCurrency, added useFormat hook
+   986→  - `src/components/client-portal/client-progress.tsx`: Replaced hardcoded `Budget: $` with `formatCurrency()` from useFormat hook
+   987→- Fixed `src/app/(marketing)/contact/page.tsx`: Changed map placeholder address from "New York, NY" to "Bandar Seri Begawan"
+   988→- Confirmed legal pages (privacy-policy, terms-of-service, cookie-policy) correctly retain "United States" as corporate address/jurisdiction
+   989→- Ran ESLint - passed clean with no errors
+   990→- Verified with Agent Browser:
+   991→  - Country selector dropdown works: all 13 countries shown with flags
+   992→  - Switched to Singapore: navbar shows "🇸🇬 SGD", footer shows "+65 123 4567", hero cards show "S$145K"
+   993→  - Switched to Malaysia: navbar shows "🇲🇾 MYR", footer shows "+60 123 4567", hero cards show "RM316.1K", cost control shows "RM1100k", ROI shows "RM492,500"
+   994→  - Default detection works (sandbox in US shows 🇺🇸 USD)
+   995→
+   996→Stage Summary:
+   997→- All hardcoded USD/+1 values eliminated from client portal (3 files fixed)
+   998→- Contact page map placeholder updated from New York to Bandar Seri Begawan
+   999→- Marketing pages (contact, support, request-demo, login) already properly use regional hooks
+  1000→- Legal pages intentionally keep US address (corporate HQ)
+  1001→- Full end-to-end verification: country switching dynamically updates navbar, footer, hero cards, cost control, and ROI calculator
+  1002→- Lint passes clean
+  1003→
+  1004→---
+  1005→Task ID: 3
+  1006→Agent: Auth Pages Builder (Login/Register)
+  1007→Task: Create login and register pages for (auth) route group
+  1008→
+  1009→Work Log:
+  1010→- Read existing monolithic login page at src/app/(marketing)/login/page.tsx (1001 lines) to extract auth logic
+  1011→- Read AuthLayoutShell component to understand layout contract (left branding panel + right form area, mobile logo handled by layout)
+  1012→- Read useFormat hook to understand getCallingCode/getPhonePlaceholder API
+  1013→- Created src/app/(auth)/login/page.tsx — clean login-only page with:
+  1014→  - Email login form (email/password fields, remember me checkbox, forgot password link → /forgot-password)
+  1015→  - WhatsApp OTP tab (phone input → send OTP → 6-digit verification with InputOTP)
+  1016→  - Tab switcher for both desktop and mobile
+  1017→  - Social login buttons (Google, Microsoft) — visual only
+  1018→  - "Don't have an account? Create Account" → /register
+  1019→  - Framer Motion animations (formVariants, fieldVariants with stagger, AnimatePresence for tab switching)
+  1020→  - Error states (red-50 bg with ! icon), loading states (Loader2 spinner)
+  1021→  - All auth handlers preserved: handleEmailLogin, handleSendOtp, handleVerifyOtp, handleResendOtp
+  1022→  - Uses useFormat() for getCallingCode/getPhonePlaceholder, useRegion() for country data
+  1023→  - Forgot Password link updated to /forgot-password (was /contact in original)
+  1024→  - Footer links (Privacy, Terms, Support)
+  1025→- Created src/app/(auth)/register/page.tsx — clean register-only page with:
+  1026→  - 8 registration fields: First Name, Last Name, Email, Phone, Company, Position, Password, Confirm Password
+  1027→  - Phone field with country flag + calling code from useFormat/useRegion
+  1028→  - Terms checkbox with links to Terms of Service and Privacy Policy
+  1029→  - "Already have an account? Sign In" → /login
+  1030→  - Framer Motion staggered field entry animations (fieldVariants custom={0..7})
+  1031→  - Error states, loading states, password show/hide toggle
+  1032→  - Register handler with validation (password match, min 6 chars) and redirect to /login on success
+  1033→  - All styling matches original: h-12 inputs, rounded-xl, orange-400 focus, bg-gradient buttons
+  1034→- Both pages: no header/footer/navbar (layout handles that), 'use client' directive, clean imports
+  1035→- ESLint passes clean
+  1036→
+  1037→Stage Summary:
+  1038→- Created 2 new auth page files under (auth) route group
+  1039→- Login page: ~300 lines (down from 1001-line monolith), handles email + WhatsApp OTP login
+  1040→- Register page: ~210 lines, handles full registration flow with staggered animations
+  1041→- Both pages integrate with existing AuthLayoutShell and RegionalProvider from layout
+  1042→- Zero lint errors
+  1043→
+  1044→---
+  1045→Task ID: 5
+  1046→Agent: Auth Pages Builder (Secondary)
+  1047→Task: Create 6 secondary auth pages for (auth) route group
+  1048→
+  1049→Work Log:
+  1050→- Created src/app/(auth)/forgot-password/page.tsx — forgot password flow with:
+  1051→  - Email input with Mail icon, "Send Reset Link" button
+  1052→  - Posts to /api/auth/forgot-password (mock success)
+  1053→  - Three states: form → loading → success (CheckCircle2 + "Check your email" message)
+  1054→  - "Back to Sign In" link → /login at top
+  1055→  - "Try again" button on success state
+  1056→  - Footer with ShieldCheck, Privacy Policy, Terms of Service, copyright
+  1057→- Created src/app/(auth)/reset-password/page.tsx — password reset flow with:
+  1058→  - New Password + Confirm Password inputs with show/hide toggles
+  1059→  - Password strength indicator (checks length ≥8/12, has number, has special char, has uppercase)
+  1060→  - Visual strength bar (Weak/Fair/Good/Strong with color coding)
+  1061→  - Validation: min 6 chars, passwords must match
+  1062→  - Success state with CheckCircle2 icon → "Go to Login" button → /login
+  1063→- Created src/app/(auth)/verify-otp/page.tsx — OTP verification flow with:
+  1064→  - InputOTP (6 slots in 3+3 groups with dash separator)
+  1065→  - 60-second resend countdown timer with useEffect
+  1066→  - Mock success → CheckCircle2 + "Verified!" → redirects to /
+  1067→  - "Use a different method" link → /login
+  1068→- Created src/app/(auth)/two-factor-auth/page.tsx — 2FA flow with:
+  1069→  - Authenticator app OTP input (6 slots)
+  1070→  - "Remember this device for 30 days" checkbox
+  1071→  - "Can't access your authenticator?" → switches to backup code input
+  1072→  - Backup code view with amber info box, KeyRound icon input
+  1073→  - AnimatePresence for smooth toggle between authenticator/backup views
+  1074→  - Mock success → redirects to /
+  1075→- Created src/app/(auth)/whatsapp-login/page.tsx — WhatsApp login flow with:
+  1076→  - Step 1: Phone input with country calling code prefix from useFormat().getCallingCode()
+  1077→  - Country flag + name display from useRegion()
+  1078→  - "Send Code" button → transitions to Step 2
+  1079→  - Step 2: InputOTP (6 slots) with phone number display
+  1080→  - Resend countdown timer, "Change phone number" back button
+  1081→  - "Sign in with email instead" link → /login
+  1082→- Created src/app/(auth)/invite-acceptance/page.tsx — invite acceptance flow with:
+  1083→  - Full Name, Email, Password, Confirm Password inputs
+  1084→  - Email pre-filled from ?email= query param
+  1085→  - Company name pre-filled & read-only from ?company= query param
+  1086→  - Terms checkbox with links to Terms of Service and Privacy Policy
+  1087→  - Suspense boundary wrapping for useSearchParams compatibility
+  1088→  - Success state → redirects to /login after 2.5s
+  1089→- All 6 pages follow design system: 'use client', framer-motion fieldVariants animations, h-12 rounded-xl inputs, orange gradient buttons, consistent error/success boxes, AuthFooter component with ShieldCheck + links + copyright
+  1090→- ESLint passes clean (zero errors)
+  1091→
+  1092→Stage Summary:
+  1093→- Created 6 secondary auth page files under (auth) route group
+  1094→- All pages use AuthLayoutShell (via layout.tsx) and RegionalProvider
+  1095→- Consistent design: orange/red gradient buttons, gray-200 borders, orange-400 focus rings
+  1096→- Mock API calls with realistic loading/error/success states
+  1097→- Each page has AuthFooter with security badge, privacy/terms links, and copyright
+  1098→
+  1099→---
+  1100→Task ID: auth-layout-restructure
+  1101→Agent: Main Orchestrator
+  1102→Task: Remove header/footer from auth pages by creating isolated (auth) route group
+  1103→
+  1104→Work Log:
+  1105→- Explored full routing structure: found /login inside (marketing) route group wrapped by MarketingNavbar + MarketingFooter
+  1106→- Confirmed only /login exists as a file; register/whatsapp/forgot-password etc. were embedded as view toggles
+  1107→- Created `src/app/(auth)/layout.tsx` — dedicated auth layout with RegionalProvider + AuthLayoutShell
+  1108→- Created `src/components/auth/auth-layout-shell.tsx` — split-screen design (left branding panel + right form area)
+  1109→  - Auto-detects page variant from pathname (login/register/forgot-password/etc.)
+  1110→  - Left panel: gradient bg, floating shapes, logo, dynamic heading, CTA link, stat pills
+  1111→  - Right panel: subtle dot pattern, form area with mobile-only logo
+  1112→  - NO navbar, NO footer, NO marketing components
+  1113→- Auth pages created (8 total):
+  1114→  - (auth)/login/page.tsx — email + WhatsApp OTP tabs, social login, animations
+  1115→  - (auth)/register/page.tsx — full registration form with validation
+  1116→  - (auth)/forgot-password/page.tsx — email reset with success state
+  1117→  - (auth)/reset-password/page.tsx — new password + strength indicator
+  1118→  - (auth)/verify-otp/page.tsx — 6-digit OTP with resend timer
+  1119→  - (auth)/two-factor-auth/page.tsx — authenticator code + backup code fallback
+  1120→  - (auth)/whatsapp-login/page.tsx — 2-step phone → OTP flow
+  1121→  - (auth)/invite-acceptance/page.tsx — invitation acceptance with query param pre-fill
+  1122→- Removed old `src/app/(marketing)/login/page.tsx` (route conflict resolved)
+  1123→- All links to /login automatically resolve to new (auth)/login via Next.js routing
+  1124→- Lint passes clean
+  1125→- Browser verified:
+  1126→  - /login: "Welcome Back" panel, email/WhatsApp tabs, no navbar/footer ✓
+  1127→  - /register: "Get Started" panel, full form, no navbar/footer ✓
+  1128→  - /forgot-password: "Need Help?" panel, no navbar/footer ✓
+  1129→  - /verify-otp: "Stay Secure" panel, no navbar/footer ✓
+  1130→  - /whatsapp-login: "Quick Login" panel, no navbar/footer ✓
+  1131→  - /two-factor-auth: "Extra Security" panel, no navbar/footer ✓
+  1132→  - Homepage: full navbar (Solutions/Features/Pricing/About/Contact) + footer (GitHub/Twitter/LinkedIn/Subscribe) still intact ✓
+  1133→  - Marketing navbar "Login" button → navigates to clean auth layout ✓
+  1134→
+  1135→Stage Summary:
+  1136→- Authentication pages are now completely isolated from the public website
+  1137→- (auth) route group with dedicated layout that does NOT inherit marketing navbar/footer
+  1138→- 8 auth pages created with consistent design, animations, and inter-page navigation
+  1139→- Marketing pages unaffected — still show full header/footer/navigation
+  1140→---
+  1141→Task ID: 3
+  1142→Agent: main
+  1143→Task: Fix login redirect bug - user gets sent back to landing page instead of dashboard
+  1144→
+  1145→Work Log:
+  1146→- Diagnosed root cause: `(auth)/login/page.tsx` was missing `setUser()` call and using `router.push('/')` (soft SPA navigation) instead of full reload
+  1147→- Fixed login/page.tsx: Added `setUser(data.data.user)` after `setToken()`, added toast notification, changed `router.push('/')` to `window.location.href = '/'` for full page reload
+  1148→- Fixed verify-otp/page.tsx: Changed `router.push('/')` to `window.location.href = '/'`
+  1149→- Fixed whatsapp-login/page.tsx: Changed mock redirect to show "coming soon" error message instead of silently redirecting
+  1150→- Fixed two-factor-auth/page.tsx: Changed both `router.push('/')` (authenticator and backup code paths) to `window.location.href = '/'`
+  1151→- Verified register and invite-acceptance pages already correctly redirect to `/login`
+  1152→- Ran lint: no errors
+  1153→- Verified with agent-browser: Login with admin@smartbuild.com / admin123 successfully navigates to authenticated dashboard with full sidebar
+  1154→
+  1155→Stage Summary:
+  1156→- Bug fixed: Login from auth pages now properly sets both token and user in Zustand store, then does full page reload to SPA root
+  1157→- The SPA's HomePage init() picks up the token from localStorage, validates via /api/auth/me, and routes to role-based dashboard
+  1158→- All 4 affected auth pages fixed (login, verify-otp, whatsapp-login, two-factor-auth)
+  1159→
+  1160→---
+  1161→Task ID: 2
+  1162→Agent: finance-components-fixer
+  1163→Task: Fix finance components currency to BND and tax to 0%
+  1164→
+  1165→Work Log:
+  1166→- Added `import { useFormat } from '@/hooks/use-format'` to all 5 finance page files
+  1167→- Removed local `formatCurrency` functions using `Intl.NumberFormat('en-IN', { currency: 'INR' })` from all 5 files
+  1168→- Added `const { formatCurrency } = useFormat()` hook call in every component that renders currency values:
+  1169→  - invoices-page.tsx: InvoiceDialog + InvoicesPage
+  1170→  - payments-page.tsx: AddPaymentDialog + PaymentsPage
+  1171→  - boq-page.tsx: AddBoqItemDialog + BoqPage
+  1172→  - cashflow-page.tsx: ChartTooltipContent (formatCurrency) + CashflowPage (formatCurrency + formatCurrencyCompact)
+  1173→  - daybook-page.tsx: DaybookPage
+  1174→- Removed all `₹` symbols from labels:
+  1175→  - invoices-page.tsx: "Unit Price (₹)" → "Unit Price"
+  1176→  - payments-page.tsx: "Amount (₹)" → "Amount"
+  1177→  - boq-page.tsx: "Unit Rate (₹)" → "Unit Rate"
+  1178→  - daybook-page.tsx: "Amount (₹)" → "Amount"
+  1179→- Changed tax default from `'18'` to `'0'` in invoices-page.tsx (two locations: initial state and reset-on-new-invoice)
+  1180→- Replaced Indian number abbreviation system (Cr/L/K with ₹) in cashflow-page.tsx with `formatCurrencyCompact` from useFormat (uses standard K/M/B)
+  1181→- Fixed `toLocaleString('en-IN')` to `toLocaleString()` in boq-page.tsx quantity column
+  1182→
+  1183→Stage Summary:
+  1184→- All 5 finance components now use useFormat() hook for currency formatting (BND)
+  1185→- Zero hardcoded INR/₹/en-IN references remain in finance page files
+  1186→- Tax defaults changed to 0% for Brunei (no GST)
+  1187→- Indian Cr/Lakh abbreviation system replaced with standard K/M/B compact formatting
+  1188→
+  1189→---
+  1190→Task ID: 4
+  1191→Agent: seed-api-fixer
+  1192→Task: Fix seed data to BND with zero tax, fix API currency formatting
+  1193→
+  1194→Work Log:
+  1195→- **seed.ts Invoices (4 invoices):** Set all `tax` to 0 (was 18% GST: 900000, 1440000, 1170000, 810000). Recalculated totals. Scaled subtotals to BND range: INV-001 50K, INV-002 80K, INV-003 65K, INV-004 45K. Scaled invoice item unit prices proportionally. Scaled paid amounts and payment records to match.
+  1196→- **seed.ts Payments (5 payments):** Scaled amounts to BND (49,500 / 50,000 / 20,000 / 15,000). Changed Indian payment references (NEFT→BT, UPI→BT).
+  1197→- **seed.ts Expenses (7 expenses):** Scaled from INR-level to BND (e.g., labour wages 185,000→1,850, cement 76,000→760, equipment rental 12,000→120).
+  1198→- **seed.ts Purchase Orders (2 POs):** Set `tax` to 0. Scaled PO-001 to subtotal 5,300 / PO-002 to subtotal 3,600 BND.
+  1199→- **seed.ts Purchase Request Items (7 items):** Scaled estimated prices to BND (e.g., cement 190K→5K, steel 124K→2.4K, tiles 30K→600).
+  1200→- **seed.ts Project Budgets (3 projects):** Scaled to BND range: Skyline Tower 3M, Green Valley 1.8M, Metro Expansion 5M.
+  1201→- **seed.ts Material Unit Prices (13 materials):** Scaled to realistic BND per-unit prices (cement B$10/bag, steel B$1.2/kg, sand B$1.2/cft, tiles B$1.5/sqft, etc.).
+  1202→- **seed.ts Labour Group Rates (6 groups):** Scaled from INR daily rates to BND (Mason B$30, Carpenter B$28, Electrician B$35, Plumber B$30, Painter B$25, Helper B$18).
+  1203→- **seed.ts Asset Prices (6 assets):** Scaled purchase/current values to BND (Concrete Mixer 8,500/6,800, Vehicle 25,000/20,000, etc.).
+  1204→- **seed.ts Product Prices (12 products):** Scaled cost/selling prices to BND (cement bag 8.5/9.75, TMT bar 1.2/1.4 per kg, LED panel 18/23, etc.).
+  1205→- **seed.ts Customer Balances (4 customers):** Recalculated to match invoice payment states (10K, 110K, 0, 3.5K BND).
+  1206→- **seed.ts Stock Movements (5 entries):** Updated unit prices to match new material unit prices.
+  1207→- **seed.ts Notification:** Changed ₹53,10,000 to B$45,000 in overdue invoice notification.
+  1208→- **seed-collaboration.ts (2 ₹ references):** Changed ₹45,000 to B$450 and ₹28.5 Lakhs to B$28,500.
+  1209→- **API Route invoices/route.ts:** Replaced `INR()` helper (en-IN/INR) with `formatBND()` (en-BN/BND, 2 decimal places).
+  1210→- **Other API routes checked:** sales-invoices, purchase-orders, maintenance/invoices — all clean, no INR/₹ references found.
+  1211→- **use-format.ts:** Confirmed `getTaxName()` and `getTaxShortName()` already exist. No duplicate added.
+  1212→
+  1213→Stage Summary:
+  1214→- All seed financial data converted from INR to realistic BND amounts for Brunei construction
+  1215→- All tax fields set to 0 (Brunei has no GST)
+  1216→- Zero INR/₹/en-IN references remain in seed.ts, seed-collaboration.ts, or API routes
+  1217→- Relational integrity maintained: invoice totals = subtotal - discount, payment amounts ≤ invoice totals, customer balances match unpaid invoice amounts
+  1218→- API route invoices/route.ts now uses formatBND() helper
+  1219→
+  1220→---
+  1221→Task ID: 3
+  1222→Agent: sales-procurement-maintenance-fixer
+  1223→Task: Fix sales, procurement, maintenance components currency to BND and tax to 0%
+  1224→
+  1225→Work Log:
+  1226→- Added `getTaxName()` and `getTaxShortName()` helpers to `src/hooks/use-format.ts`
+  1227→  - `getTaxName()`: returns "Tax Reg. No." for zero-tax regions (Brunei), or "${taxName} No." for taxed regions
+  1228→  - `getTaxShortName()`: returns "Tax" for zero-tax regions, or the tax name (e.g. "GST", "SST") for taxed regions
+  1229→- Fixed `src/components/sales/sales-invoices-page.tsx`:
+  1230→  - Removed local `formatCurrency` function using `Intl.NumberFormat('en-IN', { currency: 'INR' })`
+  1231→  - Added `import { useFormat }` and `const { formatCurrency } = useFormat()` in SalesInvoicesPage
+  1232→  - Changed default `taxPercent` from `'18'` to `'0'` in both initial state and reset
+  1233→- Fixed `src/components/procurement/purchase-orders-page.tsx`:
+  1234→  - Removed local `formatCurrency` function using `Intl.NumberFormat('en-IN', { currency: 'INR' })`
+  1235→  - Added `useFormat()` + `formatCurrency` in both `CreatePODialog` and `PurchaseOrdersPage`
+  1236→  - Changed label `Tax (₹)` → `Tax`
+  1237→  - Changed label `Unit Price (₹)` → `Unit Price`
+  1238→- Fixed `src/components/maintenance/maintenance-invoices.tsx`:
+  1239→  - Removed local `formatCurrency` function (`$${val.toFixed(2)}`)
+  1240→  - Added `useFormat()` + `formatCurrency` in `MaintenanceInvoices`, `CreateInvoiceForm`, and `EditInvoiceForm`
+  1241→  - Changed default `taxPercent` from `10` to `0` (3 occurrences: initial state, reset, and edit fallback)
+  1242→- Verified `src/components/client-portal/client-invoices.tsx` — already correctly uses `useFormat()` `formatCurrency`
+  1243→- Fixed `src/components/sales/customers-page.tsx`:
+  1244→  - Replaced hardcoded `GST No` form label → dynamic `{getTaxName()}`
+  1245→  - Replaced hardcoded `GST` view label → dynamic `{getTaxShortName()}`
+  1246→  - Replaced hardcoded `GST` table header → dynamic `{getTaxShortName()}`
+  1247→  - Changed placeholder from "GST number" → "Tax registration number"
+  1248→- Fixed `src/components/procurement/suppliers-page.tsx`:
+  1249→  - Same GST → dynamic tax label changes as customers-page
+  1250→- Fixed `src/components/subcontractors/subcontractors-page.tsx`:
+  1251→  - Same GST → dynamic tax label changes as customers-page
+  1252→
+  1253→Stage Summary:
+  1254→- 7 component files modified, 1 hook file enhanced
+  1255→- All INR/₹/$ hardcoded currency formatting replaced with `useFormat()` `formatCurrency` (BND)
+  1256→- All tax defaults set to 0 (Brunei has no tax)
+  1257→- All hardcoded "GST" labels replaced with dynamic tax-name helpers
+  1258→- Zero remaining references to INR, ₹, or hardcoded GST labels in the 7 target files
+  1259→- For Brunei: currency displays as B$ (BND), tax labels show "Tax Reg. No." / "Tax"
+  1260→---
+  1261→Task ID: 2b
+  1262→Agent: remaining-inr-fixer
+  1263→Task: Fix all remaining INR/₹/en-IN references across 28 non-financial component files
+  1264→
+  1265→Work Log:
+  1266→- Ran `rg "en-IN|'INR'|₹|Intl\.NumberFormat"` to identify all 28 files with Indian currency/locale references
+  1267→- Read each file to understand patterns: local `formatCurrency` functions, inline `₹` symbols, `toLocaleString('en-IN')`, Indian Cr/L/K compact formatting
+  1268→- Applied consistent fix pattern per file:
+  1269→  1. Added `import { useFormat } from '@/hooks/use-format'` where missing
+  1270→  2. Removed local `formatCurrency` / `fmt` functions using `Intl.NumberFormat('en-IN', { currency: 'INR' })`
+  1271→  3. Added `const { formatCurrency } = useFormat()` inside each component (or `formatCurrencyCompact` for AI files)
+  1272→  4. Replaced all `₹` label suffixes (e.g. `Budget (₹)` → `Budget`) since formatCurrency includes B$ symbol
+  1273→  5. Replaced inline `₹${value}` patterns with `formatCurrency(value)` calls
+  1274→  6. Replaced Indian Cr/L/K compact formatting in 3 AI files with `formatCurrencyCompact()` (BND K/M/B)
+  1275→  7. Replaced `toLocaleString('en-IN')` with `toLocaleString()` in dashboard KpiCard
+  1276→  8. Replaced Indian Lakh/Month tickFormatter in dashboard chart with international M/K using `getCurrencySymbol()`
+  1277→  9. Replaced `toLocaleDateString('en-IN', ...)` with `toLocaleDateString(undefined, ...)` in resource-forecasting
+  1278→  10. Replaced `fmt(` calls with `formatCurrency(` in project-detail-page.tsx
+  1279→
+  1280→Files modified (28 total):
+  1281→- sales: customers-page.tsx, product-catalog-page.tsx
+  1282→- reports: reports-page.tsx
+  1283→- projects: projects-page.tsx, project-detail-page.tsx
+  1284→- maintenance: maintenance-sites.tsx
+  1285→- labour: labour-groups-page.tsx, payroll-page.tsx
+  1286→- ai: advanced-reports.tsx, ai-dashboard.tsx, project-analytics.tsx, ai-forecast.tsx
+  1287→- resources: resource-planning.tsx, tool-resources.tsx, resource-forecasting.tsx, resource-dashboard.tsx, vehicle-resources.tsx, labour-resources.tsx, equipment-resources.tsx
+  1288→- hr: employees-page.tsx, leave-page.tsx
+  1289→- assets: assets-page.tsx
+  1290→- subcontractors: subcontractors-page.tsx, work-orders-page.tsx
+  1291→- procurement: purchase-requests-page.tsx, inventory-page.tsx, suppliers-page.tsx
+  1292→- dashboard: dashboard-page.tsx
+  1293→
+  1294→Stage Summary:
+  1295→- Zero remaining `en-IN`, `'INR'`, `₹`, or `Intl.NumberFormat` references in src/**/*.tsx (verified via rg)
+  1296→- All 28 component files now use `useFormat()` hook for currency formatting (BND/B$)
+  1297→- Indian number system (Cr/L/Lakh) replaced with international compact notation (K/M/B) in AI dashboard/report components
+  1298→

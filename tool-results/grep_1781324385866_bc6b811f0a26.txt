@@ -1,0 +1,252 @@
+/home/z/my-project/src/components/cost-control/budget-management.tsx:32:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/cost-control/budget-management.tsx:33:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/cost-control/budget-management.tsx:34:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/cost-control/budget-management.tsx:110:    queryFn: () => api.get<Budget[]>(`/api/cost-control/budgets?status=${statusFilter}`).then(r => r.data!),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:132:    queryFn: () => api.get<any>(`/api/cost-control/budgets/${expandedBudget}`).then(r => r.data),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:148:    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/cost-control/budgets/${id}`, { status }),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:154:    mutationFn: (id: string) => api.del(`/api/cost-control/budgets/${id}`),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:163:    mutationFn: ({ budgetId, ...body }: any) => api.post(`/api/cost-control/budgets/${budgetId}/line-items`, body),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:173:    mutationFn: ({ budgetId, itemId, ...body }: any) => api.put(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`, body),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:183:    mutationFn: ({ budgetId, itemId }: { budgetId: string; itemId: string }) => api.del(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`),
+/home/z/my-project/src/components/cost-control/budget-management.tsx:298:                      <TableRow key={`${b.id}-detail`}>
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:30:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:31:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:32:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:114:          api.get<ChangeOrder[]>(`/api/cost-control/budgets/${id}/change-orders?status=${statusFilter === 'all' ? '' : statusFilter}`).then(r => r.data || [])
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:125:    queryFn: () => api.get<LineItemOption[]>(`/api/cost-control/budgets/${selectedBudgetId}/line-items`).then(r => r.data || []),
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:131:    mutationFn: (body: any) => api.post(`/api/cost-control/budgets/${selectedBudgetId}/change-orders`, body),
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:143:      api.put(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`, { status }),
+/home/z/my-project/src/components/cost-control/budget-change-orders.tsx:153:      api.del(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`),
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:31:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:32:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:33:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:116:    queryFn: () => api.get<Snapshot[]>(`/api/cost-control/budgets/${selectedBudgetForSnap}/snapshots`).then(r => r.data || []),
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:122:    mutationFn: (body: any) => api.post(`/api/cost-control/budgets/${selectedBudgetForSnap}/snapshots`, body),
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:177:            <Button variant="outline" size="sm" className="h-9" onClick={() => createSnapMutation.mutate({ name: `Manual ${format(new Date(), 'MMM d, yyyy')}`, snapshotType: 'custom' })} disabled={createSnapMutation.isPending}>
+/home/z/my-project/src/components/cost-control/cost-forecasting.tsx:374:                      <TableRow key={`${p.budgetId}-detail`}>
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:24:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:25:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:26:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:30:  return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:99:    { label: 'Total Budget Value', value: formatCurrency(counts.totalOriginalValue), icon: DollarSign, sub: `${formatCurrency(counts.totalRevisedValue)} revised`, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30' },
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:100:    { label: 'Approved Budgets', value: `${counts.approvedBudgets}`, icon: FileCheck, sub: `of ${counts.totalBudgets} total`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:101:    { label: 'Budget Utilization', value: `${utilization.toFixed(1)}%`, icon: TrendingUp, sub: `${formatCurrency(totalActual)} spent`, color: utilization > 90 ? 'text-red-600' : utilization > 70 ? 'text-amber-600' : 'text-emerald-600', bg: utilization > 90 ? 'bg-red-50 dark:bg-red-950/30' : utilization > 70 ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-emerald-50 dark:bg-emerald-950/30' },
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:102:    { label: 'Pending Change Orders', value: `${counts.pendingChangeOrders}`, icon: AlertCircle, sub: 'Awaiting review', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-950/30' },
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:200:                      label={({ name, percent }) => `${name.slice(0, 12)} ${(percent * 100).toFixed(0)}%`}
+/home/z/my-project/src/components/cost-control/cost-control-dashboard.tsx:293:                      style={{ width: `${counts.totalBudgets > 0 ? (s.count / counts.totalBudgets) * 100 : 0}%` }}
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:80:      return api.get<CostCodeFlat[]>(`/api/cost-control/cost-codes?${params}`).then(r => r.data || [])
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:99:    mutationFn: ({ id, ...body }: any) => api.put(`/api/cost-control/cost-codes/${id}`, body),
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:107:    mutationFn: (id: string) => api.del(`/api/cost-control/cost-codes/${id}`),
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:306:          <span className="font-mono text-sm" style={{ paddingLeft: `${depth * 20}px` }}>
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:311:          <span className="text-sm" style={{ paddingLeft: `${depth * 20}px` }}>
+/home/z/my-project/src/components/cost-control/cost-codes.tsx:314:          {node.description && <p className="text-[11px] text-muted-foreground mt-0.5" style={{ paddingLeft: `${depth * 20}px` }}>{node.description}</p>}
+/home/z/my-project/src/components/sales/customers-page.tsx:98:      isEdit ? api.put(`/api/customers/${customer!.id}`, body) : api.post('/api/customers', body),
+/home/z/my-project/src/components/sales/customers-page.tsx:226:      return api.get(`/api/customers${qs ? `?${qs}` : ''}`).then((r) => r.data as Customer[])
+/home/z/my-project/src/components/sales/customers-page.tsx:231:    mutationFn: (id: string) => api.del(`/api/customers/${id}`),
+/home/z/my-project/src/components/sales/customers-page.tsx:246:            {isLoading ? 'Loading...' : items ? `${items.length} customer(s)` : 'No customers'}
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:104:    queryFn: () => api.get(`/api/sales-invoices?${params.toString()}`).then((r) => r.data as SalesInvoice[]),
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:125:    mutationFn: (id: string) => api.del(`/api/sales-invoices/${id}`),
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:174:            {isLoading ? 'Loading...' : items ? `${items.length} invoice(s)` : 'No invoices'}
+/home/z/my-project/src/components/sales/product-catalog-page.tsx:102:    queryFn: () => api.get(`/api/products?${params.toString()}`).then((r) => r.data as Product[]),
+/home/z/my-project/src/components/sales/product-catalog-page.tsx:122:    mutationFn: (id: string) => api.del(`/api/products/${id}`),
+/home/z/my-project/src/components/sales/product-catalog-page.tsx:155:            {isLoading ? 'Loading...' : items ? `${items.length} product(s)` : 'No products'}
+/home/z/my-project/src/components/sales/product-catalog-page.tsx:388:    mutationFn: (body: Record<string, unknown>) => api.put(`/api/products/${item.id}`, body),
+/home/z/my-project/src/components/collaboration/submittals.tsx:65:      return api.get(`/api/collaboration/submittals?${params.toString()}`)
+/home/z/my-project/src/components/collaboration/submittals.tsx:71:    queryFn: () => api.get(`/api/collaboration/submittals/${detailId}`),
+/home/z/my-project/src/components/collaboration/submittals.tsx:94:      api.put(`/api/collaboration/submittals/${id}`, { action, ...data }),
+/home/z/my-project/src/components/collaboration/submittals.tsx:104:    mutationFn: (id: string) => api.del(`/api/collaboration/submittals/${id}`),
+/home/z/my-project/src/components/collaboration/submittals.tsx:171:                    <Badge variant="secondary" className={`text-[10px] ${statusColors[s.status] || ''}`}>{s.status?.replace(/_/g, ' ')}</Badge>
+/home/z/my-project/src/components/collaboration/submittals.tsx:173:                    <Badge variant="secondary" className={`text-[10px] ${priorityColors[s.priority] || ''}`}>{s.priority}</Badge>
+/home/z/my-project/src/components/collaboration/announcements.tsx:46:  if (mins < 60) return `${mins}m ago`
+/home/z/my-project/src/components/collaboration/announcements.tsx:48:  if (hours < 24) return `${hours}h ago`
+/home/z/my-project/src/components/collaboration/announcements.tsx:50:  return `${days}d ago`
+/home/z/my-project/src/components/collaboration/announcements.tsx:78:      return api.get(`/api/collaboration/announcements?${params.toString()}`)
+/home/z/my-project/src/components/collaboration/announcements.tsx:84:    queryFn: () => api.get(`/api/collaboration/announcements/${detailId}`),
+/home/z/my-project/src/components/collaboration/announcements.tsx:108:    mutationFn: ({ id, data }: { id: string; data: any }) => api.put(`/api/collaboration/announcements/${id}`, data),
+/home/z/my-project/src/components/collaboration/announcements.tsx:120:    mutationFn: (id: string) => api.del(`/api/collaboration/announcements/${id}`),
+/home/z/my-project/src/components/collaboration/announcements.tsx:197:                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${pCfg.color}`}>
+/home/z/my-project/src/components/collaboration/announcements.tsx:202:                        <Badge variant="secondary" className={`text-[10px] ${pCfg.color}`}>{pCfg.label}</Badge>
+/home/z/my-project/src/components/collaboration/discussions.tsx:81:      return api.get(`/api/collaboration/discussions?${params.toString()}`)
+/home/z/my-project/src/components/collaboration/discussions.tsx:87:    queryFn: () => api.get(`/api/collaboration/discussions/${detailId}`),
+/home/z/my-project/src/components/collaboration/discussions.tsx:107:    mutationFn: (content: string) => api.post(`/api/collaboration/discussions/${detailId}/comments`, { content }),
+/home/z/my-project/src/components/collaboration/discussions.tsx:118:      api.put(`/api/collaboration/discussions/${id}`, { status }),
+/home/z/my-project/src/components/collaboration/discussions.tsx:132:    if (mins < 60) return `${mins}m ago`
+/home/z/my-project/src/components/collaboration/discussions.tsx:134:    if (hours < 24) return `${hours}h ago`
+/home/z/my-project/src/components/collaboration/discussions.tsx:136:    return `${days}d ago`
+/home/z/my-project/src/components/collaboration/discussions.tsx:188:                    <Badge variant="secondary" className={`text-[10px] ${statusColors[d.status] || ''}`}>{d.status?.replace(/_/g, ' ')}</Badge>
+/home/z/my-project/src/components/collaboration/discussions.tsx:189:                    <Badge variant="outline" className={`text-[10px] ${categoryColors[d.category] || ''}`}>{d.category}</Badge>
+/home/z/my-project/src/components/collaboration/discussions.tsx:190:                    <Badge variant="secondary" className={`text-[10px] ${priorityColors[d.priority] || ''}`}>{d.priority}</Badge>
+/home/z/my-project/src/components/collaboration/approvals.tsx:97:          api.get(`/api/projects/${p.id}/change-events?status=open`).catch(() => ({ data: [] }))
+/home/z/my-project/src/components/collaboration/approvals.tsx:109:      title: `${pr.requestNo} - ${pr.projectName}`,
+/home/z/my-project/src/components/collaboration/approvals.tsx:115:      title: `${lr.type} Leave - ${lr.employeeId}`,
+/home/z/my-project/src/components/collaboration/approvals.tsx:120:      title: `${s.submittalNo} - ${s.title}`,
+/home/z/my-project/src/components/collaboration/approvals.tsx:125:      title: `${ce.eventNo} - ${ce.title}`,
+/home/z/my-project/src/components/collaboration/approvals.tsx:139:    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/approve`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:145:    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/reject`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:151:    mutationFn: (id: string) => api.post(`/api/leave-requests/${id}/approve`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:157:    mutationFn: (id: string) => api.post(`/api/leave-requests/${id}/reject`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:163:    mutationFn: (id: string) => api.put(`/api/collaboration/submittals/${id}`, { action: 'approve' }),
+/home/z/my-project/src/components/collaboration/approvals.tsx:169:    mutationFn: (id: string) => api.put(`/api/collaboration/submittals/${id}`, { action: 'reject' }),
+/home/z/my-project/src/components/collaboration/approvals.tsx:176:      api.post(`/api/projects/${projectId}/change-events/${eventId}/approve`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:183:      api.post(`/api/projects/${projectId}/change-events/${eventId}/reject`, {}),
+/home/z/my-project/src/components/collaboration/approvals.tsx:244:                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${typeColors[type]}`}>
+/home/z/my-project/src/components/collaboration/approvals.tsx:270:              <Card key={`${item.type}-${item.id}`} className="hover:shadow-sm transition-shadow">
+/home/z/my-project/src/components/collaboration/approvals.tsx:272:                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${typeColors[item.type]}`}>
+/home/z/my-project/src/components/collaboration/approvals.tsx:279:                        <Badge variant="secondary" className={`text-[10px] ${priorityColors[item.priority] || ''}`}>{item.priority}</Badge>
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:69:          api.get(`/api/projects/${p.id}/rfis?status=${statusFilter === 'all' ? '' : statusFilter}`).catch(() => ({ data: [] }))
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:96:      return api.get(`/api/projects/${detailRfiProjectId}/rfis/${detailId}`)
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:114:      return api.get(`/api/projects/${detailRfiProjectId}/rfis/${detailId}/comments`)
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:124:      return api.post(`/api/projects/${projId}/rfis`, {
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:144:      return api.post(`/api/projects/${detailRfiProjectId}/rfis/${detailId}/comments`, { content })
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:156:      api.put(`/api/projects/${projectId}/rfis/${rfiId}`, { status }),
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:231:                    <Badge variant="secondary" className={`text-[10px] ${statusColors[r.status] || ''}`}>
+/home/z/my-project/src/components/collaboration/rfi-management.tsx:234:                    <Badge variant="secondary" className={`text-[10px] ${priorityColors[r.priority] || ''}`}>
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:47:  if (mins < 60) return `${mins}m ago`
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:49:  if (hours < 24) return `${hours}h ago`
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:51:  return `${days}d ago`
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:108:                  <div className={`inline-flex items-center justify-center rounded-lg p-2 mb-3 ${kpi.color}`}>
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:148:                    <Badge variant="secondary" className={`text-[10px] shrink-0 ${statusColors[item.status] || ''}`}>
+/home/z/my-project/src/components/collaboration/collaboration-dashboard.tsx:184:                        <div className="h-full bg-teal-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+/home/z/my-project/src/components/reports/reports-page.tsx:72:    queryFn: () => api.get(`/api/reports?${params}`).then((r) => r.data),
+/home/z/my-project/src/components/reports/reports-page.tsx:219:                          ? `${formatNumber(val, 1)}%`
+/home/z/my-project/src/components/auth/login-page.tsx:48:          description: `Logged in as ${res.data.user?.name || res.data.user?.email}`,
+/home/z/my-project/src/components/auth/login-page.tsx:161:                    className={`h-11 bg-stone-50 border-stone-200 focus:bg-white transition-colors ${
+/home/z/my-project/src/components/auth/login-page.tsx:183:                      className={`h-11 bg-stone-50 border-stone-200 focus:bg-white transition-colors pr-11 ${
+/home/z/my-project/src/components/projects/projects-page.tsx:353:              style={{ width: `${project.progress}%` }}
+/home/z/my-project/src/components/projects/projects-page.tsx:378:                  ? `${daysLeft}d left`
+/home/z/my-project/src/components/projects/projects-page.tsx:381:                    : `${Math.abs(daysLeft)}d overdue`
+/home/z/my-project/src/components/projects/projects-page.tsx:413:      return api.get(`/api/projects${qs ? `?${qs}` : ''}`).then((r) => r.data as Project[])
+/home/z/my-project/src/components/projects/projects-page.tsx:441:                ? `${projects.length} project${projects.length !== 1 ? 's' : ''} found`
+/home/z/my-project/src/components/projects/projects-page.tsx:591:                            style={{ width: `${project.progress}%` }}
+/home/z/my-project/src/components/projects/project-detail-page.tsx:148:    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:154:    queryFn: () => api.get(`/api/projects/${projectId}/insights`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:160:    queryFn: () => api.get(`/api/projects/${projectId}/comments`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:254:                <span>{daysLeft > 0 ? `${daysLeft} days remaining` : `${Math.abs(daysLeft)} days overdue`}</span>
+/home/z/my-project/src/components/projects/project-detail-page.tsx:305:    queryFn: () => api.get(`/api/projects/${projectId}/tasks`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:310:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/tasks`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:402:    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:467:      return api.get(`/api/projects/${projectId}/open-items?${params.toString()}`).then(r => r.data)
+/home/z/my-project/src/components/projects/project-detail-page.tsx:475:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/open-items`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:481:    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/open-items/${id}`, { status: 'resolved' }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:487:    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/open-items/${id}`, { status: 'closed' }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:616:      return api.get(`/api/projects/${projectId}/rfis?${params.toString()}`).then(r => r.data)
+/home/z/my-project/src/components/projects/project-detail-page.tsx:624:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/rfis`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:630:    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/projects/${projectId}/rfis/${id}`, { status }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:631:    onSuccess: (_, vars) => { toast.success(`RFI ${vars.status}`); queryClient.invalidateQueries({ queryKey: ['rfis', projectId] }); setDetailOpen(false) },
+/home/z/my-project/src/components/projects/project-detail-page.tsx:636:    mutationFn: ({ rfiId, content }: { rfiId: string; content: string }) => api.post(`/api/projects/${projectId}/rfis/${rfiId}/comments`, { content }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:797:    queryFn: () => api.get(`/api/projects/${projectId}/change-events`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:804:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/change-events`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:810:    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/projects/${projectId}/change-events/${id}`, { status }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:811:    onSuccess: (_, vars) => { toast.success(`Change event ${vars.status}`); queryClient.invalidateQueries({ queryKey: ['change-events', projectId] }) },
+/home/z/my-project/src/components/projects/project-detail-page.tsx:911:    queryFn: () => api.get(`/api/projects/${projectId}/change-orders`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:918:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/change-orders`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:924:    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/change-orders/${id}`, { status: 'approved' }),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1027:    queryFn: () => api.get(`/api/projects/${projectId}/team`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1034:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/team`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1122:    queryFn: () => api.get(`/api/projects/${projectId}/commitments`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1129:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/commitments`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1233:    queryFn: () => api.get(`/api/projects/${projectId}/direct-costs`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1240:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/direct-costs`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1347:    queryFn: () => api.get(`/api/projects/${projectId}/documents`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1354:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/documents`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1368:    if (bytes < 1024) return `${bytes} B`
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1369:    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1370:    return `${(bytes / 1048576).toFixed(1)} MB`
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1467:    queryFn: () => api.get(`/api/projects/${projectId}/daily-notes`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1474:    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/daily-notes`, body),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1554:    queryFn: () => api.get(`/api/projects/${projectId}/insights`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1560:    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1724:                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => v >= 100000 ? `${(v / 100000).toFixed(0)}L` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1787:    queryFn: () => api.get(`/api/projects/${effectiveProjectId}`).then(r => r.data),
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1877:            <p className="text-xs text-muted-foreground">{projectData.code} {projectData.address ? `• ${projectData.address}` : ''}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:91:  if (minutes >= 60) return `${(minutes / 60).toFixed(1)}h`
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:92:  return `${Math.round(minutes)}m`
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:130:      value: `${ticketCounts.total}`,
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:138:      value: `${ticketCounts.open}`,
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:146:      value: `${ticketCounts.emergency}`,
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:154:      value: `${ticketCounts.completedToday}`,
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:162:      value: `${ticketCounts.slaBreaches}`,
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:266:                      label={({ name, percent }) => `${name.slice(0, 12)} ${(percent * 100).toFixed(0)}%`}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:273:                    <Tooltip formatter={(value: number) => `${value} tickets`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:300:                      formatter={(value: number) => `${value} tickets`}
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:37:  return `$${val.toFixed(2)}`
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:61:      return api.get(`/api/maintenance/invoices${params.toString() ? `?${params.toString()}` : ''}`)
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:93:    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/invoices/${id}`, body),
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:107:    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/maintenance/invoices/${id}`, { status }),
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:110:      toast({ title: 'Status Updated', description: `Invoice marked as ${vars.status}.` })
+/home/z/my-project/src/components/maintenance/service-requests.tsx:103:        setRemaining(`${days}d ${hours % 24}h`)
+/home/z/my-project/src/components/maintenance/service-requests.tsx:105:        setRemaining(`${hours}h ${mins}m`)
+/home/z/my-project/src/components/maintenance/service-requests.tsx:189:      return api.get(`/api/maintenance/tickets${qs ? `?${qs}` : ''}`)
+/home/z/my-project/src/components/maintenance/service-requests.tsx:586:                                      ? `${ticket.preferredVisitDate}${ticket.preferredVisitTime ? ` at ${ticket.preferredVisitTime}` : ''}`
+/home/z/my-project/src/components/maintenance/service-requests.tsx:602:                                      <Badge key={`p${i}`} variant="outline" className="gap-1 text-xs">
+/home/z/my-project/src/components/maintenance/service-requests.tsx:607:                                      <Badge key={`v${i}`} variant="outline" className="gap-1 text-xs">
+/home/z/my-project/src/components/maintenance/service-requests.tsx:612:                                      <Badge key={`d${i}`} variant="outline" className="gap-1 text-xs">
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:45:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:46:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:47:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:71:      return api.get(`/api/maintenance/amc${params.toString() ? `?${params.toString()}` : ''}`)
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:96:    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/amc/${id}`, body),
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:73:      return api.get(`/api/maintenance/sites?${params.toString()}`)
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:88:    queryFn: () => api.get(`/api/maintenance/sites/${selectedSiteId}`),
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:100:      return api.get(`/api/maintenance/amc?${params.toString()}`)
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:128:    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/sites/${id}`, body),
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:141:    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => api.put(`/api/maintenance/sites/${id}`, { isActive }),
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:213:                  {stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% of total` : '—'}
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:789:                value={`${site.latitude}, ${site.longitude}`}
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:946:                        {daysUntil !== null ? (daysUntil < 0 ? `Overdue by ${Math.abs(daysUntil)}d` : daysUntil === 0 ? 'Due today' : `In ${daysUntil}d`) : 'No date'}
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:993:                          {amc.annualValue ? `₹${Number(amc.annualValue).toLocaleString()}` : '—'}
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:39:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:40:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:41:  return `$${val.toFixed(2)}`
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:46:  if (h < 24) return `${h.toFixed(1)}h`
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:49:  return rem > 0 ? `${d}d ${rem.toFixed(0)}h` : `${d}d`
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:70:      return api.get(`/api/maintenance/reports?${params.toString()}`)
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:271:        <StatCard label="SLA Compliance" value={`${data.slaCompliancePercent ?? 0}%`} icon={Shield} color="border-blue-200 dark:border-blue-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:319:        <StatCard label="SLA Compliance" value={`${data.slaCompliancePercent ?? 0}%`} icon={Shield} color="border-blue-200 dark:border-blue-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:365:        <StatCard label="Avg Completion Rate" value={`${data.avgCompletionRate ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:366:        <StatCard label="Avg Rating" value={`${(data.avgRating ?? 0).toFixed(1)}/5`} icon={Star} color="border-amber-200 dark:border-amber-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:427:        <StatCard label="Avg Rating" value={`${(data.avgRating ?? 0).toFixed(1)}/5`} icon={Star} color="border-violet-200 dark:border-violet-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:429:        <StatCard label="5-Star % " value={`${data.fiveStarPercent ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:501:        <StatCard label="Avg Utilization" value={`${data.avgUtilization ?? 0}%`} icon={TrendingUp} color="border-blue-200 dark:border-blue-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:563:        <StatCard label="On-Time %" value={`${data.onTimePercent ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:566:        <StatCard label="Completion Rate" value={`${data.completionRate ?? 0}%`} icon={TrendingUp} color="border-violet-200 dark:border-violet-800" />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:602:                              <div className={cn('h-full rounded-full', pct >= 100 ? 'bg-green-500' : pct >= 50 ? 'bg-blue-500' : 'bg-amber-500')} style={{ width: `${Math.min(pct, 100)}%` }} />
+/home/z/my-project/src/components/maintenance/maintenance-reports.tsx:635:        <StatCard label="Overall Compliance" value={`${data.overallCompliance ?? 0}%`} icon={Shield} color="border-violet-200 dark:border-violet-800" />
+/home/z/my-project/src/components/maintenance/material-requests.tsx:39:  return `$${val.toFixed(2)}`
+/home/z/my-project/src/components/maintenance/material-requests.tsx:60:      return api.get(`/api/maintenance/materials${params.toString() ? `?${params.toString()}` : ''}`)
+/home/z/my-project/src/components/maintenance/material-requests.tsx:91:    mutationFn: ({ id, action }: { id: string; action: string }) => api.put(`/api/maintenance/materials/${id}`, { status: action }),
+/home/z/my-project/src/components/maintenance/material-requests.tsx:322:                                                {s.name ? `${s.name}` : 'Pending'}
+/home/z/my-project/src/components/maintenance/material-requests.tsx:323:                                                {s.time && ` · ${new Date(s.time).toLocaleString()}`}
+/home/z/my-project/src/components/maintenance/material-requests.tsx:421:            <SelectTrigger><SelectValue placeholder={`Select ${linkType === 'workOrder' ? 'work order' : 'ticket'}...`} /></SelectTrigger>
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:132:  if (mins < 60) return `${mins}m ago`
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:134:  if (hrs < 24) return `${hrs}h ago`
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:135:  return `${Math.floor(hrs / 24)}d ago`
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:139:  if (minutes < 60) return `${minutes}m`
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:142:  return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:195:      api.put(`/api/maintenance/tickets/${id}`, body),
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:580:                    {selectedJobForMaterial ? `For ${selectedJobForMaterial.ticketNo}: ${selectedJobForMaterial.subject}` : 'Select a job first'}
+/home/z/my-project/src/components/maintenance/technician-portal.tsx:746:                                    style={{ width: `${Math.min(100, (m.completed / Math.max(1, performance.totalJobs)) * 100)}%` }}
+/home/z/my-project/src/components/maintenance/work-orders.tsx:104:  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+/home/z/my-project/src/components/maintenance/work-orders.tsx:105:  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+/home/z/my-project/src/components/maintenance/work-orders.tsx:106:  return `$${val.toFixed(0)}`
+/home/z/my-project/src/components/maintenance/work-orders.tsx:135:      return api.get<WorkOrder[]>(`/api/maintenance/work-orders${qs ? `?${qs}` : ''}`).then(r => r.data || [])
+/home/z/my-project/src/components/maintenance/work-orders.tsx:165:      api.put(`/api/maintenance/work-orders/${id}`, body),
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:118:  if (mins < 60) return `${mins}m ago`
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:120:  if (hrs < 24) return `${hrs}h ago`
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:121:  return `${Math.floor(hrs / 24)}d ago`
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:205:      api.post(`/api/maintenance/tickets/${ticketId}/assign`, { technicianId }),
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:223:      api.put(`/api/maintenance/tickets/${id}`, body),
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:237:      Promise.all(ticketIds.map(tid => api.post(`/api/maintenance/tickets/${tid}/assign`, { technicianId }))),
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:244:      toast({ title: 'Batch Assign Complete', description: `${selectedTickets.size} tickets assigned.` })
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:357:    { label: 'Emergency Tickets', value: stats.emergencyCount, icon: Siren, sub: 'Immediate attention', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/30', trend: 'up', trendVal: stats.emergencyCount > 0 ? `${stats.emergencyCount} active` : '0' },
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:358:    { label: 'Overdue Tickets', value: stats.overdueCount, icon: AlertOctagon, sub: 'SLA breached', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-950/30', trend: 'down', trendVal: stats.overdueCount > 0 ? `${stats.overdueCount} overdue` : 'All on track' },
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:359:    { label: 'Available Technicians', value: stats.availableTechnicianCount, icon: Users, sub: `Avg response ${stats.avgResponseTime}m`, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/30', trend: 'up', trendVal: `${stats.todayCompleted} done today` },
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:675:                            toast({ title: 'Technician Selected', description: `Select a ticket to assign to ${tech.employee?.name}` })
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:837:              {selectedTicket ? `Assign ${selectedTicket.ticketNo}: ${selectedTicket.subject}` : 'Select a technician'}
+/home/z/my-project/src/components/maintenance/dispatch-center.tsx:959:              {batchAssignMutation.isPending ? 'Assigning...' : `Assign ${selectedTickets.size} Tickets`}
+/home/z/my-project/src/components/procurement/purchase-requests-page.tsx:463:      return api.get(`/api/purchase-requests${qs ? `?${qs}` : ''}`).then((r) => r.data as PurchaseRequest[])
+/home/z/my-project/src/components/procurement/purchase-requests-page.tsx:473:    mutationFn: (id: string) => api.del(`/api/purchase-requests/${id}`),
+/home/z/my-project/src/components/procurement/purchase-requests-page.tsx:483:    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/approve`),
+/home/z/my-project/src/components/procurement/purchase-requests-page.tsx:492:    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/reject`),
+
+[Showing results with pagination = limit: 250]

@@ -1,0 +1,1948 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Input } from '@/components/ui/input'
+    10→import { Label } from '@/components/ui/label'
+    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+    15→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+    16→import { Skeleton } from '@/components/ui/skeleton'
+    17→import { ScrollArea } from '@/components/ui/scroll-area'
+    18→import { Progress } from '@/components/ui/progress'
+    19→import { Separator } from '@/components/ui/separator'
+    20→import { toast } from 'sonner'
+    21→import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+    22→import {
+    23→  Plus, Search, ArrowLeft, CheckCircle, XCircle, Clock, AlertTriangle, Users,
+    24→  DollarSign, FileText, ChevronRight, TrendingUp, ListTodo, Eye, MessageSquare,
+    25→  FolderKanban, CircleDot, Flag, ShoppingCart, Receipt, ClipboardCheck, Sun, CloudRain,
+    26→  Cloud, CloudSnow, Wind, BarChart3, Send, Reply, Ban, FolderOpen,
+    27→  Building2, Phone, Mail, Calendar, Target, Layers, Activity,
+    28→  Circle, CircleCheckBig, Timer, ShieldAlert, FileSpreadsheet, Edit3,
+    29→  X as XIcon, ArrowUpRight, ArrowDownRight, Minus,
+    30→} from 'lucide-react'
+    31→import { format, parseISO, differenceInDays } from 'date-fns'
+    32→import { cn } from '@/lib/utils'
+    33→import { useFormat } from '@/hooks/use-format'
+    34→
+    35→// ══════════════════════════════════════════════════════════════════
+    36→// PROPS & TYPES
+    37→// ══════════════════════════════════════════════════════════════════
+    38→
+    39→interface ProjectDetailPageProps {
+    40→  projectId?: string
+    41→  activeTab?: string
+    42→}
+    43→
+    44→// ─── Status color helpers ──────────────────────────────────────
+    45→
+    46→const openItemStatusColors: Record<string, string> = {
+    47→  open: 'bg-amber-100 text-amber-800',
+    48→  pending: 'bg-amber-50 text-amber-700',
+    49→  in_review: 'bg-orange-50 text-orange-700',
+    50→  resolved: 'bg-emerald-100 text-emerald-800',
+    51→  closed: 'bg-slate-100 text-slate-700',
+    52→}
+    53→
+    54→const rfiStatusColors: Record<string, string> = {
+    55→  draft: 'bg-secondary text-secondary-foreground',
+    56→  submitted: 'bg-sky-50 text-sky-700',
+    57→  under_review: 'bg-orange-50 text-orange-700',
+    58→  answered: 'bg-teal-50 text-teal-700',
+    59→  closed: 'bg-emerald-50 text-emerald-700',
+    60→}
+    61→
+    62→const impactTypeColors: Record<string, string> = {
+    63→  cost: 'bg-red-50 text-red-700',
+    64→  schedule: 'bg-amber-50 text-amber-700',
+    65→  scope: 'bg-emerald-50 text-emerald-700',
+    66→  quality: 'bg-violet-50 text-violet-700',
+    67→}
+    68→
+    69→const priorityColors: Record<string, string> = {
+    70→  critical: 'text-red-700 font-bold',
+    71→  high: 'text-red-600',
+    72→  medium: 'text-amber-600',
+    73→  low: 'text-slate-500',
+    74→}
+    75→
+    76→const taskStatusColors: Record<string, string> = {
+    77→  todo: 'bg-slate-100 text-slate-700',
+    78→  in_progress: 'bg-amber-100 text-amber-800',
+    79→  completed: 'bg-emerald-100 text-emerald-800',
+    80→  cancelled: 'bg-slate-100 text-slate-500',
+    81→}
+    82→
+    83→const milestoneStatusColors: Record<string, string> = {
+    84→  pending: 'bg-slate-100 text-slate-600',
+    85→  in_progress: 'bg-amber-100 text-amber-700',
+    86→  completed: 'bg-emerald-100 text-emerald-800',
+    87→  overdue: 'bg-red-100 text-red-700',
+    88→}
+    89→
+    90→const CHART_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#f97316', '#06b6d4']
+    91→
+    92→// ─── Shared skeleton components ────────────────────────────────
+    93→
+    94→function KpiSkeleton() {
+    95→  return (
+    96→    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    97→      {Array.from({ length: 6 }).map((_, i) => (
+    98→        <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-8 w-16" /></CardContent></Card>
+    99→      ))}
+   100→    </div>
+   101→  )
+   102→}
+   103→
+   104→function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
+   105→  return (
+   106→    <div className="space-y-2">
+   107→      <Skeleton className="h-10 w-full" />
+   108→      {Array.from({ length: rows }).map((_, i) => (
+   109→        <Skeleton key={i} className="h-10 w-full" />
+   110→      ))}
+   111→    </div>
+   112→  )
+   113→}
+   114→
+   115→function ErrorCard({ message }: { message?: string }) {
+   116→  return (
+   117→    <Card className="border-red-200">
+   118→      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+   119→        <AlertTriangle className="h-10 w-10 text-red-500 mb-3" />
+   120→        <p className="text-sm text-muted-foreground">{message || 'Failed to load data. Please try again.'}</p>
+   121→      </CardContent>
+   122→    </Card>
+   123→  )
+   124→}
+   125→
+   126→function EmptyCard({ icon: Icon, title, description, action }: { icon: React.ElementType; title: string; description: string; action?: React.ReactNode }) {
+   127→  return (
+   128→    <Card>
+   129→      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+   130→        <Icon className="h-12 w-12 text-muted-foreground/40 mb-3" />
+   131→        <h3 className="text-sm font-medium mb-1">{title}</h3>
+   132→        <p className="text-sm text-muted-foreground mb-4">{description}</p>
+   133→        {action}
+   134→      </CardContent>
+   135→    </Card>
+   136→  )
+   137→}
+   138→
+   139→// ══════════════════════════════════════════════════════════════════
+   140→// TAB 1 — OVERVIEW
+   141→// ══════════════════════════════════════════════════════════════════
+   142→
+   143→function OverviewTab({ projectId }: { projectId: string }) {
+   144→  const { data: project, isLoading, error } = useQuery({
+   145→    queryKey: ['project', projectId],
+   146→    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+   147→    enabled: !!projectId,
+   148→  })
+   149→
+   150→  const { data: insights } = useQuery({
+   151→    queryKey: ['project-insights', projectId],
+   152→    queryFn: () => api.get(`/api/projects/${projectId}/insights`).then(r => r.data),
+   153→    enabled: !!projectId,
+   154→  })
+   155→
+   156→  const { data: comments } = useQuery({
+   157→    queryKey: ['project-comments', projectId],
+   158→    queryFn: () => api.get(`/api/projects/${projectId}/comments`).then(r => r.data),
+   159→    enabled: !!projectId,
+   160→  })
+   161→
+   162→  if (isLoading) {
+   163→    return (
+   164→      <div className="space-y-6">
+   165→        <KpiSkeleton />
+   166→        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   167→          <Card><CardContent className="p-4"><Skeleton className="h-48 w-full" /></CardContent></Card>
+   168→          <Card><CardContent className="p-4"><Skeleton className="h-48 w-full" /></CardContent></Card>
+   169→        </div>
+   170→      </div>
+   171→    )
+   172→  }
+   173→
+   174→  if (error) return <ErrorCard />
+   175→
+   176→  const p = project
+   177→  const kpis = p?.kpis || {}
+   178→  const budgetUsed = insights?.budgetUsed ?? kpis.totalExpenses ?? 0
+   179→  const budgetTotal = p?.budget ?? 0
+   180→  const budgetPct = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0
+   181→  const commitmentsTotal = insights?.totalCommitments ?? 0
+   182→  const openItemsCount = insights?.openItemsCount ?? 0
+   183→  const pendingRfisCount = insights?.pendingRfisCount ?? 0
+   184→  const teamSize = insights?.teamSize ?? p?.members?.length ?? 0
+   185→  const daysLeft = p?.endDate ? differenceInDays(parseISO(p.endDate), new Date()) : null
+   186→
+   187→  return (
+   188→    <div className="space-y-6">
+   189→      {/* KPI Cards */}
+   190→      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+   191→        <Card>
+   192→          <CardContent className="p-4">
+   193→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><DollarSign className="h-3.5 w-3.5" /> Budget</div>
+   194→            <p className="text-lg font-semibold">{formatCurrency(budgetTotal)}</p>
+   195→          </CardContent>
+   196→        </Card>
+   197→        <Card>
+   198→          <CardContent className="p-4">
+   199→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Target className="h-3.5 w-3.5" /> Progress</div>
+   200→            <p className="text-lg font-semibold">{p?.progress ?? 0}%</p>
+   201→          </CardContent>
+   202→        </Card>
+   203→        <Card>
+   204→          <CardContent className="p-4">
+   205→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Users className="h-3.5 w-3.5" /> Team</div>
+   206→            <p className="text-lg font-semibold">{teamSize}</p>
+   207→          </CardContent>
+   208→        </Card>
+   209→        <Card>
+   210→          <CardContent className="p-4">
+   211→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><CircleDot className="h-3.5 w-3.5" /> Open Items</div>
+   212→            <p className={cn('text-lg font-semibold', openItemsCount > 0 ? 'text-amber-600' : '')}>{openItemsCount}</p>
+   213→          </CardContent>
+   214→        </Card>
+   215→        <Card>
+   216→          <CardContent className="p-4">
+   217→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><MessageSquare className="h-3.5 w-3.5" /> Pending RFIs</div>
+   218→            <p className={cn('text-lg font-semibold', pendingRfisCount > 0 ? 'text-orange-600' : '')}>{pendingRfisCount}</p>
+   219→          </CardContent>
+   220→        </Card>
+   221→        <Card>
+   222→          <CardContent className="p-4">
+   223→            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><ShoppingCart className="h-3.5 w-3.5" /> Commitments</div>
+   224→            <p className="text-lg font-semibold">{formatCurrency(commitmentsTotal)}</p>
+   225→          </CardContent>
+   226→        </Card>
+   227→      </div>
+   228→
+   229→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   230→        {/* Budget Health */}
+   231→        <Card>
+   232→          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Budget Health</CardTitle></CardHeader>
+   233→          <CardContent className="space-y-4">
+   234→            <div className="space-y-2">
+   235→              <div className="flex justify-between text-sm">
+   236→                <span>Spent: {formatCurrency(budgetUsed)}</span>
+   237→                <span className="text-muted-foreground">{budgetPct}%</span>
+   238→              </div>
+   239→              <Progress value={Math.min(budgetPct, 100)} className={cn('h-3', budgetPct > 90 ? '[&>div]:bg-red-500' : budgetPct > 70 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500')} />
+   240→            </div>
+   241→            <div className="space-y-2">
+   242→              <div className="flex justify-between text-sm">
+   243→                <span>Committed: {formatCurrency(commitmentsTotal)}</span>
+   244→              </div>
+   245→              <div className="flex justify-between text-sm">
+   246→                <span>Remaining: {formatCurrency(Math.max(0, budgetTotal - budgetUsed - commitmentsTotal))}</span>
+   247→              </div>
+   248→            </div>
+   249→            {daysLeft !== null && (
+   250→              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
+   251→                <Clock className="h-4 w-4" />
+   252→                <span>{daysLeft > 0 ? `${daysLeft} days remaining` : `${Math.abs(daysLeft)} days overdue`}</span>
+   253→              </div>
+   254→            )}
+   255→          </CardContent>
+   256→        </Card>
+   257→
+   258→        {/* Recent Activity */}
+   259→        <Card>
+   260→          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Recent Activity</CardTitle></CardHeader>
+   261→          <CardContent>
+   262→            {comments && comments.length > 0 ? (
+   263→              <ScrollArea className="max-h-64">
+   264→                <div className="space-y-3">
+   265→                  {comments.slice(0, 10).map((c: any) => (
+   266→                    <div key={c.id} className="flex items-start gap-3">
+   267→                      <div className="h-7 w-7 rounded-full bg-amber-100 flex items-center justify-center text-xs font-medium text-amber-700 shrink-0">
+   268→                        {c.userName?.[0] || 'U'}
+   269→                      </div>
+   270→                      <div className="flex-1 min-w-0">
+   271→                        <p className="text-sm"><span className="font-medium">{c.userName || 'User'}</span> <span className="text-muted-foreground">on {c.entityType}</span></p>
+   272→                        <p className="text-xs text-muted-foreground truncate">{c.content}</p>
+   273→                      </div>
+   274→                      <span className="text-xs text-muted-foreground shrink-0">{c.createdAt ? format(parseISO(c.createdAt), 'dd MMM') : ''}</span>
+   275→                    </div>
+   276→                  ))}
+   277→                </div>
+   278→              </ScrollArea>
+   279→            ) : (
+   280→              <div className="flex flex-col items-center py-8 text-muted-foreground">
+   281→                <Activity className="h-8 w-8 mb-2 opacity-40" />
+   282→                <p className="text-sm">No recent activity</p>
+   283→              </div>
+   284→            )}
+   285→          </CardContent>
+   286→        </Card>
+   287→      </div>
+   288→    </div>
+   289→  )
+   290→}
+   291→
+   292→// ══════════════════════════════════════════════════════════════════
+   293→// TAB 2 — TASKS
+   294→// ══════════════════════════════════════════════════════════════════
+   295→
+   296→function TasksTab({ projectId }: { projectId: string }) {
+   297→  const [open, setOpen] = useState(false)
+   298→  const [form, setForm] = useState({ title: '', description: '', priority: 'medium', status: 'todo', startDate: '', endDate: '' })
+   299→  const queryClient = useQueryClient()
+   300→
+   301→  const { data, isLoading, error } = useQuery({
+   302→    queryKey: ['tasks', projectId],
+   303→    queryFn: () => api.get(`/api/projects/${projectId}/tasks`).then(r => r.data),
+   304→    enabled: !!projectId,
+   305→  })
+   306→
+   307→  const mutation = useMutation({
+   308→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/tasks`, body),
+   309→    onSuccess: () => { toast.success('Task created'); queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }); setOpen(false); setForm({ title: '', description: '', priority: 'medium', status: 'todo', startDate: '', endDate: '' }) },
+   310→    onError: (e: any) => toast.error(e.error || 'Failed to create task'),
+   311→  })
+   312→
+   313→  const tasks = Array.isArray(data) ? data : data?.tasks ?? []
+   314→
+   315→  if (isLoading) return <TableSkeleton />
+   316→  if (error) return <ErrorCard />
+   317→
+   318→  return (
+   319→    <div className="space-y-4">
+   320→      <div className="flex items-center justify-between">
+   321→        <div className="flex items-center gap-2">
+   322→          <Search className="h-4 w-4 text-muted-foreground" />
+   323→          <Input placeholder="Search tasks..." className="h-9 w-64" />
+   324→        </div>
+   325→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   326→          <Plus className="h-4 w-4 mr-1" /> Add Task
+   327→        </Button>
+   328→      </div>
+   329→
+   330→      {tasks.length === 0 ? (
+   331→        <EmptyCard icon={ListTodo} title="No tasks yet" description="Create your first task for this project."
+   332→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Task</Button>} />
+   333→      ) : (
+   334→        <Card>
+   335→          <ScrollArea className="max-h-[600px]">
+   336→            <Table>
+   337→              <TableHeader>
+   338→                <TableRow>
+   339→                  <TableHead>Title</TableHead>
+   340→                  <TableHead className="w-24">Status</TableHead>
+   341→                  <TableHead className="w-24">Priority</TableHead>
+   342→                  <TableHead className="hidden md:table-cell w-32">Assignee</TableHead>
+   343→                  <TableHead className="hidden lg:table-cell w-28">Start</TableHead>
+   344→                  <TableHead className="hidden lg:table-cell w-28">Due</TableHead>
+   345→                  <TableHead className="w-20">Actions</TableHead>
+   346→                </TableRow>
+   347→              </TableHeader>
+   348→              <TableBody>
+   349→                {tasks.map((t: any) => (
+   350→                  <TableRow key={t.id} className="hover:bg-amber-50/50 transition-colors">
+   351→                    <TableCell className="font-medium">{t.title}</TableCell>
+   352→                    <TableCell><Badge className={cn('text-xs', taskStatusColors[t.status] || 'bg-secondary')}>{t.status?.replace('_', ' ')}</Badge></TableCell>
+   353→                    <TableCell><span className={cn('text-xs font-medium', priorityColors[t.priority])}>{t.priority}</span></TableCell>
+   354→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.assignee?.name || '—'}</TableCell>
+   355→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{t.startDate ? format(parseISO(t.startDate), 'dd MMM yy') : '—'}</TableCell>
+   356→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{t.endDate ? format(parseISO(t.endDate), 'dd MMM yy') : '—'}</TableCell>
+   357→                    <TableCell><Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button></TableCell>
+   358→                  </TableRow>
+   359→                ))}
+   360→              </TableBody>
+   361→            </Table>
+   362→          </ScrollArea>
+   363→        </Card>
+   364→      )}
+   365→
+   366→      <Dialog open={open} onOpenChange={setOpen}>
+   367→        <DialogContent>
+   368→          <DialogHeader><DialogTitle>Add Task</DialogTitle></DialogHeader>
+   369→          <div className="space-y-3">
+   370→            <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+   371→            <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+   372→            <div className="grid grid-cols-2 gap-3">
+   373→              <div><Label>Priority</Label><Select value={form.priority} onValueChange={v => setForm({ ...form, priority: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+   374→              <div><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todo">To Do</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
+   375→            </div>
+   376→            <div className="grid grid-cols-2 gap-3">
+   377→              <div><Label>Start Date</Label><Input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} /></div>
+   378→              <div><Label>Due Date</Label><Input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} /></div>
+   379→            </div>
+   380→          </div>
+   381→          <DialogFooter>
+   382→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   383→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => mutation.mutate(form)} disabled={mutation.isPending || !form.title}>
+   384→              {mutation.isPending ? 'Creating...' : 'Create Task'}
+   385→            </Button>
+   386→          </DialogFooter>
+   387→        </DialogContent>
+   388→      </Dialog>
+   389→    </div>
+   390→  )
+   391→}
+   392→
+   393→// ══════════════════════════════════════════════════════════════════
+   394→// TAB 3 — TIMELINE
+   395→// ══════════════════════════════════════════════════════════════════
+   396→
+   397→function TimelineTab({ projectId }: { projectId: string }) {
+   398→  const { data: project, isLoading, error } = useQuery({
+   399→    queryKey: ['project', projectId],
+   400→    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+   401→    enabled: !!projectId,
+   402→  })
+   403→
+   404→  if (isLoading) return <div className="space-y-4"><Skeleton className="h-4 w-48" /><div className="flex gap-6 overflow-x-auto pb-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-48 shrink-0 rounded-lg" />)}</div></div>
+   405→  if (error) return <ErrorCard />
+   406→
+   407→  const milestones = project?.milestones ?? []
+   408→
+   409→  if (milestones.length === 0) {
+   410→    return <EmptyCard icon={Flag} title="No milestones" description="Milestones will appear here once they are added to the project." />
+   411→  }
+   412→
+   413→  return (
+   414→    <div className="space-y-6">
+   415→      <div className="relative">
+   416→        {/* Horizontal timeline line */}
+   417→        <div className="absolute top-6 left-0 right-0 h-0.5 bg-amber-200 hidden md:block" />
+   418→
+   419→        <ScrollArea className="w-full">
+   420→          <div className="flex gap-4 pb-4">
+   421→            {milestones.map((m: any) => {
+   422→              const isCompleted = m.status === 'completed'
+   423→              const isOverdue = m.status === 'overdue'
+   424→              return (
+   425→                <Card key={m.id} className="shrink-0 w-48">
+   426→                  <CardContent className="p-4 pt-6">
+   427→                    {/* Dot on timeline */}
+   428→                    <div className={cn(
+   429→                      'h-3 w-3 rounded-full border-2 border-white shadow -mt-9 mb-3 mx-auto',
+   430→                      isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-red-500' : 'bg-amber-500'
+   431→                    )} />
+   432→                    <p className="text-sm font-medium mb-1 truncate">{m.name}</p>
+   433→                    <p className="text-xs text-muted-foreground mb-2">{m.dueDate ? format(parseISO(m.dueDate), 'dd MMM yyyy') : 'No date'}</p>
+   434→                    <Badge className={cn('text-xs', milestoneStatusColors[m.status] || 'bg-secondary')}>{m.status?.replace('_', ' ')}</Badge>
+   435→                  </CardContent>
+   436→                </Card>
+   437→              )
+   438→            })}
+   439→          </div>
+   440→        </ScrollArea>
+   441→      </div>
+   442→    </div>
+   443→  )
+   444→}
+   445→
+   446→// ══════════════════════════════════════════════════════════════════
+   447→// TAB 4 — OPEN ITEMS
+   448→// ══════════════════════════════════════════════════════════════════
+   449→
+   450→const OPEN_ITEM_CATEGORIES = ['rfi', 'site_issue', 'safety_issue', 'material_request', 'client_request', 'approval_required', 'change_request']
+   451→
+   452→function OpenItemsTab({ projectId }: { projectId: string }) {
+   453→  const [open, setOpen] = useState(false)
+   454→  const [statusFilter, setStatusFilter] = useState('all')
+   455→  const [categoryFilter, setCategoryFilter] = useState('all')
+   456→  const [form, setForm] = useState({ title: '', description: '', category: 'site_issue', priority: 'medium', dueDate: '' })
+   457→  const queryClient = useQueryClient()
+   458→
+   459→  const { data, isLoading, error } = useQuery({
+   460→    queryKey: ['open-items', projectId, statusFilter, categoryFilter],
+   461→    queryFn: () => {
+   462→      const params = new URLSearchParams()
+   463→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   464→      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+   465→      return api.get(`/api/projects/${projectId}/open-items?${params.toString()}`).then(r => r.data)
+   466→    },
+   467→    enabled: !!projectId,
+   468→  })
+   469→
+   470→  const items = Array.isArray(data) ? data : data?.items ?? []
+   471→
+   472→  const createMutation = useMutation({
+   473→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/open-items`, body),
+   474→    onSuccess: () => { toast.success('Open item created'); queryClient.invalidateQueries({ queryKey: ['open-items', projectId] }); setOpen(false); setForm({ title: '', description: '', category: 'site_issue', priority: 'medium', dueDate: '' }) },
+   475→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   476→  })
+   477→
+   478→  const resolveMutation = useMutation({
+   479→    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/open-items/${id}`, { status: 'resolved' }),
+   480→    onSuccess: () => { toast.success('Item resolved'); queryClient.invalidateQueries({ queryKey: ['open-items', projectId] }) },
+   481→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   482→  })
+   483→
+   484→  const closeMutation = useMutation({
+   485→    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/open-items/${id}`, { status: 'closed' }),
+   486→    onSuccess: () => { toast.success('Item closed'); queryClient.invalidateQueries({ queryKey: ['open-items', projectId] }) },
+   487→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   488→  })
+   489→
+   490→  if (isLoading) return <TableSkeleton />
+   491→  if (error) return <ErrorCard />
+   492→
+   493→  return (
+   494→    <div className="space-y-4">
+   495→      <div className="flex flex-wrap items-center gap-3">
+   496→        <div className="flex items-center gap-2">
+   497→          <Search className="h-4 w-4 text-muted-foreground" />
+   498→          <Input placeholder="Search..." className="h-9 w-48" />
+   499→        </div>
+   500→        <Select value={statusFilter} onValueChange={setStatusFilter}>
+   501→          <SelectTrigger className="h-9 w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+   502→          <SelectContent>
+   503→            <SelectItem value="all">All Status</SelectItem>
+   504→            <SelectItem value="open">Open</SelectItem>
+   505→            <SelectItem value="pending">Pending</SelectItem>
+   506→            <SelectItem value="in_review">In Review</SelectItem>
+   507→            <SelectItem value="resolved">Resolved</SelectItem>
+   508→            <SelectItem value="closed">Closed</SelectItem>
+   509→          </SelectContent>
+   510→        </Select>
+   511→        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+   512→          <SelectTrigger className="h-9 w-40"><SelectValue placeholder="Category" /></SelectTrigger>
+   513→          <SelectContent>
+   514→            <SelectItem value="all">All Categories</SelectItem>
+   515→            {OPEN_ITEM_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c.replace(/_/g, ' ')}</SelectItem>)}
+   516→          </SelectContent>
+   517→        </Select>
+   518→        <div className="ml-auto">
+   519→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   520→            <Plus className="h-4 w-4 mr-1" /> Add Open Item
+   521→          </Button>
+   522→        </div>
+   523→      </div>
+   524→
+   525→      {items.length === 0 ? (
+   526→        <EmptyCard icon={CircleDot} title="No open items" description="Track issues and action items here."
+   527→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Item</Button>} />
+   528→      ) : (
+   529→        <Card>
+   530→          <ScrollArea className="max-h-[600px]">
+   531→            <Table>
+   532→              <TableHeader>
+   533→                <TableRow>
+   534→                  <TableHead className="w-20">No</TableHead>
+   535→                  <TableHead>Title</TableHead>
+   536→                  <TableHead className="hidden md:table-cell w-36">Category</TableHead>
+   537→                  <TableHead className="w-24">Priority</TableHead>
+   538→                  <TableHead className="w-24">Status</TableHead>
+   539→                  <TableHead className="hidden lg:table-cell w-28">Due Date</TableHead>
+   540→                  <TableHead className="w-36">Actions</TableHead>
+   541→                </TableRow>
+   542→              </TableHeader>
+   543→              <TableBody>
+   544→                {items.map((item: any) => (
+   545→                  <TableRow key={item.id} className="hover:bg-amber-50/50 transition-colors">
+   546→                    <TableCell className="font-mono text-xs">{item.itemNo}</TableCell>
+   547→                    <TableCell className="font-medium">{item.title}</TableCell>
+   548→                    <TableCell className="hidden md:table-cell text-sm">{item.category?.replace(/_/g, ' ')}</TableCell>
+   549→                    <TableCell><span className={cn('text-xs font-medium', priorityColors[item.priority])}>{item.priority}</span></TableCell>
+   550→                    <TableCell><Badge className={cn('text-xs', openItemStatusColors[item.status] || 'bg-secondary')}>{item.status?.replace('_', ' ')}</Badge></TableCell>
+   551→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{item.dueDate ? format(parseISO(item.dueDate), 'dd MMM yy') : '—'}</TableCell>
+   552→                    <TableCell>
+   553→                      <div className="flex gap-1">
+   554→                        {item.status !== 'resolved' && item.status !== 'closed' && (
+   555→                          <Button size="sm" variant="ghost" className="text-emerald-600 h-7" onClick={() => resolveMutation.mutate(item.id)}><CheckCircle className="h-3.5 w-3.5 mr-1" /> Resolve</Button>
+   556→                        )}
+   557→                        {item.status === 'resolved' && (
+   558→                          <Button size="sm" variant="ghost" className="text-slate-600 h-7" onClick={() => closeMutation.mutate(item.id)}><XCircle className="h-3.5 w-3.5 mr-1" /> Close</Button>
+   559→                        )}
+   560→                      </div>
+   561→                    </TableCell>
+   562→                  </TableRow>
+   563→                ))}
+   564→              </TableBody>
+   565→            </Table>
+   566→          </ScrollArea>
+   567→        </Card>
+   568→      )}
+   569→
+   570→      <Dialog open={open} onOpenChange={setOpen}>
+   571→        <DialogContent>
+   572→          <DialogHeader><DialogTitle>Add Open Item</DialogTitle></DialogHeader>
+   573→          <div className="space-y-3">
+   574→            <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+   575→            <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+   576→            <div className="grid grid-cols-2 gap-3">
+   577→              <div><Label>Category</Label><Select value={form.category} onValueChange={v => setForm({ ...form, category: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{OPEN_ITEM_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c.replace(/_/g, ' ')}</SelectItem>)}</SelectContent></Select></div>
+   578→              <div><Label>Priority</Label><Select value={form.priority} onValueChange={v => setForm({ ...form, priority: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+   579→            </div>
+   580→            <div><Label>Due Date</Label><Input type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} /></div>
+   581→          </div>
+   582→          <DialogFooter>
+   583→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   584→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.title}>
+   585→              {createMutation.isPending ? 'Creating...' : 'Create'}
+   586→            </Button>
+   587→          </DialogFooter>
+   588→        </DialogContent>
+   589→      </Dialog>
+   590→    </div>
+   591→  )
+   592→}
+   593→
+   594→// ══════════════════════════════════════════════════════════════════
+   595→// TAB 5 — RFIs (Request for Information)
+   596→// ══════════════════════════════════════════════════════════════════
+   597→
+   598→const RFI_CATEGORIES = ['general', 'technical', 'commercial', 'design']
+   599→
+   600→function RfisTab({ projectId }: { projectId: string }) {
+   601→  const [open, setOpen] = useState(false)
+   602→  const [detailOpen, setDetailOpen] = useState(false)
+   603→  const [selectedRfi, setSelectedRfi] = useState<any>(null)
+   604→  const [statusFilter, setStatusFilter] = useState('all')
+   605→  const [form, setForm] = useState({ title: '', description: '', category: 'general', priority: 'medium', dueDate: '', question: '' })
+   606→  const [newComment, setNewComment] = useState('')
+   607→  const queryClient = useQueryClient()
+   608→
+   609→  const { data, isLoading, error } = useQuery({
+   610→    queryKey: ['rfis', projectId, statusFilter],
+   611→    queryFn: () => {
+   612→      const params = new URLSearchParams()
+   613→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   614→      return api.get(`/api/projects/${projectId}/rfis?${params.toString()}`).then(r => r.data)
+   615→    },
+   616→    enabled: !!projectId,
+   617→  })
+   618→
+   619→  const rfis = Array.isArray(data) ? data : []
+   620→
+   621→  const createMutation = useMutation({
+   622→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/rfis`, body),
+   623→    onSuccess: () => { toast.success('RFI created'); queryClient.invalidateQueries({ queryKey: ['rfis', projectId] }); setOpen(false); setForm({ title: '', description: '', category: 'general', priority: 'medium', dueDate: '', question: '' }) },
+   624→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   625→  })
+   626→
+   627→  const statusMutation = useMutation({
+   628→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/projects/${projectId}/rfis/${id}`, { status }),
+   629→    onSuccess: (_, vars) => { toast.success(`RFI ${vars.status}`); queryClient.invalidateQueries({ queryKey: ['rfis', projectId] }); setDetailOpen(false) },
+   630→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   631→  })
+   632→
+   633→  const commentMutation = useMutation({
+   634→    mutationFn: ({ rfiId, content }: { rfiId: string; content: string }) => api.post(`/api/projects/${projectId}/rfis/${rfiId}/comments`, { content }),
+   635→    onSuccess: () => { toast.success('Comment added'); queryClient.invalidateQueries({ queryKey: ['rfis', projectId] }); setNewComment('') },
+   636→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   637→  })
+   638→
+   639→  if (isLoading) return <TableSkeleton />
+   640→  if (error) return <ErrorCard />
+   641→
+   642→  return (
+   643→    <div className="space-y-4">
+   644→      <div className="flex flex-wrap items-center gap-3">
+   645→        <div className="flex items-center gap-2">
+   646→          <Search className="h-4 w-4 text-muted-foreground" />
+   647→          <Input placeholder="Search RFIs..." className="h-9 w-48" />
+   648→        </div>
+   649→        <Select value={statusFilter} onValueChange={setStatusFilter}>
+   650→          <SelectTrigger className="h-9 w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+   651→          <SelectContent>
+   652→            <SelectItem value="all">All Status</SelectItem>
+   653→            <SelectItem value="draft">Draft</SelectItem>
+   654→            <SelectItem value="submitted">Submitted</SelectItem>
+   655→            <SelectItem value="under_review">Under Review</SelectItem>
+   656→            <SelectItem value="answered">Answered</SelectItem>
+   657→            <SelectItem value="closed">Closed</SelectItem>
+   658→          </SelectContent>
+   659→        </Select>
+   660→        <div className="ml-auto">
+   661→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   662→            <Plus className="h-4 w-4 mr-1" /> New RFI
+   663→          </Button>
+   664→        </div>
+   665→      </div>
+   666→
+   667→      {rfis.length === 0 ? (
+   668→        <EmptyCard icon={MessageSquare} title="No RFIs" description="Submit a Request for Information."
+   669→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New RFI</Button>} />
+   670→      ) : (
+   671→        <Card>
+   672→          <ScrollArea className="max-h-[600px]">
+   673→            <Table>
+   674→              <TableHeader>
+   675→                <TableRow>
+   676→                  <TableHead className="w-24">RFI No</TableHead>
+   677→                  <TableHead>Title</TableHead>
+   678→                  <TableHead className="hidden md:table-cell w-32">Category</TableHead>
+   679→                  <TableHead className="w-24">Priority</TableHead>
+   680→                  <TableHead className="w-28">Status</TableHead>
+   681→                  <TableHead className="hidden lg:table-cell w-32">Submitted By</TableHead>
+   682→                  <TableHead className="hidden lg:table-cell w-28">Due</TableHead>
+   683→                  <TableHead className="w-32">Actions</TableHead>
+   684→                </TableRow>
+   685→              </TableHeader>
+   686→              <TableBody>
+   687→                {rfis.map((rfi: any) => (
+   688→                  <TableRow key={rfi.id} className="hover:bg-amber-50/50 transition-colors">
+   689→                    <TableCell className="font-mono text-xs">{rfi.rfiNo}</TableCell>
+   690→                    <TableCell className="font-medium">{rfi.title}</TableCell>
+   691→                    <TableCell className="hidden md:table-cell text-sm">{rfi.category}</TableCell>
+   692→                    <TableCell><span className={cn('text-xs font-medium', priorityColors[rfi.priority])}>{rfi.priority}</span></TableCell>
+   693→                    <TableCell><Badge className={cn('text-xs', rfiStatusColors[rfi.status] || 'bg-secondary')}>{rfi.status?.replace('_', ' ')}</Badge></TableCell>
+   694→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{rfi.submittedByName || '—'}</TableCell>
+   695→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{rfi.dueDate ? format(parseISO(rfi.dueDate), 'dd MMM yy') : '—'}</TableCell>
+   696→                    <TableCell>
+   697→                      <div className="flex gap-1">
+   698→                        <Button size="sm" variant="ghost" className="h-7" onClick={() => { setSelectedRfi(rfi); setDetailOpen(true) }}><Eye className="h-3.5 w-3.5" /></Button>
+   699→                        {rfi.status === 'draft' && <Button size="sm" variant="ghost" className="text-sky-600 h-7" onClick={() => statusMutation.mutate({ id: rfi.id, status: 'submitted' })}><Send className="h-3.5 w-3.5 mr-1" />Submit</Button>}
+   700→                        {rfi.status === 'submitted' && <Button size="sm" variant="ghost" className="text-orange-600 h-7" onClick={() => statusMutation.mutate({ id: rfi.id, status: 'under_review' })}><Reply className="h-3.5 w-3.5 mr-1" />Review</Button>}
+   701→                        {rfi.status === 'under_review' && <Button size="sm" variant="ghost" className="text-teal-600 h-7" onClick={() => statusMutation.mutate({ id: rfi.id, status: 'answered' })}><Reply className="h-3.5 w-3.5 mr-1" />Answer</Button>}
+   702→                        {rfi.status === 'answered' && <Button size="sm" variant="ghost" className="text-emerald-600 h-7" onClick={() => statusMutation.mutate({ id: rfi.id, status: 'closed' })}><CheckCircle className="h-3.5 w-3.5 mr-1" />Close</Button>}
+   703→                      </div>
+   704→                    </TableCell>
+   705→                  </TableRow>
+   706→                ))}
+   707→              </TableBody>
+   708→            </Table>
+   709→          </ScrollArea>
+   710→        </Card>
+   711→      )}
+   712→
+   713→      {/* Create Dialog */}
+   714→      <Dialog open={open} onOpenChange={setOpen}>
+   715→        <DialogContent>
+   716→          <DialogHeader><DialogTitle>New RFI</DialogTitle></DialogHeader>
+   717→          <div className="space-y-3">
+   718→            <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+   719→            <div><Label>Question / Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+   720→            <div className="grid grid-cols-2 gap-3">
+   721→              <div><Label>Category</Label><Select value={form.category} onValueChange={v => setForm({ ...form, category: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RFI_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+   722→              <div><Label>Priority</Label><Select value={form.priority} onValueChange={v => setForm({ ...form, priority: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+   723→            </div>
+   724→            <div><Label>Due Date</Label><Input type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} /></div>
+   725→          </div>
+   726→          <DialogFooter>
+   727→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   728→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.title}>
+   729→              {createMutation.isPending ? 'Creating...' : 'Create RFI'}
+   730→            </Button>
+   731→          </DialogFooter>
+   732→        </DialogContent>
+   733→      </Dialog>
+   734→
+   735→      {/* Detail Dialog */}
+   736→      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+   737→        <DialogContent className="max-w-lg">
+   738→          <DialogHeader>
+   739→            <DialogTitle>{selectedRfi?.rfiNo} — {selectedRfi?.title}</DialogTitle>
+   740→          </DialogHeader>
+   741→          {selectedRfi && (
+   742→            <div className="space-y-4">
+   743→              <div className="flex gap-2">
+   744→                <Badge className={cn('text-xs', rfiStatusColors[selectedRfi.status])}>{selectedRfi.status?.replace('_', ' ')}</Badge>
+   745→                <Badge variant="outline" className="text-xs">{selectedRfi.category}</Badge>
+   746→                <span className={cn('text-xs font-medium', priorityColors[selectedRfi.priority])}>{selectedRfi.priority}</span>
+   747→              </div>
+   748→              <p className="text-sm text-muted-foreground">{selectedRfi.description}</p>
+   749→              <Separator />
+   750→              <div>
+   751→                <h4 className="text-sm font-medium mb-2">Comments</h4>
+   752→                <ScrollArea className="max-h-48">
+   753→                  <div className="space-y-2">
+   754→                    {(selectedRfi.comments || []).length === 0 ? (
+   755→                      <p className="text-xs text-muted-foreground">No comments yet.</p>
+   756→                    ) : (selectedRfi.comments || []).map((c: any) => (
+   757→                      <div key={c.id} className="bg-muted/50 rounded-lg p-2">
+   758→                        <div className="flex items-center justify-between mb-1">
+   759→                          <span className="text-xs font-medium">{c.userName || 'User'}</span>
+   760→                          <span className="text-xs text-muted-foreground">{c.createdAt ? format(parseISO(c.createdAt), 'dd MMM yyyy') : ''}</span>
+   761→                        </div>
+   762→                        <p className="text-sm">{c.content}</p>
+   763→                      </div>
+   764→                    ))}
+   765→                  </div>
+   766→                </ScrollArea>
+   767→                <div className="flex gap-2 mt-2">
+   768→                  <Input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Add comment..." className="h-9" />
+   769→                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => { if (selectedRfi?.id && newComment.trim()) commentMutation.mutate({ rfiId: selectedRfi.id, content: newComment }) }}>
+   770→                    <Send className="h-3.5 w-3.5" />
+   771→                  </Button>
+   772→                </div>
+   773→              </div>
+   774→            </div>
+   775→          )}
+   776→        </DialogContent>
+   777→      </Dialog>
+   778→    </div>
+   779→  )
+   780→}
+   781→
+   782→// ══════════════════════════════════════════════════════════════════
+   783→// TAB 6 — CHANGE EVENTS
+   784→// ══════════════════════════════════════════════════════════════════
+   785→
+   786→const CE_CATEGORIES = ['scope', 'design', 'schedule', 'commercial', 'quality']
+   787→
+   788→function ChangeEventsTab({ projectId }: { projectId: string }) {
+   789→  const [open, setOpen] = useState(false)
+   790→  const [form, setForm] = useState({ title: '', description: '', category: 'scope', impactType: 'cost', potentialCostImpact: '', potentialScheduleImpact: '' })
+   791→  const queryClient = useQueryClient()
+   792→
+   793→  const { data, isLoading, error } = useQuery({
+   794→    queryKey: ['change-events', projectId],
+   795→    queryFn: () => api.get(`/api/projects/${projectId}/change-events`).then(r => r.data),
+   796→    enabled: !!projectId,
+   797→  })
+   798→
+   799→  const events = Array.isArray(data) ? data : []
+   800→
+   801→  const createMutation = useMutation({
+   802→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/change-events`, body),
+   803→    onSuccess: () => { toast.success('Change event created'); queryClient.invalidateQueries({ queryKey: ['change-events', projectId] }); setOpen(false); setForm({ title: '', description: '', category: 'scope', impactType: 'cost', potentialCostImpact: '', potentialScheduleImpact: '' }) },
+   804→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   805→  })
+   806→
+   807→  const statusMutation = useMutation({
+   808→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/projects/${projectId}/change-events/${id}`, { status }),
+   809→    onSuccess: (_, vars) => { toast.success(`Change event ${vars.status}`); queryClient.invalidateQueries({ queryKey: ['change-events', projectId] }) },
+   810→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   811→  })
+   812→
+   813→  if (isLoading) return <TableSkeleton />
+   814→  if (error) return <ErrorCard />
+   815→
+   816→  return (
+   817→    <div className="space-y-4">
+   818→      <div className="flex items-center justify-between">
+   819→        <div className="flex items-center gap-2"><Search className="h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="h-9 w-48" /></div>
+   820→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New Change Event</Button>
+   821→      </div>
+   822→
+   823→      {events.length === 0 ? (
+   824→        <EmptyCard icon={AlertTriangle} title="No change events" description="Log potential changes and their impacts."
+   825→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New Event</Button>} />
+   826→      ) : (
+   827→        <Card>
+   828→          <ScrollArea className="max-h-[600px]">
+   829→            <Table>
+   830→              <TableHeader>
+   831→                <TableRow>
+   832→                  <TableHead className="w-20">No</TableHead>
+   833→                  <TableHead>Title</TableHead>
+   834→                  <TableHead className="hidden md:table-cell w-28">Impact</TableHead>
+   835→                  <TableHead className="hidden md:table-cell w-28">Potential Cost</TableHead>
+   836→                  <TableHead className="hidden lg:table-cell w-28">Schedule</TableHead>
+   837→                  <TableHead className="w-24">Status</TableHead>
+   838→                  <TableHead className="w-36">Actions</TableHead>
+   839→                </TableRow>
+   840→              </TableHeader>
+   841→              <TableBody>
+   842→                {events.map((ev: any) => (
+   843→                  <TableRow key={ev.id} className="hover:bg-amber-50/50 transition-colors">
+   844→                    <TableCell className="font-mono text-xs">{ev.eventNo}</TableCell>
+   845→                    <TableCell className="font-medium">{ev.title}</TableCell>
+   846→                    <TableCell className="hidden md:table-cell"><Badge className={cn('text-xs', impactTypeColors[ev.impactType] || 'bg-secondary')}>{ev.impactType}</Badge></TableCell>
+   847→                    <TableCell className="hidden md:table-cell text-sm">{ev.potentialCostImpact ? formatCurrency(ev.potentialCostImpact) : '—'}</TableCell>
+   848→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{ev.potentialScheduleImpact || '—'}</TableCell>
+   849→                    <TableCell><Badge className={cn('text-xs', openItemStatusColors[ev.status] || 'bg-secondary')}>{ev.status?.replace('_', ' ')}</Badge></TableCell>
+   850→                    <TableCell>
+   851→                      <div className="flex gap-1">
+   852→                        {ev.status === 'open' && (
+   853→                          <>
+   854→                            <Button size="sm" variant="ghost" className="text-emerald-600 h-7" onClick={() => statusMutation.mutate({ id: ev.id, status: 'review' })}><CheckCircle className="h-3.5 w-3.5 mr-1" />Review</Button>
+   855→                            <Button size="sm" variant="ghost" className="text-red-600 h-7" onClick={() => statusMutation.mutate({ id: ev.id, status: 'rejected' })}><XCircle className="h-3.5 w-3.5 mr-1" />Reject</Button>
+   856→                          </>
+   857→                        )}
+   858→                        {ev.status === 'review' && (
+   859→                          <Button size="sm" variant="ghost" className="text-emerald-600 h-7" onClick={() => statusMutation.mutate({ id: ev.id, status: 'approved' })}><CheckCircle className="h-3.5 w-3.5 mr-1" />Approve</Button>
+   860→                        )}
+   861→                      </div>
+   862→                    </TableCell>
+   863→                  </TableRow>
+   864→                ))}
+   865→              </TableBody>
+   866→            </Table>
+   867→          </ScrollArea>
+   868→        </Card>
+   869→      )}
+   870→
+   871→      <Dialog open={open} onOpenChange={setOpen}>
+   872→        <DialogContent>
+   873→          <DialogHeader><DialogTitle>New Change Event</DialogTitle></DialogHeader>
+   874→          <div className="space-y-3">
+   875→            <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+   876→            <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+   877→            <div className="grid grid-cols-2 gap-3">
+   878→              <div><Label>Category</Label><Select value={form.category} onValueChange={v => setForm({ ...form, category: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CE_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+   879→              <div><Label>Impact Type</Label><Select value={form.impactType} onValueChange={v => setForm({ ...form, impactType: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cost">Cost</SelectItem><SelectItem value="schedule">Schedule</SelectItem><SelectItem value="scope">Scope</SelectItem><SelectItem value="quality">Quality</SelectItem></SelectContent></Select></div>
+   880→            </div>
+   881→            <div className="grid grid-cols-2 gap-3">
+   882→              <div><Label>Potential Cost</Label><Input type="number" value={form.potentialCostImpact} onChange={e => setForm({ ...form, potentialCostImpact: e.target.value })} /></div>
+   883→              <div><Label>Schedule Impact</Label><Input placeholder="e.g. 14 days" value={form.potentialScheduleImpact} onChange={e => setForm({ ...form, potentialScheduleImpact: e.target.value })} /></div>
+   884→            </div>
+   885→          </div>
+   886→          <DialogFooter>
+   887→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+   888→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate({ ...form, potentialCostImpact: Number(form.potentialCostImpact) || 0 })} disabled={createMutation.isPending || !form.title}>
+   889→              {createMutation.isPending ? 'Creating...' : 'Create Event'}
+   890→            </Button>
+   891→          </DialogFooter>
+   892→        </DialogContent>
+   893→      </Dialog>
+   894→    </div>
+   895→  )
+   896→}
+   897→
+   898→// ══════════════════════════════════════════════════════════════════
+   899→// TAB 7 — CHANGE ORDERS
+   900→// ══════════════════════════════════════════════════════════════════
+   901→
+   902→function ChangeOrdersTab({ projectId }: { projectId: string }) {
+   903→  const [open, setOpen] = useState(false)
+   904→  const [form, setForm] = useState({ title: '', description: '', costAdjustment: '', originalBudget: '', adjustedBudget: '' })
+   905→  const queryClient = useQueryClient()
+   906→
+   907→  const { data, isLoading, error } = useQuery({
+   908→    queryKey: ['change-orders', projectId],
+   909→    queryFn: () => api.get(`/api/projects/${projectId}/change-orders`).then(r => r.data),
+   910→    enabled: !!projectId,
+   911→  })
+   912→
+   913→  const orders = Array.isArray(data) ? data : []
+   914→
+   915→  const createMutation = useMutation({
+   916→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/change-orders`, body),
+   917→    onSuccess: () => { toast.success('Change order created'); queryClient.invalidateQueries({ queryKey: ['change-orders', projectId] }); setOpen(false); setForm({ title: '', description: '', costAdjustment: '', originalBudget: '', adjustedBudget: '' }) },
+   918→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   919→  })
+   920→
+   921→  const approveMutation = useMutation({
+   922→    mutationFn: (id: string) => api.put(`/api/projects/${projectId}/change-orders/${id}`, { status: 'approved' }),
+   923→    onSuccess: () => { toast.success('Change order approved'); queryClient.invalidateQueries({ queryKey: ['change-orders', projectId] }) },
+   924→    onError: (e: any) => toast.error(e.error || 'Failed'),
+   925→  })
+   926→
+   927→  if (isLoading) return <TableSkeleton />
+   928→  if (error) return <ErrorCard />
+   929→
+   930→  const coStatusColors: Record<string, string> = {
+   931→    draft: 'bg-secondary text-secondary-foreground',
+   932→    submitted: 'bg-sky-50 text-sky-700',
+   933→    approved: 'bg-emerald-100 text-emerald-800',
+   934→    rejected: 'bg-red-100 text-red-800',
+   935→    executed: 'bg-teal-50 text-teal-700',
+   936→  }
+   937→
+   938→  return (
+   939→    <div className="space-y-4">
+   940→      <div className="flex items-center justify-between">
+   941→        <div className="flex items-center gap-2"><Search className="h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="h-9 w-48" /></div>
+   942→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New Change Order</Button>
+   943→      </div>
+   944→
+   945→      {orders.length === 0 ? (
+   946→        <EmptyCard icon={FileText} title="No change orders" description="Formalize approved change events into change orders."
+   947→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New CO</Button>} />
+   948→      ) : (
+   949→        <Card>
+   950→          <ScrollArea className="max-h-[600px]">
+   951→            <Table>
+   952→              <TableHeader>
+   953→                <TableRow>
+   954→                  <TableHead className="w-24">CO No</TableHead>
+   955→                  <TableHead>Title</TableHead>
+   956→                  <TableHead className="w-32">Cost Adj</TableHead>
+   957→                  <TableHead className="hidden md:table-cell w-32">Adjusted Budget</TableHead>
+   958→                  <TableHead className="w-28">Status</TableHead>
+   959→                  <TableHead className="w-28">Actions</TableHead>
+   960→                </TableRow>
+   961→              </TableHeader>
+   962→              <TableBody>
+   963→                {orders.map((co: any) => (
+   964→                  <TableRow key={co.id} className="hover:bg-amber-50/50 transition-colors">
+   965→                    <TableCell className="font-mono text-xs">{co.coNo}</TableCell>
+   966→                    <TableCell className="font-medium">{co.title}</TableCell>
+   967→                    <TableCell>
+   968→                      <span className={cn('text-sm font-medium', co.costAdjustment > 0 ? 'text-red-600' : co.costAdjustment < 0 ? 'text-emerald-600' : '')}>
+   969→                        {co.costAdjustment > 0 ? '+' : ''}{formatCurrency(co.costAdjustment || 0)}
+   970→                      </span>
+   971→                    </TableCell>
+   972→                    <TableCell className="hidden md:table-cell text-sm">{formatCurrency(co.adjustedBudget || 0)}</TableCell>
+   973→                    <TableCell><Badge className={cn('text-xs', coStatusColors[co.status] || 'bg-secondary')}>{co.status?.replace('_', ' ')}</Badge></TableCell>
+   974→                    <TableCell>
+   975→                      {co.status === 'submitted' && (
+   976→                        <Button size="sm" variant="ghost" className="text-emerald-600 h-7" onClick={() => approveMutation.mutate(co.id)}>
+   977→                          <CheckCircle className="h-3.5 w-3.5 mr-1" />Approve
+   978→                        </Button>
+   979→                      )}
+   980→                    </TableCell>
+   981→                  </TableRow>
+   982→                ))}
+   983→              </TableBody>
+   984→            </Table>
+   985→          </ScrollArea>
+   986→        </Card>
+   987→      )}
+   988→
+   989→      <Dialog open={open} onOpenChange={setOpen}>
+   990→        <DialogContent>
+   991→          <DialogHeader><DialogTitle>New Change Order</DialogTitle></DialogHeader>
+   992→          <div className="space-y-3">
+   993→            <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+   994→            <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+   995→            <div className="grid grid-cols-2 gap-3">
+   996→              <div><Label>Cost Adjustment</Label><Input type="number" value={form.costAdjustment} onChange={e => setForm({ ...form, costAdjustment: e.target.value })} /></div>
+   997→              <div><Label>Adjusted Budget</Label><Input type="number" value={form.adjustedBudget} onChange={e => setForm({ ...form, adjustedBudget: e.target.value })} /></div>
+   998→            </div>
+   999→          </div>
+  1000→          <DialogFooter>
+  1001→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1002→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate({ ...form, costAdjustment: Number(form.costAdjustment) || 0, adjustedBudget: Number(form.adjustedBudget) || 0 })} disabled={createMutation.isPending || !form.title}>
+  1003→              {createMutation.isPending ? 'Creating...' : 'Create CO'}
+  1004→            </Button>
+  1005→          </DialogFooter>
+  1006→        </DialogContent>
+  1007→      </Dialog>
+  1008→    </div>
+  1009→  )
+  1010→}
+  1011→
+  1012→// ══════════════════════════════════════════════════════════════════
+  1013→// TAB 8 — TEAM
+  1014→// ══════════════════════════════════════════════════════════════════
+  1015→
+  1016→const TEAM_ROLES = ['project_manager', 'site_engineer', 'supervisor', 'consultant', 'architect', 'qs', 'contractor', 'subcontractor', 'client_rep']
+  1017→
+  1018→function TeamTab({ projectId }: { projectId: string }) {
+  1019→  const [open, setOpen] = useState(false)
+  1020→  const [form, setForm] = useState({ name: '', role: 'supervisor', company: '', phone: '', email: '' })
+  1021→  const queryClient = useQueryClient()
+  1022→
+  1023→  const { data, isLoading, error } = useQuery({
+  1024→    queryKey: ['project-team', projectId],
+  1025→    queryFn: () => api.get(`/api/projects/${projectId}/team`).then(r => r.data),
+  1026→    enabled: !!projectId,
+  1027→  })
+  1028→
+  1029→  const members = Array.isArray(data) ? data : []
+  1030→
+  1031→  const createMutation = useMutation({
+  1032→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/team`, body),
+  1033→    onSuccess: () => { toast.success('Member added'); queryClient.invalidateQueries({ queryKey: ['project-team', projectId] }); setOpen(false); setForm({ name: '', role: 'supervisor', company: '', phone: '', email: '' }) },
+  1034→    onError: (e: any) => toast.error(e.error || 'Failed'),
+  1035→  })
+  1036→
+  1037→  if (isLoading) {
+  1038→    return (
+  1039→      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  1040→        {Array.from({ length: 6 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-5 w-32 mb-2" /><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-4 w-36" /></CardContent></Card>)}
+  1041→      </div>
+  1042→    )
+  1043→  }
+  1044→  if (error) return <ErrorCard />
+  1045→
+  1046→  return (
+  1047→    <div className="space-y-4">
+  1048→      <div className="flex justify-end">
+  1049→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+  1050→          <Plus className="h-4 w-4 mr-1" /> Add Member
+  1051→        </Button>
+  1052→      </div>
+  1053→
+  1054→      {members.length === 0 ? (
+  1055→        <EmptyCard icon={Users} title="No team members" description="Add members to your project team."
+  1056→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Member</Button>} />
+  1057→      ) : (
+  1058→        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  1059→          {members.map((m: any) => (
+  1060→            <Card key={m.id} className="hover:shadow-md transition-shadow">
+  1061→              <CardContent className="p-4">
+  1062→                <div className="flex items-start gap-3">
+  1063→                  <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-sm font-medium text-amber-700 shrink-0">
+  1064→                    {m.name?.[0]?.toUpperCase() || 'U'}
+  1065→                  </div>
+  1066→                  <div className="flex-1 min-w-0">
+  1067→                    <p className="font-medium truncate">{m.name}</p>
+  1068→                    <Badge variant="outline" className="text-xs mt-1">{m.role?.replace(/_/g, ' ')}</Badge>
+  1069→                  </div>
+  1070→                </div>
+  1071→                <Separator className="my-3" />
+  1072→                <div className="space-y-1.5 text-sm text-muted-foreground">
+  1073→                  {m.company && <div className="flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /><span className="truncate">{m.company}</span></div>}
+  1074→                  {m.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /><span>{m.phone}</span></div>}
+  1075→                  {m.email && <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /><span className="truncate">{m.email}</span></div>}
+  1076→                </div>
+  1077→              </CardContent>
+  1078→            </Card>
+  1079→          ))}
+  1080→        </div>
+  1081→      )}
+  1082→
+  1083→      <Dialog open={open} onOpenChange={setOpen}>
+  1084→        <DialogContent>
+  1085→          <DialogHeader><DialogTitle>Add Team Member</DialogTitle></DialogHeader>
+  1086→          <div className="space-y-3">
+  1087→            <div><Label>Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+  1088→            <div><Label>Role</Label><Select value={form.role} onValueChange={v => setForm({ ...form, role: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{TEAM_ROLES.map(r => <SelectItem key={r} value={r}>{r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>)}</SelectContent></Select></div>
+  1089→            <div><Label>Company</Label><Input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} /></div>
+  1090→            <div className="grid grid-cols-2 gap-3">
+  1091→              <div><Label>Phone</Label><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
+  1092→              <div><Label>Email</Label><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
+  1093→            </div>
+  1094→          </div>
+  1095→          <DialogFooter>
+  1096→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1097→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name}>
+  1098→              {createMutation.isPending ? 'Adding...' : 'Add Member'}
+  1099→            </Button>
+  1100→          </DialogFooter>
+  1101→        </DialogContent>
+  1102→      </Dialog>
+  1103→    </div>
+  1104→  )
+  1105→}
+  1106→
+  1107→// ══════════════════════════════════════════════════════════════════
+  1108→// TAB 9 — COMMITMENTS
+  1109→// ══════════════════════════════════════════════════════════════════
+  1110→
+  1111→const COMMITMENT_TYPES = ['purchase_order', 'subcontract', 'material_order', 'labour_contract']
+  1112→
+  1113→function CommitmentsTab({ projectId }: { projectId: string }) {
+  1114→  const [open, setOpen] = useState(false)
+  1115→  const [form, setForm] = useState({ type: 'purchase_order', vendor: '', description: '', contractValue: '', committedCost: '' })
+  1116→  const queryClient = useQueryClient()
+  1117→
+  1118→  const { data, isLoading, error } = useQuery({
+  1119→    queryKey: ['commitments', projectId],
+  1120→    queryFn: () => api.get(`/api/projects/${projectId}/commitments`).then(r => r.data),
+  1121→    enabled: !!projectId,
+  1122→  })
+  1123→
+  1124→  const commitments = Array.isArray(data) ? data : []
+  1125→
+  1126→  const createMutation = useMutation({
+  1127→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/commitments`, body),
+  1128→    onSuccess: () => { toast.success('Commitment added'); queryClient.invalidateQueries({ queryKey: ['commitments', projectId] }); setOpen(false); setForm({ type: 'purchase_order', vendor: '', description: '', contractValue: '', committedCost: '' }) },
+  1129→    onError: (e: any) => toast.error(e.error || 'Failed'),
+  1130→  })
+  1131→
+  1132→  const totalValue = commitments.reduce((s: number, c: any) => s + (c.contractValue || 0), 0)
+  1133→  const totalCommitted = commitments.reduce((s: number, c: any) => s + (c.committedCost || 0), 0)
+  1134→  const totalRemaining = commitments.reduce((s: number, c: any) => s + (c.remainingCost || 0), 0)
+  1135→
+  1136→  if (isLoading) {
+  1137→    return <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
+  1138→  }
+  1139→  if (error) return <ErrorCard />
+  1140→
+  1141→  const coStatusColors: Record<string, string> = { draft: 'bg-secondary text-secondary-foreground', active: 'bg-emerald-100 text-emerald-800', completed: 'bg-slate-100 text-slate-700', cancelled: 'bg-red-100 text-red-800' }
+  1142→
+  1143→  return (
+  1144→    <div className="space-y-4">
+  1145→      {/* Summary cards */}
+  1146→      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  1147→        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground mb-1">Total Value</div><p className="text-lg font-semibold">{formatCurrency(totalValue)}</p></CardContent></Card>
+  1148→        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground mb-1">Committed</div><p className="text-lg font-semibold text-amber-600">{formatCurrency(totalCommitted)}</p></CardContent></Card>
+  1149→        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground mb-1">Remaining</div><p className="text-lg font-semibold text-emerald-600">{formatCurrency(totalRemaining)}</p></CardContent></Card>
+  1150→      </div>
+  1151→
+  1152→      <div className="flex justify-end">
+  1153→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Commitment</Button>
+  1154→      </div>
+  1155→
+  1156→      {commitments.length === 0 ? (
+  1157→        <EmptyCard icon={ShoppingCart} title="No commitments" description="Track purchase orders, subcontracts, and material orders."
+  1158→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add</Button>} />
+  1159→      ) : (
+  1160→        <Card>
+  1161→          <ScrollArea className="max-h-[600px]">
+  1162→            <Table>
+  1163→              <TableHeader>
+  1164→                <TableRow>
+  1165→                  <TableHead className="w-36">Type</TableHead>
+  1166→                  <TableHead>Vendor</TableHead>
+  1167→                  <TableHead className="w-32">Value</TableHead>
+  1168→                  <TableHead className="hidden md:table-cell w-32">Committed</TableHead>
+  1169→                  <TableHead className="hidden md:table-cell w-32">Remaining</TableHead>
+  1170→                  <TableHead className="w-24">Status</TableHead>
+  1171→                  <TableHead className="w-20">Actions</TableHead>
+  1172→                </TableRow>
+  1173→              </TableHeader>
+  1174→              <TableBody>
+  1175→                {commitments.map((c: any) => (
+  1176→                  <TableRow key={c.id} className="hover:bg-amber-50/50 transition-colors">
+  1177→                    <TableCell className="text-sm">{c.type?.replace(/_/g, ' ')}</TableCell>
+  1178→                    <TableCell className="font-medium">{c.vendor}</TableCell>
+  1179→                    <TableCell className="text-sm">{formatCurrency(c.contractValue || 0)}</TableCell>
+  1180→                    <TableCell className="hidden md:table-cell text-sm text-amber-600">{formatCurrency(c.committedCost || 0)}</TableCell>
+  1181→                    <TableCell className="hidden md:table-cell text-sm text-emerald-600">{formatCurrency(c.remainingCost || 0)}</TableCell>
+  1182→                    <TableCell><Badge className={cn('text-xs', coStatusColors[c.status] || 'bg-secondary')}>{c.status}</Badge></TableCell>
+  1183→                    <TableCell><Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button></TableCell>
+  1184→                  </TableRow>
+  1185→                ))}
+  1186→              </TableBody>
+  1187→            </Table>
+  1188→          </ScrollArea>
+  1189→        </Card>
+  1190→      )}
+  1191→
+  1192→      <Dialog open={open} onOpenChange={setOpen}>
+  1193→        <DialogContent>
+  1194→          <DialogHeader><DialogTitle>Add Commitment</DialogTitle></DialogHeader>
+  1195→          <div className="space-y-3">
+  1196→            <div className="grid grid-cols-2 gap-3">
+  1197→              <div><Label>Type</Label><Select value={form.type} onValueChange={v => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{COMMITMENT_TYPES.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>)}</SelectContent></Select></div>
+  1198→              <div><Label>Vendor</Label><Input value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} /></div>
+  1199→            </div>
+  1200→            <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} /></div>
+  1201→            <div className="grid grid-cols-2 gap-3">
+  1202→              <div><Label>Contract Value</Label><Input type="number" value={form.contractValue} onChange={e => setForm({ ...form, contractValue: e.target.value })} /></div>
+  1203→              <div><Label>Committed Cost</Label><Input type="number" value={form.committedCost} onChange={e => setForm({ ...form, committedCost: e.target.value })} /></div>
+  1204→            </div>
+  1205→          </div>
+  1206→          <DialogFooter>
+  1207→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1208→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate({ ...form, contractValue: Number(form.contractValue) || 0, committedCost: Number(form.committedCost) || 0 })} disabled={createMutation.isPending || !form.vendor}>
+  1209→              {createMutation.isPending ? 'Adding...' : 'Add Commitment'}
+  1210→            </Button>
+  1211→          </DialogFooter>
+  1212→        </DialogContent>
+  1213→      </Dialog>
+  1214→    </div>
+  1215→  )
+  1216→}
+  1217→
+  1218→// ══════════════════════════════════════════════════════════════════
+  1219→// TAB 10 — DIRECT COSTS
+  1220→// ══════════════════════════════════════════════════════════════════
+  1221→
+  1222→const COST_CATEGORIES = ['labour', 'materials', 'equipment', 'fuel', 'transportation', 'accommodation', 'rental', 'subcontractor', 'miscellaneous']
+  1223→
+  1224→function DirectCostsTab({ projectId }: { projectId: string }) {
+  1225→  const [open, setOpen] = useState(false)
+  1226→  const [form, setForm] = useState({ category: 'labour', description: '', amount: '', date: '' })
+  1227→  const queryClient = useQueryClient()
+  1228→
+  1229→  const { data, isLoading, error } = useQuery({
+  1230→    queryKey: ['direct-costs', projectId],
+  1231→    queryFn: () => api.get(`/api/projects/${projectId}/direct-costs`).then(r => r.data),
+  1232→    enabled: !!projectId,
+  1233→  })
+  1234→
+  1235→  const costs = Array.isArray(data) ? data : []
+  1236→
+  1237→  const createMutation = useMutation({
+  1238→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/direct-costs`, body),
+  1239→    onSuccess: () => { toast.success('Direct cost added'); queryClient.invalidateQueries({ queryKey: ['direct-costs', projectId] }); setOpen(false); setForm({ category: 'labour', description: '', amount: '', date: '' }) },
+  1240→    onError: (e: any) => toast.error(e.error || 'Failed'),
+  1241→  })
+  1242→
+  1243→  // Summary by category
+  1244→  const categorySummary = costs.reduce((acc: Record<string, number>, c: any) => {
+  1245→    acc[c.category] = (acc[c.category] || 0) + (c.amount || 0)
+  1246→    return acc
+  1247→  }, {})
+  1248→
+  1249→  if (isLoading) return <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
+  1250→  if (error) return <ErrorCard />
+  1251→
+  1252→  const costStatusColors: Record<string, string> = { pending: 'bg-amber-100 text-amber-800', approved: 'bg-emerald-100 text-emerald-800', rejected: 'bg-red-100 text-red-800' }
+  1253→
+  1254→  return (
+  1255→    <div className="space-y-4">
+  1256→      {/* Summary by category */}
+  1257→      {Object.keys(categorySummary).length > 0 && (
+  1258→        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+  1259→          {Object.entries(categorySummary).map(([cat, total]) => (
+  1260→            <Card key={cat}>
+  1261→              <CardContent className="p-3">
+  1262→                <div className="text-xs text-muted-foreground mb-1">{cat.charAt(0).toUpperCase() + cat.slice(1)}</div>
+  1263→                <p className="text-sm font-semibold">{formatCurrency(total)}</p>
+  1264→              </CardContent>
+  1265→            </Card>
+  1266→          ))}
+  1267→        </div>
+  1268→      )}
+  1269→
+  1270→      <div className="flex items-center justify-between">
+  1271→        <div className="flex items-center gap-2"><Search className="h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="h-9 w-48" /></div>
+  1272→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Cost</Button>
+  1273→      </div>
+  1274→
+  1275→      {costs.length === 0 ? (
+  1276→        <EmptyCard icon={Receipt} title="No direct costs" description="Track project expenses by category."
+  1277→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Cost</Button>} />
+  1278→      ) : (
+  1279→        <Card>
+  1280→          <ScrollArea className="max-h-[600px]">
+  1281→            <Table>
+  1282→              <TableHeader>
+  1283→                <TableRow>
+  1284→                  <TableHead className="w-32">Category</TableHead>
+  1285→                  <TableHead>Description</TableHead>
+  1286→                  <TableHead className="w-28">Amount</TableHead>
+  1287→                  <TableHead className="hidden md:table-cell w-28">Date</TableHead>
+  1288→                  <TableHead className="w-24">Status</TableHead>
+  1289→                  <TableHead className="w-20">Actions</TableHead>
+  1290→                </TableRow>
+  1291→              </TableHeader>
+  1292→              <TableBody>
+  1293→                {costs.map((c: any) => (
+  1294→                  <TableRow key={c.id} className="hover:bg-amber-50/50 transition-colors">
+  1295→                    <TableCell className="text-sm">{c.category?.charAt(0).toUpperCase() + c.category?.slice(1)}</TableCell>
+  1296→                    <TableCell className="font-medium">{c.description}</TableCell>
+  1297→                    <TableCell className="text-sm">{formatCurrency(c.amount || 0)}</TableCell>
+  1298→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{c.date ? format(parseISO(c.date), 'dd MMM yy') : '—'}</TableCell>
+  1299→                    <TableCell><Badge className={cn('text-xs', costStatusColors[c.status] || 'bg-secondary')}>{c.status}</Badge></TableCell>
+  1300→                    <TableCell><Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button></TableCell>
+  1301→                  </TableRow>
+  1302→                ))}
+  1303→              </TableBody>
+  1304→            </Table>
+  1305→          </ScrollArea>
+  1306→        </Card>
+  1307→      )}
+  1308→
+  1309→      <Dialog open={open} onOpenChange={setOpen}>
+  1310→        <DialogContent>
+  1311→          <DialogHeader><DialogTitle>Add Direct Cost</DialogTitle></DialogHeader>
+  1312→          <div className="space-y-3">
+  1313→            <div><Label>Category</Label><Select value={form.category} onValueChange={v => setForm({ ...form, category: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{COST_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+  1314→            <div><Label>Description</Label><Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+  1315→            <div className="grid grid-cols-2 gap-3">
+  1316→              <div><Label>Amount</Label><Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} /></div>
+  1317→              <div><Label>Date</Label><Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></div>
+  1318→            </div>
+  1319→          </div>
+  1320→          <DialogFooter>
+  1321→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1322→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate({ ...form, amount: Number(form.amount) || 0 })} disabled={createMutation.isPending || !form.description}>
+  1323→              {createMutation.isPending ? 'Adding...' : 'Add Cost'}
+  1324→            </Button>
+  1325→          </DialogFooter>
+  1326→        </DialogContent>
+  1327→      </Dialog>
+  1328→    </div>
+  1329→  )
+  1330→}
+  1331→
+  1332→// ══════════════════════════════════════════════════════════════════
+  1333→// TAB 11 — DOCUMENTS
+  1334→// ══════════════════════════════════════════════════════════════════
+  1335→
+  1336→const DOC_TYPES = ['drawing', 'contract', 'photo', 'report', 'other']
+  1337→
+  1338→function DocumentsTab({ projectId }: { projectId: string }) {
+  1339→  const [open, setOpen] = useState(false)
+  1340→  const [form, setForm] = useState({ name: '', type: 'drawing' })
+  1341→  const queryClient = useQueryClient()
+  1342→
+  1343→  const { data, isLoading, error } = useQuery({
+  1344→    queryKey: ['project-documents', projectId],
+  1345→    queryFn: () => api.get(`/api/projects/${projectId}/documents`).then(r => r.data),
+  1346→    enabled: !!projectId,
+  1347→  })
+  1348→
+  1349→  const docs = Array.isArray(data) ? data : data?.documents ?? []
+  1350→
+  1351→  const createMutation = useMutation({
+  1352→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/documents`, body),
+  1353→    onSuccess: () => { toast.success('Document added'); queryClient.invalidateQueries({ queryKey: ['project-documents', projectId] }); setOpen(false); setForm({ name: '', type: 'drawing' }) },
+  1354→    onError: (e: any) => toast.error(e.error || 'Failed'),
+  1355→  })
+  1356→
+  1357→  const docTypeColors: Record<string, string> = {
+  1358→    drawing: 'bg-amber-100 text-amber-800',
+  1359→    contract: 'bg-emerald-100 text-emerald-800',
+  1360→    photo: 'bg-sky-100 text-sky-800',
+  1361→    report: 'bg-violet-100 text-violet-800',
+  1362→    other: 'bg-slate-100 text-slate-700',
+  1363→  }
+  1364→
+  1365→  const formatFileSize = (bytes: number) => {
+  1366→    if (bytes < 1024) return `${bytes} B`
+  1367→    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
+  1368→    return `${(bytes / 1048576).toFixed(1)} MB`
+  1369→  }
+  1370→
+  1371→  if (isLoading) return <TableSkeleton />
+  1372→  if (error) return <ErrorCard />
+  1373→
+  1374→  return (
+  1375→    <div className="space-y-4">
+  1376→      <div className="flex items-center justify-between">
+  1377→        <div className="flex items-center gap-2"><Search className="h-4 w-4 text-muted-foreground" /><Input placeholder="Search documents..." className="h-9 w-48" /></div>
+  1378→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Upload Document</Button>
+  1379→      </div>
+  1380→
+  1381→      {docs.length === 0 ? (
+  1382→        <EmptyCard icon={FolderOpen} title="No documents" description="Upload drawings, contracts, photos, and reports."
+  1383→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Upload</Button>} />
+  1384→      ) : (
+  1385→        <Card>
+  1386→          <ScrollArea className="max-h-[600px]">
+  1387→            <Table>
+  1388→              <TableHeader>
+  1389→                <TableRow>
+  1390→                  <TableHead>Name</TableHead>
+  1391→                  <TableHead className="w-28">Type</TableHead>
+  1392→                  <TableHead className="hidden md:table-cell w-28">Uploaded</TableHead>
+  1393→                  <TableHead className="hidden lg:table-cell w-24">Size</TableHead>
+  1394→                  <TableHead className="w-20">Actions</TableHead>
+  1395→                </TableRow>
+  1396→              </TableHeader>
+  1397→              <TableBody>
+  1398→                {docs.map((d: any) => (
+  1399→                  <TableRow key={d.id} className="hover:bg-amber-50/50 transition-colors">
+  1400→                    <TableCell>
+  1401→                      <div className="flex items-center gap-2">
+  1402→                        <FileText className="h-4 w-4 text-muted-foreground" />
+  1403→                        <span className="font-medium">{d.name}</span>
+  1404→                      </div>
+  1405→                    </TableCell>
+  1406→                    <TableCell><Badge className={cn('text-xs', docTypeColors[d.type] || 'bg-secondary')}>{d.type}</Badge></TableCell>
+  1407→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{d.createdAt ? format(parseISO(d.createdAt), 'dd MMM yy') : '—'}</TableCell>
+  1408→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{d.fileSize ? formatFileSize(d.fileSize) : '—'}</TableCell>
+  1409→                    <TableCell>
+  1410→                      <div className="flex gap-1">
+  1411→                        <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+  1412→                      </div>
+  1413→                    </TableCell>
+  1414→                  </TableRow>
+  1415→                ))}
+  1416→              </TableBody>
+  1417→            </Table>
+  1418→          </ScrollArea>
+  1419→        </Card>
+  1420→      )}
+  1421→
+  1422→      <Dialog open={open} onOpenChange={setOpen}>
+  1423→        <DialogContent>
+  1424→          <DialogHeader><DialogTitle>Upload Document</DialogTitle></DialogHeader>
+  1425→          <div className="space-y-3">
+  1426→            <div><Label>Document Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+  1427→            <div><Label>Type</Label><Select value={form.type} onValueChange={v => setForm({ ...form, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{DOC_TYPES.map(t => <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+  1428→          </div>
+  1429→          <DialogFooter>
+  1430→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1431→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name}>
+  1432→              {createMutation.isPending ? 'Uploading...' : 'Upload'}
+  1433→            </Button>
+  1434→          </DialogFooter>
+  1435→        </DialogContent>
+  1436→      </Dialog>
+  1437→    </div>
+  1438→  )
+  1439→}
+  1440→
+  1441→// ══════════════════════════════════════════════════════════════════
+  1442→// TAB 12 — DAILY NOTES
+  1443→// ══════════════════════════════════════════════════════════════════
+  1444→
+  1445→const WEATHER_OPTIONS = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy']
+  1446→
+  1447→function WeatherIcon({ weather }: { weather: string }) {
+  1448→  switch (weather) {
+  1449→    case 'sunny': return <Sun className="h-4 w-4 text-amber-500" />
+  1450→    case 'cloudy': return <Cloud className="h-4 w-4 text-slate-400" />
+  1451→    case 'rainy': return <CloudRain className="h-4 w-4 text-sky-500" />
+  1452→    case 'snowy': return <CloudSnow className="h-4 w-4 text-sky-300" />
+  1453→    case 'windy': return <Wind className="h-4 w-4 text-slate-500" />
+  1454→    default: return <Sun className="h-4 w-4 text-amber-500" />
+  1455→  }
+  1456→}
+  1457→
+  1458→function DailyNotesTab({ projectId }: { projectId: string }) {
+  1459→  const [open, setOpen] = useState(false)
+  1460→  const [form, setForm] = useState({ date: format(new Date(), 'yyyy-MM-dd'), weather: 'sunny', workDone: '', issues: '', labourCount: '' })
+  1461→  const queryClient = useQueryClient()
+  1462→
+  1463→  const { data, isLoading, error } = useQuery({
+  1464→    queryKey: ['daily-notes', projectId],
+  1465→    queryFn: () => api.get(`/api/projects/${projectId}/daily-notes`).then(r => r.data),
+  1466→    enabled: !!projectId,
+  1467→  })
+  1468→
+  1469→  const notes = Array.isArray(data) ? data : []
+  1470→
+  1471→  const createMutation = useMutation({
+  1472→    mutationFn: (body: any) => api.post(`/api/projects/${projectId}/daily-notes`, body),
+  1473→    onSuccess: () => { toast.success('Daily note added'); queryClient.invalidateQueries({ queryKey: ['daily-notes', projectId] }); setOpen(false); setForm({ date: format(new Date(), 'yyyy-MM-dd'), weather: 'sunny', workDone: '', issues: '', labourCount: '' }) },
+  1474→    onError: (e: any) => toast.error(e.error || 'Failed'),
+  1475→  })
+  1476→
+  1477→  if (isLoading) return <TableSkeleton />
+  1478→  if (error) return <ErrorCard />
+  1479→
+  1480→  return (
+  1481→    <div className="space-y-4">
+  1482→      <div className="flex items-center justify-between">
+  1483→        <div className="flex items-center gap-2"><Search className="h-4 w-4 text-muted-foreground" /><Input placeholder="Search notes..." className="h-9 w-48" /></div>
+  1484→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Daily Note</Button>
+  1485→      </div>
+  1486→
+  1487→      {notes.length === 0 ? (
+  1488→        <EmptyCard icon={ClipboardCheck} title="No daily notes" description="Record site observations and work progress."
+  1489→          action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Note</Button>} />
+  1490→      ) : (
+  1491→        <Card>
+  1492→          <ScrollArea className="max-h-[600px]">
+  1493→            <Table>
+  1494→              <TableHeader>
+  1495→                <TableRow>
+  1496→                  <TableHead className="w-28">Date</TableHead>
+  1497→                  <TableHead className="w-20">Weather</TableHead>
+  1498→                  <TableHead>Work Done</TableHead>
+  1499→                  <TableHead className="hidden md:table-cell">Issues</TableHead>
+  1500→                  <TableHead className="w-24">Labour</TableHead>
+  1501→                  <TableHead className="w-20">Actions</TableHead>
+  1502→                </TableRow>
+  1503→              </TableHeader>
+  1504→              <TableBody>
+  1505→                {notes.map((n: any) => (
+  1506→                  <TableRow key={n.id} className="hover:bg-amber-50/50 transition-colors">
+  1507→                    <TableCell className="text-sm">{n.date ? format(parseISO(n.date), 'dd MMM yy') : '—'}</TableCell>
+  1508→                    <TableCell><div className="flex items-center gap-1.5"><WeatherIcon weather={n.weather} /><span className="text-xs text-muted-foreground capitalize">{n.weather}</span></div></TableCell>
+  1509→                    <TableCell className="text-sm max-w-48 truncate">{n.workDone || '—'}</TableCell>
+  1510→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-48 truncate">{n.issues || '—'}</TableCell>
+  1511→                    <TableCell className="text-sm">{n.labourCount || 0}</TableCell>
+  1512→                    <TableCell><Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button></TableCell>
+  1513→                  </TableRow>
+  1514→                ))}
+  1515→              </TableBody>
+  1516→            </Table>
+  1517→          </ScrollArea>
+  1518→        </Card>
+  1519→      )}
+  1520→
+  1521→      <Dialog open={open} onOpenChange={setOpen}>
+  1522→        <DialogContent>
+  1523→          <DialogHeader><DialogTitle>Add Daily Note</DialogTitle></DialogHeader>
+  1524→          <div className="space-y-3">
+  1525→            <div className="grid grid-cols-2 gap-3">
+  1526→              <div><Label>Date</Label><Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></div>
+  1527→              <div><Label>Weather</Label><Select value={form.weather} onValueChange={v => setForm({ ...form, weather: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{WEATHER_OPTIONS.map(w => <SelectItem key={w} value={w}>{w.charAt(0).toUpperCase() + w.slice(1)}</SelectItem>)}</SelectContent></Select></div>
+  1528→            </div>
+  1529→            <div><Label>Work Done</Label><Textarea value={form.workDone} onChange={e => setForm({ ...form, workDone: e.target.value })} rows={3} /></div>
+  1530→            <div><Label>Issues / Observations</Label><Textarea value={form.issues} onChange={e => setForm({ ...form, issues: e.target.value })} rows={2} /></div>
+  1531→            <div><Label>Labour Count</Label><Input type="number" value={form.labourCount} onChange={e => setForm({ ...form, labourCount: e.target.value })} /></div>
+  1532→          </div>
+  1533→          <DialogFooter>
+  1534→            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+  1535→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => createMutation.mutate({ ...form, date: form.date, labourCount: Number(form.labourCount) || 0 })} disabled={createMutation.isPending}>
+  1536→              {createMutation.isPending ? 'Saving...' : 'Save Note'}
+  1537→            </Button>
+  1538→          </DialogFooter>
+  1539→        </DialogContent>
+  1540→      </Dialog>
+  1541→    </div>
+  1542→  )
+  1543→}
+  1544→
+  1545→// ══════════════════════════════════════════════════════════════════
+  1546→// TAB 13 — INSIGHTS (Analytics)
+  1547→// ══════════════════════════════════════════════════════════════════
+  1548→
+  1549→function InsightsTab({ projectId }: { projectId: string }) {
+  1550→  const { data, isLoading, error } = useQuery({
+  1551→    queryKey: ['project-insights', projectId],
+  1552→    queryFn: () => api.get(`/api/projects/${projectId}/insights`).then(r => r.data),
+  1553→    enabled: !!projectId,
+  1554→  })
+  1555→
+  1556→  const { data: project } = useQuery({
+  1557→    queryKey: ['project', projectId],
+  1558→    queryFn: () => api.get(`/api/projects/${projectId}`).then(r => r.data),
+  1559→    enabled: !!projectId,
+  1560→  })
+  1561→
+  1562→  if (isLoading) {
+  1563→    return (
+  1564→      <div className="space-y-6">
+  1565→        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  1566→          <Card><CardContent className="p-4"><Skeleton className="h-48 w-full" /></CardContent></Card>
+  1567→          <Card><CardContent className="p-4"><Skeleton className="h-48 w-full" /></CardContent></Card>
+  1568→        </div>
+  1569→        <Card><CardContent className="p-4"><Skeleton className="h-64 w-full" /></CardContent></Card>
+  1570→      </div>
+  1571→    )
+  1572→  }
+  1573→  if (error) return <ErrorCard />
+  1574→
+  1575→  const insights = data || {}
+  1576→  const budgetUsed = insights.budgetUsed ?? 0
+  1577→  const budgetTotal = project?.budget ?? 0
+  1578→  const budgetPct = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0
+  1579→  const commitmentsTotal = insights.totalCommitments ?? 0
+  1580→
+  1581→  // Open items summary
+  1582→  const openItemsSummary = insights.openItemsSummary ?? {}
+  1583→  const oiData = [
+  1584→    { name: 'Open', value: openItemsSummary.open ?? 0, fill: '#f59e0b' },
+  1585→    { name: 'Pending', value: openItemsSummary.pending ?? 0, fill: '#fb923c' },
+  1586→    { name: 'In Review', value: openItemsSummary.in_review ?? 0, fill: '#f97316' },
+  1587→    { name: 'Resolved', value: openItemsSummary.resolved ?? 0, fill: '#10b981' },
+  1588→    { name: 'Closed', value: openItemsSummary.closed ?? 0, fill: '#94a3b8' },
+  1589→  ].filter(d => d.value > 0)
+  1590→
+  1591→  // RFI status breakdown
+  1592→  const rfiBreakdown = insights.rfiBreakdown ?? {}
+  1593→  const rfiData = [
+  1594→    { name: 'Draft', value: rfiBreakdown.draft ?? 0, fill: '#94a3b8' },
+  1595→    { name: 'Submitted', value: rfiBreakdown.submitted ?? 0, fill: '#38bdf8' },
+  1596→    { name: 'Under Review', value: rfiBreakdown.under_review ?? 0, fill: '#f97316' },
+  1597→    { name: 'Answered', value: rfiBreakdown.answered ?? 0, fill: '#14b8a6' },
+  1598→    { name: 'Closed', value: rfiBreakdown.closed ?? 0, fill: '#10b981' },
+  1599→  ].filter(d => d.value > 0)
+  1600→
+  1601→  // Direct costs by category
+  1602→  const costsByCategory = insights.costsByCategory ?? []
+  1603→  const hasChartData = costsByCategory.length > 0
+  1604→
+  1605→  // Change events summary
+  1606→  const ceSummary = insights.changeEventsSummary ?? {}
+  1607→
+  1608→  return (
+  1609→    <div className="space-y-6">
+  1610→      {/* Budget Health */}
+  1611→      <Card>
+  1612→        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Budget Health</CardTitle></CardHeader>
+  1613→        <CardContent>
+  1614→          <div className="space-y-3">
+  1615→            <div className="flex justify-between text-sm mb-1">
+  1616→              <span>Budget Utilization</span>
+  1617→              <span className={cn('font-medium', budgetPct > 90 ? 'text-red-600' : budgetPct > 70 ? 'text-amber-600' : 'text-emerald-600')}>{budgetPct}%</span>
+  1618→            </div>
+  1619→            <Progress value={Math.min(budgetPct, 100)} className={cn('h-4', budgetPct > 90 ? '[&>div]:bg-red-500' : budgetPct > 70 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500')} />
+  1620→            <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
+  1621→              <div className="text-center">
+  1622→                <p className="text-muted-foreground">Spent</p>
+  1623→                <p className="font-semibold">{formatCurrency(budgetUsed)}</p>
+  1624→              </div>
+  1625→              <div className="text-center">
+  1626→                <p className="text-muted-foreground">Committed</p>
+  1627→                <p className="font-semibold text-amber-600">{formatCurrency(commitmentsTotal)}</p>
+  1628→              </div>
+  1629→              <div className="text-center">
+  1630→                <p className="text-muted-foreground">Remaining</p>
+  1631→                <p className="font-semibold text-emerald-600">{formatCurrency(Math.max(0, budgetTotal - budgetUsed - commitmentsTotal))}</p>
+  1632→              </div>
+  1633→            </div>
+  1634→          </div>
+  1635→        </CardContent>
+  1636→      </Card>
+  1637→
+  1638→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  1639→        {/* Open Items Summary */}
+  1640→        <Card>
+  1641→          <CardHeader className="pb-3">
+  1642→            <CardTitle className="text-sm font-medium">Open Items Summary</CardTitle>
+  1643→          </CardHeader>
+  1644→          <CardContent>
+  1645→            {oiData.length > 0 ? (
+  1646→              <div className="flex items-center gap-4">
+  1647→                <div className="w-36 h-36 shrink-0">
+  1648→                  <ResponsiveContainer width="100%" height="100%">
+  1649→                    <PieChart>
+  1650→                      <Pie data={oiData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" stroke="none">
+  1651→                        {oiData.map((entry, idx) => <Cell key={idx} fill={entry.fill} />)}
+  1652→                      </Pie>
+  1653→                      <Tooltip />
+  1654→                    </PieChart>
+  1655→                  </ResponsiveContainer>
+  1656→                </div>
+  1657→                <div className="space-y-2">
+  1658→                  {oiData.map(d => (
+  1659→                    <div key={d.name} className="flex items-center gap-2 text-sm">
+  1660→                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: d.fill }} />
+  1661→                      <span className="text-muted-foreground">{d.name}:</span>
+  1662→                      <span className="font-medium">{d.value}</span>
+  1663→                    </div>
+  1664→                  ))}
+  1665→                </div>
+  1666→              </div>
+  1667→            ) : (
+  1668→              <div className="flex items-center justify-center py-8 text-muted-foreground">
+  1669→                <p className="text-sm">No open items data</p>
+  1670→              </div>
+  1671→            )}
+  1672→          </CardContent>
+  1673→        </Card>
+  1674→
+  1675→        {/* RFI Status Breakdown */}
+  1676→        <Card>
+  1677→          <CardHeader className="pb-3">
+  1678→            <CardTitle className="text-sm font-medium">RFI Status Breakdown</CardTitle>
+  1679→          </CardHeader>
+  1680→          <CardContent>
+  1681→            {rfiData.length > 0 ? (
+  1682→              <div className="flex items-center gap-4">
+  1683→                <div className="w-36 h-36 shrink-0">
+  1684→                  <ResponsiveContainer width="100%" height="100%">
+  1685→                    <PieChart>
+  1686→                      <Pie data={rfiData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" stroke="none">
+  1687→                        {rfiData.map((entry, idx) => <Cell key={idx} fill={entry.fill} />)}
+  1688→                      </Pie>
+  1689→                      <Tooltip />
+  1690→                    </PieChart>
+  1691→                  </ResponsiveContainer>
+  1692→                </div>
+  1693→                <div className="space-y-2">
+  1694→                  {rfiData.map(d => (
+  1695→                    <div key={d.name} className="flex items-center gap-2 text-sm">
+  1696→                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: d.fill }} />
+  1697→                      <span className="text-muted-foreground">{d.name}:</span>
+  1698→                      <span className="font-medium">{d.value}</span>
+  1699→                    </div>
+  1700→                  ))}
+  1701→                </div>
+  1702→              </div>
+  1703→            ) : (
+  1704→              <div className="flex items-center justify-center py-8 text-muted-foreground">
+  1705→                <p className="text-sm">No RFI data</p>
+  1706→              </div>
+  1707→            )}
+  1708→          </CardContent>
+  1709→        </Card>
+  1710→      </div>
+  1711→
+  1712→      {/* Direct Costs by Category - Bar Chart */}
+  1713→      <Card>
+  1714→        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Direct Costs by Category</CardTitle></CardHeader>
+  1715→        <CardContent>
+  1716→          {hasChartData ? (
+  1717→            <div className="h-64">
+  1718→              <ResponsiveContainer width="100%" height="100%">
+  1719→                <BarChart data={costsByCategory} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+  1720→                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+  1721→                  <XAxis dataKey="category" tick={{ fontSize: 12 }} />
+  1722→                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => v >= 100000 ? `${(v / 100000).toFixed(0)}L` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+  1723→                  <Tooltip formatter={(value: number) => [formatCurrency(value), 'Amount']} />
+  1724→                  <Bar dataKey="amount" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+  1725→                </BarChart>
+  1726→              </ResponsiveContainer>
+  1727→            </div>
+  1728→          ) : (
+  1729→            <div className="flex items-center justify-center py-12 text-muted-foreground">
+  1730→              <div className="text-center">
+  1731→                <BarChart3 className="h-10 w-10 mx-auto mb-2 opacity-40" />
+  1732→                <p className="text-sm">No cost data available</p>
+  1733→              </div>
+  1734→            </div>
+  1735→          )}
+  1736→        </CardContent>
+  1737→      </Card>
+  1738→
+  1739→      {/* Change Events Summary */}
+  1740→      <Card>
+  1741→        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Change Events Summary</CardTitle></CardHeader>
+  1742→        <CardContent>
+  1743→          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+  1744→            <div className="text-center p-3 bg-muted/50 rounded-lg">
+  1745→              <p className="text-2xl font-bold">{ceSummary.total ?? 0}</p>
+  1746→              <p className="text-xs text-muted-foreground">Total</p>
+  1747→            </div>
+  1748→            <div className="text-center p-3 bg-amber-50 rounded-lg">
+  1749→              <p className="text-2xl font-bold text-amber-700">{ceSummary.open ?? 0}</p>
+  1750→              <p className="text-xs text-muted-foreground">Open</p>
+  1751→            </div>
+  1752→            <div className="text-center p-3 bg-orange-50 rounded-lg">
+  1753→              <p className="text-2xl font-bold text-orange-700">{ceSummary.review ?? 0}</p>
+  1754→              <p className="text-xs text-muted-foreground">In Review</p>
+  1755→            </div>
+  1756→            <div className="text-center p-3 bg-emerald-50 rounded-lg">
+  1757→              <p className="text-2xl font-bold text-emerald-700">{ceSummary.approved ?? 0}</p>
+  1758→              <p className="text-xs text-muted-foreground">Approved</p>
+  1759→            </div>
+  1760→            <div className="text-center p-3 bg-red-50 rounded-lg">
+  1761→              <p className="text-2xl font-bold text-red-700">{ceSummary.rejected ?? 0}</p>
+  1762→              <p className="text-xs text-muted-foreground">Rejected</p>
+  1763→            </div>
+  1764→          </div>
+  1765→        </CardContent>
+  1766→      </Card>
+  1767→    </div>
+  1768→  )
+  1769→}
+  1770→
+  1771→// ══════════════════════════════════════════════════════════════════
+  1772→// MAIN COMPONENT — PROJECT DETAIL PAGE
+  1773→// ══════════════════════════════════════════════════════════════════
+  1774→
+  1775→export function ProjectDetailPage({ projectId, activeTab }: ProjectDetailPageProps) {
+  1776→  const { navigate, pageParams } = useAppStore()
+  1777→  const { formatCurrency } = useFormat()
+  1778→  const [tab, setTab] = useState(activeTab || 'overview')
+  1779→
+  1780→  // Use projectId from props or from store pageParams
+  1781→  const effectiveProjectId = projectId || pageParams?.id
+  1782→
+  1783→  // Fetch project for breadcrumb
+  1784→  const { data: project } = useQuery({
+  1785→    queryKey: ['project', effectiveProjectId],
+  1786→    queryFn: () => api.get(`/api/projects/${effectiveProjectId}`).then(r => r.data),
+  1787→    enabled: !!effectiveProjectId,
+  1788→  })
+  1789→
+  1790→  // Set breadcrumbs
+  1791→  useEffect(() => {
+  1792→    if (project?.name) {
+  1793→      useAppStore.getState().setBreadcrumbs([
+  1794→        { label: 'Projects', page: 'projects' },
+  1795→        { label: project.name },
+  1796→      ])
+  1797→    }
+  1798→  }, [project?.name])
+  1799→
+  1800→  // Sync tab from prop changes
+  1801→  const [prevActiveTab, setPrevActiveTab] = useState(activeTab)
+  1802→  if (activeTab && activeTab !== prevActiveTab) {
+  1803→    setTab(activeTab)
+  1804→    setPrevActiveTab(activeTab)
+  1805→  }
+  1806→
+  1807→  // No project ID — show empty state
+  1808→  if (!effectiveProjectId) {
+  1809→    return (
+  1810→      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+  1811→        <FolderKanban className="h-16 w-16 text-muted-foreground/30" />
+  1812→        <div className="text-center">
+  1813→          <h2 className="text-lg font-medium mb-1">Select a Project</h2>
+  1814→          <p className="text-sm text-muted-foreground">Choose a project from the list to view its workspace.</p>
+  1815→        </div>
+  1816→        <Button variant="outline" onClick={() => navigate('projects')}>
+  1817→          <ArrowLeft className="h-4 w-4 mr-2" /> Go to Projects
+  1818→        </Button>
+  1819→      </div>
+  1820→    )
+  1821→  }
+  1822→
+  1823→  // Project loading state
+  1824→  if (project === undefined) {
+  1825→    return (
+  1826→      <div className="space-y-6 p-1">
+  1827→        <div className="flex items-center gap-4">
+  1828→          <Skeleton className="h-9 w-32" />
+  1829→          <Skeleton className="h-8 w-48" />
+  1830→        </div>
+  1831→        <Skeleton className="h-10 w-full" />
+  1832→        <KpiSkeleton />
+  1833→      </div>
+  1834→    )
+  1835→  }
+  1836→
+  1837→  // Project error state
+  1838→  if (project === null || (project as any)?.error) {
+  1839→    return (
+  1840→      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+  1841→        <AlertTriangle className="h-12 w-12 text-red-400" />
+  1842→        <p className="text-sm text-muted-foreground">Project not found or an error occurred.</p>
+  1843→        <Button variant="outline" onClick={() => navigate('projects')}>
+  1844→          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Projects
+  1845→        </Button>
+  1846→      </div>
+  1847→    )
+  1848→  }
+  1849→
+  1850→  const projectData = project as any
+  1851→
+  1852→  const projectStatusColors: Record<string, string> = {
+  1853→    active: 'bg-emerald-100 text-emerald-800',
+  1854→    on_hold: 'bg-amber-100 text-amber-800',
+  1855→    planning: 'bg-sky-100 text-sky-800',
+  1856→    completed: 'bg-teal-100 text-teal-800',
+  1857→    cancelled: 'bg-slate-100 text-slate-600',
+  1858→  }
+  1859→
+  1860→  return (
+  1861→    <div className="space-y-6">
+  1862→      {/* Header */}
+  1863→      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  1864→        <div className="flex items-center gap-3">
+  1865→          <Button variant="ghost" size="sm" onClick={() => navigate('projects')} className="text-muted-foreground -ml-2">
+  1866→            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+  1867→          </Button>
+  1868→          <Separator orientation="vertical" className="h-6" />
+  1869→          <div>
+  1870→            <div className="flex items-center gap-2">
+  1871→              <h1 className="text-lg font-semibold">{projectData.name}</h1>
+  1872→              <Badge className={cn('text-xs', projectStatusColors[projectData.status] || 'bg-secondary')}>
+  1873→                {projectData.status?.replace('_', ' ')}
+  1874→              </Badge>
+  1875→            </div>
+  1876→            <p className="text-xs text-muted-foreground">{projectData.code} {projectData.address ? `• ${projectData.address}` : ''}</p>
+  1877→          </div>
+  1878→        </div>
+  1879→        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+  1880→          <Layers className="h-4 w-4" />
+  1881→          <span>Progress: <span className="font-medium text-foreground">{projectData.progress ?? 0}%</span></span>
+  1882→        </div>
+  1883→      </div>
+  1884→
+  1885→      {/* Tab Navigation */}
+  1886→      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+  1887→        <ScrollArea className="w-full">
+  1888→          <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-muted/50 p-1">
+  1889→            <TabsTrigger value="overview" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1890→              <TrendingUp className="h-3.5 w-3.5 mr-1" /> Overview
+  1891→            </TabsTrigger>
+  1892→            <TabsTrigger value="tasks" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1893→              <ListTodo className="h-3.5 w-3.5 mr-1" /> Tasks
+  1894→            </TabsTrigger>
+  1895→            <TabsTrigger value="timeline" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1896→              <Flag className="h-3.5 w-3.5 mr-1" /> Timeline
+  1897→            </TabsTrigger>
+  1898→            <TabsTrigger value="open-items" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1899→              <CircleDot className="h-3.5 w-3.5 mr-1" /> Open Items
+  1900→            </TabsTrigger>
+  1901→            <TabsTrigger value="rfis" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1902→              <MessageSquare className="h-3.5 w-3.5 mr-1" /> RFIs
+  1903→            </TabsTrigger>
+  1904→            <TabsTrigger value="change-events" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1905→              <AlertTriangle className="h-3.5 w-3.5 mr-1" /> Change Events
+  1906→            </TabsTrigger>
+  1907→            <TabsTrigger value="change-orders" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1908→              <FileText className="h-3.5 w-3.5 mr-1" /> Change Orders
+  1909→            </TabsTrigger>
+  1910→            <TabsTrigger value="team" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1911→              <Users className="h-3.5 w-3.5 mr-1" /> Team
+  1912→            </TabsTrigger>
+  1913→            <TabsTrigger value="commitments" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1914→              <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Commitments
+  1915→            </TabsTrigger>
+  1916→            <TabsTrigger value="direct-costs" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1917→              <Receipt className="h-3.5 w-3.5 mr-1" /> Direct Costs
+  1918→            </TabsTrigger>
+  1919→            <TabsTrigger value="documents" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1920→              <FolderOpen className="h-3.5 w-3.5 mr-1" /> Documents
+  1921→            </TabsTrigger>
+  1922→            <TabsTrigger value="daily-notes" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1923→              <ClipboardCheck className="h-3.5 w-3.5 mr-1" /> Daily Notes
+  1924→            </TabsTrigger>
+  1925→            <TabsTrigger value="insights" className="text-xs px-3 h-8 data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+  1926→              <BarChart3 className="h-3.5 w-3.5 mr-1" /> Insights
+  1927→            </TabsTrigger>
+  1928→          </TabsList>
+  1929→        </ScrollArea>
+  1930→
+  1931→        {/* Tab Contents */}
+  1932→        <TabsContent value="overview"><OverviewTab projectId={effectiveProjectId} /></TabsContent>
+  1933→        <TabsContent value="tasks"><TasksTab projectId={effectiveProjectId} /></TabsContent>
+  1934→        <TabsContent value="timeline"><TimelineTab projectId={effectiveProjectId} /></TabsContent>
+  1935→        <TabsContent value="open-items"><OpenItemsTab projectId={effectiveProjectId} /></TabsContent>
+  1936→        <TabsContent value="rfis"><RfisTab projectId={effectiveProjectId} /></TabsContent>
+  1937→        <TabsContent value="change-events"><ChangeEventsTab projectId={effectiveProjectId} /></TabsContent>
+  1938→        <TabsContent value="change-orders"><ChangeOrdersTab projectId={effectiveProjectId} /></TabsContent>
+  1939→        <TabsContent value="team"><TeamTab projectId={effectiveProjectId} /></TabsContent>
+  1940→        <TabsContent value="commitments"><CommitmentsTab projectId={effectiveProjectId} /></TabsContent>
+  1941→        <TabsContent value="direct-costs"><DirectCostsTab projectId={effectiveProjectId} /></TabsContent>
+  1942→        <TabsContent value="documents"><DocumentsTab projectId={effectiveProjectId} /></TabsContent>
+  1943→        <TabsContent value="daily-notes"><DailyNotesTab projectId={effectiveProjectId} /></TabsContent>
+  1944→        <TabsContent value="insights"><InsightsTab projectId={effectiveProjectId} /></TabsContent>
+  1945→      </Tabs>
+  1946→    </div>
+  1947→  )
+  1948→}

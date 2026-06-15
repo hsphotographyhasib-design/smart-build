@@ -1,0 +1,1301 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api, useAppStore } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import {
+    14→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    15→} from '@/components/ui/select'
+    16→import {
+    17→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    18→} from '@/components/ui/table'
+    19→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    20→import { Separator } from '@/components/ui/separator'
+    21→import {
+    22→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+    23→} from '@/components/ui/dialog'
+    24→import { useToast } from '@/hooks/use-toast'
+    25→import { cn } from '@/lib/utils'
+    26→import {
+    27→  ArrowLeft, Search, ChevronDown, ChevronUp, Ticket, CheckCircle2,
+    28→  Clock, Star, Link as LinkIcon, AlertTriangle, Wrench, FileText,
+    29→  ClipboardCheck, FileQuestion, ShieldCheck, MessageSquarePlus,
+    30→  CalendarClock, Download, TrendingUp, TrendingDown, Minus,
+    31→  User, Phone, MapPin, Camera, Video, Timer,
+    32→} from 'lucide-react'
+    33→
+    34→// ─── Shared Constants ───
+    35→const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
+    36→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+    37→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+    38→  medium: { label: 'Medium', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300', dotColor: 'bg-yellow-500' },
+    39→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+    40→  preventive: { label: 'Preventive', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', dotColor: 'bg-blue-500' },
+    41→}
+    42→
+    43→const STATUS_CONFIG: Record<string, { label: string; color: string; step: number }> = {
+    44→  new: { label: 'New', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400', step: 0 },
+    45→  under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', step: 1 },
+    46→  assigned: { label: 'Assigned', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300', step: 2 },
+    47→  accepted: { label: 'Accepted', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300', step: 3 },
+    48→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 4 },
+    49→  pending_parts: { label: 'Pending Parts', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', step: 5 },
+    50→  pending_customer: { label: 'Pending Customer', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 6 },
+    51→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 7 },
+    52→  customer_verification: { label: 'Customer Verification', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300', step: 8 },
+    53→  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400', step: 9 },
+    54→}
+    55→
+    56→const STATUS_WORKFLOW = [
+    57→  'new', 'under_review', 'assigned', 'accepted', 'in_progress',
+    58→  'pending_parts', 'pending_customer', 'completed', 'customer_verification', 'closed',
+    59→]
+    60→
+    61→const CATEGORY_LABELS: Record<string, string> = {
+    62→  air_conditioning: 'Air Conditioning',
+    63→  electrical: 'Electrical',
+    64→  plumbing: 'Plumbing',
+    65→  fire_protection: 'Fire Protection',
+    66→  mechanical: 'Mechanical',
+    67→  civil: 'Civil',
+    68→  cleaning: 'Cleaning',
+    69→  security: 'Security',
+    70→  it: 'IT',
+    71→  general_maintenance: 'General Maintenance',
+    72→  other: 'Other',
+    73→}
+    74→
+    75→const TYPE_LABELS: Record<string, string> = {
+    76→  complaint: 'Complaint',
+    77→  work_request: 'Work Request',
+    78→  emergency: 'Emergency',
+    79→  inspection: 'Inspection',
+    80→  quotation: 'Quotation',
+    81→  preventive_maintenance: 'Preventive Maintenance',
+    82→}
+    83→
+    84→const TYPE_BADGE_COLORS: Record<string, string> = {
+    85→  complaint: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300',
+    86→  work_request: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    87→  emergency: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    88→  inspection: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    89→  quotation: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    90→  preventive_maintenance: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
+    91→}
+    92→
+    93→const QUICK_ACTIONS = [
+    94→  { type: 'complaint', label: 'Report Complaint', icon: MessageSquarePlus, color: 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200 dark:bg-rose-950 dark:border-rose-800 dark:hover:bg-rose-900' },
+    95→  { type: 'work_request', label: 'Request Service', icon: Wrench, color: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900' },
+    96→  { type: 'emergency', label: 'Emergency!', icon: AlertTriangle, color: 'text-red-600 bg-red-50 hover:bg-red-100 border-red-200 dark:bg-red-950 dark:border-red-800 dark:hover:bg-red-900' },
+    97→  { type: 'inspection', label: 'Request Inspection', icon: ClipboardCheck, color: 'text-purple-600 bg-purple-50 hover:bg-purple-100 border-purple-200 dark:bg-purple-950 dark:border-purple-800 dark:hover:bg-purple-900' },
+    98→  { type: 'quotation', label: 'Request Quotation', icon: FileQuestion, color: 'text-amber-600 bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-amber-950 dark:border-amber-800 dark:hover:bg-amber-900' },
+    99→  { type: 'preventive_maintenance', label: 'Preventive Maintenance', icon: ShieldCheck, color: 'text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border-cyan-200 dark:bg-cyan-950 dark:border-cyan-800 dark:hover:bg-cyan-900' },
+   100→]
+   101→
+   102→// ─── SLA Countdown Component ───
+   103→function SLACountdown({ deadline }: { deadline: string }) {
+   104→  const [remaining, setRemaining] = useState('')
+   105→
+   106→  useEffect(() => {
+   107→    function calc() {
+   108→      const diff = new Date(deadline).getTime() - Date.now()
+   109→      if (diff <= 0) {
+   110→        setRemaining('BREACHED')
+   111→        return
+   112→      }
+   113→      const hours = Math.floor(diff / 3600000)
+   114→      const mins = Math.floor((diff % 3600000) / 60000)
+   115→      if (hours > 24) {
+   116→        const days = Math.floor(hours / 24)
+   117→        setRemaining(`${days}d ${hours % 24}h`)
+   118→      } else {
+   119→        setRemaining(`${hours}h ${mins}m`)
+   120→      }
+   121→    }
+   122→    calc()
+   123→    const interval = setInterval(calc, 60000)
+   124→    return () => clearInterval(interval)
+   125→  }, [deadline])
+   126→
+   127→  const isBreached = remaining === 'BREACHED'
+   128→
+   129→  return (
+   130→    <span className={cn(
+   131→      'text-xs font-mono font-medium',
+   132→      isBreached ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+   133→    )}>
+   134→      {isBreached && '⚠ '}{remaining}
+   135→    </span>
+   136→  )
+   137→}
+   138→
+   139→// ─── Workflow Stepper ───
+   140→function WorkflowStepper({ status }: { status: string }) {
+   141→  const currentStep = STATUS_CONFIG[status]?.step ?? -1
+   142→
+   143→  return (
+   144→    <div>
+   145→      <div className="flex items-center gap-0.5">
+   146→        {STATUS_WORKFLOW.map((step, idx) => {
+   147→          const isActive = currentStep >= idx
+   148→          const isCurrent = currentStep === idx
+   149→          return (
+   150→            <React.Fragment key={step}>
+   151→              <div
+   152→                className={cn(
+   153→                  'h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-colors shrink-0',
+   154→                  isActive
+   155→                    ? isCurrent
+   156→                      ? 'bg-emerald-500 text-white ring-2 ring-emerald-200 dark:ring-emerald-800'
+   157→                      : 'bg-emerald-500 text-white'
+   158→                    : 'bg-muted text-muted-foreground'
+   159→                )}
+   160→                title={STATUS_CONFIG[step]?.label}
+   161→              >
+   162→                {isActive ? <CheckCircle2 className="h-3 w-3" /> : idx + 1}
+   163→              </div>
+   164→              {idx < STATUS_WORKFLOW.length - 1 && (
+   165→                <div className={cn('flex-1 h-0.5 min-w-[6px]', isActive ? 'bg-emerald-500' : 'bg-muted')} />
+   166→              )}
+   167→            </React.Fragment>
+   168→          )
+   169→        })}
+   170→      </div>
+   171→      <div className="flex flex-wrap gap-1 mt-2">
+   172→        {STATUS_WORKFLOW.map((step, idx) => (
+   173→          <span
+   174→            key={step}
+   175→            className={cn(
+   176→              'text-[9px] px-1.5 py-0.5 rounded',
+   177→              currentStep === idx
+   178→                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 font-semibold'
+   179→                : 'text-muted-foreground'
+   180→            )}
+   181→          >
+   182→            {STATUS_CONFIG[step]?.label}
+   183→          </span>
+   184→        ))}
+   185→      </div>
+   186→    </div>
+   187→  )
+   188→}
+   189→
+   190→// ─── Stat Card Skeleton ───
+   191→function StatCardSkeleton() {
+   192→  return (
+   193→    <Card>
+   194→      <CardContent className="p-4">
+   195→        <div className="flex items-center justify-between">
+   196→          <Skeleton className="h-4 w-24" />
+   197→          <Skeleton className="h-8 w-8 rounded-lg" />
+   198→        </div>
+   199→        <Skeleton className="h-8 w-16 mt-2" />
+   200→        <Skeleton className="h-3 w-20 mt-1" />
+   201→      </CardContent>
+   202→    </Card>
+   203→  )
+   204→}
+   205→
+   206→// ─── Main Component ───
+   207→export function ClientServiceRequests() {
+   208→  const { navigate, user } = useAppStore()
+   209→  const { toast } = useToast()
+   210→  const queryClient = useQueryClient()
+   211→
+   212→  const customerId = user?.customerId || user?.id
+   213→
+   214→  // Filters
+   215→  const [statusFilter, setStatusFilter] = useState('all')
+   216→  const [priorityFilter, setPriorityFilter] = useState('all')
+   217→  const [categoryFilter, setCategoryFilter] = useState('all')
+   218→  const [typeFilter, setTypeFilter] = useState('all')
+   219→  const [searchQuery, setSearchQuery] = useState('')
+   220→  const [activeTab, setActiveTab] = useState('all')
+   221→  const [expandedId, setExpandedId] = useState<string | null>(null)
+   222→  const [createOpen, setCreateOpen] = useState(false)
+   223→  const [prefillType, setPrefillType] = useState('')
+   224→
+   225→  // Fetch tickets for this customer
+   226→  const { data, isLoading } = useQuery({
+   227→    queryKey: ['client-service-tickets', customerId, statusFilter, priorityFilter, categoryFilter, typeFilter],
+   228→    queryFn: () => {
+   229→      const params = new URLSearchParams()
+   230→      if (customerId) params.set('customerId', customerId)
+   231→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   232→      if (priorityFilter !== 'all') params.set('priority', priorityFilter)
+   233→      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+   234→      if (typeFilter !== 'all') params.set('type', typeFilter)
+   235→      const qs = params.toString()
+   236→      return api.get(`/api/maintenance/tickets${qs ? `?${qs}` : ''}`)
+   237→    },
+   238→    enabled: !!customerId,
+   239→  })
+   240→
+   241→  const tickets = (data?.data || []) as any[]
+   242→
+   243→  // Fetch customer sites
+   244→  const { data: sitesData } = useQuery({
+   245→    queryKey: ['client-maintenance-sites', customerId],
+   246→    queryFn: () => {
+   247→      const params = new URLSearchParams()
+   248→      if (customerId) params.set('customerId', customerId)
+   249→      return api.get(`/api/maintenance/sites${params.toString() ? `?${params.toString()}` : ''}`)
+   250→    },
+   251→    enabled: !!customerId,
+   252→  })
+   253→  const sites = (sitesData?.data || []) as any[]
+   254→
+   255→  // Fetch PM schedules for this customer
+   256→  const { data: pmData } = useQuery({
+   257→    queryKey: ['client-pm-schedules', customerId],
+   258→    queryFn: () => {
+   259→      const params = new URLSearchParams()
+   260→      if (customerId) params.set('customerId', customerId)
+   261→      return api.get(`/api/maintenance/pm-schedules${params.toString() ? `?${params.toString()}` : ''}`)
+   262→    },
+   263→    enabled: !!customerId,
+   264→  })
+   265→  const pmSchedules = (pmData?.data || []) as any[]
+   266→
+   267→  // Create mutation
+   268→  const createMutation = useMutation({
+   269→    mutationFn: (body: any) => api.post('/api/maintenance/tickets', body),
+   270→    onSuccess: () => {
+   271→      queryClient.invalidateQueries({ queryKey: ['client-service-tickets'] })
+   272→      setCreateOpen(false)
+   273→      setPrefillType('')
+   274→      toast({ title: 'Request Submitted', description: 'Your service request has been created successfully.' })
+   275→    },
+   276→    onError: (err: any) => {
+   277→      toast({ title: 'Error', description: err.error || 'Failed to submit request', variant: 'destructive' })
+   278→    },
+   279→  })
+   280→
+   281→  // Approve/Reject mutation
+   282→  const updateMutation = useMutation({
+   283→    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/tickets/${id}`, body),
+   284→    onSuccess: () => {
+   285→      queryClient.invalidateQueries({ queryKey: ['client-service-tickets'] })
+   286→      queryClient.invalidateQueries({ queryKey: ['client-ticket-timeline'] })
+   287→      toast({ title: 'Updated', description: 'Ticket status has been updated.' })
+   288→    },
+   289→    onError: (err: any) => {
+   290→      toast({ title: 'Error', description: err.error || 'Failed to update', variant: 'destructive' })
+   291→    },
+   292→  })
+   293→
+   294→  // Quick action handler
+   295→  const handleQuickAction = (type: string) => {
+   296→    setPrefillType(type)
+   297→    setCreateOpen(true)
+   298→  }
+   299→
+   300→  // Client-side search
+   301→  const filtered = tickets.filter((t: any) => {
+   302→    if (searchQuery) {
+   303→      const q = searchQuery.toLowerCase()
+   304→      return (
+   305→        t.subject?.toLowerCase().includes(q) ||
+   306→        t.ticketNo?.toLowerCase().includes(q) ||
+   307→        t.description?.toLowerCase().includes(q)
+   308→      )
+   309→    }
+   310→    return true
+   311→  })
+   312→
+   313→  // Tab filtering
+   314→  const getTabTickets = (tab: string) => {
+   315→    switch (tab) {
+   316→      case 'open': return filtered.filter((t: any) => ['new', 'under_review', 'assigned', 'accepted'].includes(t.status))
+   317→      case 'in_progress': return filtered.filter((t: any) => ['in_progress', 'pending_parts'].includes(t.status))
+   318→      case 'pending_approval': return filtered.filter((t: any) => ['pending_customer', 'customer_verification'].includes(t.status))
+   319→      case 'completed': return filtered.filter((t: any) => ['completed', 'closed'].includes(t.status))
+   320→      default: return filtered
+   321→    }
+   322→  }
+   323→
+   324→  const displayTickets = getTabTickets(activeTab)
+   325→
+   326→  // Dashboard stats
+   327→  const openCount = tickets.filter((t: any) => ['new', 'under_review', 'assigned', 'accepted'].includes(t.status)).length
+   328→  const pendingApprovalCount = tickets.filter((t: any) => ['pending_customer', 'customer_verification'].includes(t.status)).length
+   329→  const inProgressCount = tickets.filter((t: any) => ['in_progress', 'pending_parts'].includes(t.status)).length
+   330→  const now = new Date()
+   331→  const thisMonth = tickets.filter((t: any) => {
+   332→    const d = new Date(t.createdAt)
+   333→    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && ['completed', 'closed'].includes(t.status)
+   334→  }).length
+   335→  const emergencyCount = tickets.filter((t: any) => t.priority === 'emergency' && !['completed', 'closed'].includes(t.status)).length
+   336→
+   337→  // Avg response time (from new to assigned)
+   338→  const avgResponseCalc = (() => {
+   339→    const responded = tickets.filter((t: any) => t.createdAt && (t.assignedAt || t.updatedAt))
+   340→    if (responded.length === 0) return null
+   341→    let totalHours = 0
+   342→    let count = 0
+   343→    for (const t of responded) {
+   344→      const start = new Date(t.createdAt).getTime()
+   345→      const end = new Date(t.assignedAt || t.updatedAt).getTime()
+   346→      const diff = (end - start) / 3600000
+   347→      if (diff > 0 && diff < 720) { // ignore unreasonable values
+   348→        totalHours += diff
+   349→        count++
+   350→      }
+   351→    }
+   352→    return count > 0 ? totalHours / count : null
+   353→  })()
+   354→
+   355→  const stats = [
+   356→    { label: 'Open Requests', value: openCount, icon: Ticket, trend: 'active', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950' },
+   357→    { label: 'Pending My Approval', value: pendingApprovalCount, icon: ClipboardCheck, trend: pendingApprovalCount > 0 ? 'up' : 'neutral', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950' },
+   358→    { label: 'In Progress', value: inProgressCount, icon: Wrench, trend: 'neutral', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950' },
+   359→    { label: 'Completed This Month', value: thisMonth, icon: CheckCircle2, trend: thisMonth > 0 ? 'up' : 'neutral', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950' },
+   360→    { label: 'Emergency Requests', value: emergencyCount, icon: AlertTriangle, trend: emergencyCount > 0 ? 'up' : 'neutral', color: 'text-red-600 bg-red-50 dark:bg-red-950' },
+   361→    { label: 'Avg Response Time', value: avgResponseCalc ? `${Math.round(avgResponseCalc)}h` : '—', icon: Clock, trend: 'neutral', color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950' },
+   362→  ]
+   363→
+   364→  // Completed tickets for service history
+   365→  const completedTickets = tickets
+   366→    .filter((t: any) => ['completed', 'closed'].includes(t.status))
+   367→    .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+   368→    .slice(0, 5)
+   369→
+   370→  // Active PM schedules
+   371→  const activePMs = pmSchedules.filter((pm: any) => pm.status === 'active')
+   372→
+   373→  return (
+   374→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   375→      {/* Header */}
+   376→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   377→        <div className="flex items-center gap-3">
+   378→          <Button size="icon" variant="ghost" onClick={() => navigate('client-dashboard')}>
+   379→            <ArrowLeft className="h-4 w-4" />
+   380→          </Button>
+   381→          <div>
+   382→            <h1 className="text-2xl font-bold tracking-tight">Service Requests</h1>
+   383→            <p className="text-muted-foreground text-sm mt-0.5">Submit and track maintenance service requests</p>
+   384→          </div>
+   385→        </div>
+   386→        <Button
+   387→          className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+   388→          onClick={() => { setPrefillType(''); setCreateOpen(true) }}
+   389→        >
+   390→          <MessageSquarePlus className="h-3.5 w-3.5" /> New Request
+   391→        </Button>
+   392→      </div>
+   393→
+   394→      {/* ─── Dashboard Stats ─── */}
+   395→      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+   396→        {isLoading
+   397→          ? Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)
+   398→          : stats.map((stat) => (
+   399→              <Card key={stat.label}>
+   400→                <CardContent className="p-4">
+   401→                  <div className="flex items-center justify-between">
+   402→                    <span className="text-xs text-muted-foreground font-medium">{stat.label}</span>
+   403→                    <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center', stat.color)}>
+   404→                      <stat.icon className="h-4 w-4" />
+   405→                    </div>
+   406→                  </div>
+   407→                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
+   408→                  <div className="flex items-center gap-1 mt-1">
+   409→                    {stat.trend === 'up' && <TrendingUp className="h-3 w-3 text-emerald-500" />}
+   410→                    {stat.trend === 'down' && <TrendingDown className="h-3 w-3 text-red-500" />}
+   411→                    {stat.trend === 'neutral' && <Minus className="h-3 w-3 text-muted-foreground" />}
+   412→                    <span className="text-[10px] text-muted-foreground">
+   413→                      {stat.trend === 'up' ? 'Active' : stat.trend === 'neutral' ? 'Stable' : 'Declining'}
+   414→                    </span>
+   415→                  </div>
+   416→                </CardContent>
+   417→              </Card>
+   418→            ))
+   419→        }
+   420→      </div>
+   421→
+   422→      {/* ─── Quick Submit Buttons ─── */}
+   423→      <Card>
+   424→        <CardHeader className="pb-3">
+   425→          <CardTitle className="text-sm font-semibold">Quick Submit</CardTitle>
+   426→        </CardHeader>
+   427→        <CardContent>
+   428→          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+   429→            {QUICK_ACTIONS.map((action) => (
+   430→              <Button
+   431→                key={action.type}
+   432→                variant="outline"
+   433→                className={cn('h-auto py-3 flex flex-col items-center gap-1.5 text-xs border', action.color)}
+   434→                onClick={() => handleQuickAction(action.type)}
+   435→              >
+   436→                <action.icon className="h-5 w-5" />
+   437→                {action.label}
+   438→              </Button>
+   439→            ))}
+   440→          </div>
+   441→        </CardContent>
+   442→      </Card>
+   443→
+   444→      {/* ─── Tabs: My Requests / Service History / Upcoming Visits ─── */}
+   445→      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setExpandedId(null) }}>
+   446→        <TabsList>
+   447→          <TabsTrigger value="all">All</TabsTrigger>
+   448→          <TabsTrigger value="open">Open</TabsTrigger>
+   449→          <TabsTrigger value="in_progress">In Progress</TabsTrigger>
+   450→          <TabsTrigger value="pending_approval">Pending My Approval</TabsTrigger>
+   451→          <TabsTrigger value="completed">Completed</TabsTrigger>
+   452→          <TabsTrigger value="history">Service History</TabsTrigger>
+   453→          <TabsTrigger value="upcoming">Upcoming Visits</TabsTrigger>
+   454→        </TabsList>
+   455→
+   456→        {/* All / Open / In Progress / Pending / Completed Tabs */}
+   457→        {['all', 'open', 'in_progress', 'pending_approval', 'completed'].map((tab) => (
+   458→          <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
+   459→            {/* Filters */}
+   460→            <Card>
+   461→              <CardContent className="p-4">
+   462→                <div className="flex flex-col gap-3">
+   463→                  <div className="relative flex-1">
+   464→                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   465→                    <Input
+   466→                      placeholder="Search by ticket #, subject, or description..."
+   467→                      value={searchQuery}
+   468→                      onChange={(e) => setSearchQuery(e.target.value)}
+   469→                      className="pl-9"
+   470→                    />
+   471→                  </div>
+   472→                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+   473→                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+   474→                      <SelectTrigger>
+   475→                        <SelectValue placeholder="All Status" />
+   476→                      </SelectTrigger>
+   477→                      <SelectContent>
+   478→                        <SelectItem value="all">All Status</SelectItem>
+   479→                        {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+   480→                          <SelectItem key={key} value={key}>{val.label}</SelectItem>
+   481→                        ))}
+   482→                      </SelectContent>
+   483→                    </Select>
+   484→                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+   485→                      <SelectTrigger>
+   486→                        <SelectValue placeholder="All Priority" />
+   487→                      </SelectTrigger>
+   488→                      <SelectContent>
+   489→                        <SelectItem value="all">All Priority</SelectItem>
+   490→                        {Object.entries(PRIORITY_CONFIG).map(([key, val]) => (
+   491→                          <SelectItem key={key} value={key}>
+   492→                            <span className="flex items-center gap-1.5">
+   493→                              <span className={cn('h-2 w-2 rounded-full', val.dotColor)} />
+   494→                              {val.label}
+   495→                            </span>
+   496→                          </SelectItem>
+   497→                        ))}
+   498→                      </SelectContent>
+   499→                    </Select>
+   500→                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+   501→                      <SelectTrigger>
+   502→                        <SelectValue placeholder="All Category" />
+   503→                      </SelectTrigger>
+   504→                      <SelectContent>
+   505→                        <SelectItem value="all">All Categories</SelectItem>
+   506→                        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+   507→                          <SelectItem key={key} value={key}>{label}</SelectItem>
+   508→                        ))}
+   509→                      </SelectContent>
+   510→                    </Select>
+   511→                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+   512→                      <SelectTrigger>
+   513→                        <SelectValue placeholder="All Types" />
+   514→                      </SelectTrigger>
+   515→                      <SelectContent>
+   516→                        <SelectItem value="all">All Types</SelectItem>
+   517→                        {Object.entries(TYPE_LABELS).map(([key, label]) => (
+   518→                          <SelectItem key={key} value={key}>{label}</SelectItem>
+   519→                        ))}
+   520→                      </SelectContent>
+   521→                    </Select>
+   522→                  </div>
+   523→                </div>
+   524→              </CardContent>
+   525→            </Card>
+   526→
+   527→            {/* Tickets Table */}
+   528→            <Card>
+   529→              <CardContent className="p-0">
+   530→                {isLoading ? (
+   531→                  <div className="p-6 space-y-3">
+   532→                    {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   533→                  </div>
+   534→                ) : displayTickets.length === 0 ? (
+   535→                  <div className="flex flex-col items-center justify-center py-16">
+   536→                    <Ticket className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   537→                    <p className="text-sm text-muted-foreground">No requests found</p>
+   538→                    <Button size="sm" variant="outline" className="mt-3 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setPrefillType(''); setCreateOpen(true) }}>
+   539→                      <MessageSquarePlus className="h-3.5 w-3.5" /> Submit a Request
+   540→                    </Button>
+   541→                  </div>
+   542→                ) : (
+   543→                  <div className="max-h-96 overflow-y-auto">
+   544→                    <Table>
+   545→                      <TableHeader>
+   546→                        <TableRow className="sticky top-0 bg-background z-10">
+   547→                          <TableHead className="w-8"></TableHead>
+   548→                          <TableHead className="text-xs">Ticket #</TableHead>
+   549→                          <TableHead className="text-xs">Subject</TableHead>
+   550→                          <TableHead className="text-xs hidden sm:table-cell">Category</TableHead>
+   551→                          <TableHead className="text-xs">Priority</TableHead>
+   552→                          <TableHead className="text-xs">Status</TableHead>
+   553→                          <TableHead className="text-xs hidden md:table-cell">Assigned To</TableHead>
+   554→                          <TableHead className="text-xs hidden lg:table-cell">Created</TableHead>
+   555→                        </TableRow>
+   556→                      </TableHeader>
+   557→                      <TableBody>
+   558→                        {displayTickets.map((ticket: any) => {
+   559→                          const pri = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.medium
+   560→                          const stat = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.new
+   561→                          const isExpanded = expandedId === ticket.id
+   562→                          return (
+   563→                            <React.Fragment key={ticket.id}>
+   564→                              <TableRow
+   565→                                className="cursor-pointer hover:bg-muted/40"
+   566→                                onClick={() => setExpandedId(prev => prev === ticket.id ? null : ticket.id)}
+   567→                              >
+   568→                                <TableCell className="py-3">
+   569→                                  {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+   570→                                </TableCell>
+   571→                                <TableCell className="text-xs font-mono text-emerald-600 font-medium">{ticket.ticketNo}</TableCell>
+   572→                                <TableCell>
+   573→                                  <div>
+   574→                                    <p className="text-sm font-medium">{ticket.subject}</p>
+   575→                                    <p className="text-xs text-muted-foreground truncate max-w-[180px]">{ticket.description}</p>
+   576→                                  </div>
+   577→                                </TableCell>
+   578→                                <TableCell className="hidden sm:table-cell">
+   579→                                  <Badge variant="secondary" className="text-xs">
+   580→                                    {CATEGORY_LABELS[ticket.category] || ticket.category}
+   581→                                  </Badge>
+   582→                                </TableCell>
+   583→                                <TableCell>
+   584→                                  <Badge variant="secondary" className={cn('gap-1 text-xs', pri.color)}>
+   585→                                    <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+   586→                                    {pri.label}
+   587→                                  </Badge>
+   588→                                </TableCell>
+   589→                                <TableCell>
+   590→                                  <Badge variant="secondary" className={cn('text-xs', stat.color)}>
+   591→                                    {stat.label}
+   592→                                  </Badge>
+   593→                                </TableCell>
+   594→                                <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+   595→                                  {ticket.technician?.employee?.name || '—'}
+   596→                                </TableCell>
+   597→                                <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
+   598→                                  {new Date(ticket.createdAt).toLocaleDateString()}
+   599→                                </TableCell>
+   600→                              </TableRow>
+   601→                              {isExpanded && (
+   602→                                <TableRow>
+   603→                                  <TableCell colSpan={8} className="bg-muted/20 px-6 py-4">
+   604→                                    <TicketDetailExpanded
+   605→                                      ticket={ticket}
+   606→                                      onApprove={() => updateMutation.mutate({ id: ticket.id, body: { status: 'completed', action: 'approve' } })}
+   607→                                      onReject={() => updateMutation.mutate({ id: ticket.id, body: { status: 'in_progress', action: 'reject', customerFeedback: 'Rejected by customer, needs rework' } })}
+   608→                                      isUpdating={updateMutation.isPending}
+   609→                                    />
+   610→                                  </TableCell>
+   611→                                </TableRow>
+   612→                              )}
+   613→                            </React.Fragment>
+   614→                          )
+   615→                        })}
+   616→                      </TableBody>
+   617→                    </Table>
+   618→                  </div>
+   619→                )}
+   620→              </CardContent>
+   621→            </Card>
+   622→          </TabsContent>
+   623→        ))}
+   624→
+   625→        {/* Service History Tab */}
+   626→        <TabsContent value="history" className="space-y-4 mt-4">
+   627→          <Card>
+   628→            <CardHeader className="pb-3">
+   629→              <div className="flex items-center justify-between">
+   630→                <CardTitle className="text-sm font-semibold">Recently Completed</CardTitle>
+   631→                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => toast({ title: 'Coming Soon', description: 'Service report download will be available soon.' })}>
+   632→                  <Download className="h-3.5 w-3.5" /> Download Report
+   633→                </Button>
+   634→              </div>
+   635→            </CardHeader>
+   636→            <CardContent className="p-0">
+   637→              {isLoading ? (
+   638→                <div className="p-6 space-y-3">
+   639→                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}
+   640→                </div>
+   641→              ) : completedTickets.length === 0 ? (
+   642→                <div className="flex flex-col items-center justify-center py-16">
+   643→                  <FileText className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   644→                  <p className="text-sm text-muted-foreground">No completed requests yet</p>
+   645→                </div>
+   646→              ) : (
+   647→                <div className="max-h-96 overflow-y-auto">
+   648→                  <Table>
+   649→                    <TableHeader>
+   650→                      <TableRow className="sticky top-0 bg-background z-10">
+   651→                        <TableHead className="text-xs">Ticket #</TableHead>
+   652→                        <TableHead className="text-xs">Subject</TableHead>
+   653→                        <TableHead className="text-xs hidden sm:table-cell">Category</TableHead>
+   654→                        <TableHead className="text-xs">Type</TableHead>
+   655→                        <TableHead className="text-xs hidden md:table-cell">Completed</TableHead>
+   656→                        <TableHead className="text-xs hidden md:table-cell">Rating</TableHead>
+   657→                      </TableRow>
+   658→                    </TableHeader>
+   659→                    <TableBody>
+   660→                      {completedTickets.map((ticket: any) => (
+   661→                        <TableRow key={ticket.id}>
+   662→                          <TableCell className="text-xs font-mono text-emerald-600 font-medium">{ticket.ticketNo}</TableCell>
+   663→                          <TableCell className="text-sm font-medium">{ticket.subject}</TableCell>
+   664→                          <TableCell className="hidden sm:table-cell">
+   665→                            <Badge variant="secondary" className="text-xs">
+   666→                              {CATEGORY_LABELS[ticket.category] || ticket.category}
+   667→                            </Badge>
+   668→                          </TableCell>
+   669→                          <TableCell>
+   670→                            <Badge variant="secondary" className={cn('text-[10px]', TYPE_BADGE_COLORS[ticket.type] || '')}>
+   671→                              {TYPE_LABELS[ticket.type] || ticket.type}
+   672→                            </Badge>
+   673→                          </TableCell>
+   674→                          <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+   675→                            {ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleDateString() : '—'}
+   676→                          </TableCell>
+   677→                          <TableCell className="hidden md:table-cell">
+   678→                            {ticket.rating ? (
+   679→                              <div className="flex items-center gap-0.5">
+   680→                                {Array.from({ length: 5 }).map((_, i) => (
+   681→                                  <Star key={i} className={cn('h-3 w-3', i < ticket.rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground')} />
+   682→                                ))}
+   683→                              </div>
+   684→                            ) : (
+   685→                              <span className="text-xs text-muted-foreground">—</span>
+   686→                            )}
+   687→                          </TableCell>
+   688→                        </TableRow>
+   689→                      ))}
+   690→                    </TableBody>
+   691→                  </Table>
+   692→                </div>
+   693→              )}
+   694→            </CardContent>
+   695→          </Card>
+   696→        </TabsContent>
+   697→
+   698→        {/* Upcoming Visits Tab */}
+   699→        <TabsContent value="upcoming" className="space-y-4 mt-4">
+   700→          {isLoading ? (
+   701→            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   702→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 rounded-lg" />)}
+   703→            </div>
+   704→          ) : activePMs.length === 0 ? (
+   705→            <Card>
+   706→              <CardContent className="flex flex-col items-center justify-center py-16">
+   707→                <CalendarClock className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   708→                <p className="text-sm text-muted-foreground">No upcoming preventive maintenance visits</p>
+   709→              </CardContent>
+   710→            </Card>
+   711→          ) : (
+   712→            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+   713→              {activePMs.map((pm: any) => {
+   714→                const nextVisit = pm.nextVisitDate ? new Date(pm.nextVisitDate) : null
+   715→                const isOverdue = nextVisit && nextVisit < new Date()
+   716→                const daysUntil = nextVisit ? Math.ceil((nextVisit.getTime() - Date.now()) / 86400000) : null
+   717→                return (
+   718→                  <Card key={pm.id} className={cn('border', isOverdue ? 'border-red-200 dark:border-red-800' : 'border-emerald-200 dark:border-emerald-800')}>
+   719→                    <CardContent className="p-4 space-y-3">
+   720→                      <div className="flex items-center justify-between">
+   721→                        <Badge variant="secondary" className="text-xs font-mono">{pm.pmNo}</Badge>
+   722→                        <Badge variant={isOverdue ? 'destructive' : 'secondary'} className={cn('text-xs', !isOverdue && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300')}>
+   723→                          {isOverdue ? 'Overdue' : daysUntil !== null && daysUntil <= 3 ? 'Due Soon' : 'Upcoming'}
+   724→                        </Badge>
+   725→                      </div>
+   726→                      <div>
+   727→                        <p className="text-sm font-semibold">{pm.description || 'Preventive Maintenance'}</p>
+   728→                        <p className="text-xs text-muted-foreground mt-0.5">{pm.site?.name || 'No site'}</p>
+   729→                      </div>
+   730→                      <Separator />
+   731→                      <div className="grid grid-cols-2 gap-2 text-xs">
+   732→                        <div>
+   733→                          <span className="text-muted-foreground">Frequency</span>
+   734→                          <p className="font-medium capitalize">{pm.frequency?.replace('_', ' ') || '—'}</p>
+   735→                        </div>
+   736→                        <div>
+   737→                          <span className="text-muted-foreground">Next Visit</span>
+   738→                          <p className={cn('font-medium', isOverdue ? 'text-red-600' : 'text-emerald-600')}>
+   739→                            {nextVisit ? nextVisit.toLocaleDateString() : '—'}
+   740→                          </p>
+   741→                        </div>
+   742→                        <div>
+   743→                          <span className="text-muted-foreground">Technician</span>
+   744→                          <p className="font-medium">{pm.technician?.employee?.name || '—'}</p>
+   745→                        </div>
+   746→                        <div>
+   747→                          <span className="text-muted-foreground">Progress</span>
+   748→                          <p className="font-medium">{pm.completedVisits || 0} / {pm.totalVisits || '—'}</p>
+   749→                        </div>
+   750→                      </div>
+   751→                    </CardContent>
+   752→                  </Card>
+   753→                )
+   754→              })}
+   755→            </div>
+   756→          )}
+   757→        </TabsContent>
+   758→      </Tabs>
+   759→
+   760→      {/* ─── Create Request Dialog ─── */}
+   761→      <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setPrefillType('') }}>
+   762→        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   763→          <DialogHeader>
+   764→            <DialogTitle>Submit Service Request</DialogTitle>
+   765→          </DialogHeader>
+   766→          <CreateRequestForm
+   767→            key={prefillType || 'default'}
+   768→            sites={sites}
+   769→            prefillType={prefillType}
+   770→            customerId={customerId}
+   771→            onSubmit={(data) => createMutation.mutate(data)}
+   772→            loading={createMutation.isPending}
+   773→          />
+   774→        </DialogContent>
+   775→      </Dialog>
+   776→    </div>
+   777→  )
+   778→}
+   779→
+   780→// ─── Expanded Ticket Detail ───
+   781→function TicketDetailExpanded({
+   782→  ticket,
+   783→  onApprove,
+   784→  onReject,
+   785→  isUpdating,
+   786→}: {
+   787→  ticket: any
+   788→  onApprove: () => void
+   789→  onReject: () => void
+   790→  isUpdating: boolean
+   791→}) {
+   792→  const queryClient = useQueryClient()
+   793→  const { toast } = useToast()
+   794→  const [rating, setRating] = useState(ticket.rating || 0)
+   795→  const [feedback, setFeedback] = useState(ticket.customerFeedback || '')
+   796→  const [showRating, setShowRating] = useState(false)
+   797→
+   798→  // Fetch timeline
+   799→  const { data: timelineData } = useQuery({
+   800→    queryKey: ['client-ticket-timeline', ticket.id],
+   801→    queryFn: () => api.get(`/api/maintenance/tickets/${ticket.id}/timeline`),
+   802→    enabled: !!ticket.id,
+   803→  })
+   804→  const timeline = (timelineData?.data || []) as any[]
+   805→
+   806→  // Rating mutation
+   807→  const ratingMutation = useMutation({
+   808→    mutationFn: (body: any) => api.put(`/api/maintenance/tickets/${ticket.id}`, body),
+   809→    onSuccess: () => {
+   810→      queryClient.invalidateQueries({ queryKey: ['client-service-tickets'] })
+   811→      queryClient.invalidateQueries({ queryKey: ['client-ticket-timeline'] })
+   812→      setShowRating(false)
+   813→      toast({ title: 'Thank you!', description: 'Your feedback has been submitted.' })
+   814→    },
+   815→    onError: (err: any) => {
+   816→      toast({ title: 'Error', description: err.error || 'Failed to submit feedback', variant: 'destructive' })
+   817→    },
+   818→  })
+   819→
+   820→  const handleSubmitRating = () => {
+   821→    ratingMutation.mutate({
+   822→      rating,
+   823→      customerFeedback: feedback || undefined,
+   824→    })
+   825→  }
+   826→
+   827→  const isPendingCustomer = ticket.status === 'pending_customer' || ticket.status === 'customer_verification'
+   828→  const isCompleted = ticket.status === 'completed' || ticket.status === 'closed'
+   829→
+   830→  return (
+   831→    <div className="space-y-4">
+   832→      {/* Workflow Stepper */}
+   833→      <div>
+   834→        <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Status Progress</h4>
+   835→        <WorkflowStepper status={ticket.status} />
+   836→      </div>
+   837→
+   838→      <Separator />
+   839→
+   840→      {/* SLA */}
+   841→      {ticket.slaDeadline && (
+   842→        <div className="flex items-center gap-2">
+   843→          <Timer className="h-4 w-4 text-amber-500" />
+   844→          <span className="text-xs text-muted-foreground">SLA Response Deadline:</span>
+   845→          <SLACountdown deadline={ticket.slaDeadline} />
+   846→        </div>
+   847→      )}
+   848→
+   849→      {/* Details Grid */}
+   850→      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+   851→        <div>
+   852→          <span className="text-muted-foreground text-xs">Description</span>
+   853→          <p className="mt-1">{ticket.description || 'No description'}</p>
+   854→        </div>
+   855→        <div>
+   856→          <span className="text-muted-foreground text-xs">Site / Location</span>
+   857→          <p className="mt-1 font-medium">{ticket.site?.name || '—'}</p>
+   858→          <p className="text-xs text-muted-foreground mt-0.5">
+   859→            {[ticket.building, ticket.floor, ticket.room].filter(Boolean).join(' / ') || ticket.location || '—'}
+   860→          </p>
+   861→        </div>
+   862→        <div>
+   863→          <span className="text-muted-foreground text-xs flex items-center gap-1"><User className="h-3 w-3" /> Contact Person</span>
+   864→          <p className="mt-1 font-medium">{ticket.contactPerson || '—'}</p>
+   865→          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Phone className="h-3 w-3" /> {ticket.contactPhone || '—'}</p>
+   866→        </div>
+   867→        <div>
+   868→          <span className="text-muted-foreground text-xs flex items-center gap-1"><Wrench className="h-3 w-3" /> Equipment</span>
+   869→          <p className="mt-1 font-medium">{ticket.asset?.name || '—'}</p>
+   870→        </div>
+   871→        <div>
+   872→          <span className="text-muted-foreground text-xs flex items-center gap-1"><CalendarClock className="h-3 w-3" /> Preferred Visit</span>
+   873→          <p className="mt-1 font-medium">
+   874→            {ticket.preferredVisitDate
+   875→              ? `${ticket.preferredVisitDate}${ticket.preferredVisitTime ? ` at ${ticket.preferredVisitTime}` : ''}`
+   876→              : '—'}
+   877→          </p>
+   878→        </div>
+   879→        <div>
+   880→          <span className="text-muted-foreground text-xs flex items-center gap-1"><Wrench className="h-3 w-3" /> Assigned Technician</span>
+   881→          <p className="mt-1 font-medium">{ticket.technician?.employee?.name || '—'}</p>
+   882→          {ticket.technician?.employee?.phone && (
+   883→            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Phone className="h-3 w-3" /> {ticket.technician.employee.phone}</p>
+   884→          )}
+   885→        </div>
+   886→      </div>
+   887→
+   888→      {/* Attachments */}
+   889→      {(ticket.photoUrls?.length > 0 || ticket.videoUrls?.length > 0) && (
+   890→        <div>
+   891→          <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Attachments</h4>
+   892→          <div className="flex flex-wrap gap-2">
+   893→            {ticket.photoUrls?.map((url: string, i: number) => (
+   894→              <Badge key={`p${i}`} variant="outline" className="gap-1 text-xs">
+   895→                <Camera className="h-3 w-3" /> Photo {i + 1}
+   896→              </Badge>
+   897→            ))}
+   898→            {ticket.videoUrls?.map((url: string, i: number) => (
+   899→              <Badge key={`v${i}`} variant="outline" className="gap-1 text-xs">
+   900→                <Video className="h-3 w-3" /> Video {i + 1}
+   901→              </Badge>
+   902→            ))}
+   903→          </div>
+   904→        </div>
+   905→      )}
+   906→
+   907→      {/* Timeline */}
+   908→      {timeline.length > 0 && (
+   909→        <div>
+   910→          <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Activity Timeline</h4>
+   911→          <div className="max-h-48 overflow-y-auto space-y-2">
+   912→            {timeline.map((entry: any, idx: number) => {
+   913→              const actionColors: Record<string, string> = {
+   914→                created: 'bg-slate-500',
+   915→                status_change: 'bg-emerald-500',
+   916→                assigned: 'bg-blue-500',
+   917→                note: 'bg-amber-500',
+   918→                approved: 'bg-emerald-500',
+   919→                rejected: 'bg-red-500',
+   920→                rated: 'bg-purple-500',
+   921→              }
+   922→              const dotColor = actionColors[entry.action] || 'bg-gray-400'
+   923→              return (
+   924→                <div key={idx} className="flex gap-3 text-xs">
+   925→                  <div className="flex flex-col items-center">
+   926→                    <div className={cn('h-2.5 w-2.5 rounded-full mt-0.5 shrink-0', dotColor)} />
+   927→                    {idx < timeline.length - 1 && <div className="w-px flex-1 bg-muted mt-1" />}
+   928→                  </div>
+   929→                  <div className="flex-1 pb-2">
+   930→                    <div className="flex items-center gap-2">
+   931→                      <span className="font-medium">{entry.action?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+   932→                      <span className="text-muted-foreground">{new Date(entry.createdAt).toLocaleString()}</span>
+   933→                    </div>
+   934→                    {entry.note && <p className="text-muted-foreground mt-0.5">{entry.note}</p>}
+   935→                    {entry.newValue && <p className="text-muted-foreground mt-0.5">→ {String(entry.newValue)}</p>}
+   936→                    {entry.userName && <p className="text-muted-foreground mt-0.5">by {entry.userName}</p>}
+   937→                  </div>
+   938→                </div>
+   939→              )
+   940→            })}
+   941→          </div>
+   942→        </div>
+   943→      )}
+   944→
+   945→      <Separator />
+   946→
+   947→      {/* Action Buttons */}
+   948→      <div className="flex flex-wrap items-center gap-2">
+   949→        {/* Approve / Reject */}
+   950→        {isPendingCustomer && (
+   951→          <>
+   952→            <Button
+   953→              size="sm"
+   954→              className="bg-emerald-600 hover:bg-emerald-700"
+   955→              onClick={onApprove}
+   956→              disabled={isUpdating}
+   957→            >
+   958→              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Approve
+   959→            </Button>
+   960→            <Button
+   961→              size="sm"
+   962→              variant="outline"
+   963→              className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950"
+   964→              onClick={onReject}
+   965→              disabled={isUpdating}
+   966→            >
+   967→              <XCircleIcon className="h-3.5 w-3.5 mr-1" /> Reject
+   968→            </Button>
+   969→          </>
+   970→        )}
+   971→
+   972→        {/* Rate for completed tickets */}
+   973→        {(isCompleted && !showRating) && (
+   974→          <Button
+   975→            size="sm"
+   976→            variant="outline"
+   977→            className="border-amber-200 text-amber-600 hover:bg-amber-50 dark:border-amber-800 dark:hover:bg-amber-950"
+   978→            onClick={() => setShowRating(true)}
+   979→          >
+   980→            <Star className="h-3.5 w-3.5 mr-1" /> Rate Service
+   981→          </Button>
+   982→        )}
+   983→
+   984→        {/* Download report */}
+   985→        <Button
+   986→          size="sm"
+   987→          variant="outline"
+   988→          onClick={() => toast({ title: 'Coming Soon', description: 'Service report download will be available soon.' })}
+   989→        >
+   990→          <Download className="h-3.5 w-3.5 mr-1" /> Download Report
+   991→        </Button>
+   992→      </div>
+   993→
+   994→      {/* Rating Form */}
+   995→      {showRating && (
+   996→        <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 space-y-3">
+   997→          <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Rate This Service</h4>
+   998→          <div className="flex items-center gap-1">
+   999→            {[1, 2, 3, 4, 5].map((star) => (
+  1000→              <button
+  1001→                key={star}
+  1002→                type="button"
+  1003→                onClick={() => setRating(star)}
+  1004→                className="p-0.5 hover:scale-110 transition-transform"
+  1005→              >
+  1006→                <Star className={cn('h-6 w-6', star <= rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground')} />
+  1007→              </button>
+  1008→            ))}
+  1009→            <span className="text-sm text-muted-foreground ml-2">{rating > 0 ? `${rating}/5` : 'Select rating'}</span>
+  1010→          </div>
+  1011→          <Textarea
+  1012→            placeholder="Share your feedback about the service..."
+  1013→            rows={2}
+  1014→            value={feedback}
+  1015→            onChange={(e) => setFeedback(e.target.value)}
+  1016→          />
+  1017→          <div className="flex gap-2">
+  1018→            <Button
+  1019→              size="sm"
+  1020→              className="bg-emerald-600 hover:bg-emerald-700"
+  1021→              onClick={handleSubmitRating}
+  1022→              disabled={rating === 0 || ratingMutation.isPending}
+  1023→            >
+  1024→              {ratingMutation.isPending ? 'Submitting...' : 'Submit Feedback'}
+  1025→            </Button>
+  1026→            <Button size="sm" variant="outline" onClick={() => setShowRating(false)}>Cancel</Button>
+  1027→          </div>
+  1028→        </div>
+  1029→      )}
+  1030→
+  1031→      {/* Existing rating display */}
+  1032→      {ticket.rating && !showRating && (
+  1033→        <div className="flex items-center gap-2 text-sm">
+  1034→          <span className="text-muted-foreground">Your Rating:</span>
+  1035→          <div className="flex items-center gap-0.5">
+  1036→            {Array.from({ length: 5 }).map((_, i) => (
+  1037→              <Star key={i} className={cn('h-4 w-4', i < ticket.rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground')} />
+  1038→            ))}
+  1039→          </div>
+  1040→          {ticket.customerFeedback && (
+  1041→            <span className="text-xs text-muted-foreground italic ml-2">&ldquo;{ticket.customerFeedback}&rdquo;</span>
+  1042→          )}
+  1043→        </div>
+  1044→      )}
+  1045→    </div>
+  1046→  )
+  1047→}
+  1048→
+  1049→// ─── XCircle Icon (not in lucide by default, use a simple span) ───
+  1050→function XCircleIcon({ className }: { className?: string }) {
+  1051→  return (
+  1052→    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+  1053→      <circle cx="12" cy="12" r="10" />
+  1054→      <path d="m15 9-6 6" />
+  1055→      <path d="m9 9 6 6" />
+  1056→    </svg>
+  1057→  )
+  1058→}
+  1059→
+  1060→// ─── Create Request Form ───
+  1061→function CreateRequestForm({
+  1062→  sites,
+  1063→  prefillType,
+  1064→  customerId,
+  1065→  onSubmit,
+  1066→  loading,
+  1067→}: {
+  1068→  sites: any[]
+  1069→  prefillType: string
+  1070→  customerId: string | null | undefined
+  1071→  onSubmit: (data: any) => void
+  1072→  loading: boolean
+  1073→}) {
+  1074→  const [form, setForm] = useState({
+  1075→    type: prefillType || '',
+  1076→    category: '',
+  1077→    priority: prefillType === 'emergency' ? 'emergency' : 'medium',
+  1078→    subject: '',
+  1079→    description: '',
+  1080→    siteId: '',
+  1081→    building: '',
+  1082→    floor: '',
+  1083→    room: '',
+  1084→    assetId: '',
+  1085→    location: '',
+  1086→    preferredVisitDate: '',
+  1087→    preferredVisitTime: '',
+  1088→    contactPerson: '',
+  1089→    contactPhone: '',
+  1090→    photoUrls: '',
+  1091→    videoUrls: '',
+  1092→  })
+  1093→
+  1094→  const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
+  1095→
+  1096→  const handleSubmit = (e: React.FormEvent) => {
+  1097→    e.preventDefault()
+  1098→    if (!form.type || !form.category || !form.subject) return
+  1099→
+  1100→    const payload: any = {
+  1101→      type: form.type,
+  1102→      category: form.category,
+  1103→      priority: form.priority,
+  1104→      subject: form.subject,
+  1105→      description: form.description,
+  1106→      customerId: customerId || undefined,
+  1107→      siteId: form.siteId || undefined,
+  1108→      building: form.building || undefined,
+  1109→      floor: form.floor || undefined,
+  1110→      room: form.room || undefined,
+  1111→      assetId: form.assetId || undefined,
+  1112→      location: form.location || undefined,
+  1113→      preferredVisitDate: form.preferredVisitDate || undefined,
+  1114→      preferredVisitTime: form.preferredVisitTime || undefined,
+  1115→      contactPerson: form.contactPerson || undefined,
+  1116→      contactPhone: form.contactPhone || undefined,
+  1117→    }
+  1118→
+  1119→    if (form.photoUrls.trim()) {
+  1120→      payload.photoUrls = form.photoUrls.split('\n').map(u => u.trim()).filter(Boolean)
+  1121→    }
+  1122→    if (form.videoUrls.trim()) {
+  1123→      payload.videoUrls = form.videoUrls.split('\n').map(u => u.trim()).filter(Boolean)
+  1124→    }
+  1125→
+  1126→    onSubmit(payload)
+  1127→    setForm({
+  1128→      type: '', category: '', priority: 'medium', subject: '', description: '',
+  1129→      siteId: '', building: '', floor: '', room: '', assetId: '',
+  1130→      location: '', preferredVisitDate: '', preferredVisitTime: '',
+  1131→      contactPerson: '', contactPhone: '', photoUrls: '', videoUrls: '',
+  1132→    })
+  1133→  }
+  1134→
+  1135→  return (
+  1136→    <form onSubmit={handleSubmit} className="space-y-4">
+  1137→      {/* Row 1: Type, Category, Priority */}
+  1138→      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  1139→        <div className="space-y-2">
+  1140→          <Label>Request Type *</Label>
+  1141→          <Select value={form.type} onValueChange={v => update('type', v)}>
+  1142→            <SelectTrigger>
+  1143→              <SelectValue placeholder="Select type..." />
+  1144→            </SelectTrigger>
+  1145→            <SelectContent>
+  1146→              {Object.entries(TYPE_LABELS).map(([key, label]) => (
+  1147→                <SelectItem key={key} value={key}>{label}</SelectItem>
+  1148→              ))}
+  1149→            </SelectContent>
+  1150→          </Select>
+  1151→        </div>
+  1152→        <div className="space-y-2">
+  1153→          <Label>Category *</Label>
+  1154→          <Select value={form.category} onValueChange={v => update('category', v)}>
+  1155→            <SelectTrigger>
+  1156→              <SelectValue placeholder="Select category..." />
+  1157→            </SelectTrigger>
+  1158→            <SelectContent>
+  1159→              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+  1160→                <SelectItem key={key} value={key}>{label}</SelectItem>
+  1161→              ))}
+  1162→            </SelectContent>
+  1163→          </Select>
+  1164→        </div>
+  1165→        <div className="space-y-2">
+  1166→          <Label>Priority</Label>
+  1167→          <Select value={form.priority} onValueChange={v => update('priority', v)}>
+  1168→            <SelectTrigger>
+  1169→              <SelectValue />
+  1170→            </SelectTrigger>
+  1171→            <SelectContent>
+  1172→              {Object.entries(PRIORITY_CONFIG).map(([key, val]) => (
+  1173→                <SelectItem key={key} value={key}>
+  1174→                  <span className="flex items-center gap-1.5">
+  1175→                    <span className={cn('h-2 w-2 rounded-full', val.dotColor)} />
+  1176→                    {val.label}
+  1177→                  </span>
+  1178→                </SelectItem>
+  1179→              ))}
+  1180→            </SelectContent>
+  1181→          </Select>
+  1182→        </div>
+  1183→      </div>
+  1184→
+  1185→      {/* Subject */}
+  1186→      <div className="space-y-2">
+  1187→        <Label>Subject *</Label>
+  1188→        <Input
+  1189→          placeholder="Brief description of the request"
+  1190→          value={form.subject}
+  1191→          onChange={e => update('subject', e.target.value)}
+  1192→        />
+  1193→      </div>
+  1194→
+  1195→      {/* Description */}
+  1196→      <div className="space-y-2">
+  1197→        <Label>Description</Label>
+  1198→        <Textarea
+  1199→          placeholder="Provide detailed information about the service request..."
+  1200→          rows={3}
+  1201→          value={form.description}
+  1202→          onChange={e => update('description', e.target.value)}
+  1203→        />
+  1204→      </div>
+  1205→
+  1206→      <Separator />
+  1207→
+  1208→      {/* Site, Building, Floor, Room */}
+  1209→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  1210→        <div className="space-y-2">
+  1211→          <Label>Site</Label>
+  1212→          <Select value={form.siteId} onValueChange={v => update('siteId', v)}>
+  1213→            <SelectTrigger>
+  1214→              <SelectValue placeholder="Select site..." />
+  1215→            </SelectTrigger>
+  1216→            <SelectContent>
+  1217→              {sites.map((s: any) => (
+  1218→                <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+  1219→              ))}
+  1220→            </SelectContent>
+  1221→          </Select>
+  1222→        </div>
+  1223→        <div className="space-y-2">
+  1224→          <Label>Building</Label>
+  1225→          <Input placeholder="Building name/number" value={form.building} onChange={e => update('building', e.target.value)} />
+  1226→        </div>
+  1227→        <div className="space-y-2">
+  1228→          <Label>Floor</Label>
+  1229→          <Input placeholder="Floor" value={form.floor} onChange={e => update('floor', e.target.value)} />
+  1230→        </div>
+  1231→        <div className="space-y-2">
+  1232→          <Label>Room</Label>
+  1233→          <Input placeholder="Room number" value={form.room} onChange={e => update('room', e.target.value)} />
+  1234→        </div>
+  1235→      </div>
+  1236→
+  1237→      {/* Location, Preferred Visit */}
+  1238→      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  1239→        <div className="space-y-2">
+  1240→          <Label className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</Label>
+  1241→          <Input placeholder="Specific location" value={form.location} onChange={e => update('location', e.target.value)} />
+  1242→        </div>
+  1243→        <div className="space-y-2">
+  1244→          <Label>Preferred Visit Date</Label>
+  1245→          <Input type="date" value={form.preferredVisitDate} onChange={e => update('preferredVisitDate', e.target.value)} />
+  1246→        </div>
+  1247→        <div className="space-y-2">
+  1248→          <Label>Preferred Visit Time</Label>
+  1249→          <Input type="time" value={form.preferredVisitTime} onChange={e => update('preferredVisitTime', e.target.value)} />
+  1250→        </div>
+  1251→      </div>
+  1252→
+  1253→      {/* Contact Info */}
+  1254→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  1255→        <div className="space-y-2">
+  1256→          <Label className="flex items-center gap-1"><User className="h-3 w-3" /> Contact Person</Label>
+  1257→          <Input placeholder="Name of on-site contact" value={form.contactPerson} onChange={e => update('contactPerson', e.target.value)} />
+  1258→        </div>
+  1259→        <div className="space-y-2">
+  1260→          <Label className="flex items-center gap-1"><Phone className="h-3 w-3" /> Contact Number</Label>
+  1261→          <Input placeholder="Phone number" value={form.contactPhone} onChange={e => update('contactPhone', e.target.value)} />
+  1262→        </div>
+  1263→      </div>
+  1264→
+  1265→      {/* Photo / Video URLs */}
+  1266→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  1267→        <div className="space-y-2">
+  1268→          <Label className="flex items-center gap-1"><Camera className="h-3 w-3" /> Photo URLs</Label>
+  1269→          <Textarea
+  1270→            placeholder="One URL per line..."
+  1271→            rows={2}
+  1272→            value={form.photoUrls}
+  1273→            onChange={e => update('photoUrls', e.target.value)}
+  1274→          />
+  1275→        </div>
+  1276→        <div className="space-y-2">
+  1277→          <Label className="flex items-center gap-1"><Video className="h-3 w-3" /> Video URLs</Label>
+  1278→          <Textarea
+  1279→            placeholder="One URL per line..."
+  1280→            rows={2}
+  1281→            value={form.videoUrls}
+  1282→            onChange={e => update('videoUrls', e.target.value)}
+  1283→          />
+  1284→        </div>
+  1285→      </div>
+  1286→
+  1287→      <DialogFooter>
+  1288→        <DialogClose asChild>
+  1289→          <Button type="button" variant="outline">Cancel</Button>
+  1290→        </DialogClose>
+  1291→        <Button
+  1292→          type="submit"
+  1293→          disabled={loading || !form.type || !form.category || !form.subject}
+  1294→          className="bg-emerald-600 hover:bg-emerald-700"
+  1295→        >
+  1296→          {loading ? 'Submitting...' : 'Submit Request'}
+  1297→        </Button>
+  1298→      </DialogFooter>
+  1299→    </form>
+  1300→  )
+  1301→}

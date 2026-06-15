@@ -1,0 +1,549 @@
+  1990→Task: Restructure seed-menus.ts with 3 enterprise modules
+  1991→
+  1992→Work Log:
+  1993→- Expanded Project Management from 2 to 10 items
+  1994→- Expanded Tender & Bid Management from 4 to 10 items
+  1995→- Expanded Scheduling & Gantt from 3 to 10 items
+  1996→- Reordered all modules with new sortOrders
+  1997→- Updated role permissions for new module structure
+  1998→- Removed duplicate scheduling from old PM group
+  1999→
+  2000→Stage Summary:
+  2001→- seed-menus.ts fully restructured with 3 major enterprise modules as primary navigation
+  2002→- All roles updated with appropriate module access
+  2003→
+  2004→---
+  2005→Task ID: 5
+  2006→Agent: placeholder-builder
+  2007→Task: Create 24 placeholder page components for new enterprise modules
+  2008→
+  2009→Work Log:
+  2010→- Created 9 Project Management placeholder components
+  2011→- Created 7 Tender & Bid Management placeholder components
+  2012→- Created 8 Scheduling & Gantt placeholder components
+  2013→- All components follow consistent pattern with KPI cards and Coming Soon section
+  2014→
+  2015→Stage Summary:
+  2016→- 24 new placeholder components created in project-management/, tender/, and scheduling/ directories
+  2017→- All use shadcn/ui with motion animations, consistent styling
+  2018→
+  2019→---
+  2020→Task ID: 7
+  2021→Agent: Main Orchestrator
+  2022→Task: Restructure sidebar into 3 enterprise modules - Final verification
+  2023→
+  2024→Work Log:
+  2025→- Fixed FileTemplate icon import error in 3 files (pm-reports, tender-reports, schedule-reports)
+  2026→- Ran lint - passed clean
+  2027→- Seeded menu database - 16 groups, 115 items, 74 permissions
+  2028→- Restarted dev server
+  2029→- Verified with Agent Browser:
+  2030→  - All 3 enterprise modules visible in sidebar
+  2031→  - Project Management: 10 items (Dashboard, Projects, Teams, Daily Reports, Site Photos, Documents, Tasks, Milestones, Calendar, Reports)
+  2032→  - Tender & Bid Management: 11 items (Dashboard, Packages, Invitations, Vendors, Bids, Comparison, Tech Eval, Commercial Eval, Award, Contracts, Reports)
+  2033→  - Scheduling & Gantt: 11 items (Dashboard, Schedules, Gantt, Lookahead, Milestones, Dependencies, Critical Path, Resources, Baselines, Progress, Reports)
+  2034→  - Navigation to new pages works correctly
+  2035→  - PM Dashboard renders with KPI cards
+  2036→  - Bid Invitations page renders correctly
+  2037→  - Lookahead Planning page renders correctly
+  2038→
+  2039→Stage Summary:
+  2040→- Sidebar successfully restructured into 3 major enterprise modules
+  2041→- 24 new page components created across 3 modules
+  2042→- All navigation routes working
+  2043→- Menu database seeded with new structure
+  2044→- All roles have appropriate module permissions
+  2045→
+  2046→## Task 4: Trust Section & Platform Overview Section (Agent: trust-platform-builder)
+  2047→
+  2048→### Files Modified
+  2049→- `/home/z/my-project/src/components/landing/trust.tsx` — Full rewrite
+  2050→- `/home/z/my-project/src/components/landing/features.tsx` — Full rewrite
+  2051→
+  2052→### Trust Section (`trust.tsx`)
+  2053→Premium enterprise trust indicators section with:
+  2054→- **Overline**: "TRUSTED BY LEADING CONSTRUCTION COMPANIES" in uppercase tracking text
+  2055→- **Logo Bar**: 8 styled placeholder company names (BuildCorp, Structura, Meridian, Pinnacle, Atlas Group, Horizon, Vanguard, Sterling) with opacity-40 grayscale → hover:opacity-100 transitions
+  2056→- **Stats Row**: 4 animated counters (15,000+ Projects, 500+ Companies, 2M+ Work Orders, $8.5B+ Revenue) using react-countup triggered on viewport enter via framer-motion `onViewportEnter`
+  2057→- **Layout**: 2×2 mobile grid, 4-column desktop with dividers
+  2058→- **Animations**: framer-motion staggered fade-in-up for logos and stats
+  2059→
+  2060→### Platform Overview Section (`features.tsx`)
+  2061→"One Platform. Complete Construction Control." section with:
+  2062→- **Header**: "THE PLATFORM" overline in amber-600, large H2 title, subtitle paragraph
+  2063→- **11 Feature Cards** in responsive grid (1 col mobile, 2 tablet, 3 desktop):
+  2064→  - Project Management (FolderKanban), Tender & Bid Management (Gavel), Scheduling & Gantt (CalendarClock), Maintenance Management (Wrench), Resource Management (Users), Finance & Cost Control (DollarSign), Inventory & Procurement (Package), Asset Management (Hammer), HR & Workforce (UserCheck), Client Portal (Building2), AI & Analytics (Brain)
+  2065→- **Card Design**: Icon container (w-12 h-12 rounded-xl bg-amber-50) + text, no borders/backgrounds, hover lift effect
+  2066→- **Animations**: framer-motion staggered viewport-enter animations
+  2067→
+  2068→### Design System
+  2069→- Colors: amber-500/600 accents, gray-900 text, no blue/indigo
+  2070→- Professional whitespace, responsive design
+  2071→- All 'use client' components with framer-motion animations
+  2072→- Lint passes cleanly
+  2073→
+  2074→---
+  2075→Task ID: 6
+  2076→Agent: testimonials-cta-builder
+  2077→
+  2078→## Work Summary
+  2079→Built 3 premium enterprise-quality landing page components: Testimonials, Screenshot Showcase, and CTA sections.
+  2080→
+  2081→## Files Created/Modified
+  2082→
+  2083→### Created: `/src/components/landing/screenshot-showcase.tsx`
+  2084→- Full desktop dashboard mockup built with HTML/CSS (no images)
+  2085→- Desktop frame with browser chrome (traffic lights, URL bar)
+  2086→- Sidebar with SMARTBUILD logo, nav items, user avatar
+  2087→- Main content: 4 KPI cards (Active Projects, On-Time Delivery, Budget Utilization, Open Work Orders)
+  2088→- Bar chart area with planned vs actual bars
+  2089→- Recent activity list
+  2090→- Two phone mockups: Dashboard (KPI cards + mini chart) and Work Orders list
+  2091→- Framer-motion entrance animations (scale+fade for desktop, slide-up for phones)
+  2092→- Responsive: phones stack on mobile
+  2093→
+  2094→### Modified: `/src/components/landing/testimonials.tsx`
+  2095→- Replaced generic 6-card grid with 3 premium enterprise testimonial blocks
+  2096→- Large decorative quotation mark (text-8xl font-serif text-amber-200/50 absolute positioned)
+  2097→- Amber-500/600 gradient avatars with initials
+  2098→- Company name in amber-600 font-medium
+  2099→- Star rating (5 amber stars via Lucide)
+  2100→- Staggered framer-motion entrance animations (0.2s stagger)
+  2101→- 3-column responsive grid (stacks on mobile)
+  2102→
+  2103→### Modified: `/src/components/landing/cta.tsx`
+  2104→- Dark slate-900 → slate-950 gradient background
+  2105→- Subtle amber glow decorative elements (blurred circles)
+  2106→- Amber-500 primary CTA button with shadow-amber-500/25
+  2107→- Outline secondary button (border-white/20)
+  2108→- Trust text: "Free 14-day trial · No credit card required · Setup in minutes"
+  2109→- Staggered framer-motion entrance animations
+  2110→- Preserved onLogin/onRequestDemo prop interface
+  2111→
+  2112→### Modified: `/src/components/landing/landing-page.tsx`
+  2113→- Added ScreenshotShowcase import and placement between Testimonials and ProductShowcase
+  2114→
+  2115→## Design Decisions
+  2116→- All components use 'use client' directive
+  2117→- No blue/indigo as primary — amber-500/600 throughout
+  2118→- Desktop mockup uses amber/emerald/blue/rose KPI color coding for visual variety
+  2119→- Phone mockups include realistic status bars, bottom navs, and content
+  2120→- Enterprise typography: font-extrabold headings, proper spacing hierarchy
+  2121→
+  2122→---
+  2123→Task ID: 5
+  2124→Agent: module-showcase-builder
+  2125→Task: Build 3 premium landing page sections — Module Showcase, AI Section, Industry Section
+  2126→
+  2127→Work Log:
+  2128→- Created `/src/components/landing/module-showcase.tsx` — Large alternating-section component showcasing 4 major modules (Maintenance, Tender, Scheduling, Resource) with CSS-built dashboard mockups inside dark containers, framer-motion scroll-triggered animations (fade in from left/right alternately), responsive stacking on mobile
+  2129→- Created `/src/components/landing/ai-section.tsx` — Dark (slate-950) AI capabilities showcase with two-column layout: left text with 6 amber-dot feature bullets, right AI chat mockup with typewriter animation for AI response, glowing amber dot indicator, suggestion pills, and ambient glow behind the card
+  2130→- Created `/src/components/landing/industry-section.tsx` — White section with 8 industry cards in responsive grid (2/3/4 cols), each with icon, title, description, and hover arrow reveal effect, staggered framer-motion entrance animations
+  2131→- All components use 'use client', framer-motion, shadcn/ui Button, lucide-react icons
+  2132→- No blue/indigo colors used — amber/emerald/slate palette throughout
+  2133→- ESLint passes cleanly, dev server compiles without errors
+  2134→
+  2135→### Files Created:
+  2136→- `/src/components/landing/module-showcase.tsx` (4 module blocks with detailed CSS UI mockups)
+  2137→- `/src/components/landing/ai-section.tsx` (AI chat interface with typewriter effect)
+  2138→- `/src/components/landing/industry-section.tsx` (8-card responsive industry grid)
+  2139→
+  2140→## Design Decisions
+  2141→- Module mockups are built with pure HTML/CSS inside dark slate-800 containers — no images, no placeholders — each mockup is a realistic mini-dashboard with window dots, stats, cards, progress bars, charts
+  2142→- Maintenance mockup: ticket list, dispatch map with technician pins, work order card
+  2143→- Tender mockup: bid package header, vendor comparison table with progress bars, award status
+  2144→- Gantt mockup: timeline headers, colored Gantt bars, critical path indicator, milestone diamond
+  2145→- Resource mockup: crew allocation bars, equipment status grid, labour utilization bar chart
+  2146→- AI section uses custom useTypewriter hook for realistic text reveal
+  2147→- Industry cards use per-card useInView for staggered entrance animations
+  2148→
+  2149→---
+  2150→Task ID: 3
+  2151→Agent: hero-navbar-footer-builder
+  2152→Task: Build premium Hero, Navbar, and Footer components
+  2153→
+  2154→Work Log:
+  2155→- Rewrote navbar.tsx with enterprise styling: transparent→white+blur on scroll, amber-500 CTA, expanded solutions dropdown (7 items with icons), "Book Demo" button, generous px-8 padding, h-16, framer-motion slide-down entrance, kept useRegion/useFormat/country selector
+  2156→- Rewrote hero.tsx with premium dashboard mockup: full min-h-screen slate-950 gradient, refined grid pattern overlay, two-column layout, "Trusted by 500+" amber badge, updated H1 text, CountUp stats, professional HTML/CSS dashboard mockup (top bar with traffic lights, 4 KPI cards, progress bars with animated fill, recent activity feed), 4 floating metric cards with glassmorphism, amber glow behind mockup, staggered framer-motion entrance animations, bottom fade to white
+  2157→- Rewrote footer.tsx with 5-column enterprise layout: brand column (logo+tagline+regional badge+contact+socials), Platform column (8 links), Solutions column (6 links), Resources column (6 links), Company column (5 links), newsletter signup section with email input + Subscribe button, bottom copyright + Privacy/Terms/Cookie links, slate-950 bg, amber-500 hover accents
+  2158→
+  2159→Stage Summary:
+  2160→- 3 landing page components completely redesigned
+  2161→- No blue/indigo primary colors used — all amber/slate/gray palette
+  2162→- All components use 'use client', shadcn/ui components, framer-motion
+  2163→- ESLint passes, dev server compiles successfully
+  2164→
+  2165→---
+  2166→Task ID: LANDING-REDESIGN
+  2167→Agent: Main Orchestrator
+  2168→Task: Complete landing page redesign - premium enterprise SaaS quality
+  2169→
+  2170→Work Log:
+  2171→- Generated 6 construction photography images via AI image generation
+  2172→- Completely redesigned Navbar with enterprise styling (transparent → blur on scroll, 7-item Solutions dropdown, country selector)
+  2173→- Completely redesigned Hero with premium dashboard mockup (HTML/CSS-built, not image), floating KPI cards, count-up stats, amber accent CTAs
+  2174→- Completely redesigned Trust section with 8 company logos and 4 animated statistics counters
+  2175→- Completely redesigned Features section with 11 platform features in responsive grid
+  2176→- Built new Module Showcase section with 4 alternating module blocks (Maintenance, Tender, Scheduling, Resource) each with detailed CSS-built UI mockups
+  2177→- Built new AI Section with chat mockup and typewriter animation
+  2178→- Built new Industry Section with 8 industry cards
+  2179→- Built new Screenshot Showcase with desktop + mobile device mockups (all CSS-built)
+  2180→- Redesigned Testimonials with enterprise case-study style
+  2181→- Redesigned CTA section with dark gradient and trust text
+  2182→- Completely redesigned Footer with 5-column enterprise layout
+  2183→- Rewired landing-page.tsx to use new section order (11 sections)
+  2184→- Updated worklog.md with all agent progress
+  2185→
+  2186→Stage Summary:
+  2187→- Landing page completely redesigned from ~5,100 lines across 22 components to premium enterprise quality
+  2188→- All sections verified with Agent Browser: hero, trust, features, module showcase, AI, industry, screenshots, testimonials, CTA, footer
+  2189→- Zero lint errors, zero console errors
+  2190→- Login flow verified working
+  2191→- Sidebar verified showing 3 enterprise modules (Project Management, Tender & Bid, Scheduling & Gantt)
+  2192→- Color system: slate-950/900 dark backgrounds, amber-500/600 accents, no blue/indigo primary
+  2193→- Typography: Inter font with weights 500-800, generous whitespace
+  2194→- All mockups built with HTML/CSS (no external image dependencies)
+  2195→
+  2196→---
+  2197→Task ID: UI-fix-1
+  2198→Agent: Main Orchestrator
+  2199→Task: Fix Login and Start Free Trial buttons not showing properly on landing page
+  2200→
+  2201→Work Log:
+  2202→- Diagnosed via Agent Browser + VLM: both buttons had white text on white background (invisible)
+  2203→- Root cause: shadcn/ui Button `outline` variant applies `bg-background` (white), conflicting with `text-white` on dark hero/navbar backgrounds
+  2204→- Fixed navbar Login button: added `bg-transparent` to className to override outline variant's bg-background
+  2205→- Fixed hero Start Free Trial button: added `bg-transparent` to className
+  2206→- Verified with computed styles: both now show `bgColor: rgba(0, 0, 0, 0)` (transparent) with white text and visible borders
+  2207→- Verified scrolled state: Login button correctly switches to gray text on white navbar
+  2208→- Checked all other outline buttons on landing page — no additional issues found
+  2209→- Lint passes clean, dev server running without errors
+  2210→
+  2211→Stage Summary:
+  2212→- Files modified: `src/components/landing/navbar.tsx` (line 293), `src/components/landing/hero.tsx` (line 331)
+  2213→- Fix: Added `bg-transparent` class to override shadcn Button outline variant's `bg-background`
+  2214→- Both buttons now clearly visible: white text + semi-transparent white border on dark backgrounds
+  2215→
+  2216→---
+  2217→Task ID: enterprise-audit
+  2218→Agent: Main Orchestrator + 5 Parallel Subagents
+  2219→Task: Full application audit and professional SaaS feature implementation (15 requirements)
+  2220→
+  2221→Work Log:
+  2222→- Completed full system audit: 234 .tsx files, 255 .ts files, 237 API routes, 51 UI components
+  2223→- Identified 15 critical/high/medium issues across the codebase
+  2224→
+  2225→## Phase 1: Infrastructure (5 parallel agents)
+  2226→
+  2227→### Agent 1: Skeleton & Empty States
+  2228→- Created `src/components/common/skeletons.tsx` — 9 reusable skeleton components (KpiCard, Chart, PageHeader, Table, CardGrid, Form, Profile, List, Dashboard)
+  2229→- Created `src/components/common/empty-states.tsx` — 1 generic + 12 pre-built empty states (Projects, Tickets, Technicians, Assets, Reports, Notifications, SearchResults, Comments, Documents, Invoices, Employees, Data)
+  2230→
+  2231→### Agent 2: Error Boundaries & Monitoring
+  2232→- Created `src/components/common/error-boundaries.tsx` — ErrorBoundary (class), PageErrorBoundary, SectionErrorBoundary
+  2233→- Created `src/lib/error-monitor.ts` — ErrorMonitor singleton class, useErrorHandler hook, initErrorMonitoring
+  2234→- Created `src/app/global-error.tsx` — Next.js 16 global error boundary with retry
+  2235→- Created `src/app/error.tsx` — Route-level error boundary with Go Back + Try Again
+  2236→
+  2237→### Agent 3: Hooks (Debounce, Throttle, Retry, Network, Search, Deadline)
+  2238→- Created `src/hooks/use-debounce.ts` — useDebounce, useDebouncedCallback
+  2239→- Created `src/hooks/use-throttle.ts` — useThrottle, useThrottledCallback, useThrottledEffect
+  2240→- Created `src/hooks/use-retry.ts` — useRetry with exponential backoff
+  2241→- Created `src/hooks/use-network.ts` — useNetworkStatus (online/offline/slow)
+  2242→- Created `src/hooks/use-search.ts` — useSearch (debounced search for API calls)
+  2243→- Created `src/hooks/use-deadline.ts` — useDeadline (isOverdue/isUrgent/timeRemaining)
+  2244→
+  2245→### Agent 4: Backend Validation, Rate Limiting, Security
+  2246→- Created `src/lib/api-validate.ts` — validateBody, validateQuery, withValidation HOF, commonSchemas (pagination, search, email, phone, etc.)
+  2247→- Created `src/lib/rate-limit.ts` — RateLimiter class, 5 configs (login, otp, passwordReset, search, general), checkRateLimit, withRateLimit
+  2248→- Created `src/lib/api-security.ts` — sanitizeInput, sanitizeObject, isSafeRedirect, createSecureResponse, getClientIp
+  2249→- Fixed `src/lib/db.ts` — Prisma query logging now only in development
+  2250→
+  2251→### Agent 5: API Client, Optimistic Updates, Offline Banner
+  2252→- Created `src/lib/api-client.ts` — Full API client with retry, timeout, offline detection, smart error classification
+  2253→- Created `src/lib/optimistic.ts` — optimisticUpdate utility with automatic rollback
+  2254→- Created `src/components/common/offline-banner.tsx` — Amber offline detection banner
+  2255→
+  2256→## Phase 2: Integration (3 parallel agents)
+  2257→
+  2258→### Agent A: Search Debounce (12 files)
+  2259→Applied useSearch hook to 12 components: sales (3), projects, hr/employees, subcontractors, procurement (2), finance (3), maintenance/service-requests
+  2260→Skipped 3 files that use client-side filtering only (leave, labour-groups, work-orders)
+  2261→
+  2262→### Agent B: Auth API Hardening
+  2263→- Modified `src/app/api/auth/login/route.ts` — Added rate limiting (5/min, 5min block) + Zod validation
+  2264→- Created `src/app/api/auth/verify-otp/route.ts` — Rate limiting + validation stub
+  2265→- Created `src/app/api/auth/forgot-password/route.ts` — Rate limiting + validation stub
+  2266→- Created `src/app/api/auth/reset-password/route.ts` — Rate limiting + validation with password confirmation
+  2267→
+  2268→### Agent C: Spinner/Empty State Improvements
+  2269→- Improved empty states in maintenance-dashboard, discussions, tender-dashboard, client-service-requests
+  2270→- Fixed interval leak in ai-section.tsx
+  2271→- Confirmed duplicate /api/menu route already resolved
+  2272→
+  2273→## Phase 3: Wiring & Fixes
+  2274→- Updated `src/components/auth/providers.tsx` — Added initErrorMonitoring + OfflineBanner
+  2275→- Fixed 4 lint errors in hooks (React Compiler compliance: no setState in effects, no refs during render)
+  2276→- Verified: lint clean, dev server running, no runtime errors
+  2277→
+  2278→Stage Summary:
+  2279→- **21 new files created** across hooks, components, utilities, and API routes
+  2280→- **20+ existing files modified** with debounce, validation, rate limiting, empty states
+  2281→- **4 critical issues resolved**: Error boundaries (was 0), Input validation (was 0), Prisma logging in prod, Ref access during render
+  2282→- **12 search inputs debounced** — eliminating unnecessary API calls on every keystroke
+  2283→- **Auth APIs hardened** — rate limiting + Zod validation on login, OTP, password reset
+  2284→- All code passes ESLint with zero errors
+  2285→
+  2286→---
+  2287→Task ID: ui-layout-audit
+  2288→Agent: Main Orchestrator + 4 Parallel Subagents
+  2289→Task: Full UI Layout Integrity Audit — Detect and fix all overlap, overflow, grid, and containment issues
+  2290→
+  2291→Work Log:
+  2292→- Completed comprehensive codebase scan: 150+ component files, 237 API routes, 51 UI components
+  2293→- Root cause: Base Card component missing overflow-hidden — affecting 120+ cards
+  2294→
+  2295→## Phase 1: Root Cause Fix
+  2296→- Modified `src/components/ui/card.tsx` — Added `overflow-hidden` to Card base className
+  2297→- Single fix clips content for ALL 120+ cards system-wide
+  2298→
+  2299→## Phase 2: Unconstrained Tables (19 containers in 13 files)
+  2300→Added max-height + overflow-y-auto to unbounded table containers in:
+  2301→- maintenance (4 files), tender (3 files), invoices (4 files), client-portal (2 files)
+  2302→
+  2303→## Phase 3: Specific Dashboard Fixes
+  2304→- tender-dashboard: Deadlines + Pipeline lists constrained, bar chart height fixed
+  2305→- maintenance-dashboard: Tickets table max-h-[400px]
+  2306→- daybook-page: Dialog scroll added
+  2307→- resource-dashboard: Table overflow-x-auto added
+  2308→
+  2309→## Phase 4: Standardization
+  2310→- Created scrollable-card.tsx (ScrollableCard, WidgetCard, ResponsiveGrid, ContentPanel)
+  2311→- Standardized all dashboard grid gaps to gap-4 across 5 pages
+  2312→
+  2313→## Phase 5: Visual Verification (3 breakpoints)
+  2314→- 1920px: No overlaps, no content escaping
+  2315→- 768px: No overlaps, proper stacking
+  2316→- 375px: Proper card stacking, sidebar hidden, KPI readable
+  2317→
+  2318→Stage Summary:
+  2319→- 1 base component fix (Card overflow-hidden) = 120+ cards fixed
+  2320→- 16 files modified with table/container constraints
+  2321→- 1 new component (scrollable-card.tsx) with 4 reusable layout components
+  2322→- Zero overlaps verified at 3 breakpoints
+  2323→
+  2324→---
+  2325→Task ID: ui-layout-audit-phases-6-13
+  2326→Agent: Main Orchestrator + 4 Parallel Subagents
+  2327→Task: Complete UI Layout Integrity Audit — Phases 6-13 (remaining phases)
+  2328→
+  2329→Work Log:
+  2330→- Phase 6 (Dialog overflow): Added `max-h-[90vh] overflow-y-auto` to DialogContent base component (dialog.tsx)
+  2331→- Phase 6 (Sheet overflow): Added `overflow-hidden` to SheetContent base; constrained top/bottom sheets to `h-3/4 max-h-[90vh]`
+  2332→- Phase 7 (Table/Form): Verified custom-scrollbar CSS exists in globals.css; verified 36 files already use it
+  2333→- Phase 7 (Table): Verified base Table component has `overflow-x-auto` wrapper
+  2334→- Phase 8 (Z-index): Audited all z-index values — hierarchy is correct (z-10 content, z-50 Radix, z-[100] toasts, z-[9999] offline banner)
+  2335→- Phase 9 (Charts): Changed ChartContainer from `aspect-video` to `h-[300px] w-full` — fixes ResponsiveContainer 0-height bug
+  2336→- Phase 10 (Form grids): Fixed 24 non-responsive `grid-cols-2` instances across 11 files → `grid-cols-1 sm:grid-cols-2`
+  2337→- Phase 11 (Responsive dashboards): Fixed gap inconsistencies, mobile padding, bottom nav overlap across 9 files
+  2338→- Phase 12 (Custom scrollbar): Already exists in globals.css — `.custom-scrollbar` with webkit and Firefox support
+  2339→- Phase 13: Lint passes clean, browser verification pending
+  2340→
+  2341→Stage Summary:
+  2342→- **3 base UI components fixed**: Dialog (max-h + scroll), Sheet (overflow-hidden + constrained), Chart (h-[300px])
+  2343→- **11 form dialog files fixed**: 24 grid instances made responsive
+  2344→- **9 dashboard/layout files fixed**: Gap consistency, mobile padding, bottom nav overlap
+  2345→- **Z-index audit**: Clean hierarchy, no conflicts
+  2346→- **Chart root cause**: aspect-video incompatible with ResponsiveContainer, fixed to h-[300px]
+  2347→
+  2348→---
+  2349→Task ID: ui-layout-audit-final-verification
+  2350→Agent: Main Orchestrator
+  2351→Task: Final verification of UI Layout Integrity Audit — Browser testing
+  2352→
+  2353→Work Log:
+  2354→- Ran agent-browser at 1920px, 1280px, 768px, 375px viewports
+  2355→- Verified landing page: no horizontal overflow at any viewport
+  2356→- Verified document scrollWidth === viewport width at all breakpoints
+  2357→- Detected 4 overflow elements in module-showcase sections (mockup divs extending beyond grid)
+  2358→- Fixed: Added overflow-hidden to module-showcase grid container
+  2359→- Fixed: Changed invalid lg:direction-rtl to lg:[direction:rtl]
+  2360→- Fixed: Added overflow-hidden to hero.tsx visual container (-inset-8 blur element)
+  2361→- Fixed: Added overflow-hidden to hero-visual.tsx outer container
+  2362→- Fixed: Added overflow-hidden to ai-section.tsx mockup container
+  2363→- Lint passes clean after all fixes
+  2364→- Dev server running without errors
+  2365→
+  2366→Stage Summary:
+  2367→- 4 landing page files fixed for blur/decorative overflow
+  2368→- Module showcase grid: overflow-hidden + correct rtl direction
+  2369→- Hero sections: overflow-hidden prevents blur leaks
+  2370→- Zero horizontal overflow verified at 4 viewport sizes
+  2371→- **Total audit: 25+ files modified, 6 base UI components hardened**
+  2372→- **All 13 phases complete: root cause fixes, table constraints, dialog overflow, chart containers, z-index, form grids, responsive dashboards, scrollbars, visual verification**
+  2373→
+  2374→---
+  2375→Task ID: sidebar-accordion
+  2376→Agent: Main Orchestrator
+  2377→Task: Implement accordion sidebar navigation (only one parent menu open at a time)
+  2378→
+  2379→Work Log:
+  2380→- Replaced `expandedGroups: Record<string, boolean>` with `expandedMenuId: string` (single value)
+  2381→- Replaced `expandedItems: Record<string, boolean>` with `expandedItemId: string` (single value)
+  2382→- Created `usePersistedString` hook for localStorage persistence (replaces `usePersistedState<Record>`)
+  2383→- Derived state pattern: `effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId`
+  2384→- No `useEffect` for setState — all derived, React Compiler compliant
+  2385→- Accordion toggle: `toggleGroup(id)` → if same as current, collapse; else close current and open new
+  2386→- When switching groups, `expandedItemId` resets to empty (close all sub-menus)
+  2387→- Sub-item folders also accordion: only one sub-folder expanded at a time
+  2388→- Fixed 3 files: app-layout.tsx (desktop sidebar), mobile-header.tsx, mobile-more-drawer.tsx
+  2389→- Updated SidebarNavGroup interface: `expandedItems` → `expandedItemId`
+  2390→- Lint passes clean, React Compiler compliant
+  2391→
+  2392→Stage Summary:
+  2393→- **3 files modified** with accordion behavior
+  2394→- **Single source of truth**: `expandedMenuId` string (never array/record)
+  2395→- **Auto-expand on navigate**: derived from activeInfo.groupId
+  2396→- **LocalStorage persistence**: `sb_sidebar_expanded_menu`, `sb_sidebar_expanded_item`
+  2397→- **Mobile**: same accordion in mobile header drawer and "More" drawer
+  2398→- **Animations**: preserved 250ms expand/collapse with AnimatePresence
+  2399→- **Zero lint errors**, React Compiler compliant
+  2400→
+  2401→---
+  2402→Task ID: sidebar-menu-fix
+  2403→Agent: Main Orchestrator
+  2404→Task: Fix sidebar menu not opening — two critical bugs in accordion implementation
+  2405→
+  2406→Work Log:
+  2407→- Diagnosed Bug 1: `usePersistedString` custom hook only accepted `string` type, but `toggleGroup`/`toggleItem` passed functional updaters `(prev) => ...`. This caused `localStorage.setItem` to store function source code as garbage string, corrupting persisted state.
+  2408→- Diagnosed Bug 2: `effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId` — the `||` operator gave `activeInfo.groupId` priority, so user toggle was completely ignored whenever the current page belonged to any group. Clicking any group had no visible effect.
+  2409→- Fixed `usePersistedString` to accept `string | ((prev: string) => string)`, resolving functional updater inside `setState` and persisting the resolved string value to localStorage.
+  2410→- Fixed priority to `expandedMenuId || activeInfo.groupId` — user selection takes priority, active route only used as fallback.
+  2411→- Verified in browser: accordion works (one group open at a time), toggle works (re-click collapses), localStorage persistence works (survives reload), sub-items navigate correctly.
+  2412→
+  2413→Stage Summary:
+  2414→- Two bugs fixed in `src/components/layout/app-layout.tsx`
+  2415→- Sidebar menu now opens/closes correctly with single-expanded accordion behavior
+  2416→- Zero lint errors, no runtime errors
+  2417→
+  2418→---
+  2419→Task ID: 3
+  2420→Agent: full-stack-developer (WhatsApp Backend)
+  2421→Task: Create all WhatsApp backend API routes
+  2422→
+  2423→Work Log:
+  2424→- Created 15 API route files under src/app/api/whatsapp/
+  2425→- `webhook/route.ts` — GET webhook verification, POST incoming message processing with HMAC validation stub, message dedup, contact upsert, conversation find-or-create, auto-ticket creation for new customers, bot auto-reply menu, AI classification via ZAI, STATUS command handler, real-time event emission to port 3006
+  2426→- `account/route.ts` — GET (masked token), POST (create/update phoneNumberId, accessToken, verifyToken), PUT (toggle isEnabled, autoReplyEnabled, botFlowEnabled, aiClassification)
+  2427→- `conversations/route.ts` — GET list with tab filtering (all/unread/open/assigned_to_me/has_ticket), status/priority/assignedTo/search/hasTicket/unread filters, pagination, includes contact+customer, assigned agent, ticket preview, message/attachment counts
+  2428→- `conversations/[id]/route.ts` — GET full conversation with all messages (asc), contact+customer+projects, assigned agent, ticket+technician+timeline, complaint links, attachments; PUT update (assign, priority, status, tags, internal note); DELETE archive
+  2429→- `conversations/[id]/messages/route.ts` — GET paginated messages (desc fetch, asc return) with sender/contact/attachment/reply info; POST send text via WhatsApp Business API, store in DB, emit real-time event
+  2430→- `conversations/[id]/read/route.ts` — POST mark all incoming messages as read, reset unreadCount, emit event
+  2431→- `conversations/[id]/assign/route.ts` — POST assign conversation to agent with validation, audit log, real-time event
+  2432→- `conversations/[id]/transfer/route.ts` — POST transfer with optional note, auto-add transfer record to internal notes, audit log, real-time event
+  2433→- `conversations/[id]/convert/route.ts` — POST convert to complaint/service_request/work_order/quotation/amc_opportunity, generate CMP-YYYY-NNNNNN ticket number, create MaintenanceTicket, link via ComplaintWhatsAppLink, send WhatsApp confirmation to customer
+  2434→- `conversations/[id]/notes/route.ts` — GET internal notes, POST add note with agent info
+  2435→- `contacts/route.ts` — GET list with search, status filter, hasCustomer filter, includes customer info and message counts
+  2436→- `templates/route.ts` — GET with category/isActive filters, POST create, PUT update, DELETE with id from query params
+  2437→- `dashboard/route.ts` — GET totalMessages, messagesToday, openConversations, unresolvedCount, avgResponseTime, complaintsCreatedToday, byCategory (from tags), byPriority breakdown
+  2438→- `send/route.ts` — POST direct send for templates/notifications, supports template parameter substitution, native WhatsApp template API, auto-create contact+conversation if needed
+  2439→- `bot/route.ts` — POST process bot commands: menu, menu_selection (5 options), status_query, create_complaint (full ticket creation flow)
+  2440→
+  2441→Stage Summary:
+  2442→- 15 API route files created (8 top-level + 7 nested under conversations/[id]/)
+  2443→- Full WhatsApp Business Cloud API integration (send, template)
+  2444→- Auto-ticket creation flow on first message from linked customer
+  2445→- AI message classification via ZAI (z-ai-web-dev-sdk)
+  2446→- Real-time event emission to WhatsApp socket service on port 3006
+  2447→- All routes follow existing auth/audit/response patterns
+  2448→- Lint passes with zero errors
+  2449→
+  2450→---
+  2451→Task ID: 5-6
+  2452→Agent: full-stack-developer (WhatsApp Frontend)
+  2453→Task: Create WhatsApp shared inbox frontend components
+  2454→
+  2455→Work Log:
+  2456→- Created `src/hooks/use-whatsapp-socket.ts` — Socket.IO hook connecting to port 3006 via gateway, provides subscribeAgent/unsubscribeAgent/joinConversation/leaveConversation/emitTyping, listens for message:new, conversation:updated, typing, notification, dashboard:updated events
+  2457→- Replaced `src/components/maintenance/whatsapp-complaint.tsx` — Complete 3-panel shared inbox layout (conversations list, chat view, details panel). Features: search, 5 filter tabs (All/Unread/Open/Mine/Has Ticket) with counts, auto mark-as-read, responsive mobile layout with list/chat toggle and details sheet, real-time socket integration, WhatsApp-style chat background (#efeae2), connection status indicator
+  2458→- Created `src/components/maintenance/whatsapp-message-bubble.tsx` — WhatsApp-style message bubbles for all message types (text, image, video, audio, document, location, contact, template, sticker, interactive, system). Outgoing messages have emerald background with delivery/read check marks. Incoming messages left-aligned white. Deleted and system messages centered. Reply context, hover actions (reply/star), typing indicator, date separator components
+  2459→- Created `src/components/maintenance/whatsapp-conversation-item.tsx` — Conversation list item with avatar, name, last message preview, relative timestamp, unread badge (emerald pill), priority dot (red/orange/amber/emerald), ticket-linked indicator (violet dot), BOT badge, assigned agent chip, active state highlighting with amber accent
+  2460→- Created `src/components/maintenance/whatsapp-message-input.tsx` — Message input with auto-resizing textarea, file attachment (image/video/audio/document up to 16MB) with preview, reply indicator, character limit (4096), send-on-Enter, emerald send button, typing emission throttled to 3s
+  2461→- Created `src/components/maintenance/whatsapp-contact-info.tsx` — Contact profile card with avatar, name, phone, status badge (active/blocked/opted_out), linked customer button, tags display, agent notes
+  2462→- Created `src/components/maintenance/whatsapp-convert-dialog.tsx` — Dialog for converting conversation to Complaint/Work Order/Quotation/AMC. Form fields: type selector, category (11 options), priority, description (auto-populated from last 5 messages), posts to /api/maintenance/whatsapp/convert
+  2463→- Created `src/components/maintenance/whatsapp-assign-dialog.tsx` — Dialog for assigning/transferring conversation. Fetches agent list from API, searchable, shows current assignee, optional transfer note, posts to /api/maintenance/whatsapp/assign
+  2464→- Created `src/components/maintenance/whatsapp-inbox-detail.tsx` — Right panel details component. Sections: contact info, conversation details (priority dropdown, status badge, created date), assignment (current assignee with reassign/transfer), linked ticket with navigation, internal notes (add/list), quick actions grid (convert to ticket/WO/quote/AMC, transfer, close chat)
+  2465→
+  2466→Stage Summary:
+  2467→- 9 frontend files created/replaced
+  2468→- Complete shared inbox with professional 3-panel WhatsApp-style UI
+  2469→- Real-time socket integration for live updates
+  2470→- Convert to ticket/work order/quotation/AMC flows
+  2471→- Conversation assignment, transfer, and internal notes
+  2472→- Responsive mobile layout with sheet details panel
+  2473→- All lint checks pass with zero errors
+  2474→
+  2475→---
+  2476→Task ID: 4
+  2477→Agent: full-stack-developer (WhatsApp Mini Service)
+  2478→Task: Create the WhatsApp Real-Time mini service using Socket.IO
+  2479→
+  2480→Work Log:
+  2481→- Created `mini-services/whatsapp-realtime/package.json` with socket.io dependency and `bun --hot` dev script
+  2482→- Created `mini-services/whatsapp-realtime/index.ts` with:
+  2483→  - Socket.IO server on port 3006 (path: '/', CORS: '*', pingInterval: 25000, pingTimeout: 5000)
+  2484→  - Separate HTTP Bridge server on port 3096 to avoid Socket.IO path conflicts
+  2485→  - Room system: `whatsapp` (global), `conversation-{id}`, `agent-{userId}`, `contact-{contactId}`
+  2486→  - Client→Server events: `join-room`, `leave-room`, `subscribe-agent`, `unsubscribe-agent`, `typing`
+  2487→  - HTTP Bridge `POST /api/events` with validation (room format, required fields, JSON parsing)
+  2488→  - Broadcast heartbeat every 60s to `whatsapp` room with `{ service, timestamp, uptime }`
+  2489→  - Input validation on all client events (invalid room names, missing payloads, invalid userIds)
+  2490→  - Graceful shutdown (SIGTERM/SIGINT) closing both servers
+  2491→- Installed dependencies (`bun install`) — socket.io@4.8.3
+  2492→- Verified startup (no crash within 3 seconds)
+  2493→- Tested HTTP Bridge: successful event emission, validation errors for missing/invalid fields, 404 for wrong paths
+  2494→- Tested Socket.IO handshake on port 3006 (returns valid SID, correct ping settings)
+  2495→- Service running in background on ports 3006 (Socket.IO) and 3096 (HTTP Bridge)
+  2496→
+  2497→Stage Summary:
+  2498→- WhatsApp real-time mini service fully operational on ports 3006/3096
+  2499→- Follows maintenance-notify pattern with added HTTP bridge for server-to-server event emission
+  2500→- Ready for frontend WebSocket integration and API route event emission
+  2501→
+  2502→---
+  2503→Task ID: whatsapp-integration-final
+  2504→Agent: Main Orchestrator
+  2505→Task: Fix compilation errors, verify APIs, browser testing, final integration
+  2506→
+  2507→Work Log:
+  2508→- Fixed default export import: `import { WhatsAppComplaint }` → `import WhatsAppComplaint` in page.tsx
+  2509→- Fixed HTTP bridge port: Changed WA_SOCKET_PORT from 3006 to 3096 in all 8 API route files (3006 is Socket.IO, 3096 is HTTP bridge)
+  2510→- Fixed Prisma field mismatch: `company` field doesn't exist on Customer model — removed from conversations and contacts API routes
+  2511→- Verified all 15 API endpoints return valid responses
+  2512→- Verified WhatsApp Inbox renders correctly in browser with 3-panel layout
+  2513→- Confirmed menu item "WhatsApp Complaints" under Maintenance Management
+  2514→- WhatsApp realtime service running on ports 3006 (socket) and 3096 (HTTP bridge)
+  2515→- Zero lint errors
+  2516→
+  2517→Stage Summary:
+  2518→- All compilation errors fixed
+  2519→- APIs verified working: /api/whatsapp/account, /api/whatsapp/conversations, /api/whatsapp/dashboard, /api/whatsapp/contacts, /api/whatsapp/templates
+  2520→- Frontend renders correctly with search, filter tabs, empty state
+  2521→- Full system operational and ready for WhatsApp Business API credentials
+  2522→---
+  2523→Task ID: 2
+  2524→Agent: full-stack-developer (Maintenance HTTP Bridge)
+  2525→Task: Add HTTP bridge to maintenance-notify mini service
+  2526→
+  2527→Work Log:
+  2528→- Added HTTP bridge server on port 3095 to maintenance-notify/index.ts
+  2529→- POST /api/events with room string|array support
+  2530→- Convenience endpoints: /api/emit/broadcast, /api/emit/ticket/:id, /api/emit/technician/:id
+  2531→- Socket.IO on port 3005 unchanged
+  2532→- Verified startup and HTTP bridge test
+  2533→
+  2534→Stage Summary:
+  2535→- HTTP bridge running on port 3095
+  2536→- Socket.IO unchanged on port 3005
+  2537→- API routes can now emit real-time events via fetch
+  2538→

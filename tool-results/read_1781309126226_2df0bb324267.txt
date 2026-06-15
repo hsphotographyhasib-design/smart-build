@@ -1,0 +1,978 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect, useCallback } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api, useAppStore } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import {
+    14→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    15→} from '@/components/ui/select'
+    16→import {
+    17→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    18→} from '@/components/ui/table'
+    19→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    20→import { ScrollArea } from '@/components/ui/scroll-area'
+    21→import { Separator } from '@/components/ui/separator'
+    22→import { useToast } from '@/hooks/use-toast'
+    23→import { cn } from '@/lib/utils'
+    24→import {
+    25→  Plus, Search, ChevronDown, ChevronUp, Ticket, CheckCircle2,
+    26→  Clock, ArrowLeft, Star, Link as LinkIcon,
+    27→} from 'lucide-react'
+    28→
+    29→// ─── Shared Constants ───
+    30→const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
+    31→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+    32→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+    33→  medium: { label: 'Medium', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300', dotColor: 'bg-yellow-500' },
+    34→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+    35→  preventive: { label: 'Preventive', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', dotColor: 'bg-blue-500' },
+    36→}
+    37→
+    38→const STATUS_CONFIG: Record<string, { label: string; color: string; step: number }> = {
+    39→  new: { label: 'New', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400', step: 0 },
+    40→  under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', step: 1 },
+    41→  assigned: { label: 'Assigned', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300', step: 2 },
+    42→  accepted: { label: 'Accepted', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300', step: 3 },
+    43→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 4 },
+    44→  pending_parts: { label: 'Pending Parts', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', step: 5 },
+    45→  pending_customer: { label: 'Pending Customer', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 6 },
+    46→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 7 },
+    47→  customer_verification: { label: 'Customer Verification', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300', step: 8 },
+    48→  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400', step: 9 },
+    49→}
+    50→
+    51→const STATUS_WORKFLOW = [
+    52→  'new', 'under_review', 'assigned', 'accepted', 'in_progress',
+    53→  'pending_parts', 'pending_customer', 'completed', 'customer_verification', 'closed',
+    54→]
+    55→
+    56→const CATEGORY_LABELS: Record<string, string> = {
+    57→  air_conditioning: 'Air Conditioning',
+    58→  electrical: 'Electrical',
+    59→  plumbing: 'Plumbing',
+    60→  fire_protection: 'Fire Protection',
+    61→  mechanical: 'Mechanical',
+    62→  civil: 'Civil',
+    63→  cleaning: 'Cleaning',
+    64→  security: 'Security',
+    65→  it: 'IT',
+    66→  general_maintenance: 'General Maintenance',
+    67→  other: 'Other',
+    68→}
+    69→
+    70→const TYPE_LABELS: Record<string, string> = {
+    71→  complaint: 'Complaint',
+    72→  work_request: 'Work Request',
+    73→  emergency: 'Emergency',
+    74→  inspection: 'Inspection',
+    75→  quotation: 'Quotation',
+    76→  preventive_maintenance: 'Preventive Maintenance',
+    77→}
+    78→
+    79→const TYPE_BADGE_COLORS: Record<string, string> = {
+    80→  complaint: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300',
+    81→  work_request: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    82→  emergency: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    83→  inspection: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    84→  quotation: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    85→  preventive_maintenance: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
+    86→}
+    87→
+    88→// ─── SLA Countdown Component ───
+    89→function SLACountdown({ deadline }: { deadline: string }) {
+    90→  const [remaining, setRemaining] = useState('')
+    91→
+    92→  useEffect(() => {
+    93→    function calc() {
+    94→      const diff = new Date(deadline).getTime() - Date.now()
+    95→      if (diff <= 0) {
+    96→        setRemaining('BREACHED')
+    97→        return
+    98→      }
+    99→      const hours = Math.floor(diff / 3600000)
+   100→      const mins = Math.floor((diff % 3600000) / 60000)
+   101→      if (hours > 24) {
+   102→        const days = Math.floor(hours / 24)
+   103→        setRemaining(`${days}d ${hours % 24}h`)
+   104→      } else {
+   105→        setRemaining(`${hours}h ${mins}m`)
+   106→      }
+   107→    }
+   108→    calc()
+   109→    const interval = setInterval(calc, 60000)
+   110→    return () => clearInterval(interval)
+   111→  }, [deadline])
+   112→
+   113→  const isBreached = remaining === 'BREACHED'
+   114→
+   115→  return (
+   116→    <span className={cn(
+   117→      'text-xs font-mono font-medium',
+   118→      isBreached ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+   119→    )}>
+   120→      {isBreached && '⚠ '}{remaining}
+   121→    </span>
+   122→  )
+   123→}
+   124→
+   125→// ─── Status Workflow Stepper (compact) ───
+   126→function CompactWorkflowStepper({ status }: { status: string }) {
+   127→  const currentStep = STATUS_CONFIG[status]?.step ?? -1
+   128→
+   129→  return (
+   130→    <div className="flex items-center gap-0.5">
+   131→      {STATUS_WORKFLOW.map((step, idx) => {
+   132→        const isActive = currentStep >= idx
+   133→        const isCurrent = currentStep === idx
+   134→        return (
+   135→          <React.Fragment key={step}>
+   136→            <div
+   137→              className={cn(
+   138→                'h-4 w-4 rounded-full flex items-center justify-center text-[8px] font-bold transition-colors shrink-0',
+   139→                isActive
+   140→                  ? isCurrent
+   141→                    ? 'bg-rose-500 text-white ring-2 ring-rose-200 dark:ring-rose-800'
+   142→                    : 'bg-rose-500 text-white'
+   143→                  : 'bg-muted text-muted-foreground'
+   144→              )}
+   145→              title={STATUS_CONFIG[step]?.label}
+   146→            >
+   147→              {isActive ? <CheckCircle2 className="h-2.5 w-2.5" /> : idx + 1}
+   148→            </div>
+   149→            {idx < STATUS_WORKFLOW.length - 1 && (
+   150→              <div className={cn('flex-1 h-0.5 min-w-[4px]', isActive ? 'bg-rose-500' : 'bg-muted')} />
+   151→            )}
+   152→          </React.Fragment>
+   153→        )
+   154→      })}
+   155→    </div>
+   156→  )
+   157→}
+   158→
+   159→// ─── Main Component ───
+   160→export function ServiceRequests() {
+   161→  const { navigate } = useAppStore()
+   162→  const { toast } = useToast()
+   163→  const queryClient = useQueryClient()
+   164→
+   165→  // Filters
+   166→  const [statusFilter, setStatusFilter] = useState('all')
+   167→  const [priorityFilter, setPriorityFilter] = useState('all')
+   168→  const [categoryFilter, setCategoryFilter] = useState('all')
+   169→  const [typeFilter, setTypeFilter] = useState('all')
+   170→  const [customerFilter, setCustomerFilter] = useState('all')
+   171→  const [siteFilter, setSiteFilter] = useState('all')
+   172→  const [searchQuery, setSearchQuery] = useState('')
+   173→  const [activeTab, setActiveTab] = useState('all')
+   174→  const [expandedId, setExpandedId] = useState<string | null>(null)
+   175→
+   176→  // Fetch tickets
+   177→  const { data, isLoading } = useQuery({
+   178→    queryKey: ['maintenance-tickets', statusFilter, priorityFilter, categoryFilter, typeFilter, customerFilter, siteFilter],
+   179→    queryFn: () => {
+   180→      const params = new URLSearchParams()
+   181→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   182→      if (priorityFilter !== 'all') params.set('priority', priorityFilter)
+   183→      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+   184→      if (typeFilter !== 'all') params.set('type', typeFilter)
+   185→      if (customerFilter !== 'all') params.set('customerId', customerFilter)
+   186→      if (siteFilter !== 'all') params.set('siteId', siteFilter)
+   187→      if (searchQuery) params.set('search', searchQuery)
+   188→      const qs = params.toString()
+   189→      return api.get(`/api/maintenance/tickets${qs ? `?${qs}` : ''}`)
+   190→    },
+   191→  })
+   192→
+   193→  const tickets = (data?.data || []) as any[]
+   194→
+   195→  // Fetch reference data
+   196→  const { data: sitesData } = useQuery({
+   197→    queryKey: ['maintenance-sites'],
+   198→    queryFn: () => api.get('/api/maintenance/sites'),
+   199→  })
+   200→  const sites = (sitesData?.data || []) as any[]
+   201→
+   202→  const { data: assetsData } = useQuery({
+   203→    queryKey: ['maintenance-assets'],
+   204→    queryFn: () => api.get('/api/assets'),
+   205→  })
+   206→  const assets = (assetsData?.data || []) as any[]
+   207→
+   208→  // Create mutation
+   209→  const createMutation = useMutation({
+   210→    mutationFn: (body: any) => api.post('/api/maintenance/tickets', body),
+   211→    onSuccess: () => {
+   212→      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+   213→      toast({ title: 'Ticket Created', description: 'Your service request has been submitted successfully.' })
+   214→      setActiveTab('all')
+   215→    },
+   216→    onError: (err: any) => {
+   217→      toast({ title: 'Error', description: err.error || 'Failed to create ticket', variant: 'destructive' })
+   218→    },
+   219→  })
+   220→
+   221→  // Client-side search filter
+   222→  const filtered = tickets.filter((t: any) => {
+   223→    if (searchQuery) {
+   224→      const q = searchQuery.toLowerCase()
+   225→      return (
+   226→        t.subject?.toLowerCase().includes(q) ||
+   227→        t.ticketNo?.toLowerCase().includes(q) ||
+   228→        t.description?.toLowerCase().includes(q)
+   229→      )
+   230→    }
+   231→    return true
+   232→  })
+   233→
+   234→  // My requests filter (placeholder - uses current user id from store)
+   235→  const { user } = useAppStore()
+   236→  const myTickets = tickets.filter((t: any) => t.createdById === user?.id)
+   237→
+   238→  const displayTickets = activeTab === 'my' ? myTickets : filtered
+   239→
+   240→  return (
+   241→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   242→      {/* Header */}
+   243→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   244→        <div className="flex items-center gap-3">
+   245→          <Button size="icon" variant="ghost" onClick={() => navigate('maintenance-dashboard')}>
+   246→            <ArrowLeft className="h-4 w-4" />
+   247→          </Button>
+   248→          <div>
+   249→            <h1 className="text-2xl font-bold tracking-tight">Service Requests</h1>
+   250→            <p className="text-muted-foreground text-sm mt-0.5">Create and manage maintenance service requests</p>
+   251→          </div>
+   252→        </div>
+   253→      </div>
+   254→
+   255→      {/* Tabs */}
+   256→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   257→        <TabsList>
+   258→          <TabsTrigger value="all">All Requests</TabsTrigger>
+   259→          <TabsTrigger value="my">My Requests</TabsTrigger>
+   260→          <TabsTrigger value="create" className="gap-1">
+   261→            <Plus className="h-3 w-3" /> Create New
+   262→          </TabsTrigger>
+   263→        </TabsList>
+   264→
+   265→        {/* All Requests / My Requests */}
+   266→        <TabsContent value="all" className="space-y-4 mt-4">
+   267→          <TicketFilters
+   268→            sites={sites}
+   269→            statusFilter={statusFilter}
+   270→            setStatusFilter={setStatusFilter}
+   271→            priorityFilter={priorityFilter}
+   272→            setPriorityFilter={setPriorityFilter}
+   273→            categoryFilter={categoryFilter}
+   274→            setCategoryFilter={setCategoryFilter}
+   275→            typeFilter={typeFilter}
+   276→            setTypeFilter={setTypeFilter}
+   277→            customerFilter={customerFilter}
+   278→            setCustomerFilter={setCustomerFilter}
+   279→            siteFilter={siteFilter}
+   280→            setSiteFilter={setSiteFilter}
+   281→            searchQuery={searchQuery}
+   282→            setSearchQuery={setSearchQuery}
+   283→          />
+   284→          <TicketTable
+   285→            tickets={filtered}
+   286→            isLoading={isLoading}
+   287→            expandedId={expandedId}
+   288→            setExpandedId={setExpandedId}
+   289→            onNavigate={navigate}
+   290→          />
+   291→        </TabsContent>
+   292→
+   293→        <TabsContent value="my" className="space-y-4 mt-4">
+   294→          <TicketTable
+   295→            tickets={myTickets}
+   296→            isLoading={isLoading}
+   297→            expandedId={expandedId}
+   298→            setExpandedId={setExpandedId}
+   299→            onNavigate={navigate}
+   300→            emptyMessage="No requests created by you"
+   301→          />
+   302→        </TabsContent>
+   303→
+   304→        {/* Create New */}
+   305→        <TabsContent value="create" className="mt-4">
+   306→          <CreateTicketForm
+   307→            sites={sites}
+   308→            assets={assets}
+   309→            onSubmit={(data) => createMutation.mutate(data)}
+   310→            loading={createMutation.isPending}
+   311→          />
+   312→        </TabsContent>
+   313→      </Tabs>
+   314→    </div>
+   315→  )
+   316→}
+   317→
+   318→// ─── Filter Bar Component ───
+   319→function TicketFilters({
+   320→  sites,
+   321→  statusFilter, setStatusFilter,
+   322→  priorityFilter, setPriorityFilter,
+   323→  categoryFilter, setCategoryFilter,
+   324→  typeFilter, setTypeFilter,
+   325→  customerFilter, setCustomerFilter,
+   326→  siteFilter, setSiteFilter,
+   327→  searchQuery, setSearchQuery,
+   328→}: {
+   329→  sites: any[]
+   330→  statusFilter: string; setStatusFilter: (v: string) => void
+   331→  priorityFilter: string; setPriorityFilter: (v: string) => void
+   332→  categoryFilter: string; setCategoryFilter: (v: string) => void
+   333→  typeFilter: string; setTypeFilter: (v: string) => void
+   334→  customerFilter: string; setCustomerFilter: (v: string) => void
+   335→  siteFilter: string; setSiteFilter: (v: string) => void
+   336→  searchQuery: string; setSearchQuery: (v: string) => void
+   337→}) {
+   338→  return (
+   339→    <Card>
+   340→      <CardContent className="p-4">
+   341→        <div className="flex flex-col gap-3">
+   342→          {/* Search Row */}
+   343→          <div className="relative flex-1">
+   344→            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   345→            <Input
+   346→              placeholder="Search by ticket #, subject, or description..."
+   347→              value={searchQuery}
+   348→              onChange={(e) => setSearchQuery(e.target.value)}
+   349→              className="pl-9"
+   350→            />
+   351→          </div>
+   352→          {/* Filter Row */}
+   353→          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+   354→            <Select value={statusFilter} onValueChange={setStatusFilter}>
+   355→              <SelectTrigger>
+   356→                <SelectValue placeholder="All Status" />
+   357→              </SelectTrigger>
+   358→              <SelectContent>
+   359→                <SelectItem value="all">All Status</SelectItem>
+   360→                {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+   361→                  <SelectItem key={key} value={key}>{val.label}</SelectItem>
+   362→                ))}
+   363→              </SelectContent>
+   364→            </Select>
+   365→
+   366→            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+   367→              <SelectTrigger>
+   368→                <SelectValue placeholder="All Priority" />
+   369→              </SelectTrigger>
+   370→              <SelectContent>
+   371→                <SelectItem value="all">All Priority</SelectItem>
+   372→                {Object.entries(PRIORITY_CONFIG).map(([key, val]) => (
+   373→                  <SelectItem key={key} value={key}>
+   374→                    <span className="flex items-center gap-1.5">
+   375→                      <span className={cn('h-2 w-2 rounded-full', val.dotColor)} />
+   376→                      {val.label}
+   377→                    </span>
+   378→                  </SelectItem>
+   379→                ))}
+   380→              </SelectContent>
+   381→            </Select>
+   382→
+   383→            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+   384→              <SelectTrigger>
+   385→                <SelectValue placeholder="All Category" />
+   386→              </SelectTrigger>
+   387→              <SelectContent>
+   388→                <SelectItem value="all">All Categories</SelectItem>
+   389→                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+   390→                  <SelectItem key={key} value={key}>{label}</SelectItem>
+   391→                ))}
+   392→              </SelectContent>
+   393→            </Select>
+   394→
+   395→            <Select value={typeFilter} onValueChange={setTypeFilter}>
+   396→              <SelectTrigger>
+   397→                <SelectValue placeholder="All Types" />
+   398→              </SelectTrigger>
+   399→              <SelectContent>
+   400→                <SelectItem value="all">All Types</SelectItem>
+   401→                {Object.entries(TYPE_LABELS).map(([key, label]) => (
+   402→                  <SelectItem key={key} value={key}>{label}</SelectItem>
+   403→                ))}
+   404→              </SelectContent>
+   405→            </Select>
+   406→
+   407→            <Select value={customerFilter} onValueChange={setCustomerFilter}>
+   408→              <SelectTrigger>
+   409→                <SelectValue placeholder="All Customers" />
+   410→              </SelectTrigger>
+   411→              <SelectContent>
+   412→                <SelectItem value="all">All Customers</SelectItem>
+   413→              </SelectContent>
+   414→            </Select>
+   415→
+   416→            <Select value={siteFilter} onValueChange={setSiteFilter}>
+   417→              <SelectTrigger>
+   418→                <SelectValue placeholder="All Sites" />
+   419→              </SelectTrigger>
+   420→              <SelectContent>
+   421→                <SelectItem value="all">All Sites</SelectItem>
+   422→                {sites.map((s: any) => (
+   423→                  <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+   424→                ))}
+   425→              </SelectContent>
+   426→            </Select>
+   427→          </div>
+   428→        </div>
+   429→      </CardContent>
+   430→    </Card>
+   431→  )
+   432→}
+   433→
+   434→// ─── Ticket Table Component ───
+   435→function TicketTable({
+   436→  tickets,
+   437→  isLoading,
+   438→  expandedId,
+   439→  setExpandedId,
+   440→  onNavigate,
+   441→  emptyMessage,
+   442→}: {
+   443→  tickets: any[]
+   444→  isLoading: boolean
+   445→  expandedId: string | null
+   446→  setExpandedId: (id: string | null) => void
+   447→  onNavigate: (page: string, params?: Record<string, string>) => void
+   448→  emptyMessage?: string
+   449→}) {
+   450→  if (isLoading) {
+   451→    return (
+   452→      <Card>
+   453→        <CardContent className="p-6 space-y-3">
+   454→          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   455→        </CardContent>
+   456→      </Card>
+   457→    )
+   458→  }
+   459→
+   460→  return (
+   461→    <Card>
+   462→      <CardContent className="p-0">
+   463→        {tickets.length === 0 ? (
+   464→          <div className="flex flex-col items-center justify-center py-16">
+   465→            <Ticket className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   466→            <p className="text-sm text-muted-foreground">{emptyMessage || 'No tickets found'}</p>
+   467→          </div>
+   468→        ) : (
+   469→          <div className="overflow-x-auto">
+   470→            <Table>
+   471→              <TableHeader>
+   472→                <TableRow>
+   473→                  <TableHead className="w-8"></TableHead>
+   474→                  <TableHead className="text-xs">Ticket #</TableHead>
+   475→                  <TableHead className="text-xs">Type</TableHead>
+   476→                  <TableHead className="text-xs">Subject</TableHead>
+   477→                  <TableHead className="text-xs">Category</TableHead>
+   478→                  <TableHead className="text-xs">Priority</TableHead>
+   479→                  <TableHead className="text-xs">Status</TableHead>
+   480→                  <TableHead className="text-xs">Created</TableHead>
+   481→                  <TableHead className="text-xs">SLA</TableHead>
+   482→                </TableRow>
+   483→              </TableHeader>
+   484→              <TableBody>
+   485→                {tickets.map((ticket: any) => {
+   486→                  const pri = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.medium
+   487→                  const stat = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.new
+   488→                  const isExpanded = expandedId === ticket.id
+   489→                  return (
+   490→                    <React.Fragment key={ticket.id}>
+   491→                      <TableRow
+   492→                        className="cursor-pointer hover:bg-muted/40"
+   493→                        onClick={() => setExpandedId(prev => prev === ticket.id ? null : ticket.id)}
+   494→                      >
+   495→                        <TableCell className="py-3">
+   496→                          {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+   497→                        </TableCell>
+   498→                        <TableCell className="text-xs font-mono text-rose-600 font-medium">{ticket.ticketNo}</TableCell>
+   499→                        <TableCell>
+   500→                          <Badge variant="secondary" className={cn('text-[10px]', TYPE_BADGE_COLORS[ticket.type] || '')}>
+   501→                            {TYPE_LABELS[ticket.type] || ticket.type}
+   502→                          </Badge>
+   503→                        </TableCell>
+   504→                        <TableCell>
+   505→                          <div>
+   506→                            <p className="text-sm font-medium">{ticket.subject}</p>
+   507→                            <p className="text-xs text-muted-foreground truncate max-w-[180px]">{ticket.description}</p>
+   508→                          </div>
+   509→                        </TableCell>
+   510→                        <TableCell>
+   511→                          <Badge variant="secondary" className="text-xs">
+   512→                            {CATEGORY_LABELS[ticket.category] || ticket.category}
+   513→                          </Badge>
+   514→                        </TableCell>
+   515→                        <TableCell>
+   516→                          <Badge variant="secondary" className={cn('gap-1 text-xs', pri.color)}>
+   517→                            <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+   518→                            {pri.label}
+   519→                          </Badge>
+   520→                        </TableCell>
+   521→                        <TableCell>
+   522→                          <Badge variant="secondary" className={cn('text-xs', stat.color)}>
+   523→                            {stat.label}
+   524→                          </Badge>
+   525→                        </TableCell>
+   526→                        <TableCell className="text-xs text-muted-foreground">
+   527→                          {new Date(ticket.createdAt).toLocaleDateString()}
+   528→                        </TableCell>
+   529→                        <TableCell>
+   530→                          {ticket.slaDeadline ? <SLACountdown deadline={ticket.slaDeadline} /> : <span className="text-xs text-muted-foreground">—</span>}
+   531→                        </TableCell>
+   532→                      </TableRow>
+   533→                      {isExpanded && (
+   534→                        <TableRow>
+   535→                          <TableCell colSpan={9} className="bg-muted/20 px-6 py-4">
+   536→                            <div className="space-y-4">
+   537→                              {/* Workflow Stepper */}
+   538→                              <div>
+   539→                                <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Status Progress</h4>
+   540→                                <CompactWorkflowStepper status={ticket.status} />
+   541→                                <div className="flex flex-wrap gap-1 mt-2">
+   542→                                  {STATUS_WORKFLOW.map((step, idx) => (
+   543→                                    <span
+   544→                                      key={step}
+   545→                                      className={cn(
+   546→                                        'text-[9px] px-1.5 py-0.5 rounded',
+   547→                                        (STATUS_CONFIG[ticket.status]?.step ?? -1) === idx
+   548→                                          ? 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300 font-semibold'
+   549→                                          : 'text-muted-foreground'
+   550→                                      )}
+   551→                                    >
+   552→                                      {STATUS_CONFIG[step]?.label}
+   553→                                    </span>
+   554→                                  ))}
+   555→                                </div>
+   556→                              </div>
+   557→
+   558→                              <Separator />
+   559→
+   560→                              {/* Details Grid */}
+   561→                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+   562→                                <div>
+   563→                                  <span className="text-muted-foreground text-xs">Description:</span>
+   564→                                  <p className="mt-1">{ticket.description || 'No description'}</p>
+   565→                                </div>
+   566→                                <div>
+   567→                                  <span className="text-muted-foreground text-xs">Site:</span>
+   568→                                  <p className="mt-1 font-medium">{ticket.site?.name || '—'}</p>
+   569→                                  <span className="text-muted-foreground text-xs mt-2 block">Location:</span>
+   570→                                  <p className="font-medium">{[ticket.building, ticket.floor, ticket.room].filter(Boolean).join(' / ') || ticket.location || '—'}</p>
+   571→                                </div>
+   572→                                <div>
+   573→                                  <span className="text-muted-foreground text-xs">Contact Person:</span>
+   574→                                  <p className="mt-1 font-medium">{ticket.contactPerson || '—'}</p>
+   575→                                  <span className="text-muted-foreground text-xs mt-2 block">Contact Phone:</span>
+   576→                                  <p className="font-medium">{ticket.contactPhone || '—'}</p>
+   577→                                </div>
+   578→                                <div>
+   579→                                  <span className="text-muted-foreground text-xs">Equipment:</span>
+   580→                                  <p className="mt-1 font-medium">{ticket.asset?.name || '—'}</p>
+   581→                                </div>
+   582→                                <div>
+   583→                                  <span className="text-muted-foreground text-xs">Preferred Visit:</span>
+   584→                                  <p className="mt-1 font-medium">
+   585→                                    {ticket.preferredVisitDate
+   586→                                      ? `${ticket.preferredVisitDate}${ticket.preferredVisitTime ? ` at ${ticket.preferredVisitTime}` : ''}`
+   587→                                      : '—'}
+   588→                                  </p>
+   589→                                </div>
+   590→                                <div>
+   591→                                  <span className="text-muted-foreground text-xs">Technician:</span>
+   592→                                  <p className="mt-1 font-medium">{ticket.technician?.employee?.name || '—'}</p>
+   593→                                </div>
+   594→                              </div>
+   595→
+   596→                              {/* Attachments */}
+   597→                              {(ticket.photoUrls?.length > 0 || ticket.videoUrls?.length > 0 || ticket.documentUrls?.length > 0) && (
+   598→                                <div>
+   599→                                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Attachments</h4>
+   600→                                  <div className="flex flex-wrap gap-2">
+   601→                                    {ticket.photoUrls?.map((url: string, i: number) => (
+   602→                                      <Badge key={`p${i}`} variant="outline" className="gap-1 text-xs">
+   603→                                        <LinkIcon className="h-3 w-3" /> Photo {i + 1}
+   604→                                      </Badge>
+   605→                                    ))}
+   606→                                    {ticket.videoUrls?.map((url: string, i: number) => (
+   607→                                      <Badge key={`v${i}`} variant="outline" className="gap-1 text-xs">
+   608→                                        <LinkIcon className="h-3 w-3" /> Video {i + 1}
+   609→                                      </Badge>
+   610→                                    ))}
+   611→                                    {ticket.documentUrls?.map((url: string, i: number) => (
+   612→                                      <Badge key={`d${i}`} variant="outline" className="gap-1 text-xs">
+   613→                                        <LinkIcon className="h-3 w-3" /> Document {i + 1}
+   614→                                      </Badge>
+   615→                                    ))}
+   616→                                  </div>
+   617→                                </div>
+   618→                              )}
+   619→
+   620→                              <div className="flex justify-end">
+   621→                                <Button
+   622→                                  size="sm"
+   623→                                  className="bg-rose-600 hover:bg-rose-700"
+   624→                                  onClick={(e) => {
+   625→                                    e.stopPropagation()
+   626→                                    onNavigate('maintenance-ticket-detail', { id: ticket.id })
+   627→                                  }}
+   628→                                >
+   629→                                  View Full Details
+   630→                                </Button>
+   631→                              </div>
+   632→                            </div>
+   633→                          </TableCell>
+   634→                        </TableRow>
+   635→                      )}
+   636→                    </React.Fragment>
+   637→                  )
+   638→                })}
+   639→              </TableBody>
+   640→            </Table>
+   641→          </div>
+   642→        )}
+   643→      </CardContent>
+   644→    </Card>
+   645→  )
+   646→}
+   647→
+   648→// ─── Create Ticket Form Component ───
+   649→function CreateTicketForm({
+   650→  sites,
+   651→  assets,
+   652→  onSubmit,
+   653→  loading,
+   654→}: {
+   655→  sites: any[]
+   656→  assets: any[]
+   657→  onSubmit: (data: any) => void
+   658→  loading: boolean
+   659→}) {
+   660→  const [form, setForm] = useState({
+   661→    type: '',
+   662→    category: '',
+   663→    priority: 'medium',
+   664→    subject: '',
+   665→    description: '',
+   666→    customerId: '',
+   667→    siteId: '',
+   668→    building: '',
+   669→    floor: '',
+   670→    room: '',
+   671→    assetId: '',
+   672→    location: '',
+   673→    preferredVisitDate: '',
+   674→    preferredVisitTime: '',
+   675→    contactPerson: '',
+   676→    contactPhone: '',
+   677→    photoUrls: '',
+   678→    videoUrls: '',
+   679→    documentUrls: '',
+   680→  })
+   681→
+   682→  const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
+   683→
+   684→  const handleSubmit = (e: React.FormEvent) => {
+   685→    e.preventDefault()
+   686→    if (!form.type || !form.category || !form.subject) return
+   687→
+   688→    const payload: any = {
+   689→      type: form.type,
+   690→      category: form.category,
+   691→      priority: form.priority,
+   692→      subject: form.subject,
+   693→      description: form.description,
+   694→      siteId: form.siteId || undefined,
+   695→      building: form.building || undefined,
+   696→      floor: form.floor || undefined,
+   697→      room: form.room || undefined,
+   698→      assetId: form.assetId || undefined,
+   699→      location: form.location || undefined,
+   700→      preferredVisitDate: form.preferredVisitDate || undefined,
+   701→      preferredVisitTime: form.preferredVisitTime || undefined,
+   702→      contactPerson: form.contactPerson || undefined,
+   703→      contactPhone: form.contactPhone || undefined,
+   704→    }
+   705→
+   706→    // Parse URL fields into arrays
+   707→    if (form.photoUrls.trim()) {
+   708→      payload.photoUrls = form.photoUrls.split('\n').map(u => u.trim()).filter(Boolean)
+   709→    }
+   710→    if (form.videoUrls.trim()) {
+   711→      payload.videoUrls = form.videoUrls.split('\n').map(u => u.trim()).filter(Boolean)
+   712→    }
+   713→    if (form.documentUrls.trim()) {
+   714→      payload.documentUrls = form.documentUrls.split('\n').map(u => u.trim()).filter(Boolean)
+   715→    }
+   716→
+   717→    onSubmit(payload)
+   718→    // Reset form
+   719→    setForm({
+   720→      type: '', category: '', priority: 'medium', subject: '', description: '',
+   721→      customerId: '', siteId: '', building: '', floor: '', room: '',
+   722→      assetId: '', location: '', preferredVisitDate: '', preferredVisitTime: '',
+   723→      contactPerson: '', contactPhone: '', photoUrls: '', videoUrls: '', documentUrls: '',
+   724→    })
+   725→  }
+   726→
+   727→  return (
+   728→    <Card>
+   729→      <CardHeader>
+   730→        <CardTitle className="text-lg">Create Service Request</CardTitle>
+   731→      </CardHeader>
+   732→      <CardContent>
+   733→        <form onSubmit={handleSubmit} className="space-y-6">
+   734→          {/* Row 1: Type, Category, Priority */}
+   735→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   736→            <div className="space-y-2">
+   737→              <Label>Request Type *</Label>
+   738→              <Select value={form.type} onValueChange={v => update('type', v)}>
+   739→                <SelectTrigger>
+   740→                  <SelectValue placeholder="Select type..." />
+   741→                </SelectTrigger>
+   742→                <SelectContent>
+   743→                  {Object.entries(TYPE_LABELS).map(([key, label]) => (
+   744→                    <SelectItem key={key} value={key}>{label}</SelectItem>
+   745→                  ))}
+   746→                </SelectContent>
+   747→              </Select>
+   748→            </div>
+   749→            <div className="space-y-2">
+   750→              <Label>Category *</Label>
+   751→              <Select value={form.category} onValueChange={v => update('category', v)}>
+   752→                <SelectTrigger>
+   753→                  <SelectValue placeholder="Select category..." />
+   754→                </SelectTrigger>
+   755→                <SelectContent>
+   756→                  {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+   757→                    <SelectItem key={key} value={key}>{label}</SelectItem>
+   758→                  ))}
+   759→                </SelectContent>
+   760→              </Select>
+   761→            </div>
+   762→            <div className="space-y-2">
+   763→              <Label>Priority</Label>
+   764→              <Select value={form.priority} onValueChange={v => update('priority', v)}>
+   765→                <SelectTrigger>
+   766→                  <SelectValue />
+   767→                </SelectTrigger>
+   768→                <SelectContent>
+   769→                  {Object.entries(PRIORITY_CONFIG).map(([key, val]) => (
+   770→                    <SelectItem key={key} value={key}>
+   771→                      <span className="flex items-center gap-1.5">
+   772→                        <span className={cn('h-2 w-2 rounded-full', val.dotColor)} />
+   773→                        {val.label}
+   774→                      </span>
+   775→                    </SelectItem>
+   776→                  ))}
+   777→                </SelectContent>
+   778→              </Select>
+   779→            </div>
+   780→          </div>
+   781→
+   782→          {/* Row 2: Subject */}
+   783→          <div className="space-y-2">
+   784→            <Label>Subject *</Label>
+   785→            <Input
+   786→              placeholder="Brief description of the request"
+   787→              value={form.subject}
+   788→              onChange={e => update('subject', e.target.value)}
+   789→            />
+   790→          </div>
+   791→
+   792→          {/* Row 3: Description */}
+   793→          <div className="space-y-2">
+   794→            <Label>Description</Label>
+   795→            <Textarea
+   796→              placeholder="Provide detailed information about the service request..."
+   797→              rows={4}
+   798→              value={form.description}
+   799→              onChange={e => update('description', e.target.value)}
+   800→            />
+   801→          </div>
+   802→
+   803→          <Separator />
+   804→
+   805→          {/* Row 4: Site, Customer */}
+   806→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   807→            <div className="space-y-2">
+   808→              <Label>Customer</Label>
+   809→              <Select value={form.customerId} onValueChange={v => update('customerId', v)}>
+   810→                <SelectTrigger>
+   811→                  <SelectValue placeholder="Select customer..." />
+   812→                </SelectTrigger>
+   813→                <SelectContent>
+   814→                  <SelectItem value="">None</SelectItem>
+   815→                </SelectContent>
+   816→              </Select>
+   817→            </div>
+   818→            <div className="space-y-2">
+   819→              <Label>Site</Label>
+   820→              <Select value={form.siteId} onValueChange={v => update('siteId', v)}>
+   821→                <SelectTrigger>
+   822→                  <SelectValue placeholder="Select site..." />
+   823→                </SelectTrigger>
+   824→                <SelectContent>
+   825→                  {sites.map((s: any) => (
+   826→                    <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+   827→                  ))}
+   828→                </SelectContent>
+   829→              </Select>
+   830→            </div>
+   831→          </div>
+   832→
+   833→          {/* Row 5: Building, Floor, Room */}
+   834→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   835→            <div className="space-y-2">
+   836→              <Label>Building</Label>
+   837→              <Input
+   838→                placeholder="Building name/number"
+   839→                value={form.building}
+   840→                onChange={e => update('building', e.target.value)}
+   841→              />
+   842→            </div>
+   843→            <div className="space-y-2">
+   844→              <Label>Floor</Label>
+   845→              <Input
+   846→                placeholder="Floor number"
+   847→                value={form.floor}
+   848→                onChange={e => update('floor', e.target.value)}
+   849→              />
+   850→            </div>
+   851→            <div className="space-y-2">
+   852→              <Label>Room</Label>
+   853→              <Input
+   854→                placeholder="Room name/number"
+   855→                value={form.room}
+   856→                onChange={e => update('room', e.target.value)}
+   857→              />
+   858→            </div>
+   859→          </div>
+   860→
+   861→          {/* Row 6: Equipment, Location */}
+   862→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   863→            <div className="space-y-2">
+   864→              <Label>Equipment</Label>
+   865→              <Select value={form.assetId} onValueChange={v => update('assetId', v)}>
+   866→                <SelectTrigger>
+   867→                  <SelectValue placeholder="Select equipment..." />
+   868→                </SelectTrigger>
+   869→                <SelectContent>
+   870→                  {assets.map((a: any) => (
+   871→                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.code || a.assetCode})</SelectItem>
+   872→                  ))}
+   873→                </SelectContent>
+   874→              </Select>
+   875→            </div>
+   876→            <div className="space-y-2">
+   877→              <Label>Location Details</Label>
+   878→              <Input
+   879→                placeholder="Additional location info"
+   880→                value={form.location}
+   881→                onChange={e => update('location', e.target.value)}
+   882→              />
+   883→            </div>
+   884→          </div>
+   885→
+   886→          <Separator />
+   887→
+   888→          {/* Row 7: Preferred Visit */}
+   889→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   890→            <div className="space-y-2">
+   891→              <Label>Preferred Visit Date</Label>
+   892→              <Input
+   893→                type="date"
+   894→                value={form.preferredVisitDate}
+   895→                onChange={e => update('preferredVisitDate', e.target.value)}
+   896→              />
+   897→            </div>
+   898→            <div className="space-y-2">
+   899→              <Label>Preferred Visit Time</Label>
+   900→              <Input
+   901→                type="time"
+   902→                value={form.preferredVisitTime}
+   903→                onChange={e => update('preferredVisitTime', e.target.value)}
+   904→              />
+   905→            </div>
+   906→          </div>
+   907→
+   908→          {/* Row 8: Contact */}
+   909→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   910→            <div className="space-y-2">
+   911→              <Label>Contact Person</Label>
+   912→              <Input
+   913→                placeholder="Name of contact person"
+   914→                value={form.contactPerson}
+   915→                onChange={e => update('contactPerson', e.target.value)}
+   916→              />
+   917→            </div>
+   918→            <div className="space-y-2">
+   919→              <Label>Contact Phone</Label>
+   920→              <Input
+   921→                placeholder="Phone number"
+   922→                value={form.contactPhone}
+   923→                onChange={e => update('contactPhone', e.target.value)}
+   924→              />
+   925→            </div>
+   926→          </div>
+   927→
+   928→          <Separator />
+   929→
+   930→          {/* Row 9: Attachments (URL fields) */}
+   931→          <div className="space-y-4">
+   932→            <h3 className="text-sm font-semibold">Attachments (URLs)</h3>
+   933→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   934→              <div className="space-y-2">
+   935→                <Label>Photo URLs</Label>
+   936→                <Textarea
+   937→                  placeholder="One URL per line"
+   938→                  rows={2}
+   939→                  value={form.photoUrls}
+   940→                  onChange={e => update('photoUrls', e.target.value)}
+   941→                />
+   942→              </div>
+   943→              <div className="space-y-2">
+   944→                <Label>Video URLs</Label>
+   945→                <Textarea
+   946→                  placeholder="One URL per line"
+   947→                  rows={2}
+   948→                  value={form.videoUrls}
+   949→                  onChange={e => update('videoUrls', e.target.value)}
+   950→                />
+   951→              </div>
+   952→              <div className="space-y-2">
+   953→                <Label>Document URLs</Label>
+   954→                <Textarea
+   955→                  placeholder="One URL per line"
+   956→                  rows={2}
+   957→                  value={form.documentUrls}
+   958→                  onChange={e => update('documentUrls', e.target.value)}
+   959→                />
+   960→              </div>
+   961→            </div>
+   962→          </div>
+   963→
+   964→          <div className="flex justify-end gap-3">
+   965→            <Button type="button" variant="outline">Cancel</Button>
+   966→            <Button
+   967→              type="submit"
+   968→              disabled={loading || !form.type || !form.category || !form.subject}
+   969→              className="bg-rose-600 hover:bg-rose-700"
+   970→            >
+   971→              {loading ? 'Creating...' : 'Create Ticket'}
+   972→            </Button>
+   973→          </div>
+   974→        </form>
+   975→      </CardContent>
+   976→    </Card>
+   977→  )
+   978→}

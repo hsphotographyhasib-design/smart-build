@@ -1,0 +1,861 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useCallback, useMemo, useEffect } from 'react'
+     4→import * as Icons from 'lucide-react'
+     5→import {
+     6→  ChevronLeft, ChevronRight, HardHat, Settings, LogOut,
+     7→  Bell, Shield, User, ChevronDown, Mail, Clock, Monitor,
+     8→} from 'lucide-react'
+     9→import { cn } from '@/lib/utils'
+    10→import { useAppStore, type AppPage } from '@/lib/store'
+    11→import { Button } from '@/components/ui/button'
+    12→import {
+    13→  DropdownMenu,
+    14→  DropdownMenuContent,
+    15→  DropdownMenuItem,
+    16→  DropdownMenuLabel,
+    17→  DropdownMenuSeparator,
+    18→  DropdownMenuTrigger,
+    19→  DropdownMenuGroup,
+    20→  DropdownMenuShortcut,
+    21→} from '@/components/ui/dropdown-menu'
+    22→import { ScrollArea } from '@/components/ui/scroll-area'
+    23→import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+    24→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    25→import { Skeleton } from '@/components/ui/skeleton'
+    26→import { MobileHeader } from '@/components/layout/mobile-header'
+    27→import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+    28→import { SessionTimerBadge } from '@/components/layout/session-timer-badge'
+    29→import { AnimatePresence, motion } from 'framer-motion'
+    30→
+    31→// ─────────────────────────────────────────────────────────────────────
+    32→// API MENU TYPES
+    33→// ─────────────────────────────────────────────────────────────────────
+    34→
+    35→interface MenuSubItem {
+    36→  id: string
+    37→  label: string
+    38→  page: string
+    39→  icon: string
+    40→  sortOrder: number
+    41→}
+    42→
+    43→interface MenuTreeItem {
+    44→  id: string
+    45→  label: string
+    46→  page: string
+    47→  icon: string
+    48→  sortOrder: number
+    49→  isCategory: boolean
+    50→  hasChildren: boolean
+    51→  children: MenuSubItem[]
+    52→}
+    53→
+    54→interface MenuGroup {
+    55→  id: string
+    56→  code: string
+    57→  label: string
+    58→  icon: string
+    59→  sortOrder: number
+    60→  items: MenuTreeItem[]
+    61→}
+    62→
+    63→// ─────────────────────────────────────────────────────────────────────
+    64→// ICON RESOLUTION — pre-registered icon map
+    65→// ─────────────────────────────────────────────────────────────────────
+    66→
+    67→const iconMap: Record<string, React.ComponentType<React.ComponentProps<'svg'>>> = {
+    68→  LayoutDashboard: Icons.LayoutDashboard, FolderKanban: Icons.FolderKanban, FileText: Icons.FileText,
+    69→  Receipt: Icons.Receipt, Calculator: Icons.Calculator, DollarSign: Icons.DollarSign,
+    70→  ShoppingCart: Icons.ShoppingCart, ClipboardList: Icons.ClipboardList, Users: Icons.Users,
+    71→  Package: Icons.Package, UserCheck: Icons.UserCheck, Clock: Icons.Clock,
+    72→  ScrollText: Icons.ScrollText, FileSpreadsheet: Icons.FileSpreadsheet,
+    73→  Wrench: Icons.Wrench, Truck: Icons.Truck,
+    74→  Activity: Icons.Activity, Gauge: Icons.Gauge, HardHat: Icons.HardHat,
+    75→  Hammer: Icons.Hammer, Car: Icons.Car, Ruler: Icons.Ruler,
+    76→  UsersRound: Icons.UsersRound, ClipboardCheck: Icons.ClipboardCheck,
+    77→  TrendingUp: Icons.TrendingUp, LineChart: Icons.LineChart,
+    78→  Wallet: Icons.Wallet, Tags: Icons.Tags, GitBranch: Icons.GitBranch, Target: Icons.Target,
+    79→  MessageSquare: Icons.MessageSquare, Megaphone: Icons.Megaphone,
+    80→  Shield: Icons.Shield, MapPin: Icons.MapPin, Zap: Icons.Zap, Clock4: Icons.Clock4,
+    81→  FileCheck: Icons.FileCheck, Building: Icons.Building, BarChart3: Icons.BarChart3,
+    82→  MessageCircle: Icons.MessageCircle, Headphones: Icons.Headphones,
+    83→  Store: Icons.Store, ShieldCheck: Icons.ShieldCheck, Bell: Icons.Bell,
+    84→  Brain: Icons.Brain, Sparkles: Icons.Sparkles, Eye: Icons.Eye,
+    85→  FileBarChart: Icons.FileBarChart, Settings: Icons.Settings, UserCog: Icons.UserCog,
+    86→  CalendarRange: Icons.CalendarRange,
+    87→}
+    88→
+    89→function getIcon(name: string): React.ComponentType<React.ComponentProps<'svg'>> {
+    90→  return iconMap[name] || Icons.FileText
+    91→}
+    92→
+    93→function IconByName({ name, className }: { name: string; className?: string }) {
+    94→  const Comp = getIcon(name)
+    95→  return React.createElement(Comp, { className })
+    96→}
+    97→
+    98→// ─────────────────────────────────────────────────────────────────────
+    99→// MENU DATA HOOK — Fetches from /api/menus?role=<role> with caching
+   100→// ─────────────────────────────────────────────────────────────────────
+   101→
+   102→const menuCache: Record<string, { data: MenuGroup[]; timestamp: number }> = {}
+   103→const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+   104→
+   105→function useMenuData(role: string) {
+   106→  const [menuGroups, setMenuGroups] = useState<MenuGroup[]>([])
+   107→  const [loading, setLoading] = useState(true)
+   108→
+   109→  useEffect(() => {
+   110→    let cancelled = false
+   111→
+   112→    async function fetchMenus() {
+   113→      // Check cache first
+   114→      const cached = menuCache[role]
+   115→      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+   116→        if (!cancelled) {
+   117→          setMenuGroups(cached.data)
+   118→          setLoading(false)
+   119→        }
+   120→        return
+   121→      }
+   122→
+   123→      try {
+   124→        const res = await fetch(`/api/menus?role=${role}`)
+   125→        const json = await res.json()
+   126→        if (!cancelled && json.success) {
+   127→          const data = json.data as MenuGroup[]
+   128→          menuCache[role] = { data, timestamp: Date.now() }
+   129→          setMenuGroups(data)
+   130→        }
+   131→      } catch (err) {
+   132→        console.error('Failed to fetch menus:', err)
+   133→      } finally {
+   134→        if (!cancelled) setLoading(false)
+   135→      }
+   136→    }
+   137→
+   138→    fetchMenus()
+   139→    return () => { cancelled = true }
+   140→  }, [role])
+   141→
+   142→  return { menuGroups, loading }
+   143→}
+   144→
+   145→// ─────────────────────────────────────────────────────────────────────
+   146→// ACTIVE PAGE FINDER — finds which group/item/child contains the page
+   147→// ─────────────────────────────────────────────────────────────────────
+   148→
+   149→interface ActiveInfo {
+   150→  groupId: string | null
+   151→  itemId: string | null  // for sub-child active, this is the parent item id
+   152→}
+   153→
+   154→function findActiveInfo(groups: MenuGroup[], currentPage: string): ActiveInfo {
+   155→  let groupId: string | null = null
+   156→  let itemId: string | null = null
+   157→
+   158→  for (const group of groups) {
+   159→    for (const item of group.items) {
+   160→      if (item.page === currentPage && !item.isCategory) {
+   161→        groupId = group.id
+   162→        return { groupId, itemId: null }
+   163→      }
+   164→      // Check children
+   165→      if (item.hasChildren) {
+   166→        for (const child of item.children) {
+   167→          if (child.page === currentPage) {
+   168→            groupId = group.id
+   169→            itemId = item.id
+   170→            return { groupId, itemId }
+   171→          }
+   172→        }
+   173→      }
+   174→    }
+   175→  }
+   176→
+   177→  return { groupId, itemId }
+   178→}
+   179→
+   180→// ─────────────────────────────────────────────────────────────────────
+   181→// ANIMATION VARIANTS
+   182→// ─────────────────────────────────────────────────────────────────────
+   183→
+   184→const expandVariants = {
+   185→  hidden: {
+   186→    height: 0,
+   187→    opacity: 0,
+   188→    overflow: 'hidden',
+   189→  },
+   190→  visible: {
+   191→    height: 'auto',
+   192→    opacity: 1,
+   193→    overflow: 'hidden',
+   194→    transition: {
+   195→      height: {
+   196→        duration: 0.25,
+   197→        ease: [0.4, 0, 0.2, 1],
+   198→      },
+   199→      opacity: {
+   200→        duration: 0.2,
+   201→        delay: 0.05,
+   202→        ease: 'easeOut',
+   203→      },
+   204→    },
+   205→  },
+   206→  exit: {
+   207→    height: 0,
+   208→    opacity: 0,
+   209→    overflow: 'hidden',
+   210→    transition: {
+   211→      height: {
+   212→        duration: 0.2,
+   213→        ease: [0.4, 0, 1, 1],
+   214→      },
+   215→      opacity: {
+   216→        duration: 0.15,
+   217→        ease: 'easeIn',
+   218→      },
+   219→    },
+   220→  },
+   221→}
+   222→
+   223→// ─────────────────────────────────────────────────────────────────────
+   224→// SKELETON LOADER
+   225→// ─────────────────────────────────────────────────────────────────────
+   226→
+   227→function SidebarSkeleton() {
+   228→  return (
+   229→    <div className="space-y-2 px-2 py-2">
+   230→      {Array.from({ length: 8 }).map((_, i) => (
+   231→        <div key={i} className="space-y-1.5">
+   232→          <Skeleton className="h-8 w-full rounded-md" />
+   233→          {i < 3 && (
+   234→            <div className="pl-4 space-y-1">
+   235→              <Skeleton className="h-7 w-[85%] rounded-md" />
+   236→              {i < 2 && <Skeleton className="h-7 w-[70%] rounded-md" />}
+   237→            </div>
+   238→          )}
+   239→        </div>
+   240→      ))}
+   241→    </div>
+   242→  )
+   243→}
+   244→
+   245→// ─────────────────────────────────────────────────────────────────────
+   246→// SUB-NAV ITEM (Level 3 — always a leaf node)
+   247→// ─────────────────────────────────────────────────────────────────────
+   248→
+   249→interface SidebarSubNavItemProps {
+   250→  item: MenuSubItem
+   251→  currentPage: string
+   252→  onNavigate: (page: string) => void
+   253→}
+   254→
+   255→function SidebarSubNavItem({ item, currentPage, onNavigate }: SidebarSubNavItemProps) {
+   256→  const isActive = item.page === currentPage
+   257→
+   258→  return (
+   259→    <button
+   260→      onClick={() => onNavigate(item.page)}
+   261→      className={cn(
+   262→        'flex items-center gap-2 w-full h-7 px-2.5 rounded-md text-[12px] transition-colors',
+   263→        'hover:bg-accent/50',
+   264→        isActive
+   265→          ? 'font-medium bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60'
+   266→          : 'text-muted-foreground hover:text-foreground'
+   267→      )}
+   268→    >
+   269→      <IconByName name={item.icon} className={cn(
+   270→        'h-3 w-3 shrink-0',
+   271→        isActive ? 'text-amber-600 dark:text-amber-400' : ''
+   272→      )} />
+   273→      <span className="truncate">{item.label}</span>
+   274→    </button>
+   275→  )
+   276→}
+   277→
+   278→// ─────────────────────────────────────────────────────────────────────
+   279→// NAV ITEM (Level 2 — leaf or expandable folder)
+   280→// ─────────────────────────────────────────────────────────────────────
+   281→
+   282→interface SidebarNavItemProps {
+   283→  item: MenuTreeItem
+   284→  currentPage: string
+   285→  hasActiveDescendant: boolean
+   286→  expanded: boolean
+   287→  onNavigate: (page: string) => void
+   288→  onToggle: () => void
+   289→}
+   290→
+   291→function SidebarNavItem({ item, currentPage, hasActiveDescendant, expanded, onNavigate, onToggle }: SidebarNavItemProps) {
+   292→  const isFolder = item.isCategory || item.hasChildren
+   293→  const isActive = item.page === currentPage && !item.isCategory
+   294→
+   295→  // Leaf node — navigate directly
+   296→  if (!isFolder) {
+   297→    return (
+   298→      <button
+   299→        onClick={() => onNavigate(item.page)}
+   300→        className={cn(
+   301→          'flex items-center gap-2.5 w-full h-8 px-2.5 rounded-md text-[13px] transition-colors',
+   302→          'hover:bg-accent/50',
+   303→          isActive
+   304→            ? 'font-medium bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60'
+   305→            : 'text-muted-foreground hover:text-foreground'
+   306→        )}
+   307→      >
+   308→        <IconByName name={item.icon} className={cn(
+   309→          'h-3.5 w-3.5 shrink-0',
+   310→          isActive ? 'text-amber-600 dark:text-amber-400' : ''
+   311→        )} />
+   312→        <span className="truncate">{item.label}</span>
+   313→      </button>
+   314→    )
+   315→  }
+   316→
+   317→  // Folder / Category — expand to show children
+   318→  return (
+   319→    <div>
+   320→      <button
+   321→        onClick={onToggle}
+   322→        className={cn(
+   323→          'flex items-center gap-2.5 w-full h-8 px-2.5 rounded-md text-[13px] transition-colors',
+   324→          'hover:bg-accent/50',
+   325→          hasActiveDescendant
+   326→            ? 'text-amber-900 dark:text-amber-200'
+   327→            : 'text-muted-foreground hover:text-foreground'
+   328→        )}
+   329→      >
+   330→        <IconByName name={item.icon} className={cn(
+   331→          'h-3.5 w-3.5 shrink-0',
+   332→          hasActiveDescendant ? 'text-amber-600 dark:text-amber-400' : ''
+   333→        )} />
+   334→        <span className="flex-1 text-left truncate">{item.label}</span>
+   335→        <motion.div
+   336→          animate={{ rotate: expanded ? 0 : -90 }}
+   337→          transition={{ duration: 0.2, ease: 'easeInOut' }}
+   338→        >
+   339→          <ChevronDown className={cn(
+   340→            'h-3 w-3 shrink-0',
+   341→            hasActiveDescendant ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+   342→          )} />
+   343→        </motion.div>
+   344→      </button>
+   345→
+   346→      <AnimatePresence initial={false}>
+   347→        {expanded && (
+   348→          <motion.div
+   349→            key={`${item.id}-children`}
+   350→            variants={expandVariants}
+   351→            initial="hidden"
+   352→            animate="visible"
+   353→            exit="exit"
+   354→          >
+   355→            <div className="pl-6 pr-1 py-0.5 space-y-0.5">
+   356→              {item.children.map((child) => (
+   357→                <SidebarSubNavItem
+   358→                  key={child.id}
+   359→                  item={child}
+   360→                  currentPage={currentPage}
+   361→                  onNavigate={onNavigate}
+   362→                />
+   363→              ))}
+   364→            </div>
+   365→          </motion.div>
+   366→        )}
+   367→      </AnimatePresence>
+   368→    </div>
+   369→  )
+   370→}
+   371→
+   372→// ─────────────────────────────────────────────────────────────────────
+   373→// SIDEBAR NAV GROUP (Level 1 — collapsible parent group)
+   374→// ─────────────────────────────────────────────────────────────────────
+   375→
+   376→interface SidebarNavGroupProps {
+   377→  group: MenuGroup
+   378→  expanded: boolean
+   379→  currentPage: string
+   380→  collapsed: boolean
+   381→  onToggle: () => void
+   382→  onNavigate: (page: string) => void
+   383→  expandedItems: Record<string, boolean>
+   384→  onToggleItem: (itemId: string) => void
+   385→}
+   386→
+   387→function SidebarNavGroup({ group, expanded, currentPage, collapsed, onToggle, onNavigate, expandedItems, onToggleItem }: SidebarNavGroupProps) {
+   388→  const isSingleItem = group.items.length === 1 && !group.items[0].hasChildren && !group.items[0].isCategory
+   389→
+   390→  // Check if any item or sub-child is active
+   391→  const hasActiveChild = useMemo(() => {
+   392→    for (const item of group.items) {
+   393→      if (item.page === currentPage && !item.isCategory) return true
+   394→      if (item.hasChildren && item.children.some((c) => c.page === currentPage)) return true
+   395→    }
+   396→    return false
+   397→  }, [group.items, currentPage])
+   398→
+   399→  // ── COLLAPSED SIDEBAR: icon-only with tooltip ──
+   400→  if (collapsed) {
+   401→    return (
+   402→      <TooltipProvider delayDuration={0}>
+   403→        <Tooltip>
+   404→          <TooltipTrigger asChild>
+   405→            <Button
+   406→              variant={hasActiveChild ? 'secondary' : 'ghost'}
+   407→              size="icon"
+   408→              className={cn(
+   409→                'w-full h-9',
+   410→                hasActiveChild && 'bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:bg-amber-950/30 dark:text-amber-200'
+   411→              )}
+   412→              onClick={() => {
+   413→                if (isSingleItem) {
+   414→                  onNavigate(group.items[0].page)
+   415→                }
+   416→                // Multi-item: tooltip shows the list
+   417→              }}
+   418→            >
+   419→              <IconByName name={group.icon} className="h-4 w-4" />
+   420→            </Button>
+   421→          </TooltipTrigger>
+   422→          <TooltipContent side="right">
+   423→            <p className="font-semibold text-xs">{group.label}</p>
+   424→            {group.items.length > 0 && (
+   425→              <div className="mt-1 pt-1 border-t border-border/50 space-y-0.5">
+   426→                {group.items.map((item) => {
+   427→                  if (item.isCategory && item.hasChildren) {
+   428→                    return (
+   429→                      <React.Fragment key={item.id}>
+   430→                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{item.label}</div>
+   431→                        {item.children.map((child) => (
+   432→                          <button
+   433→                            key={child.id}
+   434→                            className={cn(
+   435→                              'block text-xs py-0.5 pl-2 w-full text-left hover:text-amber-600 transition-colors',
+   436→                              child.page === currentPage && 'text-amber-600 font-medium'
+   437→                            )}
+   438→                            onClick={(e) => { e.stopPropagation(); onNavigate(child.page) }}
+   439→                          >
+   440→                            {child.label}
+   441→                          </button>
+   442→                        ))}
+   443→                      </React.Fragment>
+   444→                    )
+   445→                  }
+   446→                  return (
+   447→                    <button
+   448→                      key={item.id}
+   449→                      className={cn(
+   450→                        'block text-xs py-0.5 w-full text-left hover:text-amber-600 transition-colors',
+   451→                        item.page === currentPage && !item.isCategory && 'text-amber-600 font-medium'
+   452→                      )}
+   453→                      onClick={(e) => { e.stopPropagation(); if (!item.isCategory) onNavigate(item.page) }}
+   454→                    >
+   455→                      {item.label}
+   456→                    </button>
+   457→                  )
+   458→                })}
+   459→              </div>
+   460→            )}
+   461→          </TooltipContent>
+   462→        </Tooltip>
+   463→      </TooltipProvider>
+   464→    )
+   465→  }
+   466→
+   467→  // ── EXPANDED SIDEBAR ──
+   468→  return (
+   469→    <div className="flex flex-col">
+   470→      <button
+   471→        onClick={() => {
+   472→          if (isSingleItem) {
+   473→            onNavigate(group.items[0].page)
+   474→          } else {
+   475→            onToggle()
+   476→          }
+   477→        }}
+   478→        className={cn(
+   479→          'flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-sm font-semibold transition-colors',
+   480→          'hover:bg-accent/50',
+   481→          hasActiveChild
+   482→            ? 'text-amber-900 bg-amber-50/80 dark:text-amber-200 dark:bg-amber-950/20'
+   483→            : 'text-foreground'
+   484→        )}
+   485→        aria-expanded={isSingleItem ? undefined : expanded}
+   486→      >
+   487→        <IconByName name={group.icon} className={cn(
+   488→          'h-4 w-4 shrink-0',
+   489→          hasActiveChild ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+   490→        )} />
+   491→        <span className="flex-1 text-left truncate">{group.label}</span>
+   492→        {!isSingleItem && (
+   493→          <motion.div
+   494→            animate={{ rotate: expanded ? 0 : -90 }}
+   495→            transition={{ duration: 0.2, ease: 'easeInOut' }}
+   496→          >
+   497→            <ChevronDown className={cn(
+   498→              'h-3.5 w-3.5 shrink-0',
+   499→              hasActiveChild ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+   500→            )} />
+   501→          </motion.div>
+   502→        )}
+   503→      </button>
+   504→
+   505→      {isSingleItem ? null : (
+   506→        <AnimatePresence initial={false}>
+   507→          {expanded && (
+   508→            <motion.div
+   509→              key={`${group.id}-children`}
+   510→              variants={expandVariants}
+   511→              initial="hidden"
+   512→              animate="visible"
+   513→              exit="exit"
+   514→            >
+   515→              <div className="pl-4 pr-1 py-1 space-y-0.5">
+   516→                {group.items.map((item) => {
+   517→                  const hasActiveDesc = item.hasChildren && item.children.some((c) => c.page === currentPage)
+   518→                  const isItemExpanded = !!expandedItems[item.id]
+   519→
+   520→                  return (
+   521→                    <SidebarNavItem
+   522→                      key={item.id}
+   523→                      item={item}
+   524→                      currentPage={currentPage}
+   525→                      hasActiveDescendant={hasActiveDesc}
+   526→                      expanded={isItemExpanded}
+   527→                      onNavigate={onNavigate}
+   528→                      onToggle={() => onToggleItem(item.id)}
+   529→                    />
+   530→                  )
+   531→                })}
+   532→              </div>
+   533→            </motion.div>
+   534→          )}
+   535→        </AnimatePresence>
+   536→      )}
+   537→    </div>
+   538→  )
+   539→}
+   540→
+   541→// ─────────────────────────────────────────────────────────────────────
+   542→// SIDEBAR COMPONENT
+   543→// ─────────────────────────────────────────────────────────────────────
+   544→
+   545→export function AppSidebar() {
+   546→  const { sidebarOpen, setSidebarOpen, user, logout, currentPage, navigate } = useAppStore()
+   547→  const userRole = user?.role || 'admin'
+   548→  const { menuGroups, loading } = useMenuData(userRole)
+   549→
+   550→  // Track expanded groups
+   551→  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+   552→  // Track expanded items (level 2 folders)
+   553→  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
+   554→
+   555→  // Find active page info
+   556→  const activeInfo = useMemo(() => findActiveInfo(menuGroups, currentPage), [menuGroups, currentPage])
+   557→
+   558→  // Auto-expand group and item when active info changes (derived state)
+   559→  const derivedExpandedGroups = useMemo(() => {
+   560→    if (!activeInfo.groupId) return expandedGroups
+   561→    return { ...expandedGroups, [activeInfo.groupId]: true }
+   562→  }, [activeInfo.groupId, expandedGroups])
+   563→
+   564→  const derivedExpandedItems = useMemo(() => {
+   565→    if (!activeInfo.itemId) return expandedItems
+   566→    return { ...expandedItems, [activeInfo.itemId]: true }
+   567→  }, [activeInfo.itemId, expandedItems])
+   568→
+   569→  const toggleGroup = useCallback((groupId: string) => {
+   570→    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
+   571→  }, [])
+   572→
+   573→  const toggleItem = useCallback((itemId: string) => {
+   574→    setExpandedItems((prev) => ({ ...prev, [itemId]: !prev[itemId] }))
+   575→  }, [])
+   576→
+   577→  const handleNavigate = useCallback((page: string) => {
+   578→    navigate(page as AppPage)
+   579→  }, [navigate])
+   580→
+   581→  return (
+   582→    <aside
+   583→      className={cn(
+   584→        'flex flex-col border-r bg-card transition-all duration-300 ease-in-out h-screen sticky top-0',
+   585→        sidebarOpen ? 'w-[260px]' : 'w-16'
+   586→      )}
+   587→    >
+   588→      {/* Logo */}
+   589→      <div className="flex items-center h-14 px-3 border-b shrink-0">
+   590→        {sidebarOpen ? (
+   591→          <div className="flex items-center gap-2 w-full">
+   592→            <div className="h-8 w-8 rounded-lg bg-amber-600 flex items-center justify-center shrink-0">
+   593→              <HardHat className="h-5 w-5 text-white" />
+   594→            </div>
+   595→            <div className="flex flex-col min-w-0">
+   596→              <span className="font-bold text-sm leading-none">SMARTBUILD</span>
+   597→              <span className="text-[10px] text-muted-foreground">Construction ERP</span>
+   598→            </div>
+   599→          </div>
+   600→        ) : (
+   601→          <div className="h-8 w-8 rounded-lg bg-amber-600 flex items-center justify-center mx-auto">
+   602→            <HardHat className="h-5 w-5 text-white" />
+   603→          </div>
+   604→        )}
+   605→      </div>
+   606→
+   607→      {/* Navigation */}
+   608→      <ScrollArea className="flex-1 py-2">
+   609→        {loading ? (
+   610→          sidebarOpen ? (
+   611→            <SidebarSkeleton />
+   612→          ) : (
+   613→            <div className="space-y-2 px-2 py-2">
+   614→              {Array.from({ length: 8 }).map((_, i) => (
+   615→                <Skeleton key={i} className="h-9 w-9 rounded-md mx-auto" />
+   616→              ))}
+   617→            </div>
+   618→          )
+   619→        ) : (
+   620→          <div className="space-y-0.5 px-2">
+   621→            {menuGroups.map((group) => (
+   622→              <SidebarNavGroup
+   623→                key={group.id}
+   624→                group={group}
+   625→                expanded={!!derivedExpandedGroups[group.id]}
+   626→                currentPage={currentPage}
+   627→                collapsed={!sidebarOpen}
+   628→                onToggle={() => toggleGroup(group.id)}
+   629→                onNavigate={handleNavigate}
+   630→                expandedItems={derivedExpandedItems}
+   631→                onToggleItem={toggleItem}
+   632→              />
+   633→            ))}
+   634→          </div>
+   635→        )}
+   636→      </ScrollArea>
+   637→
+   638→      {/* User */}
+   639→      <div className="border-t p-2 shrink-0">
+   640→        {sidebarOpen ? (
+   641→          <div className="flex items-center gap-2 px-2 py-1.5">
+   642→            <Avatar className="h-8 w-8 shrink-0">
+   643→              <AvatarFallback className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+   644→                {user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
+   645→              </AvatarFallback>
+   646→            </Avatar>
+   647→            <div className="flex-1 min-w-0">
+   648→              <p className="text-sm font-medium truncate">{user?.name}</p>
+   649→              <p className="text-[11px] text-muted-foreground truncate capitalize">{user?.role?.replace('_', ' ')}</p>
+   650→            </div>
+   651→            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => logout()}>
+   652→              <LogOut className="h-3.5 w-3.5" />
+   653→            </Button>
+   654→          </div>
+   655→        ) : (
+   656→          <TooltipProvider delayDuration={0}>
+   657→            <Tooltip>
+   658→              <TooltipTrigger asChild>
+   659→                <Button variant="ghost" size="icon" className="w-full h-9" onClick={() => logout()}>
+   660→                  <LogOut className="h-4 w-4" />
+   661→                </Button>
+   662→              </TooltipTrigger>
+   663→              <TooltipContent side="right">Logout</TooltipContent>
+   664→            </Tooltip>
+   665→          </TooltipProvider>
+   666→        )}
+   667→      </div>
+   668→
+   669→      {/* Toggle */}
+   670→      <Button
+   671→        variant="outline"
+   672→        size="icon"
+   673→        className="absolute -right-3 top-16 h-6 w-6 rounded-full border bg-card shadow-sm z-10"
+   674→        onClick={() => setSidebarOpen(!sidebarOpen)}
+   675→      >
+   676→        {sidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+   677→      </Button>
+   678→    </aside>
+   679→  )
+   680→}
+   681→
+   682→// ─────────────────────────────────────────────────────────────────────
+   683→// HEADER
+   684→// ─────────────────────────────────────────────────────────────────────
+   685→
+   686→function getRoleColor(role: string) {
+   687→  const colors: Record<string, string> = {
+   688→    admin: 'bg-amber-100 text-amber-700',
+   689→    supervisor: 'bg-blue-100 text-blue-700',
+   690→    manager: 'bg-purple-100 text-purple-700',
+   691→    accountant: 'bg-emerald-100 text-emerald-700',
+   692→    client: 'bg-teal-100 text-teal-700',
+   693→    technician: 'bg-orange-100 text-orange-700',
+   694→    labour: 'bg-stone-100 text-stone-700',
+   695→    dispatcher: 'bg-cyan-100 text-cyan-700',
+   696→  }
+   697→  return colors[role] || 'bg-stone-100 text-stone-700'
+   698→}
+   699→
+   700→function getInitials(name: string) {
+   701→  if (!name) return 'U'
+   702→  return name
+   703→    .split(' ')
+   704→    .map((n) => n[0])
+   705→    .join('')
+   706→    .toUpperCase()
+   707→    .slice(0, 2)
+   708→}
+   709→
+   710→export function AppHeader() {
+   711→  const { breadcrumbs, navigate, user, logout } = useAppStore()
+   712→
+   713→  const initials = getInitials(user?.name || '')
+   714→  const roleColor = getRoleColor(user?.role || '')
+   715→  const roleName = (user?.role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+   716→
+   717→  return (
+   718→    <header className="h-14 border-b bg-card flex items-center justify-between px-4 sticky top-0 z-40">
+   719→      {/* Left: Breadcrumbs */}
+   720→      <div className="flex items-center gap-2">
+   721→        <nav className="flex items-center gap-1.5 text-sm">
+   722→          {breadcrumbs.map((crumb, i) => (
+   723→            <React.Fragment key={i}>
+   724→              {i > 0 && <span className="text-muted-foreground">/</span>}
+   725→              <button
+   726→                onClick={() => crumb.page && navigate(crumb.page, crumb.params)}
+   727→                className={cn(
+   728→                  'hover:text-foreground transition-colors',
+   729→                  i === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
+   730→                )}
+   731→              >
+   732→                {crumb.label}
+   733→              </button>
+   734→            </React.Fragment>
+   735→          ))}
+   736→        </nav>
+   737→      </div>
+   738→
+   739→      {/* Right: Notifications + Session Timer + Profile */}
+   740→      <div className="flex items-center gap-2">
+   741→        <Button
+   742→          variant="ghost"
+   743→          size="icon"
+   744→          className="h-9 w-9"
+   745→          onClick={() => navigate('notifications')}
+   746→        >
+   747→          <Bell className="h-4 w-4" />
+   748→        </Button>
+   749→
+   750→        <SessionTimerBadge />
+   751→
+   752→        <DropdownMenu>
+   753→          <DropdownMenuTrigger asChild>
+   754→            <Button
+   755→              variant="ghost"
+   756→              className="h-9 gap-2 px-2 hover:bg-accent"
+   757→            >
+   758→              <Avatar className="h-7 w-7 shrink-0">
+   759→                <AvatarFallback className={cn('text-[11px] font-semibold', roleColor)}>
+   760→                  {initials}
+   761→                </AvatarFallback>
+   762→              </Avatar>
+   763→              <div className="hidden sm:flex flex-col items-start leading-none">
+   764→                <span className="text-sm font-medium">{user?.name || 'User'}</span>
+   765→                <span className="text-[10px] text-muted-foreground capitalize">{roleName}</span>
+   766→              </div>
+   767→              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+   768→            </Button>
+   769→          </DropdownMenuTrigger>
+   770→          <DropdownMenuContent align="end" className="w-56">
+   771→            {/* User Info */}
+   772→            <DropdownMenuLabel className="p-3">
+   773→              <div className="flex items-center gap-3">
+   774→                <Avatar className="h-10 w-10 shrink-0">
+   775→                  <AvatarFallback className={cn('text-sm font-semibold', roleColor)}>
+   776→                    {initials}
+   777→                  </AvatarFallback>
+   778→                </Avatar>
+   779→                <div className="flex-1 min-w-0">
+   780→                  <p className="text-sm font-semibold truncate">{user?.name || 'User'}</p>
+   781→                  <div className="flex items-center gap-1.5 mt-0.5">
+   782→                    <Shield className="h-3 w-3 text-muted-foreground" />
+   783→                    <span className="text-xs text-muted-foreground capitalize">{roleName}</span>
+   784→                  </div>
+   785→                  {user?.email && (
+   786→                    <div className="flex items-center gap-1 mt-0.5">
+   787→                      <Mail className="h-3 w-3 text-muted-foreground" />
+   788→                      <span className="text-[11px] text-muted-foreground truncate">{user.email}</span>
+   789→                    </div>
+   790→                  )}
+   791→                </div>
+   792→              </div>
+   793→            </DropdownMenuLabel>
+   794→
+   795→            <DropdownMenuSeparator />
+   796→
+   797→            {/* Profile, Security & Settings */}
+   798→            <DropdownMenuGroup>
+   799→              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate('settings')}>
+   800→                <User className="h-4 w-4" />
+   801→                <span>My Profile</span>
+   802→                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+   803→              </DropdownMenuItem>
+   804→              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate('settings')}>
+   805→                <Settings className="h-4 w-4" />
+   806→                <span>Settings</span>
+   807→                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+   808→              </DropdownMenuItem>
+   809→              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate('login-activity')}>
+   810→                <Shield className="h-4 w-4" />
+   811→                <span>Login Activity</span>
+   812→              </DropdownMenuItem>
+   813→            </DropdownMenuGroup>
+   814→
+   815→            <DropdownMenuSeparator />
+   816→
+   817→            {/* Logout */}
+   818→            <DropdownMenuItem
+   819→              className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+   820→              onClick={() => logout()}
+   821→            >
+   822→              <LogOut className="h-4 w-4" />
+   823→              <span>Log out</span>
+   824→              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+   825→            </DropdownMenuItem>
+   826→          </DropdownMenuContent>
+   827→        </DropdownMenu>
+   828→      </div>
+   829→    </header>
+   830→  )
+   831→}
+   832→
+   833→// ─────────────────────────────────────────────────────────────────────
+   834→// LAYOUT
+   835→// ─────────────────────────────────────────────────────────────────────
+   836→
+   837→export function AppLayout({ children }: { children: React.ReactNode }) {
+   838→  return (
+   839→    <div className="min-h-screen">
+   840→      {/* ── Mobile Layout (< 768px) ── */}
+   841→      <div className="flex flex-col md:hidden">
+   842→        <MobileHeader />
+   843→        <main className="flex-1 overflow-auto">
+   844→          {children}
+   845→        </main>
+   846→        <MobileBottomNav />
+   847→      </div>
+   848→
+   849→      {/* ── Desktop / Tablet Layout (>= 768px) ── */}
+   850→      <div className="hidden md:flex min-h-screen">
+   851→        <AppSidebar />
+   852→        <div className="flex-1 flex flex-col min-w-0">
+   853→          <AppHeader />
+   854→          <main className="flex-1 overflow-auto">
+   855→            {children}
+   856→          </main>
+   857→        </div>
+   858→      </div>
+   859→    </div>
+   860→  )
+   861→}

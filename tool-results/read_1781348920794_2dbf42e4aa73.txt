@@ -1,0 +1,702 @@
+     1→import { db } from '@/lib/db'
+     2→
+     3→function daysAgo(days: number): Date {
+     4→  const d = new Date()
+     5→  d.setDate(d.getDate() - days)
+     6→  d.setHours(0, 0, 0, 0)
+     7→  return d
+     8→}
+     9→
+    10→function daysFromNow(days: number): Date {
+    11→  const d = new Date()
+    12→  d.setDate(d.getDate() + days)
+    13→  d.setHours(0, 0, 0, 0)
+    14→  return d
+    15→}
+    16→
+    17→function daysFromNowTime(days: number): Date {
+    18→  const d = new Date()
+    19→  d.setDate(d.getDate() + days)
+    20→  return d
+    21→}
+    22→
+    23→async function main() {
+    24→  console.log('🌱 Seeding SMARTBUILD Collaboration Module...')
+    25→
+    26→  // Find project: try specific ID first, then fallback to first active project
+    27→  let project = await db.project.findUnique({
+    28→    where: { id: 'cmqb07i1z0001pknyu09vgl60' },
+    29→  })
+    30→  if (!project) {
+    31→    project = await db.project.findFirst({ where: { status: 'active' } })
+    32→  }
+    33→  if (!project) {
+    34→    console.error('❌ No active project found. Please seed base data first.')
+    35→    process.exit(1)
+    36→  }
+    37→  console.log(`📐 Using project: ${project.name} (${project.id})`)
+    38→
+    39→  // Find users for references
+    40→  const adminUser = await db.user.findFirst({ where: { role: 'admin' } })
+    41→  const supervisorUser = await db.user.findFirst({ where: { role: 'supervisor' } })
+    42→  const accountantUser = await db.user.findFirst({ where: { role: 'accountant' } })
+    43→  const storeManagerUser = await db.user.findFirst({ where: { role: 'store_manager' } })
+    44→  const clientUser = await db.user.findFirst({ where: { role: 'client' } })
+    45→
+    46→  if (!adminUser || !supervisorUser) {
+    47→    console.error('❌ Required users not found. Please seed base data first.')
+    48→    process.exit(1)
+    49→  }
+    50→
+    51→  const adminId = adminUser.id
+    52→  const supervisorId = supervisorUser.id
+    53→  const accountantId = accountantUser?.id || adminId
+    54→  const storeManagerId = storeManagerUser?.id || adminId
+    55→  const clientId = clientUser?.id || adminId
+    56→
+    57→  const pid = project.id
+    58→
+    59→  // ============ PROJECT TEAM MEMBERS ============
+    60→  console.log('👥 Creating project team members...')
+    61→  try {
+    62→    const existingTeam = await db.projectTeamMember.findMany({ where: { projectId: pid } })
+    63→    if (existingTeam.length === 0) {
+    64→      await db.projectTeamMember.createMany({
+    65→        data: [
+    66→          {
+    67→            projectId: pid,
+    68→            name: 'Vikram Malhotra',
+    69→            role: 'owner',
+    70→            company: 'Skyline Developers Pvt Ltd',
+    71→            phone: '+91 98100 12345',
+    72→            email: 'vikram@skylinedevelopers.com',
+    73→            isActive: true,
+    74→          },
+    75→          {
+    76→            projectId: pid,
+    77→            name: 'Rajesh Kumar',
+    78→            role: 'project_manager',
+    79→            company: 'Skyline Developers Pvt Ltd',
+    80→            phone: '+91 98765 43211',
+    81→            email: 'rajesh@smartbuild.com',
+    82→            isActive: true,
+    83→          },
+    84→          {
+    85→            projectId: pid,
+    86→            name: 'Arjun Nair',
+    87→            role: 'site_engineer',
+    88→            company: 'SmartBuild Constructions',
+    89→            phone: '+91 99880 56789',
+    90→            email: 'arjun.nair@smartbuild.com',
+    91→            isActive: true,
+    92→          },
+    93→          {
+    94→            projectId: pid,
+    95→            name: 'Suresh Reddy',
+    96→            role: 'supervisor',
+    97→            company: 'SmartBuild Constructions',
+    98→            phone: '+91 98765 43214',
+    99→            email: 'suresh@smartbuild.com',
+   100→            isActive: true,
+   101→          },
+   102→          {
+   103→            projectId: pid,
+   104→            name: 'Dr. Kavitha Rao',
+   105→            role: 'consultant',
+   106→            company: 'Rao Structural Consultants',
+   107→            phone: '+91 94480 34567',
+   108→            email: 'kavitha@raoconsultants.com',
+   109→            isActive: true,
+   110→          },
+   111→        ],
+   112→      })
+   113→      console.log('  ✅ 5 team members created')
+   114→    } else {
+   115→      console.log('  ⏭️  Team members already exist, skipping')
+   116→    }
+   117→  } catch (error: any) {
+   118→    console.log(`  ⚠️  Team members error: ${error.message}`)
+   119→  }
+   120→
+   121→  // ============ OPEN ITEMS ============
+   122→  console.log('📋 Creating open items...')
+   123→  try {
+   124→    const existingOI = await db.openItem.findMany({ where: { projectId: pid } })
+   125→    if (existingOI.length === 0) {
+   126→      await db.openItem.createMany({
+   127→        data: [
+   128→          {
+   129→            projectId: pid,
+   130→            itemNo: 'OI-001',
+   131→            title: 'Clarification on foundation bolt spacing',
+   132→            description: 'Structural drawings show 200mm c/c but site condition requires 150mm. Need approval for modification.',
+   133→            category: 'rfi',
+   134→            priority: 'high',
+   135→            status: 'open',
+   136→            assignedTo: 'Dr. Kavitha Rao',
+   137→            dueDate: daysFromNow(3),
+   138→            createdById: supervisorId,
+   139→          },
+   140→          {
+   141→            projectId: pid,
+   142→            itemNo: 'OI-002',
+   143→            title: 'Water seepage in basement level B2',
+   144→            description: 'During excavation, water seepage observed at gridline A-B. Need dewatering plan before proceeding.',
+   145→            category: 'site_issue',
+   146→            priority: 'critical',
+   147→            status: 'in_review',
+   148→            assignedTo: 'Arjun Nair',
+   149→            dueDate: daysAgo(2),
+   150→            createdById: supervisorId,
+   151→          },
+   152→          {
+   153→            projectId: pid,
+   154→            itemNo: 'OI-003',
+   155→            title: 'Missing edge protection on 7th floor slab',
+   156→            description: 'Workers observed working near unprotected edges on 7th floor. Immediate safety barriers required.',
+   157→            category: 'safety_issue',
+   158→            priority: 'critical',
+   159→            status: 'pending',
+   160→            assignedTo: 'Suresh Reddy',
+   161→            dueDate: daysFromNow(0),
+   162→            createdById: adminId,
+   163→          },
+   164→          {
+   165→            projectId: pid,
+   166→            itemNo: 'OI-004',
+   167→            title: 'Request for additional 50 tons of TMT Fe-500D bars',
+   168→            description: 'Design revision requires additional reinforcement. Current stock insufficient for upcoming slab work.',
+   169→            category: 'material_request',
+   170→            priority: 'high',
+   171→            status: 'open',
+   172→            assignedTo: 'Suresh Reddy',
+   173→            dueDate: daysFromNow(7),
+   174→            createdById: storeManagerId,
+   175→          },
+   176→          {
+   177→            projectId: pid,
+   178→            itemNo: 'OI-005',
+   179→            title: 'Client requests upgraded lobby flooring',
+   180→            description: 'Client has requested to upgrade from vitrified tiles to Italian marble for the main lobby. Cost impact to be assessed.',
+   181→            category: 'client_request',
+   182→            priority: 'medium',
+   183→            status: 'open',
+   184→            assignedTo: 'Rajesh Kumar',
+   185→            dueDate: daysFromNow(14),
+   186→            createdById: adminId,
+   187→          },
+   188→          {
+   189→            projectId: pid,
+   190→            itemNo: 'OI-006',
+   191→            title: 'Approval for revised structural steel connection',
+   192→            description: 'Connection design at level 12 beam-column joint needs consultant approval after site constraint modification.',
+   193→            category: 'approval_required',
+   194→            priority: 'high',
+   195→            status: 'in_review',
+   196→            assignedTo: 'Dr. Kavitha Rao',
+   197→            dueDate: daysFromNow(5),
+   198→            createdById: supervisorId,
+   199→          },
+   200→          {
+   201→            projectId: pid,
+   202→            itemNo: 'OI-007',
+   203→            title: 'Change in MEP duct routing due to beam clash',
+   204→            description: 'HVAC duct routing conflicts with structural beam at grid C-5 to C-7. Rerouting required with additional supports.',
+   205→            category: 'change_request',
+   206→            priority: 'medium',
+   207→            status: 'open',
+   208→            assignedTo: 'Arjun Nair',
+   209→            dueDate: daysFromNow(10),
+   210→            createdById: supervisorId,
+   211→          },
+   212→          {
+   213→            projectId: pid,
+   214→            itemNo: 'OI-008',
+   215→            title: 'Delay in cement delivery from primary supplier',
+   216→            description: 'UltraTech has informed 3-day delay in cement supply. Need to arrange alternate supplier or adjust pour schedule.',
+   217→            category: 'material_request',
+   218→            priority: 'high',
+   219→            status: 'resolved',
+   220→            assignedTo: 'Suresh Reddy',
+   221→            dueDate: daysAgo(1),
+   222→            resolvedDate: daysAgo(1),
+   223→            resolvedById: storeManagerId,
+   224→            createdById: supervisorId,
+   225→          },
+   226→        ],
+   227→      })
+   228→      console.log('  ✅ 8 open items created')
+   229→    } else {
+   230→      console.log('  ⏭️  Open items already exist, skipping')
+   231→    }
+   232→  } catch (error: any) {
+   233→    console.log(`  ⚠️  Open items error: ${error.message}`)
+   234→  }
+   235→
+   236→  // ============ RFIs ============
+   237→  console.log('📝 Creating RFIs...')
+   238→  let rfi1Id = ''
+   239→  let rfi2Id = ''
+   240→  try {
+   241→    const existingRFIs = await db.rFI.findMany({ where: { projectId: pid } })
+   242→    if (existingRFIs.length === 0) {
+   243→      const rfi1 = await db.rFI.create({
+   244→        data: {
+   245→          projectId: pid,
+   246→          rfiNo: 'RFI-001',
+   247→          title: 'Foundation Bolt Spacing Clarification',
+   248→          description: 'As per structural drawing SKY-T1-STR-003, the anchor bolt spacing for base plates at column C1-C5 is shown as 200mm c/c. However, due to the existing rock strata encountered during excavation, the pedestal size needs to be reduced. We propose changing the bolt spacing to 150mm c/c with Grade 8.8 bolts. Please confirm structural adequacy.',
+   249→          category: 'technical',
+   250→          priority: 'high',
+   251→          status: 'submitted',
+   252→          submittedById: supervisorId,
+   253→          assignedTo: 'Dr. Kavitha Rao',
+   254→          dueDate: daysFromNow(5),
+   255→        },
+   256→      })
+   257→      rfi1Id = rfi1.id
+   258→
+   259→      const rfi2 = await db.rFI.create({
+   260→        data: {
+   261→          projectId: pid,
+   262→          rfiNo: 'RFI-002',
+   263→          title: 'Concrete Mix Design for Pumped Concrete',
+   264→          description: 'For the 12th floor slab pour (approx 180 cum), we need approval for M40 grade pumped concrete with fly ash replacement. Proposed mix: OPC 53 - 350 kg, Fly Ash - 90 kg, W/C ratio 0.42, Admixture - 1.2% by weight of cement. Please review and approve.',
+   265→          category: 'technical',
+   266→          priority: 'medium',
+   267→          status: 'under_review',
+   268→          submittedById: supervisorId,
+   269→          assignedTo: 'Dr. Kavitha Rao',
+   270→          dueDate: daysFromNow(7),
+   271→        },
+   272→      })
+   273→      rfi2Id = rfi2.id
+   274→
+   275→      await db.rFI.create({
+   276→        data: {
+   277→          projectId: pid,
+   278→          rfiNo: 'RFI-003',
+   279→          title: 'Payment Milestone Clarification for Structural Work',
+   280→          description: 'The contract mentions "completion of structural frame up to 10th floor" as Milestone 3. We are at 9th floor slab completion. The client wants to include 9th floor columns in the current milestone. Need written confirmation from client representative.',
+   281→          category: 'commercial',
+   282→          priority: 'high',
+   283→          status: 'answered',
+   284→          submittedById: accountantId,
+   285→          assignedTo: 'Vikram Malhotra',
+   286→          dueDate: daysAgo(5),
+   287→          answeredById: clientId,
+   288→          answeredAt: daysAgo(3),
+   289→        },
+   290→      })
+   291→
+   292→      await db.rFI.create({
+   293→        data: {
+   294→          projectId: pid,
+   295→          rfiNo: 'RFI-004',
+   296→          title: 'Fire Escape Staircase Width - Code Compliance',
+   297→          description: 'Draft question regarding the required width of fire escape staircase as per NBC 2016. Current design shows 1.2m width but occupancy calculations suggest 1.5m may be required. Seeking clarification before proceeding with architectural drawings.',
+   298→          category: 'design',
+   299→          priority: 'medium',
+   300→          status: 'draft',
+   301→          submittedById: supervisorId,
+   302→        },
+   303→      })
+   304→      console.log('  ✅ 4 RFIs created')
+   305→    } else {
+   306→      console.log('  ⏭️  RFIs already exist, skipping')
+   307→      // Still need IDs for comments
+   308→      const rfiForComments = await db.rFI.findFirst({
+   309→        where: { projectId: pid, status: { in: ['submitted', 'under_review'] } },
+   310→      })
+   311→      if (rfiForComments) {
+   312→        rfi1Id = rfiForComments.id
+   313→      }
+   314→    }
+   315→  } catch (error: any) {
+   316→    console.log(`  ⚠️  RFIs error: ${error.message}`)
+   317→  }
+   318→
+   319→  // ============ RFI COMMENTS ============
+   320→  console.log('💬 Creating RFI comments...')
+   321→  try {
+   322→    if (rfi1Id) {
+   323→      const existingComments = await db.rFIComment.findMany({ where: { rfiId: rfi1Id } })
+   324→      if (existingComments.length === 0) {
+   325→        await db.rFIComment.createMany({
+   326→          data: [
+   327→            {
+   328→              rfiId: rfi1Id,
+   329→              userId: supervisorId,
+   330→              content: 'We have also checked with the steel fabricator - they can accommodate 150mm c/c spacing with standard base plate modifications. The additional cost for Grade 8.8 bolts is approximately ₹45,000 for all base plates at this level.',
+   331→            },
+   332→            {
+   333→              rfiId: rfi1Id,
+   334→              userId: adminId,
+   335→              content: 'Please also provide a revised anchor bolt schedule and the calculation sheet for the revised connection. We need this for our records and future reference during QC inspection.',
+   336→            },
+   337→          ],
+   338→        })
+   339→        console.log('  ✅ 2 RFI comments created')
+   340→      } else {
+   341→        console.log('  ⏭️  RFI comments already exist, skipping')
+   342→      }
+   343→    }
+   344→  } catch (error: any) {
+   345→    console.log(`  ⚠️  RFI comments error: ${error.message}`)
+   346→  }
+   347→
+   348→  // ============ CHANGE EVENTS ============
+   349→  console.log('🔄 Creating change events...')
+   350→  let ce1Id = ''
+   351→  let ce2Id = ''
+   352→  try {
+   353→    const existingCE = await db.changeEvent.findMany({ where: { projectId: pid } })
+   354→    if (existingCE.length === 0) {
+   355→      const ce1 = await db.changeEvent.create({
+   356→        data: {
+   357→          projectId: pid,
+   358→          eventNo: 'CE-001',
+   359→          title: 'Additional Waterproofing in Basement',
+   360→          description: 'Due to high water table encountered during excavation, additional waterproofing treatment required for basement walls and raft. Includes crystalline waterproofing additive and additional membrane layers.',
+   361→          category: 'scope',
+   362→          impactType: 'cost',
+   363→          potentialCostImpact: 2850000,
+   364→          potentialScheduleImpact: '12 days',
+   365→          status: 'approved',
+   366→          submittedById: supervisorId,
+   367→          reviewedById: accountantId,
+   368→          approvedById: adminId,
+   369→        },
+   370→      })
+   371→      ce1Id = ce1.id
+   372→
+   373→      const ce2 = await db.changeEvent.create({
+   374→        data: {
+   375→          projectId: pid,
+   376→          eventNo: 'CE-002',
+   377→          title: 'Upgraded MEP Specifications',
+   378→          description: 'Client requested upgrade from standard split AC to VRV system for floors 1-5. This affects duct routing, electrical load, and structural provisions for AHU units.',
+   379→          category: 'scope',
+   380→          impactType: 'cost',
+   381→          potentialCostImpact: 12500000,
+   382→          potentialScheduleImpact: '21 days',
+   383→          status: 'review',
+   384→          submittedById: supervisorId,
+   385→          reviewedById: accountantId,
+   386→        },
+   387→      })
+   388→      ce2Id = ce2.id
+   389→
+   390→      const ce3 = await db.changeEvent.create({
+   391→        data: {
+   392→          projectId: pid,
+   393→          eventNo: 'CE-003',
+   394→          title: 'Revised Excavation Method - Rock Blasting',
+   395→          description: 'Hard rock encountered below 8m depth requiring controlled blasting instead of mechanical excavation. Need specialized contractor and additional safety measures.',
+   396→          category: 'schedule',
+   397→          impactType: 'schedule',
+   398→          potentialCostImpact: 4200000,
+   399→          potentialScheduleImpact: '28 days',
+   400→          status: 'open',
+   401→          submittedById: supervisorId,
+   402→        },
+   403→      })
+   404→
+   405→      console.log('  ✅ 3 change events created')
+   406→    } else {
+   407→      console.log('  ⏭️  Change events already exist, skipping')
+   408→      const ceForCO = await db.changeEvent.findMany({
+   409→        where: { projectId: pid, status: { in: ['approved', 'review'] } },
+   410→        take: 2,
+   411→      })
+   412→      if (ceForCO.length >= 1) ce1Id = ceForCO[0].id
+   413→      if (ceForCO.length >= 2) ce2Id = ceForCO[1].id
+   414→    }
+   415→  } catch (error: any) {
+   416→    console.log(`  ⚠️  Change events error: ${error.message}`)
+   417→  }
+   418→
+   419→  // ============ CHANGE ORDERS ============
+   420→  console.log('📋 Creating change orders...')
+   421→  try {
+   422→    const existingCO = await db.changeOrder.findMany({ where: { projectId: pid } })
+   423→    if (existingCO.length === 0) {
+   424→      await db.changeOrder.create({
+   425→        data: {
+   426→          projectId: pid,
+   427→          changeEventId: ce1Id || undefined,
+   428→          coNo: 'CO-001',
+   429→          title: 'Change Order - Basement Waterproofing',
+   430→          description: 'Approved change order for additional waterproofing in B1 and B2 levels. Includes crystalline waterproofing, additional membrane, and drainage provisions.',
+   431→          costAdjustment: 2850000,
+   432→          timeAdjustment: '12 days',
+   433→          originalBudget: 150000000,
+   434→          adjustedBudget: 152850000,
+   435→          status: 'approved',
+   436→          submittedById: accountantId,
+   437→          approvedById: adminId,
+   438→        },
+   439→      })
+   440→
+   441→      await db.changeOrder.create({
+   442→        data: {
+   443→          projectId: pid,
+   444→          changeEventId: ce2Id || undefined,
+   445→          coNo: 'CO-002',
+   446→          title: 'Change Order - VRV System Upgrade',
+   447→          description: 'Change order for upgrading HVAC system from split AC to VRV for floors 1-5. Pending final client approval on cost sharing.',
+   448→          costAdjustment: 12500000,
+   449→          timeAdjustment: '21 days',
+   450→          originalBudget: 152850000,
+   451→          adjustedBudget: 165350000,
+   452→          status: 'submitted',
+   453→          submittedById: accountantId,
+   454→        },
+   455→      })
+   456→
+   457→      console.log('  ✅ 2 change orders created')
+   458→    } else {
+   459→      console.log('  ⏭️  Change orders already exist, skipping')
+   460→    }
+   461→  } catch (error: any) {
+   462→    console.log(`  ⚠️  Change orders error: ${error.message}`)
+   463→  }
+   464→
+   465→  // ============ PROJECT COMMITMENTS ============
+   466→  console.log('📦 Creating project commitments...')
+   467→  try {
+   468→    const existingCommitments = await db.projectCommitment.findMany({ where: { projectId: pid } })
+   469→    if (existingCommitments.length === 0) {
+   470→      await db.projectCommitment.createMany({
+   471→        data: [
+   472→          {
+   473→            projectId: pid,
+   474→            type: 'purchase_order',
+   475→            vendor: 'UltraTech Cement Ltd',
+   476→            description: 'Supply of OPC 53 Grade Cement - 5000 MT over 6 months',
+   477→            contractValue: 37500000,
+   478→            committedCost: 22500000,
+   479→            remainingCost: 15000000,
+   480→            status: 'active',
+   481→            startDate: daysAgo(60),
+   482→            endDate: daysFromNow(120),
+   483→          },
+   484→          {
+   485→            projectId: pid,
+   486→            type: 'subcontract',
+   487→            vendor: 'Krishna Earthworks Pvt Ltd',
+   488→            description: 'Excavation, earthwork, and foundation for basement B1-B2 levels',
+   489→            contractValue: 18500000,
+   490→            committedCost: 14200000,
+   491→            remainingCost: 4300000,
+   492→            status: 'active',
+   493→            startDate: daysAgo(75),
+   494→            endDate: daysFromNow(15),
+   495→          },
+   496→          {
+   497→            projectId: pid,
+   498→            type: 'material_order',
+   499→            vendor: 'Tata Steel Distributors',
+   500→            description: 'TMT Fe-500D rebars - 1200 MT as per bar bending schedule',
+   501→            contractValue: 78000000,
+   502→            committedCost: 52000000,
+   503→            remainingCost: 26000000,
+   504→            status: 'active',
+   505→            startDate: daysAgo(45),
+   506→            endDate: daysFromNow(150),
+   507→          },
+   508→          {
+   509→            projectId: pid,
+   510→            type: 'labour_contract',
+   511→            vendor: 'SkillBuild Manpower Solutions',
+   512→            description: 'Skilled and unskilled labour supply for structural work - 200 workers',
+   513→            contractValue: 24000000,
+   514→            committedCost: 16000000,
+   515→            remainingCost: 8000000,
+   516→            status: 'active',
+   517→            startDate: daysAgo(60),
+   518→            endDate: daysFromNow(180),
+   519→          },
+   520→        ],
+   521→      })
+   522→      console.log('  ✅ 4 project commitments created')
+   523→    } else {
+   524→      console.log('  ⏭️  Project commitments already exist, skipping')
+   525→    }
+   526→  } catch (error: any) {
+   527→    console.log(`  ⚠️  Project commitments error: ${error.message}`)
+   528→  }
+   529→
+   530→  // ============ DIRECT COSTS ============
+   531→  console.log('💰 Creating direct costs...')
+   532→  try {
+   533→    const existingDC = await db.directCost.findMany({ where: { projectId: pid } })
+   534→    if (existingDC.length === 0) {
+   535→      await db.directCost.createMany({
+   536→        data: [
+   537→          {
+   538→            projectId: pid,
+   539→            category: 'equipment',
+   540→            description: 'Tower crane rental - POTAIN MC 125 (month of May)',
+   541→            amount: 850000,
+   542→            date: daysAgo(15),
+   543→            approvedById: adminId,
+   544→            status: 'approved',
+   545→            createdById: supervisorId,
+   546→          },
+   547→          {
+   548→            projectId: pid,
+   549→            category: 'materials',
+   550→            description: 'Formwork plywood purchase - 200 sheets 18mm commercial',
+   551→            amount: 720000,
+   552→            date: daysAgo(10),
+   553→            approvedById: adminId,
+   554→            status: 'approved',
+   555→            createdById: storeManagerId,
+   556→          },
+   557→          {
+   558→            projectId: pid,
+   559→            category: 'fuel',
+   560→            description: 'DG set fuel - 2000 liters diesel for site power backup',
+   561→            amount: 188000,
+   562→            date: daysAgo(5),
+   563→            approvedById: adminId,
+   564→            status: 'approved',
+   565→            createdById: supervisorId,
+   566→          },
+   567→          {
+   568→            projectId: pid,
+   569→            category: 'transportation',
+   570→            description: 'Muck disposal - 120 trips to designated landfill site',
+   571→            amount: 960000,
+   572→            date: daysAgo(8),
+   573→            approvedById: adminId,
+   574→            status: 'pending',
+   575→            createdById: supervisorId,
+   576→          },
+   577→          {
+   578→            projectId: pid,
+   579→            category: 'accommodation',
+   580→            description: 'Labour camp rent and utilities for June 2025',
+   581→            amount: 450000,
+   582→            date: daysAgo(2),
+   583→            approvedById: supervisorId,
+   584→            status: 'pending',
+   585→            createdById: supervisorId,
+   586→          },
+   587→          {
+   588→            projectId: pid,
+   589→            category: 'miscellaneous',
+   590→            description: 'PPE procurement - helmets, safety shoes, harnesses for new workers',
+   591→            amount: 185000,
+   592→            date: daysAgo(3),
+   593→            approvedById: adminId,
+   594→            status: 'approved',
+   595→            createdById: storeManagerId,
+   596→          },
+   597→        ],
+   598→      })
+   599→      console.log('  ✅ 6 direct costs created')
+   600→    } else {
+   601→      console.log('  ⏭️  Direct costs already exist, skipping')
+   602→    }
+   603→  } catch (error: any) {
+   604→    console.log(`  ⚠️  Direct costs error: ${error.message}`)
+   605→  }
+   606→
+   607→  // ============ PRIME CONTRACT ============
+   608→  console.log('📄 Creating prime contract...')
+   609→  try {
+   610→    const existingPC = await db.primeContract.findUnique({ where: { projectId: pid } })
+   611→    if (!existingPC) {
+   612→      await db.primeContract.create({
+   613→        data: {
+   614→          projectId: pid,
+   615→          contractNo: 'SC-2025-001',
+   616→          client: 'Skyline Developers Pvt Ltd',
+   617→          originalValue: 150000000,
+   618→          variationOrders: 2850000,
+   619→          retention: 5,
+   620→          claims: 0,
+   621→          status: 'active',
+   622→          startDate: daysAgo(90),
+   623→          endDate: daysFromNow(180),
+   624→        },
+   625→      })
+   626→      console.log('  ✅ 1 prime contract created')
+   627→    } else {
+   628→      console.log('  ⏭️  Prime contract already exists, skipping')
+   629→    }
+   630→  } catch (error: any) {
+   631→    console.log(`  ⚠️  Prime contract error: ${error.message}`)
+   632→  }
+   633→
+   634→  // ============ PROJECT COMMENTS ============
+   635→  console.log('💬 Creating project comments...')
+   636→  try {
+   637→    const existingComments = await db.projectComment.findMany({ where: { projectId: pid } })
+   638→    if (existingComments.length === 0) {
+   639→      // Get entity IDs for attaching comments
+   640→      const firstOI = await db.openItem.findFirst({ where: { projectId: pid } })
+   641→      const firstRFI = await db.rFI.findFirst({ where: { projectId: pid } })
+   642→
+   643→      await db.projectComment.createMany({
+   644→        data: [
+   645→          {
+   646→            projectId: pid,
+   647→            userId: adminId,
+   648→            entityType: 'general',
+   649→            entityId: null,
+   650→            content: 'Team meeting scheduled for Friday 3 PM to discuss upcoming slab pour sequence and resource allocation for next month.',
+   651→            mentions: JSON.stringify([supervisorId, accountantId]),
+   652→          },
+   653→          {
+   654→            projectId: pid,
+   655→            userId: supervisorId,
+   656→            entityType: 'general',
+   657→            entityId: null,
+   658→            content: 'Concrete cube test results for 8th floor columns received - all 3 samples passed with average strength of 46.2 MPa against required 40 MPa. QC team to file report.',
+   659→          },
+   660→          {
+   661→            projectId: pid,
+   662→            userId: accountantId,
+   663→            entityType: 'change_order',
+   664→            entityId: firstOI?.id || null,
+   665→            content: 'Budget impact of approved change orders has been updated in the financial dashboard. Total approved variations now stand at ₹28.5 Lakhs.',
+   666→          },
+   667→          {
+   668→            projectId: pid,
+   669→            userId: supervisorId,
+   670→            entityType: 'rfi',
+   671→            entityId: firstRFI?.id || null,
+   672→            content: 'Following up on RFI response. The steel fabrication is on hold pending this clarification. Fabricator needs confirmation by EOD Thursday to maintain schedule.',
+   673→          },
+   674→          {
+   675→            projectId: pid,
+   676→            userId: adminId,
+   677→            entityType: 'general',
+   678→            entityId: null,
+   679→            content: 'Safety audit completed. Overall rating: Satisfactory. Two minor observations noted - PPE compliance at east wing and housekeeping near material storage. Corrective actions assigned.',
+   680→            mentions: JSON.stringify([supervisorId]),
+   681→          },
+   682→        ],
+   683→      })
+   684→      console.log('  ✅ 5 project comments created')
+   685→    } else {
+   686→      console.log('  ⏭️  Project comments already exist, skipping')
+   687→    }
+   688→  } catch (error: any) {
+   689→    console.log(`  ⚠️  Project comments error: ${error.message}`)
+   690→  }
+   691→
+   692→  console.log('✅ Collaboration module seeding complete!')
+   693→}
+   694→
+   695→main()
+   696→  .catch((error) => {
+   697→    console.error('❌ Seed failed:', error)
+   698→    process.exit(1)
+   699→  })
+   700→  .finally(() => {
+   701→    db.$disconnect()
+   702→  })

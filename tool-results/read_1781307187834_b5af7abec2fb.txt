@@ -1,0 +1,571 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState } from 'react'
+     4→     4→import { api, useAppStore, queryKeys } from '@/lib/store'
+     5→     5→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     6→     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→     7→import { Badge } from '@/components/ui/badge'
+     8→     8→import { Button } from '@/components/ui/button'
+     9→     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→    10→import { Input } from '@/components/ui/input'
+    11→    11→import { Label } from '@/components/ui/label'
+    12→    12→import { Textarea } from '@/components/ui/textarea'
+    13→    13→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    14→    14→import {
+    15→    15→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+    16→    16→} from '@/components/ui/dialog'
+    17→    17→import {
+    18→    18→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    19→    19→} from '@/components/ui/table'
+    20→    20→import { Separator } from '@/components/ui/separator'
+    21→    21→import { Progress } from '@/components/ui/progress'
+    22→    22→import { ScrollArea } from '@/components/ui/scroll-area'
+    23→    23→import {
+    24→    24→  Plus, Pencil, Trash2, Eye, CheckCircle, XCircle, Lock, ChevronDown, ChevronRight,
+    25→    25→  DollarSign, FileText, AlertTriangle, CalendarDays,
+    26→    26→} from 'lucide-react'
+    27→    27→import { cn } from '@/lib/utils'
+    28→    28→import { format } from 'date-fns'
+    29→    29→
+    30→    30→// ─── Helpers ───
+    31→    31→function formatCurrency(val: number) {
+    32→    32→  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+    33→    33→  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+    34→    34→  return `$${val.toFixed(0)}`
+    35→    35→}
+    36→    36→
+    37→    37→const statusColor: Record<string, string> = {
+    38→    38→  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    39→    39→  approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+    40→    40→  locked: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    41→    41→  closed: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    42→    42→}
+    43→    43→
+    44→    44→// ─── Types ───
+    45→    45→interface Budget {
+    46→    46→  id: string
+    47→    47→  projectId: string
+    48→    48→  originalValue: number
+    49→    49→  revisedValue: number
+    50→    50→  approvedChanges: number
+    51→    51→  pendingChanges: number
+    52→    52→  retentionPercent: number
+    53→    53→  status: string
+    54→    54→  createdAt: string
+    55→    55→  updatedAt: string
+    56→    56→  project: { id: string; name: string; code: string; status: string }
+    57→    57→  createdBy: { id: string; name: string }
+    58→    58→  approvedBy?: { id: string; name: string } | null
+    59→    59→  _count: { lineItems: number; changeOrders: number; snapshots: number }
+    60→    60→}
+    61→    61→
+    62→    62→interface LineItem {
+    63→    63→  id: string
+    64→    64→  budgetId: string
+    65→    65→  costCodeId: string
+    66→    66→  originalBudget: number
+    67→    67→  revisedBudget: number
+    68→    68→  committedCost: number
+    69→    69→  actualCost: number
+    70→    70→  forecastToComplete: number
+    71→    71→  estimatedAtCompletion: number
+    72→    72→  percentComplete: number
+    73→    73→  earnedRevenue: number
+    74→    74→  billedRevenue: number
+    75→    75→  notes?: string
+    76→    76→  costCode: {
+    77→    77→    id: string; code: string; name: string; level: number
+    78→    78→    parent?: { id: string; code: string; name: string; parent?: { id: string; code: string; name: string } | null } | null
+    79→    79→  }
+    80→    80→}
+    81→    81→
+    82→    82→interface CostCode {
+    83→    83→  id: string
+    84→    84→  code: string
+    85→    85→  name: string
+    86→    86→  level: number
+    87→    87→  unitType?: string
+    88→    88→}
+    89→    89→
+    90→    90→interface Project {
+    91→    91→  id: string
+    92→    92→  name: string
+    93→    93→  code: string
+    94→    94→  status: string
+    95→    95→}
+    96→    96→
+    97→    97→export function BudgetManagement() {
+    98→    98→  const queryClient = useQueryClient()
+    99→    99→  const { navigate } = useAppStore()
+   100→   100→  const [statusFilter, setStatusFilter] = useState('all')
+   101→   101→  const [expandedBudget, setExpandedBudget] = useState<string | null>(null)
+   102→   102→  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+   103→   103→  const [addLineItemDialog, setAddLineItemDialog] = useState<string | null>(null)
+   104→   104→  const [editLineItem, setEditLineItem] = useState<LineItem | null>(null)
+   105→   105→  const [selectedProject, setSelectedProject] = useState('')
+   106→   106→
+   107→   107→  // Fetch budgets
+   108→   108→  const { data: budgets = [], isLoading } = useQuery({
+   109→   109→    queryKey: ['cost-control-budgets', statusFilter],
+   110→   110→    queryFn: () => api.get<Budget[]>(`/api/cost-control/budgets?status=${statusFilter}`).then(r => r.data!),
+   111→   111→  })
+   112→   112→
+   113→   113→  // Fetch projects without budgets
+   114→   114→  const { data: projects = [] } = useQuery({
+   115→   115→    queryKey: ['projects-no-budget'],
+   116→   116→    queryFn: () => api.get<Project[]>('/api/projects').then(r => {
+   117→   117→      const projectData = r.data || []
+   118→   118→      const budgetProjectIds = budgets.map(b => b.projectId)
+   119→   119→      return projectData.filter(p => !budgetProjectIds.includes(p.id))
+   120→   120→    }),
+   121→   121→  })
+   122→   122→
+   123→   123→  // Fetch cost codes (leaf level)
+   124→   124→  const { data: costCodes = [] } = useQuery({
+   125→   125→    queryKey: ['cost-codes-leaf'],
+   126→   126→    queryFn: () => api.get<CostCode[]>('/api/cost-control/cost-codes?includeUsage=true').then(r => r.data || []),
+   127→   127→  })
+   128→   128→
+   129→   129→  // Fetch detail for expanded budget
+   130→   130→  const { data: budgetDetail } = useQuery({
+   131→   131→    queryKey: ['budget-detail', expandedBudget],
+   132→   132→    queryFn: () => api.get<any>(`/api/cost-control/budgets/${expandedBudget}`).then(r => r.data),
+   133→   133→    enabled: !!expandedBudget,
+   134→   134→  })
+   135→   135→
+   136→   136→  // Create budget mutation
+   137→   137→  const createMutation = useMutation({
+   138→   138→    mutationFn: (body: any) => api.post('/api/cost-control/budgets', body),
+   139→   139→    onSuccess: () => {
+   140→   140→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   141→   141→      setCreateDialogOpen(false)
+   142→   142→      setSelectedProject('')
+   143→   143→    },
+   144→   144→  })
+   145→   145→
+   146→   146→  // Update budget status
+   147→   147→  const updateStatusMutation = useMutation({
+   148→   148→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/cost-control/budgets/${id}`, { status }),
+   149→   149→    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] }),
+   150→   150→  })
+   151→   151→
+   152→   152→  // Delete budget
+   153→   153→  const deleteMutation = useMutation({
+   154→   154→    mutationFn: (id: string) => api.del(`/api/cost-control/budgets/${id}`),
+   155→   155→    onSuccess: () => {
+   156→   156→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   157→   157→      setExpandedBudget(null)
+   158→   158→    },
+   159→   159→  })
+   160→   160→
+   161→   161→  // Add line item
+   162→   162→  const addLineItemMutation = useMutation({
+   163→   163→    mutationFn: ({ budgetId, ...body }: any) => api.post(`/api/cost-control/budgets/${budgetId}/line-items`, body),
+   164→   164→    onSuccess: () => {
+   165→   165→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   166→   166→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   167→   167→      setAddLineItemDialog(null)
+   168→   168→    },
+   169→   169→  })
+   170→   170→
+   171→   171→  // Update line item
+   172→   172→  const updateLineItemMutation = useMutation({
+   173→   173→    mutationFn: ({ budgetId, itemId, ...body }: any) => api.put(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`, body),
+   174→   174→    onSuccess: () => {
+   175→   175→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   176→   176→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   177→   177→      setEditLineItem(null)
+   178→   178→    },
+   179→   179→  })
+   180→   180→
+   181→   181→  // Delete line item
+   182→   182→  const deleteLineItemMutation = useMutation({
+   183→   183→    mutationFn: ({ budgetId, itemId }: { budgetId: string; itemId: string }) => api.del(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`),
+   184→   184→    onSuccess: () => {
+   185→   185→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   186→   186→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   187→   187→    },
+   188→   188→  })
+   189→   189→
+   190→   190→  const lineItems: LineItem[] = budgetDetail?.lineItems || []
+   191→   191→
+   192→   192→  return (
+   193→   193→    <div className="p-6 space-y-6">
+   194→   194→      {/* Header */}
+   195→   195→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   196→   196→        <div>
+   197→   197→          <h1 className="text-2xl font-bold tracking-tight">Budget Management</h1>
+   198→   198→          <p className="text-muted-foreground text-sm mt-1">Create and manage project budgets with detailed line items</p>
+   199→   199→        </div>
+   200→   200→        <div className="flex items-center gap-2">
+   201→   201→          <Select value={statusFilter} onValueChange={setStatusFilter}>
+   202→   202→            <SelectTrigger className="w-36 h-9 text-sm">
+   203→   203→              <SelectValue />
+   204→   204→            </SelectTrigger>
+   205→   205→            <SelectContent>
+   206→   206→              <SelectItem value="all">All Status</SelectItem>
+   207→   207→              <SelectItem value="draft">Draft</SelectItem>
+   208→   208→              <SelectItem value="approved">Approved</SelectItem>
+   209→   209→              <SelectItem value="locked">Locked</SelectItem>
+   210→   210→              <SelectItem value="closed">Closed</SelectItem>
+   211→   211→            </SelectContent>
+   212→   212→          </Select>
+   213→   213→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setCreateDialogOpen(true)}>
+   214→   214→            <Plus className="h-4 w-4 mr-1" /> New Budget
+   215→   215→          </Button>
+   216→   216→        </div>
+   217→   217→      </div>
+   218→   218→
+   219→   219→      {/* Budget Table */}
+   220→   220→      <Card>
+   221→   221→        <CardContent className="p-0">
+   222→   222→          {isLoading ? (
+   223→   223→            <div className="p-6 space-y-3">
+   224→   224→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   225→   225→            </div>
+   226→   226→          ) : budgets.length === 0 ? (
+   227→   227→            <div className="py-16 text-center">
+   228→   228→              <FileText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+   229→   229→              <p className="text-sm text-muted-foreground">No budgets found. Create your first budget to get started.</p>
+   230→   230→            </div>
+   231→   231→          ) : (
+   232→   232→            <Table>
+   233→   233→              <TableHeader>
+   234→   234→                <TableRow>
+   235→   235→                  <TableHead className="text-xs w-8"></TableHead>
+   236→   236→                  <TableHead className="text-xs">Project</TableHead>
+   237→   237→                  <TableHead className="text-xs text-right">Original</TableHead>
+   238→   238→                  <TableHead className="text-xs text-right">Revised</TableHead>
+   239→   239→                  <TableHead className="text-xs text-right">Pending CO</TableHead>
+   240→   240→                  <TableHead className="text-xs">Status</TableHead>
+   241→   241→                  <TableHead className="text-xs">Items</TableHead>
+   242→   242→                  <TableHead className="text-xs">Created</TableHead>
+   243→   243→                  <TableHead className="text-xs text-right">Actions</TableHead>
+   244→   244→                </TableRow>
+   245→   245→              </TableHeader>
+   246→   246→              <TableBody>
+   247→   247→                {budgets.map(b => (
+   248→   248→                  <>
+   249→   249→                    <TableRow key={b.id} className={cn('cursor-pointer', expandedBudget === b.id && 'bg-muted/50')}>
+   250→   250→                      <TableCell>
+   251→   251→                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setExpandedBudget(expandedBudget === b.id ? null : b.id)}>
+   252→   252→                          {expandedBudget === b.id ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+   253→   253→                        </Button>
+   254→   254→                      </TableCell>
+   255→   255→                      <TableCell>
+   256→   256→                        <div>
+   257→   257→                          <p className="text-sm font-medium">{b.project.name}</p>
+   258→   258→                          <p className="text-xs text-muted-foreground">{b.project.code}</p>
+   259→   259→                        </div>
+   260→   260→                      </TableCell>
+   261→   261→                      <TableCell className="text-right text-sm font-mono">{formatCurrency(b.originalValue)}</TableCell>
+   262→   262→                      <TableCell className="text-right text-sm font-mono">{formatCurrency(b.revisedValue)}</TableCell>
+   263→   263→                      <TableCell className="text-right text-sm font-mono text-amber-600">
+   264→   264→                        {b.pendingChanges > 0 ? formatCurrency(b.pendingChanges) : '—'}
+   265→   265→                      </TableCell>
+   266→   266→                      <TableCell>
+   267→   267→                        <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusColor[b.status] || '')}>
+   268→   268→                          {b.status}
+   269→   269→                        </Badge>
+   270→   270→                      </TableCell>
+   271→   271→                      <TableCell className="text-xs text-muted-foreground">{b._count.lineItems}</TableCell>
+   272→   272→                      <TableCell className="text-xs text-muted-foreground">{format(new Date(b.createdAt), 'MMM d, yyyy')}</TableCell>
+   273→   273→                      <TableCell className="text-right">
+   274→   274→                        <div className="flex items-center justify-end gap-1">
+   275→   275→                          {b.status === 'draft' && (
+   276→   276→                            <>
+   277→   277→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Approve" onClick={() => updateStatusMutation.mutate({ id: b.id, status: 'approved' })}>
+   278→   278→                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+   279→   279→                              </Button>
+   280→   280→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Delete" onClick={() => deleteMutation.mutate(b.id)}>
+   281→   281→                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
+   282→   282→                              </Button>
+   283→   283→                            </>
+   284→   284→                          )}
+   285→   285→                          {b.status === 'approved' && (
+   286→   286→                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Lock" onClick={() => updateStatusMutation.mutate({ id: b.id, status: 'locked' })}>
+   287→   287→                              <Lock className="h-3.5 w-3.5 text-amber-600" />
+   288→   288→                            </Button>
+   289→   289→                          )}
+   290→   290→                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Forecast" onClick={() => navigate('cost-forecasting', { budgetId: b.id })}>
+   291→   291→                            <DollarSign className="h-3.5 w-3.5" />
+   292→   292→                          </Button>
+   293→   293→                        </div>
+   294→   294→                      </TableCell>
+   295→   295→                    </TableRow>
+   296→   296→                    {/* Expanded Detail */}
+   297→   297→                    {expandedBudget === b.id && (
+   298→   298→                      <TableRow key={`${b.id}-detail`}>
+   299→   299→                        <TableCell colSpan={9} className="bg-muted/20 p-0">
+   300→   300→                          <div className="p-4 border-t">
+   301→   301→                            <div className="flex items-center justify-between mb-4">
+   302→   302→                              <h3 className="text-sm font-semibold">Line Items — {b.project.name}</h3>
+   303→   303→                              <div className="flex items-center gap-2">
+   304→   304→                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setAddLineItemDialog(b.id)} disabled={b.status !== 'draft'}>
+   305→   305→                                  <Plus className="h-3 w-3 mr-1" /> Add Line Item
+   306→   306→                                </Button>
+   307→   307→                              </div>
+   308→   308→                            </div>
+   309→   309→
+   310→   310→                            {lineItems.length === 0 ? (
+   311→   311→                              <div className="py-8 text-center text-sm text-muted-foreground">
+   312→   312→                                No line items. Add cost code line items to build the budget.
+   313→   313→                              </div>
+   314→   314→                            ) : (
+   315→   315→                              <div className="max-h-96 overflow-y-auto rounded-lg border">
+   316→   316→                                <Table>
+   317→   317→                                  <TableHeader>
+   318→   318→                                    <TableRow>
+   319→   319→                                      <TableHead className="text-xs">Cost Code</TableHead>
+   320→   320→                                      <TableHead className="text-xs">Original</TableHead>
+   321→   321→                                      <TableHead className="text-xs">Revised</TableHead>
+   322→   322→                                      <TableHead className="text-xs">Actual</TableHead>
+   323→   323→                                      <TableHead className="text-xs">Committed</TableHead>
+   324→   324→                                      <TableHead className="text-xs">EAC</TableHead>
+   325→   325→                                      <TableHead className="text-xs">Progress</TableHead>
+   326→   326→                                      <TableHead className="text-xs text-right">Actions</TableHead>
+   327→   327→                                    </TableRow>
+   328→   328→                                  </TableHeader>
+   329→   329→                                  <TableBody>
+   330→   330→                                    {lineItems.map(li => {
+   331→   331→                                      const variance = li.revisedBudget - li.actualCost
+   332→   332→                                      return (
+   333→   333→                                        <TableRow key={li.id}>
+   334→   334→                                          <TableCell>
+   335→   335→                                            <div>
+   336→   336→                                              <p className="text-xs font-mono font-medium">{li.costCode.code}</p>
+   337→   337→                                              <p className="text-[11px] text-muted-foreground">{li.costCode.name}</p>
+   338→   338→                                            </div>
+   339→   339→                                          </TableCell>
+   340→   340→                                          <TableCell className="text-xs font-mono">{formatCurrency(li.originalBudget)}</TableCell>
+   341→   341→                                          <TableCell className="text-xs font-mono">{formatCurrency(li.revisedBudget)}</TableCell>
+   342→   342→                                          <TableCell className={cn('text-xs font-mono', variance < 0 && 'text-red-600')}>{formatCurrency(li.actualCost)}</TableCell>
+   343→   343→                                          <TableCell className="text-xs font-mono">{formatCurrency(li.committedCost)}</TableCell>
+   344→   344→                                          <TableCell className="text-xs font-mono">{formatCurrency(li.estimatedAtCompletion)}</TableCell>
+   345→   345→                                          <TableCell>
+   346→   346→                                            <div className="flex items-center gap-2 w-24">
+   347→   347→                                              <Progress value={li.percentComplete} className="h-1.5" />
+   348→   348→                                              <span className="text-[10px] text-muted-foreground w-8 text-right">{li.percentComplete.toFixed(0)}%</span>
+   349→   349→                                            </div>
+   350→   350→                                          </TableCell>
+   351→   351→                                          <TableCell className="text-right">
+   352→   352→                                            <div className="flex items-center justify-end gap-1">
+   353→   353→                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditLineItem(li)}>
+   354→   354→                                                <Pencil className="h-3 w-3" />
+   355→   355→                                              </Button>
+   356→   356→                                              {b.status === 'draft' && (
+   357→   357→                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLineItemMutation.mutate({ budgetId: b.id, itemId: li.id })}>
+   358→   358→                                                  <Trash2 className="h-3 w-3 text-red-500" />
+   359→   359→                                                </Button>
+   360→   360→                                              )}
+   361→   361→                                            </div>
+   362→   362→                                          </TableCell>
+   363→   363→                                        </TableRow>
+   364→   364→                                      )
+   365→   365→                                    })}
+   366→   366→                                    {/* Totals row */}
+   367→   367→                                    <TableRow className="bg-muted/50 font-semibold">
+   368→   368→                                      <TableCell className="text-xs">TOTAL</TableCell>
+   369→   369→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.originalBudget, 0))}</TableCell>
+   370→   370→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.revisedBudget, 0))}</TableCell>
+   371→   371→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.actualCost, 0))}</TableCell>
+   372→   372→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.committedCost, 0))}</TableCell>
+   373→   373→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.estimatedAtCompletion, 0))}</TableCell>
+   374→   374→                                      <TableCell>
+   375→   375→                                        <span className="text-[10px]">
+   376→   376→                                          {(lineItems.reduce((s, li) => s + li.percentComplete, 0) / lineItems.length).toFixed(0)}%
+   377→   377→                                        </span>
+   378→   378→                                      </TableCell>
+   379→   379→                                      <TableCell />
+   380→   380→                                    </TableRow>
+   381→   381→                                  </TableBody>
+   382→   382→                                </Table>
+   383→   383→                              </div>
+   384→   384→                            )}
+   385→   385→                          </div>
+   386→   386→                        </TableCell>
+   387→   387→                      </TableRow>
+   388→   388→                    )}
+   389→   389→                  </>
+   390→   390→                ))}
+   391→   391→              </TableBody>
+   392→   392→            </Table>
+   393→   393→          )}
+   394→   394→        </CardContent>
+   395→   395→      </Card>
+   396→   396→
+   397→   397→      {/* Create Budget Dialog */}
+   398→   398→      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+   399→   399→        <DialogContent className="max-w-md">
+   400→   400→          <DialogHeader>
+   401→   401→            <DialogTitle>Create New Budget</DialogTitle>
+   402→   402→            <DialogDescription>Select a project and configure the budget</DialogDescription>
+   403→   403→          </DialogHeader>
+   404→   404→          <div className="space-y-4 py-2">
+   405→   405→            <div className="space-y-2">
+   406→   406→              <Label className="text-sm">Project *</Label>
+   407→   407→              <Select value={selectedProject} onValueChange={setSelectedProject}>
+   408→   408→                <SelectTrigger>
+   409→   409→                  <SelectValue placeholder="Select project..." />
+   410→   410→                </SelectTrigger>
+   411→   411→                <SelectContent>
+   412→   412→                  {projects.map(p => (
+   413→   413→                    <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>
+   414→   414→                  ))}
+   415→   415→                  {projects.length === 0 && <SelectItem value="_none" disabled>No available projects</SelectItem>}
+   416→   416→                </SelectContent>
+   417→   417→              </Select>
+   418→   418→            </div>
+   419→   419→            <p className="text-xs text-muted-foreground">
+   420→   420→              Line items can be added after creating the budget. Only projects without existing budgets are shown.
+   421→   421→            </p>
+   422→   422→          </div>
+   423→   423→          <DialogFooter>
+   424→   424→            <DialogClose asChild>
+   425→   425→              <Button variant="outline" size="sm">Cancel</Button>
+   426→   426→            </DialogClose>
+   427→   427→            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={!selectedProject || createMutation.isPending} onClick={() => createMutation.mutate({ projectId: selectedProject })}>
+   428→   428→              {createMutation.isPending ? 'Creating...' : 'Create Budget'}
+   429→   429→            </Button>
+   430→   430→          </DialogFooter>
+   431→   431→        </DialogContent>
+   432→   432→      </Dialog>
+   433→   433→
+   434→   434→      {/* Add Line Item Dialog */}
+   435→   435→      <Dialog open={!!addLineItemDialog} onOpenChange={() => setAddLineItemDialog(null)}>
+   436→   436→        <DialogContent className="max-w-md">
+   437→   437→          <DialogHeader>
+   438→   438→            <DialogTitle>Add Line Item</DialogTitle>
+   439→   439→            <DialogDescription>Add a cost code line item to this budget</DialogDescription>
+   440→   440→          </DialogHeader>
+   441→   441→          <AddLineItemForm
+   442→   442→            costCodes={costCodes}
+   443→   443→            onSubmit={(data) => addLineItemMutation.mutate({ budgetId: addLineItemDialog!, ...data })}
+   444→   444→            isLoading={addLineItemMutation.isPending}
+   445→   445→          />
+   446→   446→        </DialogContent>
+   447→   447→      </Dialog>
+   448→   448→
+   449→   449→      {/* Edit Line Item Dialog */}
+   450→   450→      <Dialog open={!!editLineItem} onOpenChange={() => setEditLineItem(null)}>
+   451→   451→        <DialogContent className="max-w-lg">
+   452→   452→          <DialogHeader>
+   453→   453→            <DialogTitle>Edit Line Item</DialogTitle>
+   454→   454→            <DialogDescription>Update cost and progress for {editLineItem?.costCode.code}</DialogDescription>
+   455→   455→          </DialogHeader>
+   456→   456→          {editLineItem && (
+   457→   457→            <EditLineItemForm
+   458→   458→              item={editLineItem}
+   459→   459→              onSubmit={(data) => updateLineItemMutation.mutate({ budgetId: editLineItem.budgetId, itemId: editLineItem.id, ...data })}
+   460→   460→              isLoading={updateLineItemMutation.isPending}
+   461→   461→            />
+   462→   462→          )}
+   463→   463→        </DialogContent>
+   464→   464→      </Dialog>
+   465→   465→    </div>
+   466→   466→  )
+   467→   467→}
+   468→   468→
+   469→   469→// ─── Sub-Components ───
+   470→   470→
+   471→   471→function AddLineItemForm({ costCodes, onSubmit, isLoading }: { costCodes: CostCode[]; onSubmit: (data: any) => void; isLoading: boolean }) {
+   472→   472→  const [costCodeId, setCostCodeId] = useState('')
+   473→   473→  const [originalBudget, setOriginalBudget] = useState('')
+   474→   474→
+   475→   475→  return (
+   476→   476→    <div className="space-y-4 py-2">
+   477→   477→      <div className="space-y-2">
+   478→   478→        <Label className="text-sm">Cost Code *</Label>
+   479→   479→        <Select value={costCodeId} onValueChange={setCostCodeId}>
+   480→   480→          <SelectTrigger>
+   481→   481→            <SelectValue placeholder="Select cost code..." />
+   482→   482→          </SelectTrigger>
+   483→   483→          <SelectContent className="max-h-60">
+   484→   484→            {costCodes.map(cc => (
+   485→   485→              <SelectItem key={cc.id} value={cc.id}>{cc.code} — {cc.name}</SelectItem>
+   486→   486→            ))}
+   487→   487→          </SelectContent>
+   488→   488→        </Select>
+   489→   489→      </div>
+   490→   490→      <div className="space-y-2">
+   491→   491→        <Label className="text-sm">Original Budget *</Label>
+   492→   492→        <Input type="number" placeholder="0.00" value={originalBudget} onChange={e => setOriginalBudget(e.target.value)} />
+   493→   493→      </div>
+   494→   494→      <DialogFooter>
+   495→   495→        <Button variant="outline" size="sm" onClick={() => { setCostCodeId(''); setOriginalBudget('') }}>Cancel</Button>
+   496→   496→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={!costCodeId || !originalBudget || isLoading} onClick={() => onSubmit({ costCodeId, originalBudget: Number(originalBudget) })}>
+   497→   497→          {isLoading ? 'Adding...' : 'Add'}
+   498→   498→        </Button>
+   499→   499→      </DialogFooter>
+   500→   500→    </div>
+   501→   501→  )
+   502→   502→}
+   503→   503→
+   504→   504→function EditLineItemForm({ item, onSubmit, isLoading }: { item: LineItem; onSubmit: (data: any) => void; isLoading: boolean }) {
+   505→   505→  const [form, setForm] = useState({
+   506→   506→    revisedBudget: String(item.revisedBudget),
+   507→   507→    committedCost: String(item.committedCost),
+   508→   508→    actualCost: String(item.actualCost),
+   509→   509→    forecastToComplete: String(item.forecastToComplete),
+   510→   510→    estimatedAtCompletion: String(item.estimatedAtCompletion),
+   511→   511→    percentComplete: String(item.percentComplete),
+   512→   512→    earnedRevenue: String(item.earnedRevenue),
+   513→   513→    billedRevenue: String(item.billedRevenue),
+   514→   514→    notes: item.notes || '',
+   515→   515→  })
+   516→   516→
+   517→   517→  const update = (key: string, val: string) => setForm(prev => ({ ...prev, [key]: val }))
+   518→   518→
+   519→   519→  return (
+   520→   520→    <div className="space-y-3 py-2">
+   521→   521→      <div className="grid grid-cols-2 gap-3">
+   522→   522→        <div className="space-y-1">
+   523→   523→          <Label className="text-xs">Revised Budget</Label>
+   524→   524→          <Input type="number" className="h-8 text-xs" value={form.revisedBudget} onChange={e => update('revisedBudget', e.target.value)} />
+   525→   525→        </div>
+   526→   526→        <div className="space-y-1">
+   527→   527→          <Label className="text-xs">Committed Cost</Label>
+   528→   528→          <Input type="number" className="h-8 text-xs" value={form.committedCost} onChange={e => update('committedCost', e.target.value)} />
+   529→   529→        </div>
+   530→   530→        <div className="space-y-1">
+   531→   531→          <Label className="text-xs">Actual Cost</Label>
+   532→   532→          <Input type="number" className="h-8 text-xs" value={form.actualCost} onChange={e => update('actualCost', e.target.value)} />
+   533→   533→        </div>
+   534→   534→        <div className="space-y-1">
+   535→   535→          <Label className="text-xs">Forecast to Complete</Label>
+   536→   536→          <Input type="number" className="h-8 text-xs" value={form.forecastToComplete} onChange={e => update('forecastToComplete', e.target.value)} />
+   537→   537→        </div>
+   538→   538→        <div className="space-y-1">
+   539→   539→          <Label className="text-xs">EAC</Label>
+   540→   540→          <Input type="number" className="h-8 text-xs" value={form.estimatedAtCompletion} onChange={e => update('estimatedAtCompletion', e.target.value)} />
+   541→   541→        </div>
+   542→   542→        <div className="space-y-1">
+   543→   543→          <Label className="text-xs">Complete %</Label>
+   544→   544→          <Input type="number" min="0" max="100" className="h-8 text-xs" value={form.percentComplete} onChange={e => update('percentComplete', e.target.value)} />
+   545→   545→        </div>
+   546→   546→        <div className="space-y-1">
+   547→   547→          <Label className="text-xs">Earned Revenue</Label>
+   548→   548→          <Input type="number" className="h-8 text-xs" value={form.earnedRevenue} onChange={e => update('earnedRevenue', e.target.value)} />
+   549→   549→        </div>
+   550→   550→        <div className="space-y-1">
+   551→   551→          <Label className="text-xs">Billed Revenue</Label>
+   552→   552→          <Input type="number" className="h-8 text-xs" value={form.billedRevenue} onChange={e => update('billedRevenue', e.target.value)} />
+   553→   553→        </div>
+   554→   554→      </div>
+   555→   555→      <div className="space-y-1">
+   556→   556→        <Label className="text-xs">Notes</Label>
+   557→   557→        <Textarea className="text-xs min-h-[60px]" value={form.notes} onChange={e => update('notes', e.target.value)} />
+   558→   558→      </div>
+   559→   559→      <DialogFooter>
+   560→   560→        <Button variant="outline" size="sm" onClick={() => setEditLineItem(null)}>Cancel</Button>
+   561→   561→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={isLoading} onClick={() => {
+   562→   562→          const data: any = {}
+   563→   563→          Object.entries(form).forEach(([k, v]) => { if (k === 'notes') data[k] = v; else data[k] = Number(v) })
+   564→   564→          onSubmit(data)
+   565→   565→        }}>
+   566→   566→          {isLoading ? 'Saving...' : 'Save Changes'}
+   567→   567→        </Button>
+   568→   568→      </DialogFooter>
+   569→   569→    </div>
+   570→   570→  )
+   571→   571→}

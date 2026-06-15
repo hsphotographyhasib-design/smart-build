@@ -1,0 +1,645 @@
+     1→'use client'
+     2→
+     3→import { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→import { Card, CardContent } from '@/components/ui/card'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Input } from '@/components/ui/input'
+    10→import { Label } from '@/components/ui/label'
+    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+    14→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+    15→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    16→import { Skeleton } from '@/components/ui/skeleton'
+    17→import { toast } from 'sonner'
+    18→import { Plus, Search, CalendarOff, Banknote, CheckCircle, XCircle } from 'lucide-react'
+    19→import { format, parseISO } from 'date-fns'
+    20→import { cn } from '@/lib/utils'
+    21→import { useFormat } from '@/hooks/use-format'
+    22→
+    23→// ──────────────────────────────────────────
+    24→// Types
+    25→// ──────────────────────────────────────────
+    26→
+    27→interface LeaveRequest {
+    28→  id: string
+    29→  employeeId: string
+    30→  type: string
+    31→  startDate: string
+    32→  endDate: string
+    33→  days: number
+    34→  reason: string | null
+    35→  status: string
+    36→  createdAt: string
+    37→  employee: { id: string; name: string; empCode: string } | null
+    38→  approvedBy: { id: string; name: string } | null
+    39→}
+    40→
+    41→interface Loan {
+    42→  id: string
+    43→  employeeId: string
+    44→  amount: number
+    45→  interestRate: number
+    46→  tenureMonths: number
+    47→  emiAmount: number
+    48→  startDate: string
+    49→  status: string
+    50→  createdAt: string
+    51→  employee: { id: string; name: string; empCode: string } | null
+    52→}
+    53→
+    54→interface Employee {
+    55→  id: string
+    56→  name: string
+    57→  empCode: string
+    58→}
+    59→
+    60→// ──────────────────────────────────────────
+    61→// Helpers
+    62→// ──────────────────────────────────────────
+    63→
+    64→function leaveStatusBadge(status: string) {
+    65→  switch (status) {
+    66→    case 'pending':
+    67→      return <Badge className="bg-amber-600 text-white border-0 text-xs">Pending</Badge>
+    68→    case 'approved':
+    69→      return <Badge className="bg-emerald-600 text-white border-0 text-xs">Approved</Badge>
+    70→    case 'rejected':
+    71→      return <Badge className="bg-red-600 text-white border-0 text-xs">Rejected</Badge>
+    72→    default:
+    73→      return <Badge variant="secondary" className="text-xs">{status}</Badge>
+    74→  }
+    75→}
+    76→
+    77→function loanStatusBadge(status: string) {
+    78→  switch (status) {
+    79→    case 'active':
+    80→      return <Badge className="bg-emerald-600 text-white border-0 text-xs">Active</Badge>
+    81→    case 'pending':
+    82→      return <Badge className="bg-amber-600 text-white border-0 text-xs">Pending</Badge>
+    83→    case 'closed':
+    84→      return <Badge className="bg-secondary text-secondary-foreground text-xs">Closed</Badge>
+    85→    default:
+    86→      return <Badge variant="secondary" className="text-xs">{status}</Badge>
+    87→  }
+    88→}
+    89→
+    90→const LEAVE_TYPES = ['Casual Leave', 'Sick Leave', 'Earned Leave', 'Maternity Leave', 'Paternity Leave', 'Compensatory Off', 'Loss of Pay']
+    91→
+    92→// ──────────────────────────────────────────
+    93→// Skeletons
+    94→// ──────────────────────────────────────────
+    95→
+    96→function TableSkeleton() {
+    97→  return (
+    98→    <div className="space-y-3 p-4">
+    99→      {Array.from({ length: 6 }).map((_, i) => (
+   100→        <div key={i} className="flex items-center gap-4">
+   101→          <Skeleton className="h-4 w-32" />
+   102→          <Skeleton className="h-4 w-24" />
+   103→          <Skeleton className="h-4 w-24" />
+   104→          <Skeleton className="h-4 w-16" />
+   105→          <Skeleton className="h-4 w-28" />
+   106→          <Skeleton className="h-5 w-16 rounded-full ml-auto" />
+   107→        </div>
+   108→      ))}
+   109→    </div>
+   110→  )
+   111→}
+   112→
+   113→// ──────────────────────────────────────────
+   114→// Apply Leave Dialog
+   115→// ──────────────────────────────────────────
+   116→
+   117→function ApplyLeaveDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+   118→  const queryClient = useQueryClient()
+   119→  const [form, setForm] = useState({
+   120→    employeeId: '',
+   121→    type: '',
+   122→    startDate: '',
+   123→    endDate: '',
+   124→    days: '',
+   125→    reason: '',
+   126→  })
+   127→
+   128→  const { data: employees } = useQuery({
+   129→    queryKey: ['employees-mini'],
+   130→    queryFn: () => api.get<{ success: boolean; data: Employee[] }>('/api/employees?status=active').then((r) => r.data),
+   131→  })
+   132→
+   133→  // Auto-calculate days
+   134→  const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
+   135→    const updated = { ...form, [field]: value }
+   136→    if (updated.startDate && updated.endDate) {
+   137→      const start = new Date(updated.startDate)
+   138→      const end = new Date(updated.endDate)
+   139→      const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+   140→      updated.days = String(Math.max(0, diff))
+   141→    }
+   142→    setForm(updated)
+   143→  }
+   144→
+   145→  const mutation = useMutation({
+   146→    mutationFn: (body: Record<string, unknown>) => api.post('/api/leave-requests', body),
+   147→    onSuccess: () => {
+   148→      queryClient.invalidateQueries({ queryKey: queryKeys.leaveRequests })
+   149→      toast.success('Leave request submitted!')
+   150→      onClose()
+   151→      setForm({ employeeId: '', type: '', startDate: '', endDate: '', days: '', reason: '' })
+   152→    },
+   153→    onError: (err: Error) => toast.error(err.message || 'Failed'),
+   154→  })
+   155→
+   156→  const handleSubmit = (e: React.FormEvent) => {
+   157→    e.preventDefault()
+   158→    if (!form.employeeId || !form.type || !form.startDate || !form.endDate) {
+   159→      toast.error('Employee, type, start date, and end date are required')
+   160→      return
+   161→    }
+   162→    mutation.mutate({
+   163→      employeeId: form.employeeId,
+   164→      type: form.type,
+   165→      startDate: form.startDate,
+   166→      endDate: form.endDate,
+   167→      days: parseFloat(form.days) || 1,
+   168→      reason: form.reason.trim() || null,
+   169→    })
+   170→  }
+   171→
+   172→  return (
+   173→    <Dialog open={open} onOpenChange={onClose}>
+   174→      <DialogContent className="sm:max-w-lg">
+   175→        <DialogHeader>
+   176→          <DialogTitle>Apply Leave</DialogTitle>
+   177→        </DialogHeader>
+   178→        <form onSubmit={handleSubmit} className="space-y-4">
+   179→          <div className="space-y-2">
+   180→            <Label>Employee *</Label>
+   181→            <Select value={form.employeeId} onValueChange={(v) => setForm({ ...form, employeeId: v })}>
+   182→              <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
+   183→              <SelectContent>
+   184→                {(employees || []).map((emp) => (
+   185→                  <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.empCode})</SelectItem>
+   186→                ))}
+   187→              </SelectContent>
+   188→            </Select>
+   189→          </div>
+   190→          <div className="space-y-2">
+   191→            <Label>Leave Type *</Label>
+   192→            <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+   193→              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+   194→              <SelectContent>
+   195→                {LEAVE_TYPES.map((t) => (
+   196→                  <SelectItem key={t} value={t}>{t}</SelectItem>
+   197→                ))}
+   198→              </SelectContent>
+   199→            </Select>
+   200→          </div>
+   201→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   202→            <div className="space-y-2">
+   203→              <Label>Start Date *</Label>
+   204→              <Input type="date" value={form.startDate} onChange={(e) => handleDateChange('startDate', e.target.value)} required />
+   205→            </div>
+   206→            <div className="space-y-2">
+   207→              <Label>End Date *</Label>
+   208→              <Input type="date" value={form.endDate} onChange={(e) => handleDateChange('endDate', e.target.value)} required />
+   209→            </div>
+   210→            <div className="space-y-2">
+   211→              <Label>Days</Label>
+   212→              <Input type="number" value={form.days} readOnly className="bg-muted" />
+   213→            </div>
+   214→          </div>
+   215→          <div className="space-y-2">
+   216→            <Label>Reason</Label>
+   217→            <Textarea
+   218→              value={form.reason}
+   219→              onChange={(e) => setForm({ ...form, reason: e.target.value })}
+   220→              placeholder="Reason for leave..."
+   221→              rows={2}
+   222→            />
+   223→          </div>
+   224→          <DialogFooter className="pt-4">
+   225→            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+   226→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={mutation.isPending}>
+   227→              {mutation.isPending ? 'Submitting...' : 'Submit Request'}
+   228→            </Button>
+   229→          </DialogFooter>
+   230→        </form>
+   231→      </DialogContent>
+   232→    </Dialog>
+   233→  )
+   234→}
+   235→
+   236→// ──────────────────────────────────────────
+   237→// Create Loan Dialog
+   238→// ──────────────────────────────────────────
+   239→
+   240→function CreateLoanDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+   241→  const queryClient = useQueryClient()
+   242→  const [form, setForm] = useState({
+   243→    employeeId: '',
+   244→    amount: '',
+   245→    interestRate: '',
+   246→    tenureMonths: '',
+   247→    emiAmount: '',
+   248→    startDate: '',
+   249→  })
+   250→
+   251→  const { data: employees } = useQuery({
+   252→    queryKey: ['employees-loan'],
+   253→    queryFn: () => api.get<{ success: boolean; data: Employee[] }>('/api/employees?status=active').then((r) => r.data),
+   254→  })
+   255→
+   256→  const mutation = useMutation({
+   257→    mutationFn: (body: Record<string, unknown>) => api.post('/api/loans', body),
+   258→    onSuccess: () => {
+   259→      queryClient.invalidateQueries({ queryKey: ['loans'] })
+   260→      toast.success('Loan created!')
+   261→      onClose()
+   262→      setForm({ employeeId: '', amount: '', interestRate: '', tenureMonths: '', emiAmount: '', startDate: '' })
+   263→    },
+   264→    onError: (err: Error) => toast.error(err.message || 'Failed'),
+   265→  })
+   266→
+   267→  const handleSubmit = (e: React.FormEvent) => {
+   268→    e.preventDefault()
+   269→    if (!form.employeeId || !form.amount || !form.startDate) {
+   270→      toast.error('Employee, amount, and start date are required')
+   271→      return
+   272→    }
+   273→    mutation.mutate({
+   274→      employeeId: form.employeeId,
+   275→      amount: parseFloat(form.amount) || 0,
+   276→      interestRate: parseFloat(form.interestRate) || 0,
+   277→      tenureMonths: parseInt(form.tenureMonths, 10) || 0,
+   278→      emiAmount: parseFloat(form.emiAmount) || 0,
+   279→      startDate: form.startDate,
+   280→    })
+   281→  }
+   282→
+   283→  return (
+   284→    <Dialog open={open} onOpenChange={onClose}>
+   285→      <DialogContent className="sm:max-w-lg">
+   286→        <DialogHeader>
+   287→          <DialogTitle>Create Loan</DialogTitle>
+   288→        </DialogHeader>
+   289→        <form onSubmit={handleSubmit} className="space-y-4">
+   290→          <div className="space-y-2">
+   291→            <Label>Employee *</Label>
+   292→            <Select value={form.employeeId} onValueChange={(v) => setForm({ ...form, employeeId: v })}>
+   293→              <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
+   294→              <SelectContent>
+   295→                {(employees || []).map((emp) => (
+   296→                  <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.empCode})</SelectItem>
+   297→                ))}
+   298→              </SelectContent>
+   299→            </Select>
+   300→          </div>
+   301→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   302→            <div className="space-y-2">
+   303→              <Label>Loan Amount *</Label>
+   304→              <Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0" required />
+   305→            </div>
+   306→            <div className="space-y-2">
+   307→              <Label>Interest Rate (%)</Label>
+   308→              <Input type="number" step="0.1" value={form.interestRate} onChange={(e) => setForm({ ...form, interestRate: e.target.value })} placeholder="0" />
+   309→            </div>
+   310→          </div>
+   311→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   312→            <div className="space-y-2">
+   313→              <Label>Tenure (Months)</Label>
+   314→              <Input type="number" value={form.tenureMonths} onChange={(e) => setForm({ ...form, tenureMonths: e.target.value })} placeholder="0" />
+   315→            </div>
+   316→            <div className="space-y-2">
+   317→              <Label>EMI Amount</Label>
+   318→              <Input type="number" value={form.emiAmount} onChange={(e) => setForm({ ...form, emiAmount: e.target.value })} placeholder="0" />
+   319→            </div>
+   320→            <div className="space-y-2">
+   321→              <Label>Start Date *</Label>
+   322→              <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
+   323→            </div>
+   324→          </div>
+   325→          <DialogFooter className="pt-4">
+   326→            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+   327→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={mutation.isPending}>
+   328→              {mutation.isPending ? 'Creating...' : 'Create Loan'}
+   329→            </Button>
+   330→          </DialogFooter>
+   331→        </form>
+   332→      </DialogContent>
+   333→    </Dialog>
+   334→  )
+   335→}
+   336→
+   337→// ──────────────────────────────────────────
+   338→// Main Component
+   339→// ──────────────────────────────────────────
+   340→
+   341→export function LeavePage() {
+   342→  const { formatCurrency } = useFormat()
+   343→  const [activeTab, setActiveTab] = useState('leave')
+   344→  const [leaveStatus, setLeaveStatus] = useState('all')
+   345→  const [loanStatus, setLoanStatus] = useState('all')
+   346→  const [searchQuery, setSearchQuery] = useState('')
+   347→  const [applyLeaveOpen, setApplyLeaveOpen] = useState(false)
+   348→  const [createLoanOpen, setCreateLoanOpen] = useState(false)
+   349→  const queryClient = useQueryClient()
+   350→
+   351→  // Leave Requests Query
+   352→  const { data: leaveRequests, isLoading: leaveLoading, error: leaveError } = useQuery({
+   353→    queryKey: [...queryKeys.leaveRequests, { status: leaveStatus }],
+   354→    queryFn: () => {
+   355→      const params = new URLSearchParams()
+   356→      if (leaveStatus && leaveStatus !== 'all') params.set('status', leaveStatus)
+   357→      const qs = params.toString()
+   358→      return api.get<{ success: boolean; data: LeaveRequest[] }>(`/api/leave-requests${qs ? `?${qs}` : ''}`).then((r) => r.data)
+   359→    },
+   360→    enabled: activeTab === 'leave',
+   361→  })
+   362→
+   363→  // Loans Query
+   364→  const { data: loans, isLoading: loanLoading, error: loanError } = useQuery({
+   365→    queryKey: ['loans', { status: loanStatus }],
+   366→    queryFn: () => {
+   367→      const params = new URLSearchParams()
+   368→      if (loanStatus && loanStatus !== 'all') params.set('status', loanStatus)
+   369→      const qs = params.toString()
+   370→      return api.get<{ success: boolean; data: Loan[] }>(`/api/loans${qs ? `?${qs}` : ''}`).then((r) => r.data)
+   371→    },
+   372→    enabled: activeTab === 'loans',
+   373→  })
+   374→
+   375→  const filteredLeaves = useMemo(() => {
+   376→    if (!leaveRequests || !searchQuery) return leaveRequests || []
+   377→    return leaveRequests.filter((lr) =>
+   378→      lr.employee?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   379→      lr.type?.toLowerCase().includes(searchQuery.toLowerCase())
+   380→    )
+   381→  }, [leaveRequests, searchQuery])
+   382→
+   383→  const filteredLoans = useMemo(() => {
+   384→    if (!loans || !searchQuery) return loans || []
+   385→    return loans.filter((l) =>
+   386→      l.employee?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+   387→    )
+   388→  }, [loans, searchQuery])
+   389→
+   390→  // Mutations
+   391→  const approveMutation = useMutation({
+   392→    mutationFn: (id: string) => api.post(`/api/leave-requests/${id}/approve`),
+   393→    onSuccess: () => {
+   394→      queryClient.invalidateQueries({ queryKey: queryKeys.leaveRequests })
+   395→      toast.success('Leave approved!')
+   396→    },
+   397→    onError: (err: Error) => toast.error(err.message || 'Failed'),
+   398→  })
+   399→
+   400→  const rejectMutation = useMutation({
+   401→    mutationFn: (id: string) => api.post(`/api/leave-requests/${id}/reject`),
+   402→    onSuccess: () => {
+   403→      queryClient.invalidateQueries({ queryKey: queryKeys.leaveRequests })
+   404→      toast.success('Leave rejected!')
+   405→    },
+   406→    onError: (err: Error) => toast.error(err.message || 'Failed'),
+   407→  })
+   408→
+   409→  return (
+   410→    <div className="p-4 md:p-6 space-y-6">
+   411→      {/* Header */}
+   412→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   413→        <div>
+   414→          <h1 className="text-2xl font-bold tracking-tight">Leave Management</h1>
+   415→          <p className="text-sm text-muted-foreground mt-1">Leave requests and employee loans</p>
+   416→        </div>
+   417→        <div className="flex gap-2">
+   418→          {activeTab === 'leave' && (
+   419→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setApplyLeaveOpen(true)}>
+   420→              <Plus className="h-4 w-4 mr-2" />
+   421→              Apply Leave
+   422→            </Button>
+   423→          )}
+   424→          {activeTab === 'loans' && (
+   425→            <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setCreateLoanOpen(true)}>
+   426→              <Plus className="h-4 w-4 mr-2" />
+   427→              Create Loan
+   428→            </Button>
+   429→          )}
+   430→        </div>
+   431→      </div>
+   432→
+   433→      {/* Tabs */}
+   434→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   435→        <TabsList>
+   436→          <TabsTrigger value="leave">Leave Requests</TabsTrigger>
+   437→          <TabsTrigger value="loans">Loans</TabsTrigger>
+   438→        </TabsList>
+   439→
+   440→        {/* ─── Leave Requests Tab ─── */}
+   441→        <TabsContent value="leave" className="space-y-4 mt-4">
+   442→          {/* Filters */}
+   443→          <div className="flex flex-col sm:flex-row gap-3">
+   444→            <div className="relative flex-1 max-w-sm">
+   445→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   446→              <Input
+   447→                placeholder="Search by employee or type..."
+   448→                value={searchQuery}
+   449→                onChange={(e) => setSearchQuery(e.target.value)}
+   450→                className="pl-9"
+   451→              />
+   452→            </div>
+   453→            <Select value={leaveStatus} onValueChange={setLeaveStatus}>
+   454→              <SelectTrigger className="w-full sm:w-40">
+   455→                <SelectValue placeholder="Status" />
+   456→              </SelectTrigger>
+   457→              <SelectContent>
+   458→                <SelectItem value="all">All Status</SelectItem>
+   459→                <SelectItem value="pending">Pending</SelectItem>
+   460→                <SelectItem value="approved">Approved</SelectItem>
+   461→                <SelectItem value="rejected">Rejected</SelectItem>
+   462→              </SelectContent>
+   463→            </Select>
+   464→          </div>
+   465→
+   466→          {leaveLoading ? (
+   467→            <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   468→          ) : leaveError ? (
+   469→            <Card className="border-red-200">
+   470→              <CardContent className="p-8 text-center">
+   471→                <p className="text-red-600 text-sm">Failed to load leave requests. Please try again.</p>
+   472→              </CardContent>
+   473→            </Card>
+   474→          ) : filteredLeaves.length === 0 ? (
+   475→            <Card>
+   476→              <CardContent className="p-12 text-center">
+   477→                <CalendarOff className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   478→                <h3 className="font-semibold text-lg text-muted-foreground">No Leave Requests</h3>
+   479→                <p className="text-sm text-muted-foreground mt-1">
+   480→                  {searchQuery || leaveStatus !== 'all'
+   481→                    ? 'Try adjusting your filters.'
+   482→                    : 'Apply a leave request to get started.'}
+   483→                </p>
+   484→              </CardContent>
+   485→            </Card>
+   486→          ) : (
+   487→            <Card className="overflow-hidden">
+   488→              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+   489→                <Table>
+   490→                  <TableHeader>
+   491→                    <TableRow className="bg-muted/50">
+   492→                      <TableHead className="font-semibold text-xs">Employee</TableHead>
+   493→                      <TableHead className="font-semibold text-xs">Type</TableHead>
+   494→                      <TableHead className="font-semibold text-xs hidden sm:table-cell">Start</TableHead>
+   495→                      <TableHead className="font-semibold text-xs hidden sm:table-cell">End</TableHead>
+   496→                      <TableHead className="font-semibold text-xs text-right">Days</TableHead>
+   497→                      <TableHead className="font-semibold text-xs hidden lg:table-cell">Reason</TableHead>
+   498→                      <TableHead className="font-semibold text-xs">Status</TableHead>
+   499→                      <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
+   500→                    </TableRow>
+   501→                  </TableHeader>
+   502→                  <TableBody>
+   503→                    {filteredLeaves.map((lr) => (
+   504→                      <TableRow key={lr.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors">
+   505→                        <TableCell className="text-sm font-medium">{lr.employee?.name || '—'}</TableCell>
+   506→                        <TableCell className="text-sm text-muted-foreground">{lr.type}</TableCell>
+   507→                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+   508→                          {format(parseISO(lr.startDate), 'dd MMM yyyy')}
+   509→                        </TableCell>
+   510→                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+   511→                          {format(parseISO(lr.endDate), 'dd MMM yyyy')}
+   512→                        </TableCell>
+   513→                        <TableCell className="text-right text-sm">{lr.days}</TableCell>
+   514→                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-32 truncate">
+   515→                          {lr.reason || '—'}
+   516→                        </TableCell>
+   517→                        <TableCell>{leaveStatusBadge(lr.status)}</TableCell>
+   518→                        <TableCell>
+   519→                          <div className="flex items-center justify-end gap-1">
+   520→                            {lr.status === 'pending' && (
+   521→                              <>
+   522→                                <Button
+   523→                                  variant="ghost"
+   524→                                  size="sm"
+   525→                                  className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+   526→                                  onClick={() => approveMutation.mutate(lr.id)}
+   527→                                  disabled={approveMutation.isPending}
+   528→                                  title="Approve"
+   529→                                >
+   530→                                  <CheckCircle className="h-3.5 w-3.5" />
+   531→                                </Button>
+   532→                                <Button
+   533→                                  variant="ghost"
+   534→                                  size="sm"
+   535→                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+   536→                                  onClick={() => rejectMutation.mutate(lr.id)}
+   537→                                  disabled={rejectMutation.isPending}
+   538→                                  title="Reject"
+   539→                                >
+   540→                                  <XCircle className="h-3.5 w-3.5" />
+   541→                                </Button>
+   542→                              </>
+   543→                            )}
+   544→                          </div>
+   545→                        </TableCell>
+   546→                      </TableRow>
+   547→                    ))}
+   548→                  </TableBody>
+   549→                </Table>
+   550→              </div>
+   551→            </Card>
+   552→          )}
+   553→        </TabsContent>
+   554→
+   555→        {/* ─── Loans Tab ─── */}
+   556→        <TabsContent value="loans" className="space-y-4 mt-4">
+   557→          {/* Filters */}
+   558→          <div className="flex flex-col sm:flex-row gap-3">
+   559→            <div className="relative flex-1 max-w-sm">
+   560→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   561→              <Input
+   562→                placeholder="Search by employee name..."
+   563→                value={searchQuery}
+   564→                onChange={(e) => setSearchQuery(e.target.value)}
+   565→                className="pl-9"
+   566→              />
+   567→            </div>
+   568→            <Select value={loanStatus} onValueChange={setLoanStatus}>
+   569→              <SelectTrigger className="w-full sm:w-40">
+   570→                <SelectValue placeholder="Status" />
+   571→              </SelectTrigger>
+   572→              <SelectContent>
+   573→                <SelectItem value="all">All Status</SelectItem>
+   574→                <SelectItem value="active">Active</SelectItem>
+   575→                <SelectItem value="pending">Pending</SelectItem>
+   576→                <SelectItem value="closed">Closed</SelectItem>
+   577→              </SelectContent>
+   578→            </Select>
+   579→          </div>
+   580→
+   581→          {loanLoading ? (
+   582→            <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   583→          ) : loanError ? (
+   584→            <Card className="border-red-200">
+   585→              <CardContent className="p-8 text-center">
+   586→                <p className="text-red-600 text-sm">Failed to load loans. Please try again.</p>
+   587→              </CardContent>
+   588→            </Card>
+   589→          ) : filteredLoans.length === 0 ? (
+   590→            <Card>
+   591→              <CardContent className="p-12 text-center">
+   592→                <Banknote className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   593→                <h3 className="font-semibold text-lg text-muted-foreground">No Loans</h3>
+   594→                <p className="text-sm text-muted-foreground mt-1">
+   595→                  {searchQuery || loanStatus !== 'all'
+   596→                    ? 'Try adjusting your filters.'
+   597→                    : 'Create a loan to get started.'}
+   598→                </p>
+   599→              </CardContent>
+   600→            </Card>
+   601→          ) : (
+   602→            <Card className="overflow-hidden">
+   603→              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+   604→                <Table>
+   605→                  <TableHeader>
+   606→                    <TableRow className="bg-muted/50">
+   607→                      <TableHead className="font-semibold text-xs">Employee</TableHead>
+   608→                      <TableHead className="font-semibold text-xs text-right">Amount</TableHead>
+   609→                      <TableHead className="font-semibold text-xs text-right hidden md:table-cell">Interest %</TableHead>
+   610→                      <TableHead className="font-semibold text-xs text-right hidden md:table-cell">Tenure</TableHead>
+   611→                      <TableHead className="font-semibold text-xs text-right hidden lg:table-cell">EMI</TableHead>
+   612→                      <TableHead className="font-semibold text-xs hidden lg:table-cell">Start Date</TableHead>
+   613→                      <TableHead className="font-semibold text-xs">Status</TableHead>
+   614→                    </TableRow>
+   615→                  </TableHeader>
+   616→                  <TableBody>
+   617→                    {filteredLoans.map((loan) => (
+   618→                      <TableRow key={loan.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors">
+   619→                        <TableCell className="text-sm font-medium">{loan.employee?.name || '—'}</TableCell>
+   620→                        <TableCell className="text-right text-sm font-medium">{formatCurrency(loan.amount)}</TableCell>
+   621→                        <TableCell className="text-right text-sm text-muted-foreground hidden md:table-cell">{loan.interestRate}%</TableCell>
+   622→                        <TableCell className="text-right text-sm text-muted-foreground hidden md:table-cell">{loan.tenureMonths} mo</TableCell>
+   623→                        <TableCell className="text-right text-sm hidden lg:table-cell">{loan.emiAmount ? formatCurrency(loan.emiAmount) : '—'}</TableCell>
+   624→                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+   625→                          {format(parseISO(loan.startDate), 'dd MMM yyyy')}
+   626→                        </TableCell>
+   627→                        <TableCell>{loanStatusBadge(loan.status)}</TableCell>
+   628→                      </TableRow>
+   629→                    ))}
+   630→                  </TableBody>
+   631→                </Table>
+   632→              </div>
+   633→            </Card>
+   634→          )}
+   635→        </TabsContent>
+   636→      </Tabs>
+   637→
+   638→      {/* Apply Leave Dialog */}
+   639→      <ApplyLeaveDialog open={applyLeaveOpen} onClose={() => setApplyLeaveOpen(false)} />
+   640→
+   641→      {/* Create Loan Dialog */}
+   642→      <CreateLoanDialog open={createLoanOpen} onClose={() => setCreateLoanOpen(false)} />
+   643→    </div>
+   644→  )
+   645→}

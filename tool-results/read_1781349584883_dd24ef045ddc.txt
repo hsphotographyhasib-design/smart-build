@@ -1,0 +1,720 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useMemo } from 'react'
+     4→     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→     6→import { Card, CardContent } from '@/components/ui/card'
+     7→     7→import { Button } from '@/components/ui/button'
+     8→     8→import { Badge } from '@/components/ui/badge'
+     9→     9→import { Input } from '@/components/ui/input'
+    10→    10→import { Label } from '@/components/ui/label'
+    11→    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    12→    12→import { Textarea } from '@/components/ui/textarea'
+    13→    13→import { Skeleton } from '@/components/ui/skeleton'
+    14→    14→import { Separator } from '@/components/ui/separator'
+    15→    15→import {
+    16→    16→  Dialog,
+    17→    17→  DialogContent,
+    18→    18→  DialogHeader,
+    19→    19→  DialogTitle,
+    20→    20→  DialogFooter,
+    21→    21→} from '@/components/ui/dialog'
+    22→    22→import {
+    23→    23→  AlertDialog,
+    24→    24→  AlertDialogAction,
+    25→    25→  AlertDialogCancel,
+    26→    26→  AlertDialogContent,
+    27→    27→  AlertDialogDescription,
+    28→    28→  AlertDialogFooter,
+    29→    29→  AlertDialogHeader,
+    30→    30→  AlertDialogTitle,
+    31→    31→} from '@/components/ui/alert-dialog'
+    32→    32→import {
+    33→    33→  Table,
+    34→    34→  TableBody,
+    35→    35→  TableCell,
+    36→    36→  TableHead,
+    37→    37→  TableHeader,
+    38→    38→  TableRow,
+    39→    39→} from '@/components/ui/table'
+    40→    40→import { toast } from 'sonner'
+    41→    41→import {
+    42→    42→  Plus,
+    43→    43→  ShoppingCart,
+    44→    44→  Eye,
+    45→    45→  Trash2,
+    46→    46→  PackageCheck,
+    47→    47→  Truck,
+    48→    48→  AlertTriangle,
+    49→    49→} from 'lucide-react'
+    50→    50→import { format, parseISO } from 'date-fns'
+    51→    51→import { cn } from '@/lib/utils'
+    52→    52→
+    53→    53→// ──────────────────────────────────────────
+    54→    54→// Types
+    55→    55→// ──────────────────────────────────────────
+    56→    56→
+    57→    57→interface POItem {
+    58→    58→  id?: string
+    59→    59→  materialId?: string
+    60→    60→  description: string
+    61→    61→  quantity: number
+    62→    62→  receivedQty: number
+    63→    63→  unit: string
+    64→    64→  unitPrice: number
+    65→    65→  amount: number
+    66→    66→}
+    67→    67→
+    68→    68→interface PurchaseOrder {
+    69→    69→  id: string
+    70→    70→  orderNo: string
+    71→    71→  projectId: string
+    72→    72→  projectName: string
+    73→    73→  projectCode: string
+    74→    74→  supplierId: string
+    75→    75→  supplierName: string
+    76→    76→  supplierCode: string
+    77→    77→  purchaseRequestId: string | null
+    78→    78→  purchaseRequestNo: string | null
+    79→    79→  status: string
+    80→    80→  orderDate: string
+    81→    81→  expectedDate: string | null
+    82→    82→  subtotal: number
+    83→    83→  tax: number
+    84→    84→  total: number
+    85→    85→  notes: string | null
+    86→    86→  items: POItem[]
+    87→    87→  createdAt: string
+    88→    88→  updatedAt: string
+    89→    89→}
+    90→    90→
+    91→    91→interface Supplier {
+    92→    92→  id: string
+    93→    93→  name: string
+    94→    94→  code: string
+    95→    95→}
+    96→    96→
+    97→    97→interface Project {
+    98→    98→  id: string
+    99→    99→  name: string
+   100→   100→  code: string
+   101→   101→}
+   102→   102→
+   103→   103→// ──────────────────────────────────────────
+   104→   104→// Helpers
+   105→   105→// ──────────────────────────────────────────
+   106→   106→
+   107→   107→const poStatusConfig: Record<string, { label: string; className: string }> = {
+   108→   108→  draft: { label: 'Draft', className: 'bg-secondary text-secondary-foreground hover:bg-secondary/80' },
+   109→   109→  sent: { label: 'Sent', className: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
+   110→   110→  partially_received: { label: 'Partial', className: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+   111→   111→  fully_received: { label: 'Received', className: 'bg-emerald-600 text-white hover:bg-emerald-700 border-0' },
+   112→   112→  billed: { label: 'Billed', className: 'bg-teal-600 text-white hover:bg-teal-700 border-0' },
+   113→   113→}
+   114→   114→
+   115→   115→function formatCurrency(amount: number) {
+   116→   116→  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
+   117→   117→}
+   118→   118→
+   119→   119→function formatDate(dateStr: string | null) {
+   120→   120→  if (!dateStr) return '—'
+   121→   121→  return format(parseISO(dateStr), 'dd MMM yyyy')
+   122→   122→}
+   123→   123→
+   124→   124→// ──────────────────────────────────────────
+   125→   125→// Skeleton
+   126→   126→// ──────────────────────────────────────────
+   127→   127→
+   128→   128→function TableSkeleton() {
+   129→   129→  return (
+   130→   130→    <div className="space-y-3 p-4">
+   131→   131→      {Array.from({ length: 6 }).map((_, i) => (
+   132→   132→        <div key={i} className="flex items-center gap-4">
+   133→   133→          <Skeleton className="h-4 w-28" />
+   134→   134→          <Skeleton className="h-4 w-28" />
+   135→   135→          <Skeleton className="h-4 w-20" />
+   136→   136→          <Skeleton className="h-5 w-20 rounded-full" />
+   137→   137→          <Skeleton className="h-4 w-24" />
+   138→   138→          <Skeleton className="h-4 w-20 ml-auto" />
+   139→   139→        </div>
+   140→   140→      ))}
+   141→   141→    </div>
+   142→   142→  )
+   143→   143→}
+   144→   144→
+   145→   145→// ──────────────────────────────────────────
+   146→   146→// Create PO Dialog
+   147→   147→// ──────────────────────────────────────────
+   148→   148→
+   149→   149→function CreatePODialog() {
+   150→   150→  const [open, setOpen] = useState(false)
+   151→   151→  const [form, setForm] = useState({
+   152→   152→    projectId: '',
+   153→   153→    supplierId: '',
+   154→   154→    orderDate: new Date().toISOString().split('T')[0],
+   155→   155→    expectedDate: '',
+   156→   156→    notes: '',
+   157→   157→    tax: 0,
+   158→   158→  })
+   159→   159→  const [items, setItems] = useState([
+   160→   160→    { description: '', quantity: 1, unit: 'nos', unitPrice: 0 },
+   161→   161→  ])
+   162→   162→  const queryClient = useQueryClient()
+   163→   163→
+   164→   164→  const { data: projects } = useQuery({
+   165→   165→    queryKey: [...queryKeys.projects],
+   166→   166→    queryFn: () => api.get('/api/projects').then((r) => r.data as Project[]),
+   167→   167→  })
+   168→   168→
+   169→   169→  const { data: suppliers } = useQuery({
+   170→   170→    queryKey: [...queryKeys.suppliers],
+   171→   171→    queryFn: () => api.get('/api/suppliers').then((r) => r.data as Supplier[]),
+   172→   172→  })
+   173→   173→
+   174→   174→  const createMutation = useMutation({
+   175→   175→    mutationFn: (body: Record<string, unknown>) => api.post('/api/purchase-orders', body),
+   176→   176→    onSuccess: () => {
+   177→   177→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders })
+   178→   178→      toast.success('Purchase order created!')
+   179→   179→      setOpen(false)
+   180→   180→      resetForm()
+   181→   181→    },
+   182→   182→    onError: (err: Error) => toast.error(err.message || 'Failed to create'),
+   183→   183→  })
+   184→   184→
+   185→   185→  const resetForm = () => {
+   186→   186→    setForm({ projectId: '', supplierId: '', orderDate: new Date().toISOString().split('T')[0], expectedDate: '', notes: '', tax: 0 })
+   187→   187→    setItems([{ description: '', quantity: 1, unit: 'nos', unitPrice: 0 }])
+   188→   188→  }
+   189→   189→
+   190→   190→  const addItem = () => {
+   191→   191→    setItems([...items, { description: '', quantity: 1, unit: 'nos', unitPrice: 0 }])
+   192→   192→  }
+   193→   193→
+   194→   194→  const removeItem = (index: number) => {
+   195→   195→    if (items.length <= 1) return
+   196→   196→    setItems(items.filter((_, i) => i !== index))
+   197→   197→  }
+   198→   198→
+   199→   199→  const updateItem = (index: number, field: string, value: string | number) => {
+   200→   200→    const updated = [...items]
+   201→   201→    ;(updated[index] as Record<string, string | number>)[field] = value
+   202→   202→    setItems(updated)
+   203→   203→  }
+   204→   204→
+   205→   205→  const handleSubmit = (e: React.FormEvent) => {
+   206→   206→    e.preventDefault()
+   207→   207→    if (!form.projectId) { toast.error('Select a project'); return }
+   208→   208→    if (!form.supplierId) { toast.error('Select a supplier'); return }
+   209→   209→    if (items.some((it) => !it.description.trim())) { toast.error('All items need descriptions'); return }
+   210→   210→
+   211→   211→    createMutation.mutate({
+   212→   212→      projectId: form.projectId,
+   213→   213→      supplierId: form.supplierId,
+   214→   214→      orderDate: form.orderDate,
+   215→   215→      expectedDate: form.expectedDate || null,
+   216→   216→      notes: form.notes || null,
+   217→   217→      tax: form.tax,
+   218→   218→      items: items.map((it) => ({
+   219→   219→        description: it.description,
+   220→   220→        quantity: it.quantity,
+   221→   221→        unit: it.unit,
+   222→   222→        unitPrice: it.unitPrice,
+   223→   223→      })),
+   224→   224→    })
+   225→   225→  }
+   226→   226→
+   227→   227→  const subtotal = items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
+   228→   228→
+   229→   229→  return (
+   230→   230→    <Dialog open={open} onOpenChange={setOpen}>
+   231→   231→      <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setOpen(true)}>
+   232→   232→        <Plus className="h-4 w-4 mr-2" />
+   233→   233→        New PO
+   234→   234→      </Button>
+   235→   235→      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   236→   236→        <DialogHeader>
+   237→   237→          <DialogTitle>Create Purchase Order</DialogTitle>
+   238→   238→        </DialogHeader>
+   239→   239→        <form onSubmit={handleSubmit} className="space-y-4">
+   240→   240→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   241→   241→            <div className="space-y-2">
+   242→   242→              <Label>Project *</Label>
+   243→   243→              <Select value={form.projectId} onValueChange={(v) => setForm({ ...form, projectId: v })}>
+   244→   244→                <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+   245→   245→                <SelectContent>
+   246→   246→                  {projects?.map((p) => (
+   247→   247→                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+   248→   248→                  ))}
+   249→   249→                </SelectContent>
+   250→   250→              </Select>
+   251→   251→            </div>
+   252→   252→            <div className="space-y-2">
+   253→   253→              <Label>Supplier *</Label>
+   254→   254→              <Select value={form.supplierId} onValueChange={(v) => setForm({ ...form, supplierId: v })}>
+   255→   255→                <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
+   256→   256→                <SelectContent>
+   257→   257→                  {suppliers?.map((s) => (
+   258→   258→                    <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+   259→   259→                  ))}
+   260→   260→                </SelectContent>
+   261→   261→              </Select>
+   262→   262→            </div>
+   263→   263→          </div>
+   264→   264→
+   265→   265→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   266→   266→            <div className="space-y-2">
+   267→   267→              <Label>Order Date</Label>
+   268→   268→              <Input
+   269→   269→                type="date"
+   270→   270→                value={form.orderDate}
+   271→   271→                onChange={(e) => setForm({ ...form, orderDate: e.target.value })}
+   272→   272→              />
+   273→   273→            </div>
+   274→   274→            <div className="space-y-2">
+   275→   275→              <Label>Expected Date</Label>
+   276→   276→              <Input
+   277→   277→                type="date"
+   278→   278→                value={form.expectedDate}
+   279→   279→                onChange={(e) => setForm({ ...form, expectedDate: e.target.value })}
+   280→   280→              />
+   281→   281→            </div>
+   282→   282→            <div className="space-y-2">
+   283→   283→              <Label>Tax (₹)</Label>
+   284→   284→              <Input
+   285→   285→                type="number"
+   286→   286→                min="0"
+   287→   287→                value={form.tax || ''}
+   288→   288→                onChange={(e) => setForm({ ...form, tax: parseFloat(e.target.value) || 0 })}
+   289→   289→              />
+   290→   290→            </div>
+   291→   291→          </div>
+   292→   292→
+   293→   293→          <div className="space-y-2">
+   294→   294→            <Label>Notes</Label>
+   295→   295→            <Textarea
+   296→   296→              value={form.notes}
+   297→   297→              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+   298→   298→              rows={2}
+   299→   299→              placeholder="Delivery instructions..."
+   300→   300→            />
+   301→   301→          </div>
+   302→   302→
+   303→   303→          <Separator />
+   304→   304→
+   305→   305→          {/* Items */}
+   306→   306→          <div className="space-y-3">
+   307→   307→            <div className="flex items-center justify-between">
+   308→   308→              <Label className="text-base font-semibold">Items</Label>
+   309→   309→              <Button type="button" variant="outline" size="sm" onClick={addItem}>
+   310→   310→                <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
+   311→   311→              </Button>
+   312→   312→            </div>
+   313→   313→
+   314→   314→            {items.map((item, idx) => (
+   315→   315→              <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-muted/30 p-3 rounded-lg">
+   316→   316→                <div className="col-span-12 sm:col-span-4 space-y-1">
+   317→   317→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Description *</Label>}
+   318→   318→                  <Input
+   319→   319→                    placeholder="Item description"
+   320→   320→                    value={item.description}
+   321→   321→                    onChange={(e) => updateItem(idx, 'description', e.target.value)}
+   322→   322→                    required
+   323→   323→                  />
+   324→   324→                </div>
+   325→   325→                <div className="col-span-4 sm:col-span-2 space-y-1">
+   326→   326→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Qty</Label>}
+   327→   327→                  <Input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)} />
+   328→   328→                </div>
+   329→   329→                <div className="col-span-4 sm:col-span-2 space-y-1">
+   330→   330→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Unit</Label>}
+   331→   331→                  <Input value={item.unit} onChange={(e) => updateItem(idx, 'unit', e.target.value)} />
+   332→   332→                </div>
+   333→   333→                <div className="col-span-3 sm:col-span-2 space-y-1">
+   334→   334→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Unit Price (₹)</Label>}
+   335→   335→                  <Input type="number" min="0" value={item.unitPrice || ''} onChange={(e) => updateItem(idx, 'unitPrice', parseFloat(e.target.value) || 0)} />
+   336→   336→                </div>
+   337→   337→                <div className="col-span-1 flex justify-center">
+   338→   338→                  <Button type="button" variant="ghost" size="sm" className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => removeItem(idx)} disabled={items.length <= 1}>
+   339→   339→                    <Trash2 className="h-3.5 w-3.5" />
+   340→   340→                  </Button>
+   341→   341→                </div>
+   342→   342→              </div>
+   343→   343→            ))}
+   344→   344→
+   345→   345→            <div className="space-y-1 flex justify-end text-sm">
+   346→   346→              <span>Subtotal: <span className="font-semibold">{formatCurrency(subtotal)}</span></span>
+   347→   347→            </div>
+   348→   348→            <div className="flex justify-end text-sm font-semibold">
+   349→   349→              Total: {formatCurrency(subtotal + form.tax)}
+   350→   350→            </div>
+   351→   351→          </div>
+   352→   352→
+   353→   353→          <DialogFooter className="pt-4">
+   354→   354→            <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm() }}>Cancel</Button>
+   355→   355→            <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white" disabled={createMutation.isPending}>
+   356→   356→              {createMutation.isPending ? 'Creating...' : 'Create PO'}
+   357→   357→            </Button>
+   358→   358→          </DialogFooter>
+   359→   359→        </form>
+   360→   360→      </DialogContent>
+   361→   361→    </Dialog>
+   362→   362→  )
+   363→   363→}
+   364→   364→
+   365→   365→// ──────────────────────────────────────────
+   366→   366→// View PO Dialog
+   367→   367→// ──────────────────────────────────────────
+   368→   368→
+   369→   369→function ViewPODialog({ po, open, onClose }: { po: PurchaseOrder | null; open: boolean; onClose: () => void }) {
+   370→   370→  if (!po) return null
+   371→   371→
+   372→   372→  return (
+   373→   373→    <Dialog open={open} onOpenChange={onClose}>
+   374→   374→      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   375→   375→        <DialogHeader>
+   376→   376→          <DialogTitle className="flex items-center gap-2">
+   377→   377→            <ShoppingCart className="h-5 w-5 text-amber-600" />
+   378→   378→            {po.orderNo}
+   379→   379→          </DialogTitle>
+   380→   380→        </DialogHeader>
+   381→   381→        <div className="space-y-4">
+   382→   382→          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+   383→   383→            <div>
+   384→   384→              <span className="text-muted-foreground">Project</span>
+   385→   385→              <p className="font-medium">{po.projectName}</p>
+   386→   386→            </div>
+   387→   387→            <div>
+   388→   388→              <span className="text-muted-foreground">Supplier</span>
+   389→   389→              <p className="font-medium">{po.supplierName}</p>
+   390→   390→            </div>
+   391→   391→            <div>
+   392→   392→              <span className="text-muted-foreground">Order Date</span>
+   393→   393→              <p className="font-medium">{formatDate(po.orderDate)}</p>
+   394→   394→            </div>
+   395→   395→            <div>
+   396→   396→              <span className="text-muted-foreground">Expected</span>
+   397→   397→              <p className="font-medium">{formatDate(po.expectedDate)}</p>
+   398→   398→            </div>
+   399→   399→          </div>
+   400→   400→
+   401→   401→          <div className="flex items-center gap-3">
+   402→   402→            <Badge className={cn('text-xs font-medium', poStatusConfig[po.status]?.className || '')}>
+   403→   403→              {poStatusConfig[po.status]?.label || po.status}
+   404→   404→            </Badge>
+   405→   405→            {po.purchaseRequestNo && (
+   406→   406→              <span className="text-xs text-muted-foreground">From PR: {po.purchaseRequestNo}</span>
+   407→   407→            )}
+   408→   408→          </div>
+   409→   409→
+   410→   410→          {po.notes && (
+   411→   411→            <div className="text-sm">
+   412→   412→              <span className="text-muted-foreground">Notes</span>
+   413→   413→              <p className="mt-1 bg-muted/30 p-3 rounded-lg">{po.notes}</p>
+   414→   414→            </div>
+   415→   415→          )}
+   416→   416→
+   417→   417→          <Separator />
+   418→   418→          <Table>
+   419→   419→            <TableHeader>
+   420→   420→              <TableRow>
+   421→   421→                <TableHead className="text-xs">#</TableHead>
+   422→   422→                <TableHead className="text-xs">Description</TableHead>
+   423→   423→                <TableHead className="text-xs text-right">Qty</TableHead>
+   424→   424→                <TableHead className="text-xs">Unit</TableHead>
+   425→   425→                <TableHead className="text-xs text-right">Received</TableHead>
+   426→   426→                <TableHead className="text-xs text-right">Unit Price</TableHead>
+   427→   427→                <TableHead className="text-xs text-right">Amount</TableHead>
+   428→   428→              </TableRow>
+   429→   429→            </TableHeader>
+   430→   430→            <TableBody>
+   431→   431→              {po.items.map((item, idx) => (
+   432→   432→                <TableRow key={item.id || idx}>
+   433→   433→                  <TableCell className="text-xs">{idx + 1}</TableCell>
+   434→   434→                  <TableCell className="text-sm">{item.description}</TableCell>
+   435→   435→                  <TableCell className="text-sm text-right">{item.quantity}</TableCell>
+   436→   436→                  <TableCell className="text-sm">{item.unit}</TableCell>
+   437→   437→                  <TableCell className="text-sm text-right">
+   438→   438→                    <span className={item.receivedQty < item.quantity ? 'text-amber-600' : 'text-emerald-600'}>
+   439→   439→                      {item.receivedQty}
+   440→   440→                    </span>
+   441→   441→                  </TableCell>
+   442→   442→                  <TableCell className="text-sm text-right">{formatCurrency(item.unitPrice)}</TableCell>
+   443→   443→                  <TableCell className="text-sm text-right font-medium">{formatCurrency(item.amount)}</TableCell>
+   444→   444→                </TableRow>
+   445→   445→              ))}
+   446→   446→            </TableBody>
+   447→   447→          </Table>
+   448→   448→          <div className="space-y-1 flex justify-end text-sm">
+   449→   449→            <span>Subtotal: {formatCurrency(po.subtotal)}</span>
+   450→   450→            {po.tax > 0 && <span>Tax: {formatCurrency(po.tax)}</span>}
+   451→   451→          </div>
+   452→   452→          <div className="flex justify-end text-base font-bold">
+   453→   453→            Total: {formatCurrency(po.total)}
+   454→   454→          </div>
+   455→   455→        </div>
+   456→   456→      </DialogContent>
+   457→   457→    </Dialog>
+   458→   458→  )
+   459→   459→}
+   460→   460→
+   461→   461→// ──────────────────────────────────────────
+   462→   462→// Main Component
+   463→   463→// ──────────────────────────────────────────
+   464→   464→
+   465→   465→export function PurchaseOrdersPage() {
+   466→   466→  const [statusFilter, setStatusFilter] = useState('all')
+   467→   467→  const [supplierFilter, setSupplierFilter] = useState('all')
+   468→   468→  const [deleteId, setDeleteId] = useState<string | null>(null)
+   469→   469→  const [viewPO, setViewPO] = useState<PurchaseOrder | null>(null)
+   470→   470→  const queryClient = useQueryClient()
+   471→   471→
+   472→   472→  const { data: purchaseOrders, isLoading, error } = useQuery({
+   473→   473→    queryKey: [...queryKeys.purchaseOrders, { status: statusFilter, supplierId: supplierFilter }],
+   474→   474→    queryFn: () => {
+   475→   475→      const params = new URLSearchParams()
+   476→   476→      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter)
+   477→   477→      if (supplierFilter && supplierFilter !== 'all') params.set('supplierId', supplierFilter)
+   478→   478→      const qs = params.toString()
+   479→   479→      return api.get(`/api/purchase-orders${qs ? `?${qs}` : ''}`).then((r) => r.data as PurchaseOrder[])
+   480→   480→    },
+   481→   481→  })
+   482→   482→
+   483→   483→  const { data: suppliers } = useQuery({
+   484→   484→    queryKey: [...queryKeys.suppliers],
+   485→   485→    queryFn: () => api.get('/api/suppliers').then((r) => r.data as Supplier[]),
+   486→   486→  })
+   487→   487→
+   488→   488→  const deleteMutation = useMutation({
+   489→   489→    mutationFn: (id: string) => api.del(`/api/purchase-orders/${id}`),
+   490→   490→    onSuccess: () => {
+   491→   491→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders })
+   492→   492→      toast.success('Purchase order deleted')
+   493→   493→      setDeleteId(null)
+   494→   494→    },
+   495→   495→    onError: (err: Error) => toast.error(err.message || 'Failed to delete'),
+   496→   496→  })
+   497→   497→
+   498→   498→  const receiveMutation = useMutation({
+   499→   499→    mutationFn: ({ id, status, items }: { id: string; status: string; items: POItem[] }) =>
+   500→   500→      api.put(`/api/purchase-orders/${id}`, { status, items }),
+   501→   501→    onSuccess: () => {
+   502→   502→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders })
+   503→   503→      toast.success('Order status updated')
+   504→   504→    },
+   505→   505→    onError: (err: Error) => toast.error(err.message || 'Failed to update'),
+   506→   506→  })
+   507→   507→
+   508→   508→  const markReceived = (po: PurchaseOrder, partial: boolean) => {
+   509→   509→    const updatedItems = po.items.map((item) => ({
+   510→   510→      ...item,
+   511→   511→      receivedQty: partial ? item.quantity : item.quantity,
+   512→   512→    }))
+   513→   513→    receiveMutation.mutate({
+   514→   514→      id: po.id,
+   515→   515→      status: partial ? 'partially_received' : 'fully_received',
+   516→   516→      items: updatedItems,
+   517→   517→    })
+   518→   518→  }
+   519→   519→
+   520→   520→  const statusCounts = useMemo(() => {
+   521→   521→    if (!purchaseOrders) return {}
+   522→   522→    const counts: Record<string, number> = {}
+   523→   523→    for (const po of purchaseOrders) counts[po.status] = (counts[po.status] || 0) + 1
+   524→   524→    return counts
+   525→   525→  }, [purchaseOrders])
+   526→   526→
+   527→   527→  return (
+   528→   528→    <div className="p-4 md:p-6 space-y-6">
+   529→   529→      {/* Header */}
+   530→   530→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   531→   531→        <div>
+   532→   532→          <h1 className="text-2xl font-bold tracking-tight">Purchase Orders</h1>
+   533→   533→          <p className="text-sm text-muted-foreground mt-1">
+   534→   534→            {isLoading ? 'Loading...' : purchaseOrders ? `${purchaseOrders.length} order(s)` : 'No orders'}
+   535→   535→          </p>
+   536→   536→        </div>
+   537→   537→        <CreatePODialog />
+   538→   538→      </div>
+   539→   539→
+   540→   540→      {/* Filters */}
+   541→   541→      <div className="flex flex-col sm:flex-row gap-3">
+   542→   542→        <div className="flex items-center gap-1.5 flex-wrap">
+   543→   543→          {['all', 'draft', 'sent', 'partially_received', 'fully_received', 'billed'].map((s) => (
+   544→   544→            <Button
+   545→   545→              key={s}
+   546→   546→              variant={statusFilter === s ? 'default' : 'outline'}
+   547→   547→              size="sm"
+   548→   548→              onClick={() => setStatusFilter(s)}
+   549→   549→              className={cn(
+   550→   550→                'text-xs',
+   551→   551→                statusFilter === s && s === 'all' && 'bg-amber-600 hover:bg-amber-700 text-white',
+   552→   552→                statusFilter === s && s !== 'all' && poStatusConfig[s]?.className,
+   553→   553→              )}
+   554→   554→            >
+   555→   555→              {s === 'all' ? 'All' : poStatusConfig[s]?.label || s}
+   556→   556→              {statusCounts[s] ? <span className="ml-1.5 text-[10px] opacity-70">({statusCounts[s]})</span> : null}
+   557→   557→            </Button>
+   558→   558→          ))}
+   559→   559→        </div>
+   560→   560→
+   561→   561→        <div className="sm:ml-auto w-full sm:w-52">
+   562→   562→          <Select value={supplierFilter} onValueChange={(v) => setSupplierFilter(v)}>
+   563→   563→            <SelectTrigger className="h-9">
+   564→   564→              <SelectValue placeholder="All Suppliers" />
+   565→   565→            </SelectTrigger>
+   566→   566→            <SelectContent>
+   567→   567→              <SelectItem value="all">All Suppliers</SelectItem>
+   568→   568→              {suppliers?.map((s) => (
+   569→   569→                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+   570→   570→              ))}
+   571→   571→            </SelectContent>
+   572→   572→          </Select>
+   573→   573→        </div>
+   574→   574→      </div>
+   575→   575→
+   576→   576→      {/* Content */}
+   577→   577→      {isLoading ? (
+   578→   578→        <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   579→   579→      ) : error ? (
+   580→   580→        <Card className="border-red-200">
+   581→   581→          <CardContent className="p-8 text-center">
+   582→   582→            <p className="text-red-600 text-sm">Failed to load purchase orders. Please try again.</p>
+   583→   583→          </CardContent>
+   584→   584→        </Card>
+   585→   585→      ) : purchaseOrders && purchaseOrders.length === 0 ? (
+   586→   586→        <Card>
+   587→   587→          <CardContent className="p-12 text-center">
+   588→   588→            <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   589→   589→            <h3 className="font-semibold text-lg text-muted-foreground">No Purchase Orders</h3>
+   590→   590→            <p className="text-sm text-muted-foreground mt-1">Create a new purchase order to get started.</p>
+   591→   591→          </CardContent>
+   592→   592→        </Card>
+   593→   593→      ) : purchaseOrders ? (
+   594→   594→        <Card className="overflow-hidden">
+   595→   595→          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+   596→   596→            <Table>
+   597→   597→              <TableHeader>
+   598→   598→                <TableRow className="bg-muted/50">
+   599→   599→                  <TableHead className="font-semibold text-xs">Order No</TableHead>
+   600→   600→                  <TableHead className="font-semibold text-xs">Supplier</TableHead>
+   601→   601→                  <TableHead className="font-semibold text-xs hidden md:table-cell">Project</TableHead>
+   602→   602→                  <TableHead className="font-semibold text-xs text-right">Total</TableHead>
+   603→   603→                  <TableHead className="font-semibold text-xs">Status</TableHead>
+   604→   604→                  <TableHead className="font-semibold text-xs hidden sm:table-cell">Order Date</TableHead>
+   605→   605→                  <TableHead className="font-semibold text-xs hidden lg:table-cell">Expected</TableHead>
+   606→   606→                  <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
+   607→   607→                </TableRow>
+   608→   608→              </TableHeader>
+   609→   609→              <TableBody>
+   610→   610→                {purchaseOrders.map((po) => (
+   611→   611→                  <TableRow key={po.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors">
+   612→   612→                    <TableCell>
+   613→   613→                      <button onClick={() => setViewPO(po)} className="text-sm font-mono font-medium text-amber-700 hover:underline">
+   614→   614→                        {po.orderNo}
+   615→   615→                      </button>
+   616→   616→                    </TableCell>
+   617→   617→                    <TableCell>
+   618→   618→                      <div>
+   619→   619→                        <p className="text-sm font-medium">{po.supplierName}</p>
+   620→   620→                        <p className="text-xs text-muted-foreground">{po.supplierCode}</p>
+   621→   621→                      </div>
+   622→   622→                    </TableCell>
+   623→   623→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{po.projectName}</TableCell>
+   624→   624→                    <TableCell className="text-right text-sm font-medium">{formatCurrency(po.total)}</TableCell>
+   625→   625→                    <TableCell>
+   626→   626→                      <Badge className={cn('text-xs font-medium', poStatusConfig[po.status]?.className || '')}>
+   627→   627→                        {poStatusConfig[po.status]?.label || po.status}
+   628→   628→                      </Badge>
+   629→   629→                    </TableCell>
+   630→   630→                    <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{formatDate(po.orderDate)}</TableCell>
+   631→   631→                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{formatDate(po.expectedDate)}</TableCell>
+   632→   632→                    <TableCell>
+   633→   633→                      <div className="flex items-center justify-end gap-1">
+   634→   634→                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setViewPO(po)}>
+   635→   635→                          <Eye className="h-3.5 w-3.5" />
+   636→   636→                        </Button>
+   637→   637→                        {po.status === 'sent' && (
+   638→   638→                          <>
+   639→   639→                            <Button
+   640→   640→                              variant="ghost"
+   641→   641→                              size="sm"
+   642→   642→                              className="h-8 w-8 p-0 text-amber-600 hover:bg-amber-50"
+   643→   643→                              onClick={() => markReceived(po, true)}
+   644→   644→                              disabled={receiveMutation.isPending}
+   645→   645→                              title="Mark partial"
+   646→   646→                            >
+   647→   647→                              <Truck className="h-3.5 w-3.5" />
+   648→   648→                            </Button>
+   649→   649→                            <Button
+   650→   650→                              variant="ghost"
+   651→   651→                              size="sm"
+   652→   652→                              className="h-8 w-8 p-0 text-emerald-600 hover:bg-emerald-50"
+   653→   653→                              onClick={() => markReceived(po, false)}
+   654→   654→                              disabled={receiveMutation.isPending}
+   655→   655→                              title="Mark fully received"
+   656→   656→                            >
+   657→   657→                              <PackageCheck className="h-3.5 w-3.5" />
+   658→   658→                            </Button>
+   659→   659→                          </>
+   660→   660→                        )}
+   661→   661→                        {po.status === 'partially_received' && (
+   662→   662→                          <Button
+   663→   663→                            variant="ghost"
+   664→   664→                            size="sm"
+   665→   665→                            className="h-8 w-8 p-0 text-emerald-600 hover:bg-emerald-50"
+   666→   666→                            onClick={() => markReceived(po, false)}
+   667→   667→                            disabled={receiveMutation.isPending}
+   668→   668→                            title="Mark fully received"
+   669→   669→                          >
+   670→   670→                            <PackageCheck className="h-3.5 w-3.5" />
+   671→   671→                          </Button>
+   672→   672→                        )}
+   673→   673→                        {po.status === 'draft' && (
+   674→   674→                          <Button
+   675→   675→                            variant="ghost"
+   676→   676→                            size="sm"
+   677→   677→                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+   678→   678→                            onClick={() => setDeleteId(po.id)}
+   679→   679→                          >
+   680→   680→                            <Trash2 className="h-3.5 w-3.5" />
+   681→   681→                          </Button>
+   682→   682→                        )}
+   683→   683→                      </div>
+   684→   684→                    </TableCell>
+   685→   685→                  </TableRow>
+   686→   686→                ))}
+   687→   687→              </TableBody>
+   688→   688→            </Table>
+   689→   689→          </div>
+   690→   690→        </Card>
+   691→   691→      ) : null}
+   692→   692→
+   693→   693→      {/* View Dialog */}
+   694→   694→      <ViewPODialog po={viewPO} open={!!viewPO} onClose={() => setViewPO(null)} />
+   695→   695→
+   696→   696→      {/* Delete Confirmation */}
+   697→   697→      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+   698→   698→        <AlertDialogContent>
+   699→   699→          <AlertDialogHeader>
+   700→   700→            <AlertDialogTitle>Delete Purchase Order?</AlertDialogTitle>
+   701→   701→            <AlertDialogDescription>
+   702→   702→              This action cannot be undone. The purchase order and all items will be permanently deleted.
+   703→   703→            </AlertDialogDescription>
+   704→   704→          </AlertDialogHeader>
+   705→   705→          <AlertDialogFooter>
+   706→   706→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   707→   707→            <AlertDialogAction
+   708→   708→              className="bg-red-600 hover:bg-red-700 text-white"
+   709→   709→              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+   710→   710→              disabled={deleteMutation.isPending}
+   711→   711→            >
+   712→   712→              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+   713→   713→            </AlertDialogAction>
+   714→   714→          </AlertDialogFooter>
+   715→   715→        </AlertDialogContent>
+   716→   716→      </AlertDialog>
+   717→   717→    </div>
+   718→   718→  )
+   719→   719→}
+   720→   720→

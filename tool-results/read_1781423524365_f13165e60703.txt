@@ -1,0 +1,768 @@
+     1→'use client'
+     2→
+     3→import React, { useState } from 'react'
+     4→import { useQuery } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    11→import { Input } from '@/components/ui/input'
+    12→import { Label } from '@/components/ui/label'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import {
+    15→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    16→} from '@/components/ui/table'
+    17→import {
+    18→  BarChart3, FileText, Clock, Users, Star, Shield, Wrench,
+    19→  DollarSign, TrendingUp, AlertTriangle, CheckCircle,
+    20→} from 'lucide-react'
+    21→import { cn } from '@/lib/utils'
+    22→
+    23→// ─── Report Types ───
+    24→const reportTypes = [
+    25→  { value: 'complaints', label: 'Complaints Report', icon: FileText },
+    26→  { value: 'response_time', label: 'Response Time', icon: Clock },
+    27→  { value: 'resolution_time', label: 'Resolution Time', icon: TrendingUp },
+    28→  { value: 'technician_performance', label: 'Technician Performance', icon: Users },
+    29→  { value: 'customer_satisfaction', label: 'Customer Satisfaction', icon: Star },
+    30→  { value: 'amc', label: 'AMC Report', icon: Shield },
+    31→  { value: 'pm_compliance', label: 'PM Compliance', icon: Wrench },
+    32→  { value: 'sla', label: 'SLA Report', icon: AlertTriangle },
+    33→  { value: 'revenue', label: 'Revenue Report', icon: DollarSign },
+    34→] as const
+    35→
+    36→type ReportType = (typeof reportTypes)[number]['value']
+    37→
+    38→function formatCurrency(val: number) {
+    39→  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+    40→  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+    41→  return `$${val.toFixed(2)}`
+    42→}
+    43→
+    44→function formatHours(h: number | null | undefined) {
+    45→  if (!h) return '—'
+    46→  if (h < 24) return `${h.toFixed(1)}h`
+    47→  const d = Math.floor(h / 24)
+    48→  const rem = h % 24
+    49→  return rem > 0 ? `${d}d ${rem.toFixed(0)}h` : `${d}d`
+    50→}
+    51→
+    52→function formatDate(d: string | null) {
+    53→  if (!d) return '—'
+    54→  return new Date(d).toLocaleDateString()
+    55→}
+    56→
+    57→export function MaintenanceReports() {
+    58→  const [reportType, setReportType] = useState<ReportType>('complaints')
+    59→  const [startDate, setStartDate] = useState('')
+    60→  const [endDate, setEndDate] = useState('')
+    61→
+    62→  // Fetch report data
+    63→  const { data, isLoading } = useQuery({
+    64→    queryKey: ['maintenance-report', reportType, startDate, endDate],
+    65→    queryFn: () => {
+    66→      const params = new URLSearchParams()
+    67→      params.set('type', reportType)
+    68→      if (startDate) params.set('startDate', startDate)
+    69→      if (endDate) params.set('endDate', endDate)
+    70→      return api.get(`/api/maintenance/reports?${params.toString()}`)
+    71→    },
+    72→  })
+    73→  const report = data?.data || {}
+    74→
+    75→  const currentReport = reportTypes.find((r) => r.value === reportType)!
+    76→
+    77→  return (
+    78→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+    79→      {/* Header */}
+    80→      <div>
+    81→        <h1 className="text-2xl font-bold tracking-tight">Maintenance Reports</h1>
+    82→        <p className="text-muted-foreground text-sm mt-0.5">Analytics and reporting dashboard for maintenance operations</p>
+    83→      </div>
+    84→
+    85→      {/* Report Type Selector */}
+    86→      <Tabs value={reportType} onValueChange={(v) => setReportType(v as ReportType)} className="w-full">
+    87→        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+    88→          <TabsList className="flex-wrap h-auto gap-1">
+    89→            {reportTypes.map((rt) => (
+    90→              <TabsTrigger key={rt.value} value={rt.value} className="gap-1.5 text-xs">
+    91→                <rt.icon className="h-3.5 w-3.5" />
+    92→                <span className="hidden sm:inline">{rt.label}</span>
+    93→                <span className="sm:hidden">{rt.label.split(' ')[0]}</span>
+    94→              </TabsTrigger>
+    95→            ))}
+    96→          </TabsList>
+    97→
+    98→          {/* Date Range */}
+    99→          <div className="flex items-center gap-2">
+   100→            <div className="space-y-0.5">
+   101→              <Label className="text-xs">From</Label>
+   102→              <Input type="date" className="h-8 text-xs w-36" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+   103→            </div>
+   104→            <div className="space-y-0.5">
+   105→              <Label className="text-xs">To</Label>
+   106→              <Input type="date" className="h-8 text-xs w-36" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+   107→            </div>
+   108→            {(startDate || endDate) && (
+   109→              <Button size="sm" variant="ghost" className="h-8 mt-4 text-xs" onClick={() => { setStartDate(''); setEndDate('') }}>
+   110→                Clear
+   111→              </Button>
+   112→            )}
+   113→          </div>
+   114→        </div>
+   115→
+   116→        {/* Report Content */}
+   117→        {reportTypes.map((rt) => (
+   118→          <TabsContent key={rt.value} value={rt.value}>
+   119→            {isLoading ? (
+   120→              <div className="space-y-4">
+   121→                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   122→                  {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+   123→                </div>
+   124→                <Skeleton className="h-64 rounded-xl" />
+   125→              </div>
+   126→            ) : (
+   127→              <ReportContent type={rt.value} data={report} />
+   128→            )}
+   129→          </TabsContent>
+   130→        ))}
+   131→      </Tabs>
+   132→    </div>
+   133→  )
+   134→}
+   135→
+   136→// ─── Report Content Router ───
+   137→function ReportContent({ type, data }: { type: ReportType; data: any }) {
+   138→  switch (type) {
+   139→    case 'complaints': return <ComplaintsReport data={data} />
+   140→    case 'response_time': return <ResponseTimeReport data={data} />
+   141→    case 'resolution_time': return <ResolutionTimeReport data={data} />
+   142→    case 'technician_performance': return <TechnicianPerformanceReport data={data} />
+   143→    case 'customer_satisfaction': return <CustomerSatisfactionReport data={data} />
+   144→    case 'amc': return <AMCReport data={data} />
+   145→    case 'pm_compliance': return <PMComplianceReport data={data} />
+   146→    case 'sla': return <SLAReport data={data} />
+   147→    case 'revenue': return <RevenueReport data={data} />
+   148→    default: return <p className="text-muted-foreground">Unknown report type</p>
+   149→  }
+   150→}
+   151→
+   152→// ─── Helper: Empty State ───
+   153→function ReportEmpty({ message }: { message: string }) {
+   154→  return (
+   155→    <Card>
+   156→      <CardContent className="flex flex-col items-center justify-center py-16">
+   157→        <BarChart3 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   158→        <p className="text-sm text-muted-foreground">{message}</p>
+   159→      </CardContent>
+   160→    </Card>
+   161→  )
+   162→}
+   163→
+   164→// ─── Stat Card ───
+   165→function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+   166→  return (
+   167→    <Card className={cn('border-2', color)}>
+   168→      <CardContent className="p-4">
+   169→        <div className="flex items-center gap-2 mb-1">
+   170→          <Icon className="h-4 w-4 text-muted-foreground" />
+   171→          <p className="text-xs text-muted-foreground">{label}</p>
+   172→        </div>
+   173→        <p className="text-2xl font-bold">{value}</p>
+   174→      </CardContent>
+   175→    </Card>
+   176→  )
+   177→}
+   178→
+   179→// ─── 1. Complaints Report ───
+   180→function ComplaintsReport({ data }: { data: any }) {
+   181→  const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
+   182→  const byStatus = Array.isArray(data.byStatus) ? data.byStatus : []
+   183→  const tickets = Array.isArray(data.tickets) ? data.tickets : []
+   184→
+   185→  const statusColors: Record<string, string> = {
+   186→    open: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+   187→    in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+   188→    resolved: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+   189→    closed: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+   190→  }
+   191→
+   192→  return (
+   193→    <div className="space-y-4">
+   194→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   195→        <StatCard label="Total Complaints" value={data.totalComplaints ?? 0} icon={FileText} color="border-violet-200 dark:border-violet-800" />
+   196→        <StatCard label="Open" value={data.openCount ?? 0} icon={AlertTriangle} color="border-amber-200 dark:border-amber-800" />
+   197→        <StatCard label="Resolved" value={data.resolvedCount ?? 0} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+   198→        <StatCard label="Avg Resolution (h)" value={(data.avgResolutionTime ?? 0).toFixed(1)} icon={Clock} color="border-blue-200 dark:border-blue-800" />
+   199→      </div>
+   200→
+   201→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   202→        <Card>
+   203→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Category</CardTitle></CardHeader>
+   204→          <CardContent className="p-0">
+   205→            <Table>
+   206→              <TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-right">Count</TableHead><TableHead className="text-right">%</TableHead></TableRow></TableHeader>
+   207→              <TableBody>
+   208→                {byCategory.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   209→                  byCategory.map((c: any) => (
+   210→                    <TableRow key={c.category}><TableCell className="text-sm">{c.category}</TableCell><TableCell className="text-right text-sm font-medium">{c.count}</TableCell><TableCell className="text-right text-sm text-muted-foreground">{c.percentage?.toFixed(1) ?? 0}%</TableCell></TableRow>
+   211→                  ))}
+   212→              </TableBody>
+   213→            </Table>
+   214→          </CardContent>
+   215→        </Card>
+   216→        <Card>
+   217→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Status</CardTitle></CardHeader>
+   218→          <CardContent className="p-0">
+   219→            <Table>
+   220→              <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="text-right">Count</TableHead></TableRow></TableHeader>
+   221→              <TableBody>
+   222→                {byStatus.length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   223→                  byStatus.map((s: any) => (
+   224→                    <TableRow key={s.status}><TableCell><Badge variant="secondary" className={cn('text-xs', statusColors[s.status] || '')}>{s.status}</Badge></TableCell><TableCell className="text-right text-sm font-medium">{s.count}</TableCell></TableRow>
+   225→                  ))}
+   226→              </TableBody>
+   227→            </Table>
+   228→          </CardContent>
+   229→        </Card>
+   230→      </div>
+   231→
+   232→      {tickets.length > 0 && (
+   233→        <Card>
+   234→          <CardHeader className="pb-3"><CardTitle className="text-sm">Recent Complaints</CardTitle></CardHeader>
+   235→          <CardContent className="p-0">
+   236→            <div className="max-h-96 overflow-y-auto">
+   237→              <Table>
+   238→                <TableHeader><TableRow><TableHead>Ticket #</TableHead><TableHead>Customer</TableHead><TableHead>Category</TableHead><TableHead>Priority</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+   239→                <TableBody>
+   240→                  {tickets.map((t: any) => (
+   241→                    <TableRow key={t.id}>
+   242→                      <TableCell className="text-sm font-mono">{t.ticketNo}</TableCell>
+   243→                      <TableCell className="text-sm">{t.customerName || '—'}</TableCell>
+   244→                      <TableCell className="text-sm">{t.category || '—'}</TableCell>
+   245→                      <TableCell><Badge variant="secondary" className="text-xs">{t.priority || '—'}</Badge></TableCell>
+   246→                      <TableCell><Badge variant="secondary" className={cn('text-xs', statusColors[t.status] || '')}>{t.status}</Badge></TableCell>
+   247→                      <TableCell className="text-xs text-muted-foreground">{formatDate(t.createdAt)}</TableCell>
+   248→                    </TableRow>
+   249→                  ))}
+   250→                </TableBody>
+   251→              </Table>
+   252→            </div>
+   253→          </CardContent>
+   254→        </Card>
+   255→      )}
+   256→    </div>
+   257→  )
+   258→}
+   259→
+   260→// ─── 2. Response Time Report ───
+   261→function ResponseTimeReport({ data }: { data: any }) {
+   262→  const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
+   263→  const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
+   264→
+   265→  return (
+   266→    <div className="space-y-4">
+   267→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   268→        <StatCard label="Avg Response Time" value={formatHours(data.avgResponseTime)} icon={Clock} color="border-violet-200 dark:border-violet-800" />
+   269→        <StatCard label="Min Response" value={formatHours(data.minResponseTime)} icon={TrendingUp} color="border-green-200 dark:border-green-800" />
+   270→        <StatCard label="Max Response" value={formatHours(data.maxResponseTime)} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   271→        <StatCard label="SLA Compliance" value={`${data.slaCompliancePercent ?? 0}%`} icon={Shield} color="border-blue-200 dark:border-blue-800" />
+   272→      </div>
+   273→
+   274→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   275→        <Card>
+   276→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Priority</CardTitle></CardHeader>
+   277→          <CardContent className="p-0">
+   278→            <Table>
+   279→              <TableHeader><TableRow><TableHead>Priority</TableHead><TableHead className="text-right">Avg Time</TableHead><TableHead className="text-right">Tickets</TableHead><TableHead className="text-right">SLA %</TableHead></TableRow></TableHeader>
+   280→              <TableBody>
+   281→                {byPriority.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   282→                  byPriority.map((p: any) => (
+   283→                    <TableRow key={p.priority}><TableCell className="text-sm font-medium">{p.priority}</TableCell><TableCell className="text-right text-sm">{formatHours(p.avgResponseTime)}</TableCell><TableCell className="text-right text-sm">{p.count}</TableCell><TableCell className="text-right text-sm"><Badge variant="secondary" className={p.slaCompliance >= 90 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}>{p.slaCompliance ?? 0}%</Badge></TableCell></TableRow>
+   284→                  ))}
+   285→              </TableBody>
+   286→            </Table>
+   287→          </CardContent>
+   288→        </Card>
+   289→        <Card>
+   290→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Category</CardTitle></CardHeader>
+   291→          <CardContent className="p-0">
+   292→            <Table>
+   293→              <TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-right">Avg Time</TableHead><TableHead className="text-right">Tickets</TableHead></TableRow></TableHeader>
+   294→              <TableBody>
+   295→                {byCategory.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   296→                  byCategory.map((c: any) => (
+   297→                    <TableRow key={c.category}><TableCell className="text-sm">{c.category}</TableCell><TableCell className="text-right text-sm">{formatHours(c.avgResponseTime)}</TableCell><TableCell className="text-right text-sm">{c.count}</TableCell></TableRow>
+   298→                  ))}
+   299→              </TableBody>
+   300→            </Table>
+   301→          </CardContent>
+   302→        </Card>
+   303→      </div>
+   304→    </div>
+   305→  )
+   306→}
+   307→
+   308→// ─── 3. Resolution Time Report ───
+   309→function ResolutionTimeReport({ data }: { data: any }) {
+   310→  const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
+   311→  const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
+   312→
+   313→  return (
+   314→    <div className="space-y-4">
+   315→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   316→        <StatCard label="Avg Resolution" value={formatHours(data.avgResolutionTime)} icon={Clock} color="border-violet-200 dark:border-violet-800" />
+   317→        <StatCard label="Min Resolution" value={formatHours(data.minResolutionTime)} icon={TrendingUp} color="border-green-200 dark:border-green-800" />
+   318→        <StatCard label="Max Resolution" value={formatHours(data.maxResolutionTime)} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   319→        <StatCard label="SLA Compliance" value={`${data.slaCompliancePercent ?? 0}%`} icon={Shield} color="border-blue-200 dark:border-blue-800" />
+   320→      </div>
+   321→
+   322→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   323→        <Card>
+   324→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Priority</CardTitle></CardHeader>
+   325→          <CardContent className="p-0">
+   326→            <Table>
+   327→              <TableHeader><TableRow><TableHead>Priority</TableHead><TableHead className="text-right">Avg Time</TableHead><TableHead className="text-right">Tickets</TableHead><TableHead className="text-right">SLA %</TableHead></TableRow></TableHeader>
+   328→              <TableBody>
+   329→                {byPriority.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   330→                  byPriority.map((p: any) => (
+   331→                    <TableRow key={p.priority}><TableCell className="text-sm font-medium">{p.priority}</TableCell><TableCell className="text-right text-sm">{formatHours(p.avgResolutionTime)}</TableCell><TableCell className="text-right text-sm">{p.count}</TableCell><TableCell className="text-right text-sm"><Badge variant="secondary" className={p.slaCompliance >= 90 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}>{p.slaCompliance ?? 0}%</Badge></TableCell></TableRow>
+   332→                  ))}
+   333→              </TableBody>
+   334→            </Table>
+   335→          </CardContent>
+   336→        </Card>
+   337→        <Card>
+   338→          <CardHeader className="pb-3"><CardTitle className="text-sm">By Category</CardTitle></CardHeader>
+   339→          <CardContent className="p-0">
+   340→            <Table>
+   341→              <TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-right">Avg Time</TableHead><TableHead className="text-right">Tickets</TableHead></TableRow></TableHeader>
+   342→              <TableBody>
+   343→                {byCategory.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   344→                  byCategory.map((c: any) => (
+   345→                    <TableRow key={c.category}><TableCell className="text-sm">{c.category}</TableCell><TableCell className="text-right text-sm">{formatHours(c.avgResolutionTime)}</TableCell><TableCell className="text-right text-sm">{c.count}</TableCell></TableRow>
+   346→                  ))}
+   347→              </TableBody>
+   348→            </Table>
+   349→          </CardContent>
+   350→        </Card>
+   351→      </div>
+   352→    </div>
+   353→  )
+   354→}
+   355→
+   356→// ─── 4. Technician Performance Report ───
+   357→function TechnicianPerformanceReport({ data }: { data: any }) {
+   358→  const technicians = Array.isArray(data.technicians) ? data.technicians : []
+   359→
+   360→  return (
+   361→    <div className="space-y-4">
+   362→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   363→        <StatCard label="Total Technicians" value={data.totalTechnicians ?? 0} icon={Users} color="border-violet-200 dark:border-violet-800" />
+   364→        <StatCard label="Total Jobs" value={data.totalJobs ?? 0} icon={Wrench} color="border-blue-200 dark:border-blue-800" />
+   365→        <StatCard label="Avg Completion Rate" value={`${data.avgCompletionRate ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+   366→        <StatCard label="Avg Rating" value={`${(data.avgRating ?? 0).toFixed(1)}/5`} icon={Star} color="border-amber-200 dark:border-amber-800" />
+   367→      </div>
+   368→
+   369→      <Card>
+   370→        <CardHeader className="pb-3"><CardTitle className="text-sm">Technician Details</CardTitle></CardHeader>
+   371→        <CardContent className="p-0">
+   372→          {technicians.length === 0 ? (
+   373→            <div className="flex flex-col items-center justify-center py-16">
+   374→              <Users className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   375→              <p className="text-sm text-muted-foreground">No technician data available</p>
+   376→            </div>
+   377→          ) : (
+   378→            <div className="max-h-96 overflow-y-auto">
+   379→              <Table>
+   380→                <TableHeader>
+   381→                  <TableRow className="sticky top-0 bg-background z-10">
+   382→                    <TableHead>Technician</TableHead>
+   383→                    <TableHead className="text-right">Total Jobs</TableHead>
+   384→                    <TableHead className="hidden md:table-cell text-right">Avg Response</TableHead>
+   385→                    <TableHead className="text-right">Completion Rate</TableHead>
+   386→                    <TableHead className="text-right">Customer Rating</TableHead>
+   387→                  </TableRow>
+   388→                </TableHeader>
+   389→                <TableBody>
+   390→                  {technicians.map((t: any) => (
+   391→                    <TableRow key={t.id || t.technicianId}>
+   392→                      <TableCell className="text-sm font-medium">{t.name || t.technicianName || '—'}</TableCell>
+   393→                      <TableCell className="text-right text-sm font-medium">{t.totalJobs ?? 0}</TableCell>
+   394→                      <TableCell className="hidden md:table-cell text-right text-sm">{formatHours(t.avgResponseTime)}</TableCell>
+   395→                      <TableCell className="text-right">
+   396→                        <Badge variant="secondary" className={cn('text-xs', (t.completionRate ?? 0) >= 90 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : (t.completionRate ?? 0) >= 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300')}>
+   397→                          {t.completionRate ?? 0}%
+   398→                        </Badge>
+   399→                      </TableCell>
+   400→                      <TableCell className="text-right">
+   401→                        <div className="flex items-center justify-end gap-1">
+   402→                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+   403→                          <span className="text-sm font-medium">{(t.avgRating ?? 0).toFixed(1)}</span>
+   404→                        </div>
+   405→                      </TableCell>
+   406→                    </TableRow>
+   407→                  ))}
+   408→                </TableBody>
+   409→              </Table>
+   410→            </div>
+   411→          )}
+   412→        </CardContent>
+   413→      </Card>
+   414→    </div>
+   415→  )
+   416→}
+   417→
+   418→// ─── 5. Customer Satisfaction Report ───
+   419→function CustomerSatisfactionReport({ data }: { data: any }) {
+   420→  const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
+   421→  const byTechnician = Array.isArray(data.byTechnician) ? data.byTechnician : []
+   422→  const lowRated = Array.isArray(data.lowRatedTickets) ? data.lowRatedTickets : []
+   423→
+   424→  return (
+   425→    <div className="space-y-4">
+   426→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   427→        <StatCard label="Avg Rating" value={`${(data.avgRating ?? 0).toFixed(1)}/5`} icon={Star} color="border-violet-200 dark:border-violet-800" />
+   428→        <StatCard label="Total Ratings" value={data.totalRatings ?? 0} icon={Users} color="border-blue-200 dark:border-blue-800" />
+   429→        <StatCard label="5-Star % " value={`${data.fiveStarPercent ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+   430→        <StatCard label="Low-Rated" value={lowRated.length} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   431→      </div>
+   432→
+   433→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   434→        <Card>
+   435→          <CardHeader className="pb-3"><CardTitle className="text-sm">Rating by Category</CardTitle></CardHeader>
+   436→          <CardContent className="p-0">
+   437→            <Table>
+   438→              <TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-right">Avg Rating</TableHead><TableHead className="text-right">Count</TableHead></TableRow></TableHeader>
+   439→              <TableBody>
+   440→                {byCategory.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   441→                  byCategory.map((c: any) => (
+   442→                    <TableRow key={c.category}><TableCell className="text-sm">{c.category}</TableCell><TableCell className="text-right"><div className="flex items-center justify-end gap-1"><Star className="h-3 w-3 text-amber-500 fill-amber-500" /><span className="text-sm font-medium">{(c.avgRating ?? 0).toFixed(1)}</span></div></TableCell><TableCell className="text-right text-sm">{c.count}</TableCell></TableRow>
+   443→                  ))}
+   444→              </TableBody>
+   445→            </Table>
+   446→          </CardContent>
+   447→        </Card>
+   448→        <Card>
+   449→          <CardHeader className="pb-3"><CardTitle className="text-sm">Rating by Technician</CardTitle></CardHeader>
+   450→          <CardContent className="p-0">
+   451→            <Table>
+   452→              <TableHeader><TableRow><TableHead>Technician</TableHead><TableHead className="text-right">Avg Rating</TableHead><TableHead className="text-right">Count</TableHead></TableRow></TableHeader>
+   453→              <TableBody>
+   454→                {byTechnician.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   455→                  byTechnician.map((t: any) => (
+   456→                    <TableRow key={t.technicianId || t.name}><TableCell className="text-sm">{t.name}</TableCell><TableCell className="text-right"><div className="flex items-center justify-end gap-1"><Star className="h-3 w-3 text-amber-500 fill-amber-500" /><span className="text-sm font-medium">{(t.avgRating ?? 0).toFixed(1)}</span></div></TableCell><TableCell className="text-right text-sm">{t.count}</TableCell></TableRow>
+   457→                  ))}
+   458→              </TableBody>
+   459→            </Table>
+   460→          </CardContent>
+   461→        </Card>
+   462→      </div>
+   463→
+   464→      {lowRated.length > 0 && (
+   465→        <Card className="border-red-200 dark:border-red-800">
+   466→          <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-500" /> Low-Rated Tickets (≤2 stars)</CardTitle></CardHeader>
+   467→          <CardContent className="p-0">
+   468→            <div className="max-h-96 overflow-y-auto">
+   469→              <Table>
+   470→                <TableHeader><TableRow><TableHead>Ticket #</TableHead><TableHead>Customer</TableHead><TableHead>Technician</TableHead><TableHead>Rating</TableHead><TableHead>Feedback</TableHead></TableRow></TableHeader>
+   471→                <TableBody>
+   472→                  {lowRated.map((t: any) => (
+   473→                    <TableRow key={t.id}>
+   474→                      <TableCell className="text-sm font-mono">{t.ticketNo}</TableCell>
+   475→                      <TableCell className="text-sm">{t.customerName || '—'}</TableCell>
+   476→                      <TableCell className="text-sm">{t.technicianName || '—'}</TableCell>
+   477→                      <TableCell><Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-xs">{t.rating}/5</Badge></TableCell>
+   478→                      <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{t.feedback || '—'}</TableCell>
+   479→                    </TableRow>
+   480→                  ))}
+   481→                </TableBody>
+   482→              </Table>
+   483→            </div>
+   484→          </CardContent>
+   485→        </Card>
+   486→      )}
+   487→    </div>
+   488→  )
+   489→}
+   490→
+   491→// ─── 6. AMC Report ───
+   492→function AMCReport({ data }: { data: any }) {
+   493→  const contracts = Array.isArray(data.contracts) ? data.contracts : []
+   494→
+   495→  return (
+   496→    <div className="space-y-4">
+   497→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   498→        <StatCard label="Active Contracts" value={data.activeContracts ?? 0} icon={Shield} color="border-emerald-200 dark:border-emerald-800" />
+   499→        <StatCard label="Expired" value={data.expiredContracts ?? 0} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   500→        <StatCard label="Total Revenue" value={formatCurrency(data.totalRevenue ?? 0)} icon={DollarSign} color="border-violet-200 dark:border-violet-800" />
+   501→        <StatCard label="Avg Utilization" value={`${data.avgUtilization ?? 0}%`} icon={TrendingUp} color="border-blue-200 dark:border-blue-800" />
+   502→      </div>
+   503→
+   504→      <Card>
+   505→        <CardHeader className="pb-3"><CardTitle className="text-sm">Contract Details</CardTitle></CardHeader>
+   506→        <CardContent className="p-0">
+   507→          {contracts.length === 0 ? (
+   508→            <ReportEmpty message="No AMC data available" />
+   509→          ) : (
+   510→            <div className="max-h-96 overflow-y-auto">
+   511→              <Table>
+   512→                <TableHeader>
+   513→                  <TableRow className="sticky top-0 bg-background z-10">
+   514→                    <TableHead>Contract #</TableHead>
+   515→                    <TableHead>Customer</TableHead>
+   516→                    <TableHead className="hidden md:table-cell">Value</TableHead>
+   517→                    <TableHead>Visits Used</TableHead>
+   518→                    <TableHead>Utilization</TableHead>
+   519→                    <TableHead>Status</TableHead>
+   520→                    <TableHead className="hidden sm:table-cell">End Date</TableHead>
+   521→                  </TableRow>
+   522→                </TableHeader>
+   523→                <TableBody>
+   524→                  {contracts.map((c: any) => {
+   525→                    const utilization = c.totalVisits ? Math.round(((c.visitsUsed || 0) / c.totalVisits) * 100) : 0
+   526→                    return (
+   527→                      <TableRow key={c.id}>
+   528→                        <TableCell className="text-sm font-mono">{c.amcNo}</TableCell>
+   529→                        <TableCell className="text-sm">{c.customerName || '—'}</TableCell>
+   530→                        <TableCell className="hidden md:table-cell text-sm font-medium">{formatCurrency(c.annualValue || 0)}</TableCell>
+   531→                        <TableCell className="text-sm">{c.visitsUsed || 0}/{c.totalVisits}</TableCell>
+   532→                        <TableCell>
+   533→                          <Badge variant="secondary" className={cn('text-xs', utilization >= 80 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300')}>
+   534→                            {utilization}%
+   535→                          </Badge>
+   536→                        </TableCell>
+   537→                        <TableCell>
+   538→                          <Badge variant="secondary" className={cn('text-xs', c.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : c.status === 'expired' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400')}>
+   539→                            {c.status}
+   540→                          </Badge>
+   541→                        </TableCell>
+   542→                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{formatDate(c.endDate)}</TableCell>
+   543→                      </TableRow>
+   544→                    )
+   545→                  })}
+   546→                </TableBody>
+   547→              </Table>
+   548→            </div>
+   549→          )}
+   550→        </CardContent>
+   551→      </Card>
+   552→    </div>
+   553→  )
+   554→}
+   555→
+   556→// ─── 7. PM Compliance Report ───
+   557→function PMComplianceReport({ data }: { data: any }) {
+   558→  const schedules = Array.isArray(data.schedules) ? data.schedules : []
+   559→
+   560→  return (
+   561→    <div className="space-y-4">
+   562→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   563→        <StatCard label="On-Time %" value={`${data.onTimePercent ?? 0}%`} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+   564→        <StatCard label="Overdue" value={data.overdueCount ?? 0} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   565→        <StatCard label="Completed" value={data.completedCount ?? 0} icon={Wrench} color="border-blue-200 dark:border-blue-800" />
+   566→        <StatCard label="Completion Rate" value={`${data.completionRate ?? 0}%`} icon={TrendingUp} color="border-violet-200 dark:border-violet-800" />
+   567→      </div>
+   568→
+   569→      <Card>
+   570→        <CardHeader className="pb-3"><CardTitle className="text-sm">Schedule Details</CardTitle></CardHeader>
+   571→        <CardContent className="p-0">
+   572→          {schedules.length === 0 ? (
+   573→            <ReportEmpty message="No PM compliance data available" />
+   574→          ) : (
+   575→            <div className="max-h-96 overflow-y-auto">
+   576→              <Table>
+   577→                <TableHeader>
+   578→                  <TableRow className="sticky top-0 bg-background z-10">
+   579→                    <TableHead>PM #</TableHead>
+   580→                    <TableHead>Customer</TableHead>
+   581→                    <TableHead className="hidden md:table-cell">Equipment</TableHead>
+   582→                    <TableHead>Progress</TableHead>
+   583→                    <TableHead>Last Visit</TableHead>
+   584→                    <TableHead>Next Visit</TableHead>
+   585→                    <TableHead>Status</TableHead>
+   586→                  </TableRow>
+   587→                </TableHeader>
+   588→                <TableBody>
+   589→                  {schedules.map((s: any) => {
+   590→                    const pct = s.totalVisits ? Math.round(((s.visitsCompleted || 0) / s.totalVisits) * 100) : 0
+   591→                    const now = new Date()
+   592→                    const nv = s.nextVisitDate ? new Date(s.nextVisitDate) : null
+   593→                    const isOverdue = nv && nv < now
+   594→                    return (
+   595→                      <TableRow key={s.id}>
+   596→                        <TableCell className="text-sm font-mono">{s.pmNo}</TableCell>
+   597→                        <TableCell className="text-sm">{s.customerName || '—'}</TableCell>
+   598→                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{s.equipmentName || '—'}</TableCell>
+   599→                        <TableCell>
+   600→                          <div className="flex items-center gap-2">
+   601→                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+   602→                              <div className={cn('h-full rounded-full', pct >= 100 ? 'bg-green-500' : pct >= 50 ? 'bg-blue-500' : 'bg-amber-500')} style={{ width: `${Math.min(pct, 100)}%` }} />
+   603→                            </div>
+   604→                            <span className="text-xs text-muted-foreground">{s.visitsCompleted || 0}/{s.totalVisits}</span>
+   605→                          </div>
+   606→                        </TableCell>
+   607→                        <TableCell className="text-xs text-muted-foreground">{formatDate(s.lastVisitDate)}</TableCell>
+   608→                        <TableCell className={cn('text-xs', isOverdue ? 'text-red-600 font-medium' : '')}>{formatDate(s.nextVisitDate)}</TableCell>
+   609→                        <TableCell>
+   610→                          <Badge variant="secondary" className={cn('text-xs', isOverdue && s.status === 'active' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : s.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300')}>
+   611→                            {isOverdue && s.status === 'active' ? 'Overdue' : s.status}
+   612→                          </Badge>
+   613→                        </TableCell>
+   614→                      </TableRow>
+   615→                    )
+   616→                  })}
+   617→                </TableBody>
+   618→              </Table>
+   619→            </div>
+   620→          )}
+   621→        </CardContent>
+   622→      </Card>
+   623→    </div>
+   624→  )
+   625→}
+   626→
+   627→// ─── 8. SLA Report ───
+   628→function SLAReport({ data }: { data: any }) {
+   629→  const byPriority = Array.isArray(data.byPriority) ? data.byPriority : []
+   630→  const breached = Array.isArray(data.breachedTickets) ? data.breachedTickets : []
+   631→
+   632→  return (
+   633→    <div className="space-y-4">
+   634→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   635→        <StatCard label="Overall Compliance" value={`${data.overallCompliance ?? 0}%`} icon={Shield} color="border-violet-200 dark:border-violet-800" />
+   636→        <StatCard label="Total Tickets" value={data.totalTickets ?? 0} icon={FileText} color="border-blue-200 dark:border-blue-800" />
+   637→        <StatCard label="Breached" value={data.breachedCount ?? 0} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   638→        <StatCard label="Avg Breach Duration" value={formatHours(data.avgBreachDuration)} icon={Clock} color="border-amber-200 dark:border-amber-800" />
+   639→      </div>
+   640→
+   641→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   642→        <Card>
+   643→          <CardHeader className="pb-3"><CardTitle className="text-sm">Compliance by Priority</CardTitle></CardHeader>
+   644→          <CardContent className="p-0">
+   645→            <Table>
+   646→              <TableHeader><TableRow><TableHead>Priority</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Breached</TableHead><TableHead className="text-right">Compliance %</TableHead></TableRow></TableHeader>
+   647→              <TableBody>
+   648→                {byPriority.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   649→                  byPriority.map((p: any) => (
+   650→                    <TableRow key={p.priority}>
+   651→                      <TableCell className="text-sm font-medium">{p.priority}</TableCell>
+   652→                      <TableCell className="text-right text-sm">{p.total ?? 0}</TableCell>
+   653→                      <TableCell className="text-right text-sm text-red-600 font-medium">{p.breached ?? 0}</TableCell>
+   654→                      <TableCell className="text-right"><Badge variant="secondary" className={cn('text-xs', (p.compliancePercent ?? 0) >= 90 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : (p.compliancePercent ?? 0) >= 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300')}>{p.compliancePercent ?? 0}%</Badge></TableCell>
+   655→                    </TableRow>
+   656→                  ))}
+   657→              </TableBody>
+   658→            </Table>
+   659→          </CardContent>
+   660→        </Card>
+   661→        <Card>
+   662→          <CardHeader className="pb-3"><CardTitle className="text-sm">Quick Stats</CardTitle></CardHeader>
+   663→          <CardContent className="p-0">
+   664→            <div className="divide-y">
+   665→              <div className="flex justify-between px-4 py-3"><span className="text-sm text-muted-foreground">Most Breached Priority</span><span className="text-sm font-medium">{data.mostBreachedPriority || '—'}</span></div>
+   666→              <div className="flex justify-between px-4 py-3"><span className="text-sm text-muted-foreground">Best Compliance Priority</span><span className="text-sm font-medium text-green-600">{data.bestCompliancePriority || '—'}</span></div>
+   667→              <div className="flex justify-between px-4 py-3"><span className="text-sm text-muted-foreground">This Month Breaches</span><span className="text-sm font-medium text-red-600">{data.thisMonthBreaches ?? 0}</span></div>
+   668→            </div>
+   669→          </CardContent>
+   670→        </Card>
+   671→      </div>
+   672→
+   673→      {breached.length > 0 && (
+   674→        <Card className="border-red-200 dark:border-red-800">
+   675→          <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-500" /> Breached Tickets</CardTitle></CardHeader>
+   676→          <CardContent className="p-0">
+   677→            <div className="max-h-96 overflow-y-auto">
+   678→              <Table>
+   679→                <TableHeader><TableRow><TableHead>Ticket #</TableHead><TableHead>Customer</TableHead><TableHead>Priority</TableHead><TableHead>SLA Deadline</TableHead><TableHead>Actual Time</TableHead><TableHead>Breach Duration</TableHead></TableRow></TableHeader>
+   680→                <TableBody>
+   681→                  {breached.map((t: any) => (
+   682→                    <TableRow key={t.id}>
+   683→                      <TableCell className="text-sm font-mono">{t.ticketNo}</TableCell>
+   684→                      <TableCell className="text-sm">{t.customerName || '—'}</TableCell>
+   685→                      <TableCell><Badge variant="secondary" className="text-xs">{t.priority}</Badge></TableCell>
+   686→                      <TableCell className="text-xs text-muted-foreground">{t.slaDeadline ? new Date(t.slaDeadline).toLocaleString() : '—'}</TableCell>
+   687→                      <TableCell className="text-sm">{formatHours(t.actualTime)}</TableCell>
+   688→                      <TableCell className="text-sm text-red-600 font-medium">{formatHours(t.breachDuration)}</TableCell>
+   689→                    </TableRow>
+   690→                  ))}
+   691→                </TableBody>
+   692→              </Table>
+   693→            </div>
+   694→          </CardContent>
+   695→        </Card>
+   696→      )}
+   697→    </div>
+   698→  )
+   699→}
+   700→
+   701→// ─── 9. Revenue Report ───
+   702→function RevenueReport({ data }: { data: any }) {
+   703→  const byCustomer = Array.isArray(data.byCustomer) ? data.byCustomer : []
+   704→  const byMonth = Array.isArray(data.byMonth) ? data.byMonth : []
+   705→  const byCategory = Array.isArray(data.byCategory) ? data.byCategory : []
+   706→
+   707→  return (
+   708→    <div className="space-y-4">
+   709→      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   710→        <StatCard label="Total Revenue" value={formatCurrency(data.totalRevenue ?? 0)} icon={DollarSign} color="border-emerald-200 dark:border-emerald-800" />
+   711→        <StatCard label="Paid Invoices" value={data.paidCount ?? 0} icon={CheckCircle} color="border-green-200 dark:border-green-800" />
+   712→        <StatCard label="Pending" value={data.pendingCount ?? 0} icon={Clock} color="border-amber-200 dark:border-amber-800" />
+   713→        <StatCard label="Cancelled" value={data.cancelledCount ?? 0} icon={AlertTriangle} color="border-red-200 dark:border-red-800" />
+   714→      </div>
+   715→
+   716→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   717→        <Card>
+   718→          <CardHeader className="pb-3"><CardTitle className="text-sm">Revenue by Customer</CardTitle></CardHeader>
+   719→          <CardContent className="p-0">
+   720→            <div className="max-h-96 overflow-y-auto">
+   721→              <Table>
+   722→                <TableHeader><TableRow><TableHead>Customer</TableHead><TableHead className="text-right">Invoices</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+   723→                <TableBody>
+   724→                  {byCustomer.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   725→                    byCustomer.map((c: any) => (
+   726→                      <TableRow key={c.customerId || c.customer}><TableCell className="text-sm font-medium">{c.customer || c.customerName || '—'}</TableCell><TableCell className="text-right text-sm">{c.count}</TableCell><TableCell className="text-right text-sm font-medium text-emerald-600">{formatCurrency(c.revenue || 0)}</TableCell></TableRow>
+   727→                    ))}
+   728→                </TableBody>
+   729→              </Table>
+   730→            </div>
+   731→          </CardContent>
+   732→        </Card>
+   733→        <Card>
+   734→          <CardHeader className="pb-3"><CardTitle className="text-sm">Monthly Revenue</CardTitle></CardHeader>
+   735→          <CardContent className="p-0">
+   736→            <div className="max-h-96 overflow-y-auto">
+   737→              <Table>
+   738→                <TableHeader><TableRow><TableHead>Month</TableHead><TableHead className="text-right">Invoices</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+   739→                <TableBody>
+   740→                  {byMonth.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data</TableCell></TableRow> :
+   741→                    byMonth.map((m: any) => (
+   742→                      <TableRow key={m.month}><TableCell className="text-sm">{m.month}</TableCell><TableCell className="text-right text-sm">{m.count}</TableCell><TableCell className="text-right text-sm font-medium text-emerald-600">{formatCurrency(m.revenue || 0)}</TableCell></TableRow>
+   743→                    ))}
+   744→                </TableBody>
+   745→              </Table>
+   746→            </div>
+   747→          </CardContent>
+   748→        </Card>
+   749→      </div>
+   750→
+   751→      {byCategory.length > 0 && (
+   752→        <Card>
+   753→          <CardHeader className="pb-3"><CardTitle className="text-sm">Revenue by Category</CardTitle></CardHeader>
+   754→          <CardContent className="p-0">
+   755→            <Table>
+   756→              <TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
+   757→              <TableBody>
+   758→                {byCategory.map((c: any) => (
+   759→                  <TableRow key={c.category}><TableCell className="text-sm">{c.category}</TableCell><TableCell className="text-right text-sm font-medium text-emerald-600">{formatCurrency(c.amount || 0)}</TableCell></TableRow>
+   760→                ))}
+   761→              </TableBody>
+   762→            </Table>
+   763→          </CardContent>
+   764→        </Card>
+   765→      )}
+   766→    </div>
+   767→  )
+   768→}

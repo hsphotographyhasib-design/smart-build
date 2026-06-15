@@ -1,0 +1,1041 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api } from '@/lib/store'
+     6→import { useFormat } from '@/hooks/use-format'
+     7→import { cn } from '@/lib/utils'
+     8→import { toast } from 'sonner'
+     9→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    10→import { Button } from '@/components/ui/button'
+    11→import { Badge } from '@/components/ui/badge'
+    12→import { Input } from '@/components/ui/input'
+    13→import { Label } from '@/components/ui/label'
+    14→import { Textarea } from '@/components/ui/textarea'
+    15→import { Skeleton } from '@/components/ui/skeleton'
+    16→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    17→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    18→import { Separator } from '@/components/ui/separator'
+    19→import { ScrollArea } from '@/components/ui/scroll-area'
+    20→import { Progress } from '@/components/ui/progress'
+    21→import {
+    22→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    23→} from '@/components/ui/table'
+    24→import {
+    25→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+    26→} from '@/components/ui/dialog'
+    27→import {
+    28→  FileText, Plus, Search, ArrowLeft, Eye, Pencil, Trash2, ChevronLeft, ChevronRight,
+    29→  CheckCircle, XCircle, AlertTriangle, Clock, DollarSign, Users, Award, Trophy, Star,
+    30→  Building2, Upload, Download, Send, Gavel, Target, ClipboardCheck, MessageCircle,
+    31→  HelpCircle, FileUp, BarChart3,
+    32→} from 'lucide-react'
+    33→
+    34→// ─── Props ───
+    35→interface TenderDetailPageProps {
+    36→  packageId: string
+    37→}
+    38→
+    39→// ─── Types ───
+    40→interface BidItem {
+    41→  id: string
+    42→  description: string
+    43→  quantity: number
+    44→  unit: string
+    45→  unitPrice: number
+    46→  total: number
+    47→}
+    48→
+    49→interface Invitation {
+    50→  id: string
+    51→  vendorId: string
+    52→  vendorName: string
+    53→  status: string
+    54→  sentAt: string
+    55→  openedAt?: string
+    56→  respondedAt?: string
+    57→}
+    58→
+    59→interface Submission {
+    60→  id: string
+    61→  vendorId: string
+    62→  vendorName: string
+    63→  totalAmount: number
+    64→  status: string
+    65→  submittedAt: string
+    66→  technicalScore?: number
+    67→  commercialScore?: number
+    68→}
+    69→
+    70→interface Document {
+    71→  id: string
+    72→  fileName: string
+    73→  category: string
+    74→  fileSize: number
+    75→  uploadedAt: string
+    76→  uploadedBy: string
+    77→}
+    78→
+    79→interface QA {
+    80→  id: string
+    81→  question: string
+    82→  answer?: string
+    83→  askedBy: string
+    84→  askedAt: string
+    85→  answeredBy?: string
+    86→  answeredAt?: string
+    87→}
+    88→
+    89→interface Addendum {
+    90→  id: string
+    91→  title: string
+    92→  description: string
+    93→  issuedDate: string
+    94→  issuedBy: string
+    95→}
+    96→
+    97→interface EvaluationCriterion {
+    98→  id: string
+    99→  name: string
+   100→  weight: number
+   101→  type: string
+   102→}
+   103→
+   104→interface TenderPackage {
+   105→  id: string
+   106→  packageNo: string
+   107→  name: string
+   108→  status: string
+   109→  projectId: string
+   110→  project: { id: string; name: string; code: string } | null
+   111→  category: string
+   112→  description: string
+   113→  scopeOfWork: string
+   114→  estimatedBudget: number
+   115→  bidDueDate: string
+   116→  boqReference: string
+   117→  requireTechnicalProposal: boolean
+   118→  requireCommercialProposal: boolean
+   119→  requireMethodStatement: boolean
+   120→  requireQualityPlan: boolean
+   121→  requireSafetyPlan: boolean
+   122→  createdAt: string
+   123→  publishedAt?: string
+   124→  awardedVendorId?: string
+   125→  awardedVendor?: { id: string; name: string }
+   126→  awardedAmount?: number
+   127→  bidItems: BidItem[]
+   128→  invitations: Invitation[]
+   129→  submissions: Submission[]
+   130→  documents: Document[]
+   131→  qa: QA[]
+   132→  addenda: Addendum[]
+   133→  evaluationCriteria: EvaluationCriterion[]
+   134→  approvalSteps: { step: string; status: string; completedAt?: string; note?: string }[]
+   135→}
+   136→
+   137→// ─── Config Maps ───
+   138→const statusConfig: Record<string, { label: string; className: string }> = {
+   139→  draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
+   140→  published: { label: 'Published', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+   141→  under_evaluation: { label: 'Under Evaluation', className: 'bg-orange-50 text-orange-700 border-orange-200' },
+   142→  awarded: { label: 'Awarded', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+   143→  cancelled: { label: 'Cancelled', className: 'bg-red-50 text-red-700 border-red-200' },
+   144→  closed: { label: 'Closed', className: 'bg-gray-100 text-gray-500 border-gray-200' },
+   145→}
+   146→
+   147→const invitationStatusConfig: Record<string, { label: string; className: string }> = {
+   148→  sent: { label: 'Sent', className: 'bg-amber-50 text-amber-700' },
+   149→  opened: { label: 'Opened', className: 'bg-cyan-50 text-cyan-700' },
+   150→  accepted: { label: 'Accepted', className: 'bg-emerald-50 text-emerald-700' },
+   151→  declined: { label: 'Declined', className: 'bg-red-50 text-red-700' },
+   152→  submitted: { label: 'Submitted', className: 'bg-teal-50 text-teal-700' },
+   153→}
+   154→
+   155→const submissionStatusConfig: Record<string, { label: string; className: string }> = {
+   156→  pending_review: { label: 'Pending Review', className: 'bg-amber-50 text-amber-700' },
+   157→  qualified: { label: 'Qualified', className: 'bg-emerald-50 text-emerald-700' },
+   158→  disqualified: { label: 'Disqualified', className: 'bg-red-50 text-red-700' },
+   159→  recommended: { label: 'Recommended', className: 'bg-teal-50 text-teal-700' },
+   160→  withdrawn: { label: 'Withdrawn', className: 'bg-gray-100 text-gray-500' },
+   161→}
+   162→
+   163→// ─── Component ───
+   164→export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
+   165→  const { navigate } = useAppStore()
+   166→  const { formatCurrency, formatDate, formatDateTime } = useFormat()
+   167→  const queryClient = useQueryClient()
+   168→
+   169→  const [activeTab, setActiveTab] = useState('overview')
+   170→  const [inviteOpen, setInviteOpen] = useState(false)
+   171→  const [qaOpen, setQaOpen] = useState(false)
+   172→  const [addendaOpen, setAddendaOpen] = useState(false)
+   173→  const [awardOpen, setAwardOpen] = useState(false)
+   174→
+   175→  // Form states
+   176→  const [inviteVendorId, setInviteVendorId] = useState('')
+   177→  const [qaForm, setQaForm] = useState({ question: '' })
+   178→  const [addendaForm, setAddendaForm] = useState({ title: '', description: '' })
+   179→  const [awardForm, setAwardForm] = useState({ vendorId: '', notes: '', awardAmount: 0 })
+   180→
+   181→  // ─── Queries ───
+   182→  const { data, isLoading } = useQuery({
+   183→    queryKey: ['tender-package', packageId],
+   184→    queryFn: () => api.get<TenderPackage>(`/api/tender/packages/${packageId}`),
+   185→    enabled: !!packageId,
+   186→  })
+   187→
+   188→  const { data: vendorsData } = useQuery({
+   189→    queryKey: ['tender-vendors-select'],
+   190→    queryFn: () => api.get('/api/tender/vendors'),
+   191→  })
+   192→
+   193→  const pkg = data?.data
+   194→  const vendors = vendorsData?.data || []
+   195→  const sc = statusConfig[pkg?.status || 'draft'] || statusConfig.draft
+   196→
+   197→  // ─── Mutations ───
+   198→  const publishMutation = useMutation({
+   199→    mutationFn: () => api.put(`/api/tender/packages/${packageId}/publish`, {}),
+   200→    onSuccess: () => { toast.success('Tender published'); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   201→    onError: (err: any) => toast.error(err?.error || 'Failed to publish'),
+   202→  })
+   203→
+   204→  const inviteMutation = useMutation({
+   205→    mutationFn: (body: any) => api.post(`/api/tender/packages/${packageId}/invitations`, body),
+   206→    onSuccess: () => { toast.success('Vendor invited'); setInviteOpen(false); setInviteVendorId(''); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   207→    onError: (err: any) => toast.error(err?.error || 'Failed to invite'),
+   208→  })
+   209→
+   210→  const qaMutation = useMutation({
+   211→    mutationFn: (body: any) => api.post(`/api/tender/packages/${packageId}/qa`, body),
+   212→    onSuccess: () => { toast.success('Question added'); setQaOpen(false); setQaForm({ question: '' }); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   213→    onError: (err: any) => toast.error(err?.error || 'Failed to add question'),
+   214→  })
+   215→
+   216→  const addendaMutation = useMutation({
+   217→    mutationFn: (body: any) => api.post(`/api/tender/packages/${packageId}/addenda`, body),
+   218→    onSuccess: () => { toast.success('Addendum created'); setAddendaOpen(false); setAddendaForm({ title: '', description: '' }); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   219→    onError: (err: any) => toast.error(err?.error || 'Failed to create addendum'),
+   220→  })
+   221→
+   222→  const awardMutation = useMutation({
+   223→    mutationFn: (body: any) => api.post(`/api/tender/packages/${packageId}/award`, body),
+   224→    onSuccess: () => { toast.success('Award recommended'); setAwardOpen(false); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   225→    onError: (err: any) => toast.error(err?.error || 'Failed to recommend award'),
+   226→  })
+   227→
+   228→  const statusMutation = useMutation({
+   229→    mutationFn: (body: { status: string }) => api.put(`/api/tender/packages/${packageId}`, body),
+   230→    onSuccess: () => { toast.success('Status updated'); queryClient.invalidateQueries({ queryKey: ['tender-package', packageId] }) },
+   231→    onError: (err: any) => toast.error(err?.error || 'Failed to update'),
+   232→  })
+   233→
+   234→  if (isLoading) {
+   235→    return (
+   236→      <div className="space-y-6">
+   237→        <Skeleton className="h-20 w-full" />
+   238→        <Skeleton className="h-8 w-96" />
+   239→        <Skeleton className="h-96 w-full" />
+   240→      </div>
+   241→    )
+   242→  }
+   243→
+   244→  if (!pkg) {
+   245→    return (
+   246→      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+   247→        <FileText className="h-12 w-12 text-muted-foreground" />
+   248→        <p className="text-muted-foreground">Bid package not found</p>
+   249→        <Button variant="outline" onClick={() => navigate('tender-packages')}>Back to Packages</Button>
+   250→      </div>
+   251→    )
+   252→  }
+   253→
+   254→  const completedSteps = (pkg.approvalSteps || []).filter(s => s.status === 'completed').length
+   255→  const totalSteps = (pkg.approvalSteps || []).length
+   256→  const stepProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
+   257→
+   258→  return (
+   259→    <div className="space-y-6">
+   260→      {/* Header */}
+   261→      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+   262→        <div className="flex items-start gap-3">
+   263→          <Button variant="outline" size="icon" className="mt-0.5" onClick={() => navigate('tender-packages')}>
+   264→            <ArrowLeft className="h-4 w-4" />
+   265→          </Button>
+   266→          <div>
+   267→            <div className="flex items-center gap-2 flex-wrap">
+   268→              <span className="text-sm font-mono text-muted-foreground">{pkg.packageNo}</span>
+   269→              <Badge variant="outline" className={cn('text-xs', sc.className)}>{sc.label}</Badge>
+   270→            </div>
+   271→            <h1 className="text-2xl font-bold tracking-tight mt-1">{pkg.name}</h1>
+   272→            <p className="text-sm text-muted-foreground mt-0.5">
+   273→              {pkg.project?.name || 'No Project'} · {pkg.category || 'Uncategorized'} · Budget: {formatCurrency(pkg.estimatedBudget)}
+   274→            </p>
+   275→          </div>
+   276→        </div>
+   277→        <div className="flex flex-wrap gap-2">
+   278→          {pkg.status === 'draft' && (
+   279→            <Button onClick={() => publishMutation.mutate()} disabled={publishMutation.isPending} className="gap-2">
+   280→              {publishMutation.isPending ? <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="h-4 w-4" />}
+   281→              Publish
+   282→            </Button>
+   283→          )}
+   284→          {pkg.status === 'published' && (
+   285→            <Button variant="outline" className="gap-2" onClick={() => statusMutation.mutate({ status: 'under_evaluation' })}>
+   286→              <ClipboardCheck className="h-4 w-4" /> Start Evaluation
+   287→            </Button>
+   288→          )}
+   289→          <Button variant="outline" className="gap-2" onClick={() => navigate('tender-comparison', { packageId })}>
+   290→            <BarChart3 className="h-4 w-4" /> Compare Bids
+   291→          </Button>
+   292→        </div>
+   293→      </div>
+   294→
+   295→      {/* Tabs */}
+   296→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   297→        <TabsList className="flex-wrap h-auto gap-1">
+   298→          <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
+   299→          <TabsTrigger value="items" className="text-xs">Bid Items</TabsTrigger>
+   300→          <TabsTrigger value="invitations" className="text-xs">Invitations</TabsTrigger>
+   301→          <TabsTrigger value="submissions" className="text-xs">Submissions</TabsTrigger>
+   302→          <TabsTrigger value="evaluation" className="text-xs">Evaluation</TabsTrigger>
+   303→          <TabsTrigger value="documents" className="text-xs">Documents</TabsTrigger>
+   304→          <TabsTrigger value="qa" className="text-xs">Q&A</TabsTrigger>
+   305→          <TabsTrigger value="addenda" className="text-xs">Addenda</TabsTrigger>
+   306→          <TabsTrigger value="award" className="text-xs">Award</TabsTrigger>
+   307→        </TabsList>
+   308→
+   309→        {/* ═══ OVERVIEW TAB ═══ */}
+   310→        <TabsContent value="overview" className="space-y-6 mt-4">
+   311→          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+   312→            {/* Package Info */}
+   313→            <Card className="lg:col-span-2">
+   314→              <CardHeader className="pb-3">
+   315→                <CardTitle className="text-base font-semibold">Package Information</CardTitle>
+   316→              </CardHeader>
+   317→              <CardContent className="space-y-4">
+   318→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+   319→                  <div><span className="text-muted-foreground">Project:</span><p className="font-medium">{pkg.project?.name || '—'}</p></div>
+   320→                  <div><span className="text-muted-foreground">Category:</span><p className="font-medium">{pkg.category || '—'}</p></div>
+   321→                  <div><span className="text-muted-foreground">Estimated Budget:</span><p className="font-medium">{formatCurrency(pkg.estimatedBudget)}</p></div>
+   322→                  <div><span className="text-muted-foreground">Bid Due Date:</span><p className="font-medium">{pkg.bidDueDate ? formatDate(pkg.bidDueDate) : '—'}</p></div>
+   323→                  <div><span className="text-muted-foreground">BOQ Reference:</span><p className="font-medium">{pkg.boqReference || '—'}</p></div>
+   324→                  <div><span className="text-muted-foreground">Created:</span><p className="font-medium">{formatDate(pkg.createdAt)}</p></div>
+   325→                </div>
+   326→                {pkg.description && (
+   327→                  <div className="text-sm">
+   328→                    <span className="text-muted-foreground">Description:</span>
+   329→                    <p className="mt-1 whitespace-pre-wrap">{pkg.description}</p>
+   330→                  </div>
+   331→                )}
+   332→                {pkg.scopeOfWork && (
+   333→                  <div className="text-sm">
+   334→                    <span className="text-muted-foreground">Scope of Work:</span>
+   335→                    <p className="mt-1 whitespace-pre-wrap">{pkg.scopeOfWork}</p>
+   336→                  </div>
+   337→                )}
+   338→                <div className="flex flex-wrap gap-2">
+   339→                  {pkg.requireTechnicalProposal && <Badge variant="outline" className="bg-violet-50 text-violet-700 text-[10px]">Technical Proposal</Badge>}
+   340→                  {pkg.requireCommercialProposal && <Badge variant="outline" className="bg-amber-50 text-amber-700 text-[10px]">Commercial Proposal</Badge>}
+   341→                  {pkg.requireMethodStatement && <Badge variant="outline" className="bg-cyan-50 text-cyan-700 text-[10px]">Method Statement</Badge>}
+   342→                  {pkg.requireQualityPlan && <Badge variant="outline" className="bg-emerald-50 text-emerald-700 text-[10px]">Quality Plan</Badge>}
+   343→                  {pkg.requireSafetyPlan && <Badge variant="outline" className="bg-red-50 text-red-700 text-[10px]">Safety Plan</Badge>}
+   344→                </div>
+   345→              </CardContent>
+   346→            </Card>
+   347→
+   348→            {/* Approval Steps */}
+   349→            <Card>
+   350→              <CardHeader className="pb-3">
+   351→                <CardTitle className="text-base font-semibold">Approval Progress</CardTitle>
+   352→              </CardHeader>
+   353→              <CardContent className="space-y-4">
+   354→                <div className="flex items-center justify-between text-sm">
+   355→                  <span className="text-muted-foreground">{completedSteps}/{totalSteps} steps</span>
+   356→                  <span className="font-semibold">{stepProgress}%</span>
+   357→                </div>
+   358→                <Progress value={stepProgress} className="h-2" />
+   359→                <ScrollArea className="max-h-64">
+   360→                  <div className="space-y-3">
+   361→                    {(pkg.approvalSteps || []).map((step, idx) => (
+   362→                      <div key={idx} className="flex gap-3">
+   363→                        <div className="flex flex-col items-center">
+   364→                          <div className={cn(
+   365→                            'h-7 w-7 rounded-full flex items-center justify-center text-xs font-semibold',
+   366→                            step.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+   367→                            step.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
+   368→                            'bg-gray-100 text-gray-400'
+   369→                          )}>
+   370→                            {step.status === 'completed' ? <CheckCircle className="h-3.5 w-3.5" /> :
+   371→                             step.status === 'in_progress' ? <Clock className="h-3.5 w-3.5" /> :
+   372→                             idx + 1}
+   373→                          </div>
+   374→                          {idx < (totalSteps - 1) && (
+   375→                            <div className={cn(
+   376→                              'w-0.5 h-6',
+   377→                              step.status === 'completed' ? 'bg-emerald-300' : 'bg-gray-200'
+   378→                            )} />
+   379→                          )}
+   380→                        </div>
+   381→                        <div className="pt-0.5">
+   382→                          <p className={cn('text-sm font-medium', step.status === 'pending' && 'text-muted-foreground')}>{step.step}</p>
+   383→                          {step.completedAt && <p className="text-xs text-muted-foreground">{formatDate(step.completedAt)}</p>}
+   384→                        </div>
+   385→                      </div>
+   386→                    ))}
+   387→                  </div>
+   388→                </ScrollArea>
+   389→              </CardContent>
+   390→            </Card>
+   391→          </div>
+   392→
+   393→          {/* Timeline */}
+   394→          <Card>
+   395→            <CardHeader className="pb-3">
+   396→              <CardTitle className="text-base font-semibold">Key Dates</CardTitle>
+   397→            </CardHeader>
+   398→            <CardContent>
+   399→              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+   400→                <div className="rounded-lg border p-3 text-center">
+   401→                  <FileText className="h-5 w-5 mx-auto text-gray-400 mb-1" />
+   402→                  <p className="text-xs text-muted-foreground">Created</p>
+   403→                  <p className="text-sm font-semibold">{formatDate(pkg.createdAt)}</p>
+   404→                </div>
+   405→                <div className="rounded-lg border p-3 text-center">
+   406→                  <Send className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+   407→                  <p className="text-xs text-muted-foreground">Published</p>
+   408→                  <p className="text-sm font-semibold">{pkg.publishedAt ? formatDate(pkg.publishedAt) : '—'}</p>
+   409→                </div>
+   410→                <div className="rounded-lg border p-3 text-center">
+   411→                  <Clock className="h-5 w-5 mx-auto text-orange-500 mb-1" />
+   412→                  <p className="text-xs text-muted-foreground">Bid Due</p>
+   413→                  <p className="text-sm font-semibold">{pkg.bidDueDate ? formatDate(pkg.bidDueDate) : '—'}</p>
+   414→                </div>
+   415→                <div className="rounded-lg border p-3 text-center">
+   416→                  <Trophy className="h-5 w-5 mx-auto text-emerald-500 mb-1" />
+   417→                  <p className="text-xs text-muted-foreground">Awarded To</p>
+   418→                  <p className="text-sm font-semibold">{pkg.awardedVendor?.name || '—'}</p>
+   419→                </div>
+   420→              </div>
+   421→            </CardContent>
+   422→          </Card>
+   423→        </TabsContent>
+   424→
+   425→        {/* ═══ BID ITEMS TAB ═══ */}
+   426→        <TabsContent value="items" className="space-y-4 mt-4">
+   427→          <Card>
+   428→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   429→              <CardTitle className="text-base font-semibold">Bid Items</CardTitle>
+   430→              <Button variant="outline" size="sm" className="text-xs gap-1">
+   431→                <FileUp className="h-3.5 w-3.5" /> Import from BOQ
+   432→              </Button>
+   433→            </CardHeader>
+   434→            <CardContent className="p-0">
+   435→              <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   436→                <Table>
+   437→                  <TableHeader>
+   438→                    <TableRow>
+   439→                      <TableHead className="text-xs">#</TableHead>
+   440→                      <TableHead className="text-xs">Description</TableHead>
+   441→                      <TableHead className="text-xs text-right">Quantity</TableHead>
+   442→                      <TableHead className="text-xs">Unit</TableHead>
+   443→                      <TableHead className="text-xs text-right">Unit Price</TableHead>
+   444→                      <TableHead className="text-xs text-right">Total</TableHead>
+   445→                    </TableRow>
+   446→                  </TableHeader>
+   447→                  <TableBody>
+   448→                    {(pkg.bidItems || []).map((item, idx) => (
+   449→                      <TableRow key={item.id || idx}>
+   450→                        <TableCell className="text-xs text-muted-foreground">{idx + 1}</TableCell>
+   451→                        <TableCell className="text-xs">{item.description}</TableCell>
+   452→                        <TableCell className="text-xs text-right">{item.quantity}</TableCell>
+   453→                        <TableCell className="text-xs">{item.unit}</TableCell>
+   454→                        <TableCell className="text-xs text-right">{formatCurrency(item.unitPrice)}</TableCell>
+   455→                        <TableCell className="text-xs text-right font-medium">{formatCurrency(item.total)}</TableCell>
+   456→                      </TableRow>
+   457→                    ))}
+   458→                    {(pkg.bidItems || []).length === 0 && (
+   459→                      <TableRow>
+   460→                        <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">
+   461→                          No bid items yet.{' '}
+   462→                          <Button variant="link" className="h-auto p-0 text-xs">
+   463→                            Import from BOQ
+   464→                          </Button>
+   465→                        </TableCell>
+   466→                      </TableRow>
+   467→                    )}
+   468→                  </TableBody>
+   469→                </Table>
+   470→              </div>
+   471→              {(pkg.bidItems || []).length > 0 && (
+   472→                <div className="flex justify-end px-4 py-3 border-t">
+   473→                  <div className="text-sm font-bold">Total: {formatCurrency((pkg.bidItems || []).reduce((s, i) => s + i.total, 0))}</div>
+   474→                </div>
+   475→              )}
+   476→            </CardContent>
+   477→          </Card>
+   478→        </TabsContent>
+   479→
+   480→        {/* ═══ INVITATIONS TAB ═══ */}
+   481→        <TabsContent value="invitations" className="space-y-4 mt-4">
+   482→          <Card>
+   483→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   484→              <CardTitle className="text-base font-semibold">Vendor Invitations</CardTitle>
+   485→              <Button size="sm" className="gap-2 text-xs" onClick={() => setInviteOpen(true)}>
+   486→                <Plus className="h-3.5 w-3.5" /> Invite Vendor
+   487→              </Button>
+   488→            </CardHeader>
+   489→            <CardContent className="p-0">
+   490→              <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   491→                <Table>
+   492→                  <TableHeader>
+   493→                    <TableRow>
+   494→                      <TableHead className="text-xs">Vendor</TableHead>
+   495→                      <TableHead className="text-xs">Status</TableHead>
+   496→                      <TableHead className="text-xs">Sent At</TableHead>
+   497→                      <TableHead className="text-xs">Opened At</TableHead>
+   498→                      <TableHead className="text-xs">Responded At</TableHead>
+   499→                    </TableRow>
+   500→                  </TableHeader>
+   501→                  <TableBody>
+   502→                    {(pkg.invitations || []).map((inv) => {
+   503→                      const ic = invitationStatusConfig[inv.status] || invitationStatusConfig.sent
+   504→                      return (
+   505→                        <TableRow key={inv.id}>
+   506→                          <TableCell className="text-xs font-medium">{inv.vendorName}</TableCell>
+   507→                          <TableCell>
+   508→                            <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', ic.className)}>{ic.label}</Badge>
+   509→                          </TableCell>
+   510→                          <TableCell className="text-xs">{formatDateTime(inv.sentAt)}</TableCell>
+   511→                          <TableCell className="text-xs">{inv.openedAt ? formatDateTime(inv.openedAt) : '—'}</TableCell>
+   512→                          <TableCell className="text-xs">{inv.respondedAt ? formatDateTime(inv.respondedAt) : '—'}</TableCell>
+   513→                        </TableRow>
+   514→                      )
+   515→                    })}
+   516→                    {(pkg.invitations || []).length === 0 && (
+   517→                      <TableRow>
+   518→                        <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+   519→                          No invitations sent yet.{' '}
+   520→                          <Button variant="link" className="h-auto p-0 text-xs" onClick={() => setInviteOpen(true)}>
+   521→                            Invite a vendor
+   522→                          </Button>
+   523→                        </TableCell>
+   524→                      </TableRow>
+   525→                    )}
+   526→                  </TableBody>
+   527→                </Table>
+   528→              </div>
+   529→            </CardContent>
+   530→          </Card>
+   531→
+   532→          {/* Invite Vendor Dialog */}
+   533→          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+   534→            <DialogContent className="max-w-md">
+   535→              <DialogHeader>
+   536→                <DialogTitle>Invite Vendor</DialogTitle>
+   537→                <DialogDescription>Select a vendor to invite for this tender.</DialogDescription>
+   538→              </DialogHeader>
+   539→              <div className="space-y-3">
+   540→                <div className="space-y-2">
+   541→                  <Label>Vendor</Label>
+   542→                  <Select value={inviteVendorId} onValueChange={setInviteVendorId}>
+   543→                    <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+   544→                    <SelectContent>
+   545→                      {vendors.map((v: any) => (
+   546→                        <SelectItem key={v.id} value={v.id}>{v.companyName || v.name}</SelectItem>
+   547→                      ))}
+   548→                    </SelectContent>
+   549→                  </Select>
+   550→                </div>
+   551→              </div>
+   552→              <DialogFooter>
+   553→                <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+   554→                <Button
+   555→                  className="gap-2"
+   556→                  onClick={() => inviteMutation.mutate({ vendorId: inviteVendorId })}
+   557→                  disabled={!inviteVendorId || inviteMutation.isPending}
+   558→                >
+   559→                  {inviteMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+   560→                  <Send className="h-3.5 w-3.5" /> Send Invitation
+   561→                </Button>
+   562→              </DialogFooter>
+   563→            </DialogContent>
+   564→          </Dialog>
+   565→        </TabsContent>
+   566→
+   567→        {/* ═══ SUBMISSIONS TAB ═══ */}
+   568→        <TabsContent value="submissions" className="space-y-4 mt-4">
+   569→          <Card>
+   570→            <CardHeader className="pb-3">
+   571→              <CardTitle className="text-base font-semibold">Received Bids ({pkg.submissions?.length || 0})</CardTitle>
+   572→            </CardHeader>
+   573→            <CardContent className="p-0">
+   574→              <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   575→                <Table>
+   576→                  <TableHeader>
+   577→                    <TableRow>
+   578→                      <TableHead className="text-xs">#</TableHead>
+   579→                      <TableHead className="text-xs">Vendor</TableHead>
+   580→                      <TableHead className="text-xs text-right">Bid Amount</TableHead>
+   581→                      <TableHead className="text-xs">Status</TableHead>
+   582→                      <TableHead className="text-xs">Submitted At</TableHead>
+   583→                      <TableHead className="text-xs text-right">Actions</TableHead>
+   584→                    </TableRow>
+   585→                  </TableHeader>
+   586→                  <TableBody>
+   587→                    {(pkg.submissions || []).map((sub, idx) => {
+   588→                      const ss = submissionStatusConfig[sub.status] || submissionStatusConfig.pending_review
+   589→                      return (
+   590→                        <TableRow key={sub.id}>
+   591→                          <TableCell className="text-xs text-muted-foreground">{idx + 1}</TableCell>
+   592→                          <TableCell className="text-xs font-medium">{sub.vendorName}</TableCell>
+   593→                          <TableCell className="text-xs text-right font-semibold">{formatCurrency(sub.totalAmount)}</TableCell>
+   594→                          <TableCell>
+   595→                            <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', ss.className)}>{ss.label}</Badge>
+   596→                          </TableCell>
+   597→                          <TableCell className="text-xs">{formatDateTime(sub.submittedAt)}</TableCell>
+   598→                          <TableCell className="text-right">
+   599→                            <Button variant="ghost" size="icon" className="h-7 w-7">
+   600→                              <Eye className="h-3.5 w-3.5" />
+   601→                            </Button>
+   602→                          </TableCell>
+   603→                        </TableRow>
+   604→                      )
+   605→                    })}
+   606→                    {(pkg.submissions || []).length === 0 && (
+   607→                      <TableRow>
+   608→                        <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">
+   609→                          No bids submitted yet
+   610→                        </TableCell>
+   611→                      </TableRow>
+   612→                    )}
+   613→                  </TableBody>
+   614→                </Table>
+   615→              </div>
+   616→            </CardContent>
+   617→          </Card>
+   618→        </TabsContent>
+   619→
+   620→        {/* ═══ EVALUATION TAB ═══ */}
+   621→        <TabsContent value="evaluation" className="space-y-4 mt-4">
+   622→          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+   623→            {/* Evaluation Criteria */}
+   624→            <Card>
+   625→              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   626→                <CardTitle className="text-base font-semibold">Evaluation Criteria</CardTitle>
+   627→              </CardHeader>
+   628→              <CardContent className="space-y-2">
+   629→                {(pkg.evaluationCriteria || []).map((c) => (
+   630→                  <div key={c.id} className="flex items-center justify-between rounded-lg border p-3">
+   631→                    <div>
+   632→                      <p className="text-sm font-medium">{c.name}</p>
+   633→                      <p className="text-xs text-muted-foreground">{c.type}</p>
+   634→                    </div>
+   635→                    <Badge variant="outline" className="bg-amber-50 text-amber-700 text-xs">{c.weight}%</Badge>
+   636→                  </div>
+   637→                ))}
+   638→                {(pkg.evaluationCriteria || []).length === 0 && (
+   639→                  <p className="text-sm text-muted-foreground text-center py-4">No criteria configured</p>
+   640→                )}
+   641→                <div className="flex justify-between text-sm font-semibold pt-2 border-t">
+   642→                  <span>Total Weight</span>
+   643→                  <span>{(pkg.evaluationCriteria || []).reduce((s, c) => s + c.weight, 0)}%</span>
+   644→                </div>
+   645→              </CardContent>
+   646→            </Card>
+   647→
+   648→            {/* Scoring Summary */}
+   649→            <Card className="lg:col-span-2">
+   650→              <CardHeader className="pb-3">
+   651→                <CardTitle className="text-base font-semibold">Scoring Summary</CardTitle>
+   652→              </CardHeader>
+   653→              <CardContent className="p-0">
+   654→                <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   655→                  <Table>
+   656→                    <TableHeader>
+   657→                      <TableRow>
+   658→                        <TableHead className="text-xs">Rank</TableHead>
+   659→                        <TableHead className="text-xs">Vendor</TableHead>
+   660→                        <TableHead className="text-xs text-right">Bid Amount</TableHead>
+   661→                        <TableHead className="text-xs text-right">Technical</TableHead>
+   662→                        <TableHead className="text-xs text-right">Commercial</TableHead>
+   663→                        <TableHead className="text-xs text-right">Combined</TableHead>
+   664→                        <TableHead className="text-xs text-right">Actions</TableHead>
+   665→                      </TableRow>
+   666→                    </TableHeader>
+   667→                    <TableBody>
+   668→                      {(pkg.submissions || [])
+   669→                        .filter(s => s.status !== 'disqualified' && s.status !== 'withdrawn')
+   670→                        .sort((a, b) => ((b.technicalScore || 0) + (b.commercialScore || 0)) - ((a.technicalScore || 0) + (a.commercialScore || 0)))
+   671→                        .map((sub, idx) => {
+   672→                          const combined = (sub.technicalScore || 0) + (sub.commercialScore || 0)
+   673→                          return (
+   674→                            <TableRow key={sub.id}>
+   675→                              <TableCell className="text-xs">
+   676→                                <span className={cn(
+   677→                                  'font-bold text-sm',
+   678→                                  idx === 0 ? 'text-amber-600' : 'text-muted-foreground'
+   679→                                )}>
+   680→                                  {idx + 1}
+   681→                                </span>
+   682→                              </TableCell>
+   683→                              <TableCell className="text-xs font-medium">{sub.vendorName}</TableCell>
+   684→                              <TableCell className="text-xs text-right">{formatCurrency(sub.totalAmount)}</TableCell>
+   685→                              <TableCell className="text-xs text-right">{sub.technicalScore ?? '—'}</TableCell>
+   686→                              <TableCell className="text-xs text-right">{sub.commercialScore ?? '—'}</TableCell>
+   687→                              <TableCell className="text-xs text-right font-bold">{combined || '—'}</TableCell>
+   688→                              <TableCell className="text-right">
+   689→                                <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => navigate('tender-comparison', { packageId })}>
+   690→                                  <Eye className="h-3 w-3" /> View
+   691→                                </Button>
+   692→                              </TableCell>
+   693→                            </TableRow>
+   694→                          )
+   695→                        })}
+   696→                      {(pkg.submissions || []).length === 0 && (
+   697→                        <TableRow>
+   698→                          <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
+   699→                            No submissions to evaluate
+   700→                          </TableCell>
+   701→                        </TableRow>
+   702→                      )}
+   703→                    </TableBody>
+   704→                  </Table>
+   705→                </div>
+   706→              </CardContent>
+   707→            </Card>
+   708→          </div>
+   709→        </TabsContent>
+   710→
+   711→        {/* ═══ DOCUMENTS TAB ═══ */}
+   712→        <TabsContent value="documents" className="space-y-4 mt-4">
+   713→          <Card>
+   714→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   715→              <CardTitle className="text-base font-semibold">Tender Documents</CardTitle>
+   716→              <Button size="sm" className="gap-2 text-xs">
+   717→                <Upload className="h-3.5 w-3.5" /> Upload Document
+   718→              </Button>
+   719→            </CardHeader>
+   720→            <CardContent className="p-0">
+   721→              <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   722→                <Table>
+   723→                  <TableHeader>
+   724→                    <TableRow>
+   725→                      <TableHead className="text-xs">File Name</TableHead>
+   726→                      <TableHead className="text-xs">Category</TableHead>
+   727→                      <TableHead className="text-xs">Size</TableHead>
+   728→                      <TableHead className="text-xs">Uploaded By</TableHead>
+   729→                      <TableHead className="text-xs">Uploaded At</TableHead>
+   730→                      <TableHead className="text-xs text-right">Actions</TableHead>
+   731→                    </TableRow>
+   732→                  </TableHeader>
+   733→                  <TableBody>
+   734→                    {(pkg.documents || []).map((doc) => (
+   735→                      <TableRow key={doc.id}>
+   736→                        <TableCell className="text-xs font-medium">
+   737→                          <span className="inline-flex items-center gap-1.5">
+   738→                            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+   739→                            {doc.fileName}
+   740→                          </span>
+   741→                        </TableCell>
+   742→                        <TableCell>
+   743→                          <Badge variant="outline" className="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0">
+   744→                            {doc.category || 'General'}
+   745→                          </Badge>
+   746→                        </TableCell>
+   747→                        <TableCell className="text-xs text-muted-foreground">
+   748→                          {doc.fileSize > 1024 * 1024
+   749→                            ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB`
+   750→                            : `${(doc.fileSize / 1024).toFixed(0)} KB`}
+   751→                        </TableCell>
+   752→                        <TableCell className="text-xs">{doc.uploadedBy}</TableCell>
+   753→                        <TableCell className="text-xs">{formatDate(doc.uploadedAt)}</TableCell>
+   754→                        <TableCell className="text-right">
+   755→                          <Button variant="ghost" size="icon" className="h-7 w-7">
+   756→                            <Download className="h-3.5 w-3.5" />
+   757→                          </Button>
+   758→                        </TableCell>
+   759→                      </TableRow>
+   760→                    ))}
+   761→                    {(pkg.documents || []).length === 0 && (
+   762→                      <TableRow>
+   763→                        <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">
+   764→                          No documents uploaded yet
+   765→                        </TableCell>
+   766→                      </TableRow>
+   767→                    )}
+   768→                  </TableBody>
+   769→                </Table>
+   770→              </div>
+   771→            </CardContent>
+   772→          </Card>
+   773→        </TabsContent>
+   774→
+   775→        {/* ═══ Q&A TAB ═══ */}
+   776→        <TabsContent value="qa" className="space-y-4 mt-4">
+   777→          <Card>
+   778→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   779→              <CardTitle className="text-base font-semibold flex items-center gap-2">
+   780→                <MessageCircle className="h-4 w-4" /> Questions & Answers ({pkg.qa?.length || 0})
+   781→              </CardTitle>
+   782→              <Button size="sm" className="gap-2 text-xs" onClick={() => setQaOpen(true)}>
+   783→                <Plus className="h-3.5 w-3.5" /> Ask Question
+   784→              </Button>
+   785→            </CardHeader>
+   786→            <CardContent>
+   787→              <ScrollArea className="max-h-[500px]">
+   788→                <div className="space-y-4">
+   789→                  {(pkg.qa || []).map((q) => (
+   790→                    <div key={q.id} className="rounded-lg border p-4 space-y-2">
+   791→                      <div className="flex items-start justify-between gap-2">
+   792→                        <div className="flex items-start gap-2">
+   793→                          <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+   794→                          <div>
+   795→                            <p className="text-sm">{q.question}</p>
+   796→                            <p className="text-xs text-muted-foreground mt-1">
+   797→                              Asked by {q.askedBy} · {formatDateTime(q.askedAt)}
+   798→                            </p>
+   799→                          </div>
+   800→                        </div>
+   801→                      </div>
+   802→                      {q.answer && (
+   803→                        <div className="ml-6 flex items-start gap-2 rounded-md bg-muted/50 p-3">
+   804→                          <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+   805→                          <div>
+   806→                            <p className="text-sm">{q.answer}</p>
+   807→                            <p className="text-xs text-muted-foreground mt-1">
+   808→                              Answered by {q.answeredBy} · {formatDateTime(q.answeredAt)}
+   809→                            </p>
+   810→                          </div>
+   811→                        </div>
+   812→                      )}
+   813→                      {!q.answer && (
+   814→                        <div className="ml-6">
+   815→                          <Badge variant="outline" className="bg-amber-50 text-amber-700 text-[10px]">Pending Answer</Badge>
+   816→                        </div>
+   817→                      )}
+   818→                    </div>
+   819→                  ))}
+   820→                  {(pkg.qa || []).length === 0 && (
+   821→                    <div className="text-center py-8">
+   822→                      <HelpCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+   823→                      <p className="text-sm text-muted-foreground">No questions yet</p>
+   824→                    </div>
+   825→                  )}
+   826→                </div>
+   827→              </ScrollArea>
+   828→            </CardContent>
+   829→          </Card>
+   830→
+   831→          {/* Add Question Dialog */}
+   832→          <Dialog open={qaOpen} onOpenChange={setQaOpen}>
+   833→            <DialogContent className="max-w-md">
+   834→              <DialogHeader>
+   835→                <DialogTitle>Ask a Question</DialogTitle>
+   836→                <DialogDescription>Your question will be visible to all invited vendors.</DialogDescription>
+   837→              </DialogHeader>
+   838→              <div className="space-y-3">
+   839→                <div className="space-y-2">
+   840→                  <Label>Question</Label>
+   841→                  <Textarea
+   842→                    value={qaForm.question}
+   843→                    onChange={e => setQaForm({ question: e.target.value })}
+   844→                    placeholder="Type your question..."
+   845→                    rows={4}
+   846→                  />
+   847→                </div>
+   848→              </div>
+   849→              <DialogFooter>
+   850→                <Button variant="outline" onClick={() => setQaOpen(false)}>Cancel</Button>
+   851→                <Button
+   852→                  className="gap-2"
+   853→                  onClick={() => qaMutation.mutate({ question: qaForm.question })}
+   854→                  disabled={!qaForm.question || qaMutation.isPending}
+   855→                >
+   856→                  {qaMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+   857→                  <Send className="h-3.5 w-3.5" /> Submit
+   858→                </Button>
+   859→              </DialogFooter>
+   860→            </DialogContent>
+   861→          </Dialog>
+   862→        </TabsContent>
+   863→
+   864→        {/* ═══ ADDENDA TAB ═══ */}
+   865→        <TabsContent value="addenda" className="space-y-4 mt-4">
+   866→          <Card>
+   867→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   868→              <CardTitle className="text-base font-semibold">Addenda ({pkg.addenda?.length || 0})</CardTitle>
+   869→              <Button size="sm" className="gap-2 text-xs" onClick={() => setAddendaOpen(true)}>
+   870→                <Plus className="h-3.5 w-3.5" /> Create Addendum
+   871→              </Button>
+   872→            </CardHeader>
+   873→            <CardContent className="p-0">
+   874→              <div className="max-h-[calc(100vh-320px)] overflow-y-auto overflow-x-auto">
+   875→                <Table>
+   876→                  <TableHeader>
+   877→                    <TableRow>
+   878→                      <TableHead className="text-xs">#</TableHead>
+   879→                      <TableHead className="text-xs">Title</TableHead>
+   880→                      <TableHead className="text-xs">Description</TableHead>
+   881→                      <TableHead className="text-xs">Issued Date</TableHead>
+   882→                      <TableHead className="text-xs">Issued By</TableHead>
+   883→                    </TableRow>
+   884→                  </TableHeader>
+   885→                  <TableBody>
+   886→                    {(pkg.addenda || []).map((add, idx) => (
+   887→                      <TableRow key={add.id}>
+   888→                        <TableCell className="text-xs font-mono text-muted-foreground">{idx + 1}</TableCell>
+   889→                        <TableCell className="text-xs font-medium">{add.title}</TableCell>
+   890→                        <TableCell className="text-xs max-w-[200px] truncate">{add.description}</TableCell>
+   891→                        <TableCell className="text-xs">{formatDate(add.issuedDate)}</TableCell>
+   892→                        <TableCell className="text-xs">{add.issuedBy}</TableCell>
+   893→                      </TableRow>
+   894→                    ))}
+   895→                    {(pkg.addenda || []).length === 0 && (
+   896→                      <TableRow>
+   897→                        <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+   898→                          No addenda issued
+   899→                        </TableCell>
+   900→                      </TableRow>
+   901→                    )}
+   902→                  </TableBody>
+   903→                </Table>
+   904→              </div>
+   905→            </CardContent>
+   906→          </Card>
+   907→
+   908→          {/* Create Addendum Dialog */}
+   909→          <Dialog open={addendaOpen} onOpenChange={setAddendaOpen}>
+   910→            <DialogContent className="max-w-md">
+   911→              <DialogHeader>
+   912→                <DialogTitle>Create Addendum</DialogTitle>
+   913→                <DialogDescription>Issue an addendum to update tender specifications.</DialogDescription>
+   914→              </DialogHeader>
+   915→              <div className="space-y-3">
+   916→                <div className="space-y-2">
+   917→                  <Label>Title</Label>
+   918→                  <Input
+   919→                    value={addendaForm.title}
+   920→                    onChange={e => setAddendaForm(f => ({ ...f, title: e.target.value }))}
+   921→                    placeholder="Addendum title"
+   922→                  />
+   923→                </div>
+   924→                <div className="space-y-2">
+   925→                  <Label>Description</Label>
+   926→                  <Textarea
+   927→                    value={addendaForm.description}
+   928→                    onChange={e => setAddendaForm(f => ({ ...f, description: e.target.value }))}
+   929→                    placeholder="Describe the changes..."
+   930→                    rows={4}
+   931→                  />
+   932→                </div>
+   933→              </div>
+   934→              <DialogFooter>
+   935→                <Button variant="outline" onClick={() => setAddendaOpen(false)}>Cancel</Button>
+   936→                <Button
+   937→                  onClick={() => addendaMutation.mutate(addendaForm)}
+   938→                  disabled={!addendaForm.title || addendaMutation.isPending}
+   939→                >
+   940→                  {addendaMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+   941→                  Create
+   942→                </Button>
+   943→              </DialogFooter>
+   944→            </DialogContent>
+   945→          </Dialog>
+   946→        </TabsContent>
+   947→
+   948→        {/* ═══ AWARD TAB ═══ */}
+   949→        <TabsContent value="award" className="space-y-4 mt-4">
+   950→          {pkg.status === 'awarded' ? (
+   951→            <Card>
+   952→              <CardHeader className="pb-3">
+   953→                <CardTitle className="text-base font-semibold flex items-center gap-2">
+   954→                  <Trophy className="h-4 w-4 text-amber-500" /> Award Details
+   955→                </CardTitle>
+   956→              </CardHeader>
+   957→              <CardContent className="space-y-4">
+   958→                <div className="rounded-lg border-2 border-emerald-200 bg-emerald-50/50 p-6 text-center">
+   959→                  <Trophy className="h-12 w-12 mx-auto text-amber-500 mb-3" />
+   960→                  <h3 className="text-lg font-bold">Awarded to {pkg.awardedVendor?.name || '—'}</h3>
+   961→                  <p className="text-2xl font-bold text-emerald-700 mt-2">{formatCurrency(pkg.awardedAmount || 0)}</p>
+   962→                </div>
+   963→                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+   964→                  <div><span className="text-muted-foreground">Package:</span><p className="font-medium">{pkg.packageNo}</p></div>
+   965→                  <div><span className="text-muted-foreground">Est. Budget:</span><p className="font-medium">{formatCurrency(pkg.estimatedBudget)}</p></div>
+   966→                  <div><span className="text-muted-foreground">Savings:</span><p className="font-medium text-emerald-600">{formatCurrency(pkg.estimatedBudget - (pkg.awardedAmount || 0))}</p></div>
+   967→                  <div>
+   968→                    <span className="text-muted-foreground">Actions:</span>
+   969→                    <div className="mt-1">
+   970→                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+   971→                        <Download className="h-3 w-3" /> Award Letter
+   972→                      </Button>
+   973→                    </div>
+   974→                  </div>
+   975→                </div>
+   976→              </CardContent>
+   977→            </Card>
+   978→          ) : (
+   979→            <Card>
+   980→              <CardHeader className="pb-3">
+   981→                <CardTitle className="text-base font-semibold flex items-center gap-2">
+   982→                  <Gavel className="h-4 w-4" /> Award Recommendation
+   983→                </CardTitle>
+   984→              </CardHeader>
+   985→              <CardContent className="space-y-4">
+   986→                <p className="text-sm text-muted-foreground">
+   987→                  Review the evaluation results and recommend the winning vendor for this tender package.
+   988→                </p>
+   989→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   990→                  <div className="space-y-2">
+   991→                    <Label>Recommended Vendor</Label>
+   992→                    <Select value={awardForm.vendorId} onValueChange={v => setAwardForm(f => ({ ...f, vendorId: v }))}>
+   993→                      <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+   994→                      <SelectContent>
+   995→                        {(pkg.submissions || []).filter(s => s.status !== 'disqualified' && s.status !== 'withdrawn').map((s) => (
+   996→                          <SelectItem key={s.vendorId} value={s.vendorId}>
+   997→                            {s.vendorName} — {formatCurrency(s.totalAmount)}
+   998→                          </SelectItem>
+   999→                        ))}
+  1000→                      </SelectContent>
+  1001→                    </Select>
+  1002→                  </div>
+  1003→                  <div className="space-y-2">
+  1004→                    <Label>Award Amount</Label>
+  1005→                    <Input
+  1006→                      type="number"
+  1007→                      min={0}
+  1008→                      step={1000}
+  1009→                      value={awardForm.awardAmount || ''}
+  1010→                      onChange={e => setAwardForm(f => ({ ...f, awardAmount: Number(e.target.value) }))}
+  1011→                      placeholder="0.00"
+  1012→                    />
+  1013→                  </div>
+  1014→                </div>
+  1015→                <div className="space-y-2">
+  1016→                  <Label>Notes</Label>
+  1017→                  <Textarea
+  1018→                    value={awardForm.notes}
+  1019→                    onChange={e => setAwardForm(f => ({ ...f, notes: e.target.value }))}
+  1020→                    placeholder="Award recommendation notes..."
+  1021→                    rows={3}
+  1022→                  />
+  1023→                </div>
+  1024→                <div className="flex gap-2">
+  1025→                  <Button
+  1026→                    onClick={() => awardMutation.mutate(awardForm)}
+  1027→                    disabled={!awardForm.vendorId || awardMutation.isPending}
+  1028→                    className="gap-2"
+  1029→                  >
+  1030→                    {awardMutation.isPending && <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+  1031→                    <Award className="h-4 w-4" /> Recommend Award
+  1032→                  </Button>
+  1033→                </div>
+  1034→              </CardContent>
+  1035→            </Card>
+  1036→          )}
+  1037→        </TabsContent>
+  1038→      </Tabs>
+  1039→    </div>
+  1040→  )
+  1041→}

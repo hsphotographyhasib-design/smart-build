@@ -1,0 +1,461 @@
+     1→'use client'
+     2→
+     3→import React, { useState } from 'react'
+     4→import { useQuery } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Separator } from '@/components/ui/separator'
+    11→import {
+    12→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    13→} from '@/components/ui/select'
+    14→import {
+    15→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    16→} from '@/components/ui/table'
+    17→import {
+    18→  ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent,
+    19→} from '@/components/ui/chart'
+    20→import { Bar, BarChart, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, Line, LineChart } from 'recharts'
+    21→import {
+    22→  FileBarChart, Download, Printer, DollarSign, Users, Target, Wallet,
+    23→  CalendarRange, ChevronDown, ChevronUp, FileSpreadsheet
+    24→} from 'lucide-react'
+    25→import { useFormat } from '@/hooks/use-format'
+    26→
+    27→const PIE_COLORS = ['hsl(270, 70%, 55%)', 'hsl(25, 95%, 53%)', 'hsl(142, 71%, 45%)', 'hsl(200, 70%, 50%)', 'hsl(340, 70%, 55%)', 'hsl(45, 95%, 53%)', 'hsl(180, 70%, 45%)', 'hsl(300, 60%, 50%)']
+    28→
+    29→const REPORT_TYPES = [
+    30→  { value: 'project-pl', label: 'Project P&L', icon: DollarSign, desc: 'Revenue, costs, margins per project' },
+    31→  { value: 'labour-summary', label: 'Labour Summary', icon: Users, desc: 'Attendance, costs, productivity by project' },
+    32→  { value: 'cost-variance', label: 'Cost Variance', icon: Target, desc: 'Budget vs actual by cost code' },
+    33→  { value: 'resource-utilization', label: 'Resource Utilization', icon: CalendarRange, desc: 'Resource usage stats across projects' },
+    34→  { value: 'financial-health', label: 'Financial Health', icon: Wallet, desc: 'Cash flow, receivables, payables' },
+    35→]
+    36→
+    37→function ExportButtons() {
+    38→  return (
+    39→    <div className="flex items-center gap-2">
+    40→      <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => window.print()}>
+    41→        <Printer className="h-3 w-3" /> Print
+    42→      </Button>
+    43→      <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => {
+    44→        const el = document.getElementById('report-content')
+    45→        if (el) {
+    46→          const text = el.innerText
+    47→          const blob = new Blob([text], { type: 'text/csv' })
+    48→          const url = URL.createObjectURL(blob)
+    49→          const a = document.createElement('a')
+    50→          a.href = url
+    51→          a.download = 'report.csv'
+    52→          a.click()
+    53→          URL.revokeObjectURL(url)
+    54→        }
+    55→      }}>
+    56→        <Download className="h-3 w-3" /> Export CSV
+    57→      </Button>
+    58→    </div>
+    59→  )
+    60→}
+    61→
+    62→export function AdvancedReports() {
+    63→  const { formatCurrencyCompact } = useFormat()
+    64→  const [reportType, setReportType] = useState('project-pl')
+    65→  const [selectedProject, setSelectedProject] = useState('')
+    66→  const [startDate, setStartDate] = useState('')
+    67→  const [endDate, setEndDate] = useState('')
+    68→  const [expanded, setExpanded] = useState<string | null>(null)
+    69→
+    70→  const { data: projectsData } = useQuery({
+    71→    queryKey: ['reports-projects'],
+    72→    queryFn: () => api.get('/api/projects?limit=100'),
+    73→  })
+    74→
+    75→  const projects = projectsData?.data?.projects || []
+    76→
+    77→  const queryParams = new URLSearchParams()
+    78→  queryParams.set('type', reportType)
+    79→  if (selectedProject) queryParams.set('projectId', selectedProject)
+    80→  if (startDate) queryParams.set('startDate', startDate)
+    81→  if (endDate) queryParams.set('endDate', endDate)
+    82→
+    83→  const { data, isLoading, isFetching } = useQuery({
+    84→    queryKey: ['advanced-report', reportType, selectedProject, startDate, endDate],
+    85→    queryFn: () => api.get(`/api/analytics/reports?${queryParams.toString()}`),
+    86→    enabled: !!reportType,
+    87→  })
+    88→
+    89→  const report = data?.data
+    90→  const reportInfo = REPORT_TYPES.find(r => r.value === reportType)
+    91→
+    92→  return (
+    93→    <div className="p-6 space-y-6">
+    94→      {/* Header */}
+    95→      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    96→        <div className="flex items-center gap-2">
+    97→          <div className="p-2 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600">
+    98→            <FileBarChart className="h-5 w-5 text-white" />
+    99→          </div>
+   100→          <div>
+   101→            <h1 className="text-xl font-bold">Advanced Reports</h1>
+   102→            <p className="text-sm text-muted-foreground">Generate and analyze detailed business reports</p>
+   103→          </div>
+   104→        </div>
+   105→        {report && <ExportButtons />}
+   106→      </div>
+   107→
+   108→      {/* Report Config */}
+   109→      <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   110→        <CardContent className="p-4">
+   111→          <div className="flex flex-wrap items-end gap-3">
+   112→            <div className="flex-1 min-w-[180px]">
+   113→              <label className="text-xs font-medium text-muted-foreground mb-1 block">Report Type</label>
+   114→              <Select value={reportType} onValueChange={setReportType}>
+   115→                <SelectTrigger><SelectValue /></SelectTrigger>
+   116→                <SelectContent>
+   117→                  {REPORT_TYPES.map(r => (
+   118→                    <SelectItem key={r.value} value={r.value} className="flex items-center gap-2">
+   119→                      <div className="flex items-center gap-2">
+   120→                        <r.icon className="h-3.5 w-3.5" />
+   121→                        <span>{r.label}</span>
+   122→                      </div>
+   123→                    </SelectItem>
+   124→                  ))}
+   125→                </SelectContent>
+   126→              </Select>
+   127→            </div>
+   128→            <div className="flex-1 min-w-[180px]">
+   129→              <label className="text-xs font-medium text-muted-foreground mb-1 block">Project</label>
+   130→              <Select value={selectedProject} onValueChange={setSelectedProject}>
+   131→                <SelectTrigger><SelectValue placeholder="All Projects" /></SelectTrigger>
+   132→                <SelectContent>
+   133→                  <SelectItem value="">All Projects</SelectItem>
+   134→                  {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>)}
+   135→                </SelectContent>
+   136→              </Select>
+   137→            </div>
+   138→            <div className="min-w-[140px]">
+   139→              <label className="text-xs font-medium text-muted-foreground mb-1 block">Start Date</label>
+   140→              <input type="date" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={startDate} onChange={e => setStartDate(e.target.value)} />
+   141→            </div>
+   142→            <div className="min-w-[140px]">
+   143→              <label className="text-xs font-medium text-muted-foreground mb-1 block">End Date</label>
+   144→              <input type="date" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={endDate} onChange={e => setEndDate(e.target.value)} />
+   145→            </div>
+   146→            <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700" disabled={isFetching}>
+   147→              <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" />
+   148→              {isFetching ? 'Generating...' : 'Generate Report'}
+   149→            </Button>
+   150→          </div>
+   151→        </CardContent>
+   152→      </Card>
+   153→
+   154→      {/* Report Content */}
+   155→      <div id="report-content">
+   156→        {isLoading ? (
+   157→          <div className="space-y-3">
+   158→            <Skeleton className="h-8 w-64" />
+   159→            <Skeleton className="h-80 rounded-lg" />
+   160→            <Skeleton className="h-48 rounded-lg" />
+   161→          </div>
+   162→        ) : !report ? (
+   163→          <Card className="py-16 text-center border-purple-200/50 dark:border-purple-800/30">
+   164→            <CardContent>
+   165→              <FileBarChart className="h-12 w-12 text-purple-300 mx-auto mb-3" />
+   166→              <h3 className="text-lg font-semibold">Select a Report Type</h3>
+   167→              <p className="text-sm text-muted-foreground mt-1">Configure and generate a report to view results</p>
+   168→            </CardContent>
+   169→          </Card>
+   170→        ) : (
+   171→          <div className="space-y-4">
+   172→            {/* Report Header */}
+   173→            <div className="flex items-center justify-between">
+   174→              <div>
+   175→                <h2 className="text-lg font-semibold flex items-center gap-2">
+   176→                  {reportInfo && <reportInfo.icon className="h-5 w-5 text-purple-500" />}
+   177→                  {reportInfo?.label} Report
+   178→                </h2>
+   179→                <p className="text-xs text-muted-foreground">Generated: {report.generatedAt ? new Date(report.generatedAt).toLocaleString() : 'N/A'}</p>
+   180→              </div>
+   181→              <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-300">
+   182→                {report.projects?.length || 0} project(s)
+   183→              </Badge>
+   184→            </div>
+   185→
+   186→            {/* Project P&L */}
+   187→            {reportType === 'project-pl' && report.projects && (
+   188→              <>
+   189→                {/* Totals Row */}
+   190→                {report.totals && (
+   191→                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+   192→                    <Card className="border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/20 dark:to-gray-900">
+   193→                      <CardContent className="p-3 text-center">
+   194→                        <p className="text-[11px] text-muted-foreground">Total Revenue</p>
+   195→                        <p className="text-lg font-bold text-purple-600">{formatCurrencyCompact(report.totals.revenue)}</p>
+   196→                      </CardContent>
+   197→                    </Card>
+   198→                    <Card className="border-purple-200/50 dark:border-purple-800/30">
+   199→                      <CardContent className="p-3 text-center">
+   200→                        <p className="text-[11px] text-muted-foreground">Total Collected</p>
+   201→                        <p className="text-lg font-bold text-emerald-600">{formatCurrencyCompact(report.totals.collected)}</p>
+   202→                      </CardContent>
+   203→                    </Card>
+   204→                    <Card className="border-purple-200/50 dark:border-purple-800/30">
+   205→                      <CardContent className="p-3 text-center">
+   206→                        <p className="text-[11px] text-muted-foreground">Total Costs</p>
+   207→                        <p className="text-lg font-bold text-amber-600">{formatCurrencyCompact(report.totals.totalCosts)}</p>
+   208→                      </CardContent>
+   209→                    </Card>
+   210→                    <Card className="border-purple-200/50 dark:border-purple-800/30">
+   211→                      <CardContent className="p-3 text-center">
+   212→                        <p className="text-[11px] text-muted-foreground">Net Profit</p>
+   213→                        <p className={`text-lg font-bold ${report.totals.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrencyCompact(report.totals.netProfit)}</p>
+   214→                      </CardContent>
+   215→                    </Card>
+   216→                    <Card className="border-purple-200/50 dark:border-purple-800/30">
+   217→                      <CardContent className="p-3 text-center">
+   218→                        <p className="text-[11px] text-muted-foreground">Margin</p>
+   219→                        <p className={`text-lg font-bold ${report.totals.margin >= 15 ? 'text-emerald-600' : 'text-amber-600'}`}>{report.totals.margin}%</p>
+   220→                      </CardContent>
+   221→                    </Card>
+   222→                  </div>
+   223→                )}
+   224→
+   225→                <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   226→                  <CardHeader className="pb-2"><CardTitle className="text-base">Revenue vs Costs by Project</CardTitle></CardHeader>
+   227→                  <CardContent>
+   228→                    <ChartContainer config={{ revenue: { label: 'Revenue', color: 'hsl(270, 70%, 55%)' }, totalCosts: { label: 'Costs', color: 'hsl(25, 95%, 53%)' }, netProfit: { label: 'Profit', color: 'hsl(142, 71%, 45%)' } }} className="h-64 w-full">
+   229→                      <BarChart data={report.projects} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+   230→                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+   231→                        <XAxis dataKey="projectName" tick={{ fontSize: 10 }} />
+   232→                        <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 100000 ? `${(v / 100000).toFixed(0)}L` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+   233→                        <ChartTooltip content={<ChartTooltipContent />} />
+   234→                        <ChartLegend content={<ChartLegendContent />} />
+   235→                        <Bar dataKey="revenue" fill="hsl(270, 70%, 55%)" radius={[2, 2, 0, 0]} />
+   236→                        <Bar dataKey="totalCosts" fill="hsl(25, 95%, 53%)" radius={[2, 2, 0, 0]} />
+   237→                      </BarChart>
+   238→                    </ChartContainer>
+   239→                  </CardContent>
+   240→                </Card>
+   241→
+   242→                {/* Table */}
+   243→                <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   244→                  <CardContent className="p-0">
+   245→                    <div className="max-h-96 overflow-y-auto">
+   246→                      <Table>
+   247→                        <TableHeader>
+   248→                          <TableRow>
+   249→                            <TableHead>Project</TableHead>
+   250→                            <TableHead className="text-right">Revenue</TableHead>
+   251→                            <TableHead className="text-right">Collected</TableHead>
+   252→                            <TableHead className="text-right">Costs</TableHead>
+   253→                            <TableHead className="text-right">Profit</TableHead>
+   254→                            <TableHead className="text-right">Margin</TableHead>
+   255→                          </TableRow>
+   256→                        </TableHeader>
+   257→                        <TableBody>
+   258→                          {report.projects.map((p: any) => (
+   259→                            <TableRow key={p.projectId}>
+   260→                              <TableCell className="font-medium">{p.projectName}</TableCell>
+   261→                              <TableCell className="text-right">{formatCurrencyCompact(p.revenue)}</TableCell>
+   262→                              <TableCell className="text-right">{formatCurrencyCompact(p.collected)}</TableCell>
+   263→                              <TableCell className="text-right">{formatCurrencyCompact(p.totalCosts)}</TableCell>
+   264→                              <TableCell className={`text-right font-medium ${p.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrencyCompact(p.netProfit)}</TableCell>
+   265→                              <TableCell className="text-right">
+   266→                                <Badge variant={p.margin >= 15 ? 'default' : 'outline'} className={p.margin >= 15 ? 'bg-emerald-100 text-emerald-700' : p.margin >= 0 ? '' : 'bg-red-100 text-red-700'}>
+   267→                                  {p.margin}%
+   268→                                </Badge>
+   269→                              </TableCell>
+   270→                            </TableRow>
+   271→                          ))}
+   272→                        </TableBody>
+   273→                      </Table>
+   274→                    </div>
+   275→                  </CardContent>
+   276→                </Card>
+   277→              </>
+   278→            )}
+   279→
+   280→            {/* Labour Summary */}
+   281→            {reportType === 'labour-summary' && (
+   282→              <>
+   283→                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+   284→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Total Records</p><p className="text-lg font-bold">{report.totalAttendance}</p></CardContent></Card>
+   285→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Total Hours</p><p className="text-lg font-bold">{report.totalHours.toLocaleString()}</p></CardContent></Card>
+   286→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Overtime Hours</p><p className="text-lg font-bold text-amber-600">{report.totalOvertime.toLocaleString()}</p></CardContent></Card>
+   287→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Labour Cost</p><p className="text-lg font-bold text-purple-600">{formatCurrencyCompact(report.totalLabourCost)}</p></CardContent></Card>
+   288→                </div>
+   289→
+   290→                {report.attendanceByProject?.length > 0 && (
+   291→                  <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   292→                    <CardContent className="p-0">
+   293→                      <div className="max-h-96 overflow-y-auto">
+   294→                        <Table>
+   295→                          <TableHeader>
+   296→                            <TableRow>
+   297→                              <TableHead>Project</TableHead>
+   298→                              <TableHead className="text-right">Worker-Days</TableHead>
+   299→                              <TableHead className="text-right">Total Hours</TableHead>
+   300→                              <TableHead className="text-right">Overtime</TableHead>
+   301→                              <TableHead className="text-right">Est. Cost</TableHead>
+   302→                              <TableHead className="text-right">Workers</TableHead>
+   303→                            </TableRow>
+   304→                          </TableHeader>
+   305→                          <TableBody>
+   306→                            {report.attendanceByProject.map((p: any) => (
+   307→                              <TableRow key={p.projectId}>
+   308→                                <TableCell className="font-medium">{p.projectName}</TableCell>
+   309→                                <TableCell className="text-right">{p.totalDays}</TableCell>
+   310→                                <TableCell className="text-right">{p.totalHours.toLocaleString()}</TableCell>
+   311→                                <TableCell className="text-right text-amber-600">{p.totalOvertime.toLocaleString()}</TableCell>
+   312→                                <TableCell className="text-right">{formatCurrencyCompact(p.totalCost)}</TableCell>
+   313→                                <TableCell className="text-right">{p.uniqueWorkers}</TableCell>
+   314→                              </TableRow>
+   315→                            ))}
+   316→                          </TableBody>
+   317→                        </Table>
+   318→                      </div>
+   319→                    </CardContent>
+   320→                  </Card>
+   321→                )}
+   322→              </>
+   323→            )}
+   324→
+   325→            {/* Cost Variance */}
+   326→            {reportType === 'cost-variance' && report.projects && (
+   327→              <>
+   328→                <div className="grid grid-cols-1 gap-4">
+   329→                  {report.projects.map((p: any) => (
+   330→                    <Card key={p.projectId} className={`border ${p.isOverBudget ? 'border-red-200/50 dark:border-red-800/30' : 'border-purple-200/50 dark:border-purple-800/30'} bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm`}>
+   331→                      <CardHeader className="pb-2 cursor-pointer" onClick={() => setExpanded(expanded === p.projectId ? null : p.projectId)}>
+   332→                        <div className="flex items-center justify-between">
+   333→                          <div>
+   334→                            <CardTitle className="text-sm flex items-center gap-2">
+   335→                              {p.projectName}
+   336→                              <Badge variant={p.isOverBudget ? 'destructive' : 'outline'}>{p.isOverBudget ? 'OVER BUDGET' : `${p.variancePercent}% variance`}</Badge>
+   337→                            </CardTitle>
+   338→                            <CardDescription>Budget: {formatCurrencyCompact(p.totalOriginal)} • Actual: {formatCurrencyCompact(p.totalActual)} • Variance: {formatCurrencyCompact(p.totalVariance)}</CardDescription>
+   339→                          </div>
+   340→                          {expanded === p.projectId ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+   341→                        </div>
+   342→                      </CardHeader>
+   343→                      {expanded === p.projectId && p.lineItems?.length > 0 && (
+   344→                        <CardContent className="p-0">
+   345→                          <Table>
+   346→                            <TableHeader>
+   347→                              <TableRow>
+   348→                                <TableHead>Cost Code</TableHead>
+   349→                                <TableHead className="text-right">Budget</TableHead>
+   350→                                <TableHead className="text-right">Actual</TableHead>
+   351→                                <TableHead className="text-right">Variance</TableHead>
+   352→                                <TableHead className="text-right">%</TableHead>
+   353→                              </TableRow>
+   354→                            </TableHeader>
+   355→                            <TableBody>
+   356→                              {p.lineItems.map((li: any, i: number) => (
+   357→                                <TableRow key={i}>
+   358→                                  <TableCell className="font-medium text-xs">{li.costCode}</TableCell>
+   359→                                  <TableCell className="text-right">{formatCurrencyCompact(li.originalBudget)}</TableCell>
+   360→                                  <TableCell className="text-right">{formatCurrencyCompact(li.actualCost)}</TableCell>
+   361→                                  <TableCell className={`text-right ${li.variance < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{formatCurrencyCompact(li.variance)}</TableCell>
+   362→                                  <TableCell className="text-right">
+   363→                                    <Badge variant={li.variancePercent >= 0 ? 'outline' : 'destructive'} className="text-[10px]">
+   364→                                      {li.variancePercent}%
+   365→                                    </Badge>
+   366→                                  </TableCell>
+   367→                                </TableRow>
+   368→                              ))}
+   369→                            </TableBody>
+   370→                          </Table>
+   371→                        </CardContent>
+   372→                      )}
+   373→                    </Card>
+   374→                  ))}
+   375→                </div>
+   376→              </>
+   377→            )}
+   378→
+   379→            {/* Resource Utilization */}
+   380→            {reportType === 'resource-utilization' && (
+   381→              <>
+   382→                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+   383→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Total Assignments</p><p className="text-lg font-bold">{report.totalAssignments}</p></CardContent></Card>
+   384→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Active</p><p className="text-lg font-bold text-emerald-600">{report.activeAssignments}</p></CardContent></Card>
+   385→                  <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Utilization</p><p className="text-lg font-bold text-purple-600">{report.overallUtilization}%</p></CardContent></Card>
+   386→                </div>
+   387→
+   388→                {report.byCrew?.length > 0 && (
+   389→                  <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   390→                    <CardHeader className="pb-2"><CardTitle className="text-base">Crew Utilization</CardTitle></CardHeader>
+   391→                    <CardContent>
+   392→                      <ChartContainer config={{ utilizationRate: { label: 'Utilization %', color: 'hsl(270, 70%, 55%)' } }} className="h-56 w-full">
+   393→                        <BarChart data={report.byCrew} layout="vertical" margin={{ top: 5, right: 20, left: 80, bottom: 5 }}>
+   394→                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+   395→                          <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+   396→                          <YAxis type="category" dataKey="crewName" tick={{ fontSize: 10 }} width={75} />
+   397→                          <ChartTooltip content={<ChartTooltipContent />} />
+   398→                          <Bar dataKey="utilizationRate" fill="hsl(270, 70%, 55%)" radius={[0, 4, 4, 0]} />
+   399→                        </BarChart>
+   400→                      </ChartContainer>
+   401→                    </CardContent>
+   402→                  </Card>
+   403→                )}
+   404→              </>
+   405→            )}
+   406→
+   407→            {/* Financial Health */}
+   408→            {reportType === 'financial-health' && report.projects && (
+   409→              <>
+   410→                {report.totals && (
+   411→                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+   412→                    <Card className="border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-950/20 dark:to-gray-900">
+   413→                      <CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Inflow</p><p className="text-lg font-bold text-emerald-600">{formatCurrencyCompact(report.totals.inflow)}</p></CardContent>
+   414→                    </Card>
+   415→                    <Card className="border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-red-50/50 to-white dark:from-red-950/20 dark:to-gray-900">
+   416→                      <CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Outflow</p><p className="text-lg font-bold text-red-600">{formatCurrencyCompact(report.totals.outflow)}</p></CardContent>
+   417→                    </Card>
+   418→                    <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Net</p><p className={`text-lg font-bold ${report.totals.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrencyCompact(report.totals.net)}</p></CardContent></Card>
+   419→                    <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Receivables</p><p className="text-lg font-bold text-amber-600">{formatCurrencyCompact(report.totals.receivables)}</p></CardContent></Card>
+   420→                    <Card className="border-purple-200/50 dark:border-purple-800/30"><CardContent className="p-3 text-center"><p className="text-[11px] text-muted-foreground">Payables</p><p className="text-lg font-bold text-red-600">{formatCurrencyCompact(report.totals.payables)}</p></CardContent></Card>
+   421→                  </div>
+   422→                )}
+   423→
+   424→                <Card className="border-purple-200/50 dark:border-purple-800/30 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+   425→                  <CardContent className="p-0">
+   426→                    <div className="max-h-96 overflow-y-auto">
+   427→                      <Table>
+   428→                        <TableHeader>
+   429→                          <TableRow>
+   430→                            <TableHead>Project</TableHead>
+   431→                            <TableHead className="text-right">Inflow</TableHead>
+   432→                            <TableHead className="text-right">Outflow</TableHead>
+   433→                            <TableHead className="text-right">Net</TableHead>
+   434→                            <TableHead className="text-right">Receivables</TableHead>
+   435→                            <TableHead className="text-right">Payables</TableHead>
+   436→                          </TableRow>
+   437→                        </TableHeader>
+   438→                        <TableBody>
+   439→                          {report.projects.map((p: any) => (
+   440→                            <TableRow key={p.projectId}>
+   441→                              <TableCell className="font-medium">{p.projectName}</TableCell>
+   442→                              <TableCell className="text-right text-emerald-600">{formatCurrencyCompact(p.inflow)}</TableCell>
+   443→                              <TableCell className="text-right text-red-600">{formatCurrencyCompact(p.outflow)}</TableCell>
+   444→                              <TableCell className={`text-right font-medium ${p.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrencyCompact(p.net)}</TableCell>
+   445→                              <TableCell className="text-right text-amber-600">{formatCurrencyCompact(p.receivables)}</TableCell>
+   446→                              <TableCell className="text-right text-red-600">{formatCurrencyCompact(p.payables)}</TableCell>
+   447→                            </TableRow>
+   448→                          ))}
+   449→                        </TableBody>
+   450→                      </Table>
+   451→                    </div>
+   452→                  </CardContent>
+   453→                </Card>
+   454→              </>
+   455→            )}
+   456→          </div>
+   457→        )}
+   458→      </div>
+   459→    </div>
+   460→  )
+   461→}

@@ -1,0 +1,1024 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import {
+    15→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    16→} from '@/components/ui/select'
+    17→import {
+    18→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+    19→} from '@/components/ui/dialog'
+    20→import {
+    21→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    22→} from '@/components/ui/table'
+    23→import { ScrollArea } from '@/components/ui/scroll-area'
+    24→import { toast } from 'sonner'
+    25→import { ScheduleGanttChart, GanttActivity, GanttDependency } from './schedule-gantt-chart'
+    26→import {
+    27→  CalendarClock,
+    28→  Plus,
+    29→  Pencil,
+    30→  Trash2,
+    31→  ChevronRight,
+    32→  AlertTriangle,
+    33→  CheckCircle2,
+    34→  Clock,
+    35→  FileText,
+    36→  Save,
+    37→  Download,
+    38→  Camera,
+    39→  Link2,
+    40→  Users,
+    41→  TimerReset,
+    42→  CalendarDays,
+    43→  History,
+    44→  MessageSquare,
+    45→  BarChart3,
+    46→  Diamond,
+    47→  ArrowLeft,
+    48→  HeartPulse,
+    49→  Target,
+    50→  Activity,
+    51→} from 'lucide-react'
+    52→import { cn } from '@/lib/utils'
+    53→import { format, parseISO } from 'date-fns'
+    54→
+    55→// ─── Types ───
+    56→interface ScheduleDetail {
+    57→  id: string
+    58→  scheduleNo: string
+    59→  name: string
+    60→  projectId: string
+    61→  projectName: string
+    62→  projectCode: string
+    63→  scheduleType: string
+    64→  parentScheduleId: string | null
+    65→  baselineScheduleId: string | null
+    66→  version: number
+    67→  revision: number
+    68→  status: string
+    69→  startDate: string | null
+    70→  endDate: string | null
+    71→  totalDuration: number
+    72→  totalActivities: number
+    73→  completionPct: number
+    74→  healthScore: number
+    75→  description: string | null
+    76→  notes: string | null
+    77→  createdAt: string
+    78→  updatedAt: string
+    79→}
+    80→
+    81→interface ScheduleDetailResponse {
+    82→  schedule: ScheduleDetail
+    83→  activities: ActivityRow[]
+    84→  milestones: MilestoneRow[]
+    85→  dependencies: DependencyRow[]
+    86→  delays: DelayRow[]
+    87→  calendars: CalendarRow[]
+    88→  snapshots: SnapshotRow[]
+    89→  comments: CommentRow[]
+    90→}
+    91→
+    92→interface ActivityRow {
+    93→  id: string
+    94→  activityId: string
+    95→  name: string
+    96→  taskType: string
+    97→  parentId: string | null
+    98→  startDate: string | null
+    99→  finishDate: string | null
+   100→  duration: number
+   101→  progress: number
+   102→  status: string
+   103→  priority: string
+   104→  isCritical: boolean
+   105→  isOnCriticalPath: boolean
+   106→  children?: ActivityRow[]
+   107→  resourceNames?: string
+   108→  order: number
+   109→  wbsCode: string | null
+   110→  costCode: string | null
+   111→}
+   112→
+   113→interface MilestoneRow {
+   114→  id: string
+   115→  name: string
+   116→  description: string | null
+   117→  date: string | null
+   118→  type: string
+   119→  status: string
+   120→  weight: number
+   121→}
+   122→
+   123→interface DependencyRow {
+   124→  id: string
+   125→  predecessorId: string
+   126→  successorId: string
+   127→  predecessorName: string
+   128→  successorName: string
+   129→  depType: string
+   130→  lagDays: number
+   131→}
+   132→
+   133→interface DelayRow {
+   134→  id: string
+   135→  title: string
+   136→  delayType: string
+   137→  impactDays: number
+   138→  impactType: string
+   139→  startDate: string | null
+   140→  endDate: string | null
+   141→  status: string
+   142→  eotRequested: boolean
+   143→  eotDays: number
+   144→  costImpact: number
+   145→  reportedByName: string
+   146→  createdAt: string
+   147→  activityName: string | null
+   148→}
+   149→
+   150→interface CalendarRow {
+   151→  id: string
+   152→  name: string
+   153→  calendarType: string
+   154→  startDate: string | null
+   155→  endDate: string | null
+   156→  workingDays: string
+   157→  hoursPerDay: number
+   158→  isDefault: boolean
+   159→}
+   160→
+   161→interface SnapshotRow {
+   162→  id: string
+   163→  name: string
+   164→  snapshotType: string
+   165→  takenAt: string
+   166→  takenByName: string
+   167→}
+   168→
+   169→interface CommentRow {
+   170→  id: string
+   171→  content: string
+   172→  activityName: string | null
+   173→  createdByName: string
+   174→  createdAt: string
+   175→}
+   176→
+   177→// ─── Constants ───
+   178→const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+   179→  draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700' },
+   180→  published: { label: 'Published', className: 'bg-amber-50 text-amber-700' },
+   181→  active: { label: 'Active', className: 'bg-emerald-50 text-emerald-700' },
+   182→  archived: { label: 'Archived', className: 'bg-gray-100 text-gray-500' },
+   183→}
+   184→
+   185→const ACTIVITY_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+   186→  not_started: { label: 'Not Started', className: 'bg-gray-100 text-gray-700' },
+   187→  in_progress: { label: 'In Progress', className: 'bg-amber-50 text-amber-700' },
+   188→  completed: { label: 'Completed', className: 'bg-emerald-50 text-emerald-700' },
+   189→  delayed: { label: 'Delayed', className: 'bg-red-50 text-red-700' },
+   190→  on_hold: { label: 'On Hold', className: 'bg-gray-100 text-gray-700' },
+   191→}
+   192→
+   193→const MILESTONE_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+   194→  pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700' },
+   195→  completed: { label: 'Completed', className: 'bg-emerald-50 text-emerald-700' },
+   196→  delayed: { label: 'Delayed', className: 'bg-red-50 text-red-700' },
+   197→  missed: { label: 'Missed', className: 'bg-red-50 text-red-700' },
+   198→}
+   199→
+   200→const PRIORITY_CONFIG: Record<string, { label: string; className: string }> = {
+   201→  low: { label: 'Low', className: 'bg-gray-100 text-gray-700' },
+   202→  medium: { label: 'Medium', className: 'bg-amber-50 text-amber-700' },
+   203→  high: { label: 'High', className: 'bg-orange-50 text-orange-700' },
+   204→  critical: { label: 'Critical', className: 'bg-red-50 text-red-700' },
+   205→}
+   206→
+   207→const DEP_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
+   208→  FS: { label: 'FS', className: 'bg-amber-50 text-amber-700' },
+   209→  SS: { label: 'SS', className: 'bg-teal-50 text-teal-700' },
+   210→  FF: { label: 'FF', className: 'bg-emerald-50 text-emerald-700' },
+   211→  SF: { label: 'SF', className: 'bg-rose-50 text-rose-700' },
+   212→}
+   213→
+   214→const DELAY_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+   215→  open: { label: 'Open', className: 'bg-red-50 text-red-700' },
+   216→  acknowledged: { label: 'Acknowledged', className: 'bg-amber-50 text-amber-700' },
+   217→  resolved: { label: 'Resolved', className: 'bg-emerald-50 text-emerald-700' },
+   218→  disputed: { label: 'Disputed', className: 'bg-orange-50 text-orange-700' },
+   219→}
+   220→
+   221→const TASK_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
+   222→  task: { label: 'Task', className: 'bg-amber-50 text-amber-700' },
+   223→  milestone: { label: 'Milestone', className: 'bg-gray-100 text-gray-700' },
+   224→  summary: { label: 'Summary', className: 'bg-gray-100 text-gray-700' },
+   225→  inspection: { label: 'Inspection', className: 'bg-teal-50 text-teal-700' },
+   226→  procurement: { label: 'Procurement', className: 'bg-orange-50 text-orange-700' },
+   227→  work_order: { label: 'Work Order', className: 'bg-emerald-50 text-emerald-700' },
+   228→  maintenance: { label: 'Maintenance', className: 'bg-violet-50 text-violet-700' },
+   229→  approval: { label: 'Approval', className: 'bg-rose-50 text-rose-700' },
+   230→}
+   231→
+   232→// ─── Helpers ───
+   233→function formatDate(dateStr: string | null) {
+   234→  if (!dateStr) return '—'
+   235→  return format(parseISO(dateStr), 'dd MMM yyyy')
+   236→}
+   237→
+   238→function getHealthColor(score: number): string {
+   239→  if (score >= 80) return 'text-emerald-600 bg-emerald-100'
+   240→  if (score >= 60) return 'text-amber-600 bg-amber-100'
+   241→  if (score >= 40) return 'text-orange-600 bg-orange-100'
+   242→  return 'text-red-600 bg-red-100'
+   243→}
+   244→
+   245→function buildGanttActivities(activities: ActivityRow[]): GanttActivity[] {
+   246→  return activities.map((a) => ({
+   247→    id: a.id,
+   248→    activityId: a.activityId,
+   249→    name: a.name,
+   250→    taskType: a.taskType as GanttActivity['taskType'],
+   251→    parentId: a.parentId,
+   252→    startDate: a.startDate,
+   253→    finishDate: a.finishDate,
+   254→    duration: a.duration,
+   255→    progress: a.progress,
+   256→    status: a.status,
+   257→    priority: a.priority,
+   258→    isCritical: a.isCritical,
+   259→    isOnCriticalPath: a.isOnCriticalPath,
+   260→    children: a.children ? buildGanttActivities(a.children) : undefined,
+   261→    resourceNames: a.resourceNames,
+   262→  }))
+   263→}
+   264→
+   265→function buildGanttDependencies(deps: DependencyRow[]): GanttDependency[] {
+   266→  return deps.map((d) => ({
+   267→    id: d.id,
+   268→    predecessorId: d.predecessorId,
+   269→    successorId: d.successorId,
+   270→    depType: d.depType as GanttDependency['depType'],
+   271→    lagDays: d.lagDays,
+   272→  }))
+   273→}
+   274→
+   275→// ─── Main Component ───
+   276→interface ScheduleDetailPageProps {
+   277→  scheduleId: string
+   278→}
+   279→
+   280→export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
+   281→  const { navigate } = useAppStore()
+   282→  const [activeTab, setActiveTab] = useState('overview')
+   283→  const queryClient = useQueryClient()
+   284→
+   285→  // Fetch schedule detail
+   286→  const { data, isLoading, error } = useQuery({
+   287→    queryKey: queryKeys.scheduleDetail(scheduleId),
+   288→    queryFn: () => api.get<ScheduleDetailResponse>(`/api/schedules/${scheduleId}`).then((r) => r.data!),
+   289→    enabled: !!scheduleId,
+   290→  })
+   291→
+   292→  const schedule = data?.schedule
+   293→  const activities = data?.activities || []
+   294→  const milestones = data?.milestones || []
+   295→  const dependencies = data?.dependencies || []
+   296→  const delays = data?.delays || []
+   297→  const calendars = data?.calendars || []
+   298→  const snapshots = data?.snapshots || []
+   299→  const comments = data?.comments || []
+   300→
+   301→  // Gantt data
+   302→  const ganttActivities = useMemo(() => buildGanttActivities(activities), [activities])
+   303→  const ganttDependencies = useMemo(() => buildGanttDependencies(dependencies), [dependencies])
+   304→
+   305→  if (isLoading) {
+   306→    return (
+   307→      <div className="p-4 md:p-6 space-y-6">
+   308→        <Skeleton className="h-8 w-48 mb-2" />
+   309→        <Skeleton className="h-4 w-96 mb-6" />
+   310→        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+   311→          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+   312→        </div>
+   313→        <Skeleton className="h-96 rounded-xl" />
+   314→      </div>
+   315→    )
+   316→  }
+   317→
+   318→  if (error || !schedule) {
+   319→    return (
+   320→      <div className="p-4 md:p-6">
+   321→        <div className="flex items-center gap-2 mb-4">
+   322→          <Button variant="ghost" size="sm" onClick={() => navigate('schedule-list')}>
+   323→            <ArrowLeft className="h-4 w-4 mr-1" />Back
+   324→          </Button>
+   325→        </div>
+   326→        <Card className="rounded-xl border-red-200">
+   327→          <CardContent className="p-8 text-center">
+   328→            <AlertTriangle className="h-10 w-10 mx-auto text-red-400 mb-3" />
+   329→            <p className="text-red-600 text-sm">Failed to load schedule details.</p>
+   330→          </CardContent>
+   331→        </Card>
+   332→      </div>
+   333→    )
+   334→  }
+   335→
+   336→  const stConfig = STATUS_CONFIG[schedule.status] || STATUS_CONFIG.draft
+   337→
+   338→  return (
+   339→    <div className="p-4 md:p-6 space-y-6">
+   340→      {/* ─── Header ─── */}
+   341→      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+   342→        <div className="flex items-start gap-4">
+   343→          <div>
+   344→            <div className="flex items-center gap-2 mb-1">
+   345→              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => navigate('schedule-list')}>
+   346→                <ArrowLeft className="h-4 w-4" />
+   347→              </Button>
+   348→              <h1 className="text-xl font-bold tracking-tight">{schedule.name}</h1>
+   349→            </div>
+   350→            <div className="flex items-center gap-3 text-xs text-muted-foreground ml-9">
+   351→              <span className="font-mono">{schedule.scheduleNo}</span>
+   352→              <span>·</span>
+   353→              <span>{schedule.projectName} ({schedule.projectCode})</span>
+   354→              <span>·</span>
+   355→              <Badge variant="outline" className={cn('text-[10px] font-medium', stConfig.className)}>{stConfig.label}</Badge>
+   356→              <span>·</span>
+   357→              <span>V{schedule.version}.{schedule.revision}</span>
+   358→            </div>
+   359→          </div>
+   360→        </div>
+   361→        <div className="flex items-center gap-2">
+   362→          <Button variant="outline" size="sm" onClick={() => toast.info('Snapshot saved!')}>
+   363→            <Camera className="h-4 w-4 mr-1" />Snapshot
+   364→          </Button>
+   365→          <Button variant="outline" size="sm" onClick={() => toast.info('Export started...')}>
+   366→            <Download className="h-4 w-4 mr-1" />Export
+   367→          </Button>
+   368→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setActiveTab('gantt')}>
+   369→            <Pencil className="h-4 w-4 mr-1" />Edit Schedule
+   370→          </Button>
+   371→        </div>
+   372→      </div>
+   373→
+   374→      {/* ─── KPI Summary Row ─── */}
+   375→      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+   376→        <Card className="rounded-xl p-3.5 border">
+   377→          <CardContent className="p-0">
+   378→            <div className="flex items-start justify-between">
+   379→              <div className="rounded-lg bg-emerald-100 p-2"><Target className="h-4 w-4 text-emerald-600" /></div>
+   380→            </div>
+   381→            <div className="mt-2">
+   382→              <p className="text-xl font-semibold">{Math.round(schedule.completionPct)}%</p>
+   383→              <p className="text-xs text-muted-foreground">Overall Completion</p>
+   384→            </div>
+   385→          </CardContent>
+   386→        </Card>
+   387→        <Card className="rounded-xl p-3.5 border">
+   388→          <CardContent className="p-0">
+   389→            <div className="flex items-start justify-between">
+   390→              <div className="rounded-lg bg-amber-100 p-2"><HeartPulse className="h-4 w-4 text-amber-600" /></div>
+   391→            </div>
+   392→            <div className="mt-2">
+   393→              <p className="text-xl font-semibold">{Math.round(schedule.healthScore)}</p>
+   394→              <p className="text-xs text-muted-foreground">Health Score</p>
+   395→            </div>
+   396→          </CardContent>
+   397→        </Card>
+   398→        <Card className="rounded-xl p-3.5 border">
+   399→          <CardContent className="p-0">
+   400→            <div className="flex items-start justify-between">
+   401→              <div className="rounded-lg bg-teal-100 p-2"><Activity className="h-4 w-4 text-teal-600" /></div>
+   402→            </div>
+   403→            <div className="mt-2">
+   404→              <p className="text-xl font-semibold">{schedule.totalActivities}</p>
+   405→              <p className="text-xs text-muted-foreground">Total Activities</p>
+   406→            </div>
+   407→          </CardContent>
+   408→        </Card>
+   409→        <Card className="rounded-xl p-3.5 border">
+   410→          <CardContent className="p-0">
+   411→            <div className="flex items-start justify-between">
+   412→              <div className="rounded-lg bg-orange-100 p-2"><TimerReset className="h-4 w-4 text-orange-600" /></div>
+   413→            </div>
+   414→            <div className="mt-2">
+   415→              <p className="text-xl font-semibold">{schedule.totalDuration}d</p>
+   416→              <p className="text-xs text-muted-foreground">Total Duration</p>
+   417→            </div>
+   418→          </CardContent>
+   419→        </Card>
+   420→      </div>
+   421→
+   422→      {/* ─── Tabs ─── */}
+   423→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   424→        <TabsList className="w-full justify-start overflow-x-auto bg-muted/50 p-1 h-auto flex-wrap gap-1 rounded-lg">
+   425→          <TabsTrigger value="overview" className="text-xs px-3">Overview</TabsTrigger>
+   426→          <TabsTrigger value="gantt" className="text-xs px-3">
+   427→            <CalendarClock className="h-3.5 w-3.5 mr-1" />Gantt View
+   428→          </TabsTrigger>
+   429→          <TabsTrigger value="activities" className="text-xs px-3">Activities</TabsTrigger>
+   430→          <TabsTrigger value="milestones" className="text-xs px-3">Milestones</TabsTrigger>
+   431→          <TabsTrigger value="dependencies" className="text-xs px-3">Dependencies</TabsTrigger>
+   432→          <TabsTrigger value="resources" className="text-xs px-3">Resources</TabsTrigger>
+   433→          <TabsTrigger value="delays" className="text-xs px-3">Delays</TabsTrigger>
+   434→          <TabsTrigger value="calendars" className="text-xs px-3">Calendars</TabsTrigger>
+   435→          <TabsTrigger value="snapshots" className="text-xs px-3">Snapshots</TabsTrigger>
+   436→          <TabsTrigger value="comments" className="text-xs px-3">Comments</TabsTrigger>
+   437→          <TabsTrigger value="reports" className="text-xs px-3">Reports</TabsTrigger>
+   438→        </TabsList>
+   439→
+   440→        {/* ─── Overview Tab ─── */}
+   441→        <TabsContent value="overview" className="mt-4 space-y-6">
+   442→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   443→            <Card className="rounded-xl">
+   444→              <CardHeader className="pb-3">
+   445→                <CardTitle className="text-sm font-semibold">Schedule Information</CardTitle>
+   446→              </CardHeader>
+   447→              <CardContent className="space-y-3">
+   448→                <div className="grid grid-cols-2 gap-3">
+   449→                  <InfoItem label="Schedule No." value={schedule.scheduleNo} />
+   450→                  <InfoItem label="Type" value={schedule.scheduleType.charAt(0).toUpperCase() + schedule.scheduleType.slice(1)} />
+   451→                  <InfoItem label="Status" value={stConfig.label} />
+   452→                  <InfoItem label="Version" value={`V${schedule.version}.${schedule.revision}`} />
+   453→                  <InfoItem label="Start Date" value={formatDate(schedule.startDate)} />
+   454→                  <InfoItem label="End Date" value={formatDate(schedule.endDate)} />
+   455→                  <InfoItem label="Duration" value={`${schedule.totalDuration} days`} />
+   456→                  <InfoItem label="Activities" value={String(schedule.totalActivities)} />
+   457→                </div>
+   458→                {schedule.description && (
+   459→                  <div className="pt-2 border-t">
+   460→                    <p className="text-xs text-muted-foreground mb-1">Description</p>
+   461→                    <p className="text-sm">{schedule.description}</p>
+   462→                  </div>
+   463→                )}
+   464→              </CardContent>
+   465→            </Card>
+   466→
+   467→            <Card className="rounded-xl">
+   468→              <CardHeader className="pb-3">
+   469→                <CardTitle className="text-sm font-semibold">Health Analysis</CardTitle>
+   470→              </CardHeader>
+   471→              <CardContent className="space-y-4">
+   472→                <div className="flex items-center justify-center">
+   473→                  <div className={cn('rounded-full p-4', getHealthColor(schedule.healthScore).split(' ')[1])}>
+   474→                    <span className={cn('text-3xl font-bold', getHealthColor(schedule.healthScore).split(' ')[0])}>
+   475→                      {Math.round(schedule.healthScore)}
+   476→                    </span>
+   477→                  </div>
+   478→                </div>
+   479→                <div className="space-y-2">
+   480→                  <div className="flex items-center justify-between text-sm">
+   481→                    <span className="text-muted-foreground">Completion</span>
+   482→                    <span className="font-medium">{Math.round(schedule.completionPct)}%</span>
+   483→                  </div>
+   484→                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+   485→                    <div
+   486→                      className={cn(
+   487→                        'h-full rounded-full',
+   488→                        schedule.completionPct >= 80 ? 'bg-emerald-500' : schedule.completionPct >= 50 ? 'bg-amber-500' : 'bg-red-500'
+   489→                      )}
+   490→                      style={{ width: `${schedule.completionPct}%` }}
+   491→                    />
+   492→                  </div>
+   493→                </div>
+   494→                <div className="grid grid-cols-3 gap-3 pt-2 border-t">
+   495→                  <MiniStat label="On Track" value={activities.filter(a => a.status === 'in_progress' && !a.isOnCriticalPath).length} color="text-emerald-600" />
+   496→                  <MiniStat label="Delayed" value={activities.filter(a => a.status === 'delayed').length} color="text-red-600" />
+   497→                  <MiniStat label="Critical" value={activities.filter(a => a.isOnCriticalPath).length} color="text-amber-600" />
+   498→                </div>
+   499→              </CardContent>
+   500→            </Card>
+   501→          </div>
+   502→        </TabsContent>
+   503→
+   504→        {/* ─── Gantt View Tab ─── */}
+   505→        <TabsContent value="gantt" className="mt-4">
+   506→          <ScheduleGanttChart
+   507→            activities={ganttActivities}
+   508→            dependencies={ganttDependencies}
+   509→            scheduleStartDate={schedule.startDate}
+   510→            scheduleEndDate={schedule.endDate}
+   511→            onActivityClick={(act) => toast.info(`Selected: ${act.name}`)}
+   512→          />
+   513→        </TabsContent>
+   514→
+   515→        {/* ─── Activities Tab ─── */}
+   516→        <TabsContent value="activities" className="mt-4">
+   517→          <Card className="rounded-xl overflow-hidden">
+   518→            <CardHeader className="pb-3">
+   519→              <div className="flex items-center justify-between">
+   520→                <CardTitle className="text-sm font-semibold">Activity List</CardTitle>
+   521→                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+   522→                  <Plus className="h-4 w-4 mr-1" />Add Activity
+   523→                </Button>
+   524→              </div>
+   525→            </CardHeader>
+   526→            <CardContent className="p-0">
+   527→              {activities.length === 0 ? (
+   528→                <EmptyState icon={CalendarClock} message="No activities defined yet" />
+   529→              ) : (
+   530→                <ScrollArea className="max-h-[500px]">
+   531→                  <Table>
+   532→                    <TableHeader>
+   533→                      <TableRow className="bg-muted/50">
+   534→                        <TableHead className="text-xs font-semibold">ID</TableHead>
+   535→                        <TableHead className="text-xs font-semibold">Activity</TableHead>
+   536→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Type</TableHead>
+   537→                        <TableHead className="text-xs font-semibold hidden sm:table-cell">Status</TableHead>
+   538→                        <TableHead className="text-xs font-semibold hidden lg:table-cell">Priority</TableHead>
+   539→                        <TableHead className="text-xs font-semibold hidden lg:table-cell">Start</TableHead>
+   540→                        <TableHead className="text-xs font-semibold hidden lg:table-cell">Finish</TableHead>
+   541→                        <TableHead className="text-xs font-semibold">Progress</TableHead>
+   542→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Critical</TableHead>
+   543→                        <TableHead className="text-xs font-semibold text-right">Actions</TableHead>
+   544→                      </TableRow>
+   545→                    </TableHeader>
+   546→                    <TableBody>
+   547→                      {activities.map((act) => {
+   548→                        const asConfig = ACTIVITY_STATUS_CONFIG[act.status] || ACTIVITY_STATUS_CONFIG.not_started
+   549→                        const prConfig = PRIORITY_CONFIG[act.priority] || PRIORITY_CONFIG.medium
+   550→                        const ttConfig = TASK_TYPE_CONFIG[act.taskType] || TASK_TYPE_CONFIG.task
+   551→                        return (
+   552→                          <TableRow key={act.id} className="hover:bg-muted/50">
+   553→                            <TableCell className="text-[10px] font-mono text-muted-foreground">{act.activityId}</TableCell>
+   554→                            <TableCell>
+   555→                              <div className="flex items-center gap-2">
+   556→                                {act.parentId && <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+   557→                                <span className="text-sm font-medium">{act.name}</span>
+   558→                              </div>
+   559→                            </TableCell>
+   560→                            <TableCell className="hidden md:table-cell">
+   561→                              <Badge variant="outline" className={cn('text-[10px]', ttConfig.className)}>{ttConfig.label}</Badge>
+   562→                            </TableCell>
+   563→                            <TableCell className="hidden sm:table-cell">
+   564→                              <Badge variant="outline" className={cn('text-[10px]', asConfig.className)}>{asConfig.label}</Badge>
+   565→                            </TableCell>
+   566→                            <TableCell className="hidden lg:table-cell">
+   567→                              <Badge variant="outline" className={cn('text-[10px]', prConfig.className)}>{prConfig.label}</Badge>
+   568→                            </TableCell>
+   569→                            <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">{formatDate(act.startDate)}</TableCell>
+   570→                            <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">{formatDate(act.finishDate)}</TableCell>
+   571→                            <TableCell>
+   572→                              <div className="flex items-center gap-2 min-w-[70px]">
+   573→                                <div className="h-1.5 flex-1 bg-secondary rounded-full overflow-hidden">
+   574→                                  <div
+   575→                                    className={cn(
+   576→                                      'h-full rounded-full',
+   577→                                      act.progress >= 80 ? 'bg-emerald-500' : act.progress >= 50 ? 'bg-amber-500' : 'bg-red-500'
+   578→                                    )}
+   579→                                    style={{ width: `${act.progress}%` }}
+   580→                                  />
+   581→                                </div>
+   582→                                <span className="text-[10px] font-medium w-8 text-right">{Math.round(act.progress)}%</span>
+   583→                              </div>
+   584→                            </TableCell>
+   585→                            <TableCell className="hidden md:table-cell">
+   586→                              {act.isOnCriticalPath && (
+   587→                                <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700">CP</Badge>
+   588→                              )}
+   589→                            </TableCell>
+   590→                            <TableCell className="text-right">
+   591→                              <div className="flex items-center justify-end gap-1">
+   592→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0"><Pencil className="h-3 w-3" /></Button>
+   593→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-500"><Trash2 className="h-3 w-3" /></Button>
+   594→                              </div>
+   595→                            </TableCell>
+   596→                          </TableRow>
+   597→                        )
+   598→                      })}
+   599→                    </TableBody>
+   600→                  </Table>
+   601→                </ScrollArea>
+   602→              )}
+   603→            </CardContent>
+   604→          </Card>
+   605→        </TabsContent>
+   606→
+   607→        {/* ─── Milestones Tab ─── */}
+   608→        <TabsContent value="milestones" className="mt-4">
+   609→          <Card className="rounded-xl overflow-hidden">
+   610→            <CardHeader className="pb-3">
+   611→              <div className="flex items-center justify-between">
+   612→                <CardTitle className="text-sm font-semibold">Milestones</CardTitle>
+   613→                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+   614→                  <Plus className="h-4 w-4 mr-1" />Add Milestone
+   615→                </Button>
+   616→              </div>
+   617→            </CardHeader>
+   618→            <CardContent className="p-0">
+   619→              {milestones.length === 0 ? (
+   620→                <EmptyState icon={Diamond} message="No milestones defined yet" />
+   621→              ) : (
+   622→                <ScrollArea className="max-h-[500px]">
+   623→                  <Table>
+   624→                    <TableHeader>
+   625→                      <TableRow className="bg-muted/50">
+   626→                        <TableHead className="text-xs font-semibold">Milestone</TableHead>
+   627→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Type</TableHead>
+   628→                        <TableHead className="text-xs font-semibold">Date</TableHead>
+   629→                        <TableHead className="text-xs font-semibold">Status</TableHead>
+   630→                        <TableHead className="text-xs font-semibold hidden lg:table-cell">Weight</TableHead>
+   631→                        <TableHead className="text-xs font-semibold text-right">Actions</TableHead>
+   632→                      </TableRow>
+   633→                    </TableHeader>
+   634→                    <TableBody>
+   635→                      {milestones.map((ms) => {
+   636→                        const msConfig = MILESTONE_STATUS_CONFIG[ms.status] || MILESTONE_STATUS_CONFIG.pending
+   637→                        return (
+   638→                          <TableRow key={ms.id} className="hover:bg-muted/50">
+   639→                            <TableCell>
+   640→                              <div className="flex items-center gap-2">
+   641→                                <Diamond className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+   642→                                <span className="text-sm font-medium">{ms.name}</span>
+   643→                              </div>
+   644→                            </TableCell>
+   645→                            <TableCell className="hidden md:table-cell">
+   646→                              <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700">{ms.type.replace(/_/g, ' ')}</Badge>
+   647→                            </TableCell>
+   648→                            <TableCell className="text-xs">{formatDate(ms.date)}</TableCell>
+   649→                            <TableCell>
+   650→                              <Badge variant="outline" className={cn('text-[10px]', msConfig.className)}>{msConfig.label}</Badge>
+   651→                            </TableCell>
+   652→                            <TableCell className="hidden lg:table-cell text-xs">{ms.weight}</TableCell>
+   653→                            <TableCell className="text-right">
+   654→                              <div className="flex items-center justify-end gap-1">
+   655→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0"><Pencil className="h-3 w-3" /></Button>
+   656→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-500"><Trash2 className="h-3 w-3" /></Button>
+   657→                              </div>
+   658→                            </TableCell>
+   659→                          </TableRow>
+   660→                        )
+   661→                      })}
+   662→                    </TableBody>
+   663→                  </Table>
+   664→                </ScrollArea>
+   665→              )}
+   666→            </CardContent>
+   667→          </Card>
+   668→        </TabsContent>
+   669→
+   670→        {/* ─── Dependencies Tab ─── */}
+   671→        <TabsContent value="dependencies" className="mt-4">
+   672→          <Card className="rounded-xl overflow-hidden">
+   673→            <CardHeader className="pb-3">
+   674→              <div className="flex items-center justify-between">
+   675→                <CardTitle className="text-sm font-semibold">Dependencies</CardTitle>
+   676→                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+   677→                  <Plus className="h-4 w-4 mr-1" />Add Dependency
+   678→                </Button>
+   679→              </div>
+   680→            </CardHeader>
+   681→            <CardContent className="p-0">
+   682→              {dependencies.length === 0 ? (
+   683→                <EmptyState icon={Link2} message="No dependencies defined yet" />
+   684→              ) : (
+   685→                <ScrollArea className="max-h-[500px]">
+   686→                  <Table>
+   687→                    <TableHeader>
+   688→                      <TableRow className="bg-muted/50">
+   689→                        <TableHead className="text-xs font-semibold">Predecessor</TableHead>
+   690→                        <TableHead className="text-xs font-semibold">Type</TableHead>
+   691→                        <TableHead className="text-xs font-semibold">Successor</TableHead>
+   692→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Lag (days)</TableHead>
+   693→                        <TableHead className="text-xs font-semibold text-right">Actions</TableHead>
+   694→                      </TableRow>
+   695→                    </TableHeader>
+   696→                    <TableBody>
+   697→                      {dependencies.map((dep) => {
+   698→                        const dtConfig = DEP_TYPE_CONFIG[dep.depType] || DEP_TYPE_CONFIG.FS
+   699→                        return (
+   700→                          <TableRow key={dep.id} className="hover:bg-muted/50">
+   701→                            <TableCell className="text-sm">{dep.predecessorName}</TableCell>
+   702→                            <TableCell>
+   703→                              <Badge variant="outline" className={cn('text-[10px] font-bold', dtConfig.className)}>{dtConfig.label}</Badge>
+   704→                            </TableCell>
+   705→                            <TableCell className="text-sm">{dep.successorName}</TableCell>
+   706→                            <TableCell className="hidden md:table-cell text-xs">{dep.lagDays}</TableCell>
+   707→                            <TableCell className="text-right">
+   708→                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-500">
+   709→                                <Trash2 className="h-3 w-3" />
+   710→                              </Button>
+   711→                            </TableCell>
+   712→                          </TableRow>
+   713→                        )
+   714→                      })}
+   715→                    </TableBody>
+   716→                  </Table>
+   717→                </ScrollArea>
+   718→              )}
+   719→            </CardContent>
+   720→          </Card>
+   721→        </TabsContent>
+   722→
+   723→        {/* ─── Resources Tab ─── */}
+   724→        <TabsContent value="resources" className="mt-4">
+   725→          <Card className="rounded-xl">
+   726→            <CardHeader className="pb-3">
+   727→              <CardTitle className="text-sm font-semibold">Resource Assignments</CardTitle>
+   728→            </CardHeader>
+   729→            <CardContent>
+   730→              <EmptyState icon={Users} message="Resource assignments will appear here as activities are assigned resources" />
+   731→            </CardContent>
+   732→          </Card>
+   733→        </TabsContent>
+   734→
+   735→        {/* ─── Delays Tab ─── */}
+   736→        <TabsContent value="delays" className="mt-4">
+   737→          <Card className="rounded-xl overflow-hidden">
+   738→            <CardHeader className="pb-3">
+   739→              <div className="flex items-center justify-between">
+   740→                <CardTitle className="text-sm font-semibold">Delay Tracking</CardTitle>
+   741→                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+   742→                  <Plus className="h-4 w-4 mr-1" />Report Delay
+   743→                </Button>
+   744→              </div>
+   745→            </CardHeader>
+   746→            <CardContent className="p-0">
+   747→              {delays.length === 0 ? (
+   748→                <EmptyState icon={CheckCircle2} message="No delays reported — schedule is on track!" />
+   749→              ) : (
+   750→                <ScrollArea className="max-h-[500px]">
+   751→                  <Table>
+   752→                    <TableHeader>
+   753→                      <TableRow className="bg-muted/50">
+   754→                        <TableHead className="text-xs font-semibold">Delay</TableHead>
+   755→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Activity</TableHead>
+   756→                        <TableHead className="text-xs font-semibold">Type</TableHead>
+   757→                        <TableHead className="text-xs font-semibold">Impact</TableHead>
+   758→                        <TableHead className="text-xs font-semibold">Status</TableHead>
+   759→                        <TableHead className="text-xs font-semibold hidden lg:table-cell">EOT</TableHead>
+   760→                        <TableHead className="text-xs font-semibold text-right">Actions</TableHead>
+   761→                      </TableRow>
+   762→                    </TableHeader>
+   763→                    <TableBody>
+   764→                      {delays.map((dl) => {
+   765→                        const dlConfig = DELAY_STATUS_CONFIG[dl.status] || DELAY_STATUS_CONFIG.open
+   766→                        return (
+   767→                          <TableRow key={dl.id} className="hover:bg-muted/50">
+   768→                            <TableCell>
+   769→                              <p className="text-sm font-medium">{dl.title}</p>
+   770→                              <p className="text-[10px] text-muted-foreground">{dl.reportedByName} · {formatDate(dl.createdAt)}</p>
+   771→                            </TableCell>
+   772→                            <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{dl.activityName || '—'}</TableCell>
+   773→                            <TableCell>
+   774→                              <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700">
+   775→                                {dl.delayType.replace(/_/g, ' ')}
+   776→                              </Badge>
+   777→                            </TableCell>
+   778→                            <TableCell>
+   779→                              <span className={cn('text-sm font-medium', dl.impactDays > 7 ? 'text-red-600' : dl.impactDays > 3 ? 'text-amber-600' : 'text-foreground')}>
+   780→                                {dl.impactDays}d
+   781→                              </span>
+   782→                              <span className="text-[10px] text-muted-foreground ml-1">({dl.impactType})</span>
+   783→                            </TableCell>
+   784→                            <TableCell>
+   785→                              <Badge variant="outline" className={cn('text-[10px]', dlConfig.className)}>{dlConfig.label}</Badge>
+   786→                            </TableCell>
+   787→                            <TableCell className="hidden lg:table-cell text-xs">
+   788→                              {dl.eotRequested ? `${dl.eotDays}d EOT` : '—'}
+   789→                            </TableCell>
+   790→                            <TableCell className="text-right">
+   791→                              <div className="flex items-center justify-end gap-1">
+   792→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0"><Pencil className="h-3 w-3" /></Button>
+   793→                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-emerald-500"><CheckCircle2 className="h-3 w-3" /></Button>
+   794→                              </div>
+   795→                            </TableCell>
+   796→                          </TableRow>
+   797→                        )
+   798→                      })}
+   799→                    </TableBody>
+   800→                  </Table>
+   801→                </ScrollArea>
+   802→              )}
+   803→            </CardContent>
+   804→          </Card>
+   805→        </TabsContent>
+   806→
+   807→        {/* ─── Calendars Tab ─── */}
+   808→        <TabsContent value="calendars" className="mt-4">
+   809→          <Card className="rounded-xl overflow-hidden">
+   810→            <CardHeader className="pb-3">
+   811→              <div className="flex items-center justify-between">
+   812→                <CardTitle className="text-sm font-semibold">Working Calendars</CardTitle>
+   813→                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+   814→                  <Plus className="h-4 w-4 mr-1" />Add Calendar
+   815→                </Button>
+   816→              </div>
+   817→            </CardHeader>
+   818→            <CardContent className="p-0">
+   819→              {calendars.length === 0 ? (
+   820→                <EmptyState icon={CalendarDays} message="No calendars configured — using default 5-day work week" />
+   821→              ) : (
+   822→                <ScrollArea className="max-h-[400px]">
+   823→                  <Table>
+   824→                    <TableHeader>
+   825→                      <TableRow className="bg-muted/50">
+   826→                        <TableHead className="text-xs font-semibold">Calendar</TableHead>
+   827→                        <TableHead className="text-xs font-semibold">Type</TableHead>
+   828→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Working Days</TableHead>
+   829→                        <TableHead className="text-xs font-semibold hidden md:table-cell">Hours/Day</TableHead>
+   830→                        <TableHead className="text-xs font-semibold">Default</TableHead>
+   831→                      </TableRow>
+   832→                    </TableHeader>
+   833→                    <TableBody>
+   834→                      {calendars.map((cal) => (
+   835→                        <TableRow key={cal.id} className="hover:bg-muted/50">
+   836→                          <TableCell className="text-sm font-medium">{cal.name}</TableCell>
+   837→                          <TableCell>
+   838→                            <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700">{cal.calendarType}</Badge>
+   839→                          </TableCell>
+   840→                          <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{cal.workingDays}</TableCell>
+   841→                          <TableCell className="hidden md:table-cell text-xs">{cal.hoursPerDay}h</TableCell>
+   842→                          <TableCell>
+   843→                            {cal.isDefault && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700">Default</Badge>}
+   844→                          </TableCell>
+   845→                        </TableRow>
+   846→                      ))}
+   847→                    </TableBody>
+   848→                  </Table>
+   849→                </ScrollArea>
+   850→              )}
+   851→            </CardContent>
+   852→          </Card>
+   853→        </TabsContent>
+   854→
+   855→        {/* ─── Snapshots Tab ─── */}
+   856→        <TabsContent value="snapshots" className="mt-4">
+   857→          <Card className="rounded-xl overflow-hidden">
+   858→            <CardHeader className="pb-3">
+   859→              <CardTitle className="text-sm font-semibold">Revision History</CardTitle>
+   860→            </CardHeader>
+   861→            <CardContent className="p-0">
+   862→              {snapshots.length === 0 ? (
+   863→                <EmptyState icon={History} message="No snapshots taken yet" />
+   864→              ) : (
+   865→                <ScrollArea className="max-h-[400px]">
+   866→                  <div className="divide-y">
+   867→                    {snapshots.map((snap) => (
+   868→                      <div key={snap.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/50">
+   869→                        <div className="flex items-center gap-3">
+   870→                          <div className="rounded-lg bg-gray-100 p-2">
+   871→                            <History className="h-4 w-4 text-gray-600" />
+   872→                          </div>
+   873→                          <div>
+   874→                            <p className="text-sm font-medium">{snap.name}</p>
+   875→                            <p className="text-[10px] text-muted-foreground">
+   876→                              {format(parseISO(snap.takenAt), 'dd MMM yyyy HH:mm')} · by {snap.takenByName}
+   877→                            </p>
+   878→                          </div>
+   879→                        </div>
+   880→                        <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700">{snap.snapshotType}</Badge>
+   881→                      </div>
+   882→                    ))}
+   883→                  </div>
+   884→                </ScrollArea>
+   885→              )}
+   886→            </CardContent>
+   887→          </Card>
+   888→        </TabsContent>
+   889→
+   890→        {/* ─── Comments Tab ─── */}
+   891→        <TabsContent value="comments" className="mt-4">
+   892→          <Card className="rounded-xl">
+   893→            <CardHeader className="pb-3">
+   894→              <CardTitle className="text-sm font-semibold">Activity Comments</CardTitle>
+   895→            </CardHeader>
+   896→            <CardContent className="p-0">
+   897→              {comments.length === 0 ? (
+   898→                <div className="flex flex-col items-center justify-center py-12 px-4">
+   899→                  <MessageSquare className="h-10 w-10 text-muted-foreground/40 mb-3" />
+   900→                  <p className="text-sm text-muted-foreground">No comments yet</p>
+   901→                </div>
+   902→              ) : (
+   903→                <ScrollArea className="max-h-[500px]">
+   904→                  <div className="divide-y">
+   905→                    {comments.map((cmt) => (
+   906→                      <div key={cmt.id} className="px-4 py-3 hover:bg-muted/50">
+   907→                        <div className="flex items-start justify-between gap-2">
+   908→                          <div>
+   909→                            <p className="text-xs text-muted-foreground">
+   910→                              <span className="font-medium text-foreground">{cmt.createdByName}</span>
+   911→                              {cmt.activityName && (
+   912→                                <span> on <span className="font-medium">{cmt.activityName}</span></span>
+   913→                              )}
+   914→                              <span className="ml-2">{format(parseISO(cmt.createdAt), 'dd MMM yyyy HH:mm')}</span>
+   915→                            </p>
+   916→                            <p className="text-sm mt-1">{cmt.content}</p>
+   917→                          </div>
+   918→                        </div>
+   919→                      </div>
+   920→                    ))}
+   921→                  </div>
+   922→                </ScrollArea>
+   923→              )}
+   924→            </CardContent>
+   925→          </Card>
+   926→        </TabsContent>
+   927→
+   928→        {/* ─── Reports Tab ─── */}
+   929→        <TabsContent value="reports" className="mt-4">
+   930→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   931→            <ReportCard
+   932→              icon={FileText}
+   933→              title="Schedule Summary"
+   934→              description="Comprehensive overview with activities, milestones, and critical path analysis"
+   935→              onClick={() => toast.info('Generating Schedule Summary report...')}
+   936→            />
+   937→            <ReportCard
+   938→              icon={BarChart3}
+   939→              title="Progress Report"
+   940→              description="Detailed progress tracking with planned vs actual comparison"
+   941→              onClick={() => toast.info('Generating Progress report...')}
+   942→            />
+   943→            <ReportCard
+   944→              icon={Clock}
+   945→              title="Delay Analysis"
+   946→              description="Impact analysis of all delays with EOT implications"
+   947→              onClick={() => toast.info('Generating Delay Analysis report...')}
+   948→            />
+   949→            <ReportCard
+   950→              icon={Link2}
+   951→              title="Dependency Report"
+   952→              description="Full dependency network with critical path highlighting"
+   953→              onClick={() => toast.info('Generating Dependency report...')}
+   954→            />
+   955→            <ReportCard
+   956→              icon={Target}
+   957→              title="Milestone Report"
+   958→              description="Milestone tracking with planned vs actual dates"
+   959→              onClick={() => toast.info('Generating Milestone report...')}
+   960→            />
+   961→            <ReportCard
+   962→              icon={Download}
+   963→              title="Export to PDF"
+   964→              description="Export the full schedule to PDF format"
+   965→              onClick={() => toast.info('Exporting to PDF...')}
+   966→            />
+   967→          </div>
+   968→        </TabsContent>
+   969→      </Tabs>
+   970→    </div>
+   971→  )
+   972→}
+   973→
+   974→// ─── Sub-components ───
+   975→function InfoItem({ label, value }: { label: string; value: string }) {
+   976→  return (
+   977→    <div>
+   978→      <p className="text-[10px] text-muted-foreground">{label}</p>
+   979→      <p className="text-sm font-medium">{value || '—'}</p>
+   980→    </div>
+   981→  )
+   982→}
+   983→
+   984→function MiniStat({ label, value, color }: { label: string; value: number; color: string }) {
+   985→  return (
+   986→    <div className="text-center">
+   987→      <p className={cn('text-lg font-semibold', color)}>{value}</p>
+   988→      <p className="text-[10px] text-muted-foreground">{label}</p>
+   989→    </div>
+   990→  )
+   991→}
+   992→
+   993→function EmptyState({ icon: Icon, message }: { icon: React.ElementType; message: string }) {
+   994→  return (
+   995→    <div className="flex flex-col items-center justify-center py-12 px-4">
+   996→      <Icon className="h-10 w-10 text-muted-foreground/40 mb-3" />
+   997→      <p className="text-sm text-muted-foreground">{message}</p>
+   998→    </div>
+   999→  )
+  1000→}
+  1001→
+  1002→function ReportCard({ icon: Icon, title, description, onClick }: {
+  1003→  icon: React.ElementType
+  1004→  title: string
+  1005→  description: string
+  1006→  onClick: () => void
+  1007→}) {
+  1008→  return (
+  1009→    <Card className="rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
+  1010→      <CardContent className="p-0">
+  1011→        <div className="flex items-start gap-3">
+  1012→          <div className="rounded-lg bg-amber-100 p-2 flex-shrink-0">
+  1013→            <Icon className="h-4 w-4 text-amber-600" />
+  1014→          </div>
+  1015→          <div>
+  1016→            <p className="text-sm font-semibold">{title}</p>
+  1017→            <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+  1018→          </div>
+  1019→        </div>
+  1020→      </CardContent>
+  1021→    </Card>
+  1022→  )
+  1023→}
+  1024→

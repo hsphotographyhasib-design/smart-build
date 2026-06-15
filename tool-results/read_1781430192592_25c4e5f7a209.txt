@@ -1,0 +1,598 @@
+     1→'use client'
+     2→
+     3→import React, { useState } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    14→import { Separator } from '@/components/ui/separator'
+    15→import {
+    16→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger,
+    17→} from '@/components/ui/dialog'
+    18→import {
+    19→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    20→} from '@/components/ui/table'
+    21→import { useToast } from '@/hooks/use-toast'
+    22→import {
+    23→  Plus, Pencil, Eye, Send, CheckCircle, XCircle, FileText, DollarSign,
+    24→  Receipt, TrendingUp,
+    25→} from 'lucide-react'
+    26→import { cn } from '@/lib/utils'
+    27→import { useFormat } from '@/hooks/use-format'
+    28→
+    29→// ─── Config ───
+    30→const invoiceStatusConfig: Record<string, { label: string; color: string }> = {
+    31→  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+    32→  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+    33→  paid: { label: 'Paid', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' },
+    34→  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' },
+    35→}
+    36→
+    37→function formatDate(d: string | null) {
+    38→  if (!d) return '—'
+    39→  return new Date(d).toLocaleDateString()
+    40→}
+    41→
+    42→export function MaintenanceInvoices() {
+    43→  const { formatCurrency } = useFormat()
+    44→  const { toast } = useToast()
+    45→  const queryClient = useQueryClient()
+    46→  const [createOpen, setCreateOpen] = useState(false)
+    47→  const [viewOpen, setViewOpen] = useState(false)
+    48→  const [editOpen, setEditOpen] = useState(false)
+    49→  const [viewingInvoice, setViewingInvoice] = useState<any>(null)
+    50→  const [editingInvoice, setEditingInvoice] = useState<any>(null)
+    51→  const [statusFilter, setStatusFilter] = useState('all')
+    52→
+    53→  // Fetch invoices
+    54→  const { data: invData, isLoading } = useQuery({
+    55→    queryKey: ['maintenance-invoices', statusFilter],
+    56→    queryFn: () => {
+    57→      const params = new URLSearchParams()
+    58→      if (statusFilter !== 'all') params.set('status', statusFilter)
+    59→      return api.get(`/api/maintenance/invoices${params.toString() ? `?${params.toString()}` : ''}`)
+    60→    },
+    61→  })
+    62→  const invoices = invData?.data || []
+    63→
+    64→  // Fetch customers
+    65→  const { data: customersData } = useQuery({
+    66→    queryKey: ['customers-inv'],
+    67→    queryFn: () => api.get('/api/customers'),
+    68→  })
+    69→  const customers = customersData?.data || []
+    70→
+    71→  // Fetch tickets for linking
+    72→  const { data: ticketsData } = useQuery({
+    73→    queryKey: ['maintenance-tickets-inv'],
+    74→    queryFn: () => api.get('/api/maintenance/tickets?status=resolved'),
+    75→  })
+    76→  const tickets = ticketsData?.data || []
+    77→
+    78→  // Create mutation
+    79→  const createMutation = useMutation({
+    80→    mutationFn: (body: any) => api.post('/api/maintenance/invoices', body),
+    81→    onSuccess: () => {
+    82→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+    83→      setCreateOpen(false)
+    84→      toast({ title: 'Invoice Created', description: 'New maintenance invoice created.' })
+    85→    },
+    86→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+    87→  })
+    88→
+    89→  // Update mutation
+    90→  const updateMutation = useMutation({
+    91→    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/invoices/${id}`, body),
+    92→    onSuccess: () => {
+    93→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+    94→      setEditOpen(false)
+    95→      setEditingInvoice(null)
+    96→      setViewOpen(false)
+    97→      setViewingInvoice(null)
+    98→      toast({ title: 'Updated', description: 'Invoice updated.' })
+    99→    },
+   100→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+   101→  })
+   102→
+   103→  // Status change mutation
+   104→  const statusMutation = useMutation({
+   105→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/maintenance/invoices/${id}`, { status }),
+   106→    onSuccess: (_, vars) => {
+   107→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+   108→      toast({ title: 'Status Updated', description: `Invoice marked as ${vars.status}.` })
+   109→    },
+   110→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+   111→  })
+   112→
+   113→  // Compute stats
+   114→  const draftCount = invoices.filter((inv: any) => inv.status === 'draft').length
+   115→  const sentCount = invoices.filter((inv: any) => inv.status === 'sent').length
+   116→  const paidCount = invoices.filter((inv: any) => inv.status === 'paid').length
+   117→  const totalRevenue = invoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + (inv.total || 0), 0)
+   118→
+   119→  // Summary totals
+   120→  const summaryTotals = invoices.reduce(
+   121→    (acc, inv: any) => ({
+   122→      labour: acc.labour + (inv.labourCost || 0),
+   123→      materials: acc.materials + (inv.materialCost || 0),
+   124→      transport: acc.transport + (inv.transportCost || 0),
+   125→      service: acc.service + (inv.serviceCharges || 0),
+   126→      tax: acc.tax + (inv.tax || 0),
+   127→      discount: acc.discount + (inv.discount || 0),
+   128→      total: acc.total + (inv.total || 0),
+   129→    }),
+   130→    { labour: 0, materials: 0, transport: 0, service: 0, tax: 0, discount: 0, total: 0 }
+   131→  )
+   132→
+   133→  return (
+   134→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   135→      {/* Header */}
+   136→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   137→        <div>
+   138→          <h1 className="text-2xl font-bold tracking-tight">Maintenance Invoicing</h1>
+   139→          <p className="text-muted-foreground text-sm mt-0.5">Generate and manage invoices for maintenance work</p>
+   140→        </div>
+   141→        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+   142→          <DialogTrigger asChild>
+   143→            <Button className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   144→              <Plus className="h-3.5 w-3.5" /> New Invoice
+   145→            </Button>
+   146→          </DialogTrigger>
+   147→          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+   148→            <DialogHeader>
+   149→              <DialogTitle>Create Invoice</DialogTitle>
+   150→              <DialogDescription>Generate a new maintenance invoice</DialogDescription>
+   151→            </DialogHeader>
+   152→            <CreateInvoiceForm
+   153→              customers={customers}
+   154→              tickets={tickets}
+   155→              onSubmit={(body) => createMutation.mutate(body)}
+   156→              loading={createMutation.isPending}
+   157→            />
+   158→          </DialogContent>
+   159→        </Dialog>
+   160→      </div>
+   161→
+   162→      {/* Stat Cards */}
+   163→      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+   164→        <Card>
+   165→          <CardContent className="p-4">
+   166→            <div className="flex items-center gap-2 mb-1">
+   167→              <Receipt className="h-4 w-4 text-muted-foreground" />
+   168→              <p className="text-xs text-muted-foreground">Total</p>
+   169→            </div>
+   170→            <p className="text-2xl font-bold">{invoices.length}</p>
+   171→          </CardContent>
+   172→        </Card>
+   173→        <Card className="border-gray-200 dark:border-gray-700">
+   174→          <CardContent className="p-4">
+   175→            <div className="flex items-center gap-2 mb-1">
+   176→              <FileText className="h-4 w-4 text-gray-500" />
+   177→              <p className="text-xs text-muted-foreground">Draft</p>
+   178→            </div>
+   179→            <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{draftCount}</p>
+   180→          </CardContent>
+   181→        </Card>
+   182→        <Card className="border-blue-200 dark:border-blue-800">
+   183→          <CardContent className="p-4">
+   184→            <div className="flex items-center gap-2 mb-1">
+   185→              <Send className="h-4 w-4 text-blue-600" />
+   186→              <p className="text-xs text-muted-foreground">Sent</p>
+   187→            </div>
+   188→            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{sentCount}</p>
+   189→          </CardContent>
+   190→        </Card>
+   191→        <Card className="border-green-200 dark:border-green-800">
+   192→          <CardContent className="p-4">
+   193→            <div className="flex items-center gap-2 mb-1">
+   194→              <CheckCircle className="h-4 w-4 text-green-600" />
+   195→              <p className="text-xs text-muted-foreground">Paid</p>
+   196→            </div>
+   197→            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{paidCount}</p>
+   198→          </CardContent>
+   199→        </Card>
+   200→        <Card className="border-emerald-200 dark:border-emerald-800">
+   201→          <CardContent className="p-4">
+   202→            <div className="flex items-center gap-2 mb-1">
+   203→              <DollarSign className="h-4 w-4 text-emerald-600" />
+   204→              <p className="text-xs text-muted-foreground">Revenue (Paid)</p>
+   205→            </div>
+   206→            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(totalRevenue)}</p>
+   207→          </CardContent>
+   208→        </Card>
+   209→      </div>
+   210→
+   211→      {/* Status Filter */}
+   212→      <div className="flex gap-2">
+   213→        {['all', 'draft', 'sent', 'paid', 'cancelled'].map((s) => (
+   214→          <Button
+   215→            key={s}
+   216→            size="sm"
+   217→            variant={statusFilter === s ? 'default' : 'outline'}
+   218→            className={statusFilter === s ? 'bg-rose-600 hover:bg-rose-700' : ''}
+   219→            onClick={() => setStatusFilter(s)}
+   220→          >
+   221→            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+   222→          </Button>
+   223→        ))}
+   224→      </div>
+   225→
+   226→      {/* Table */}
+   227→      <Card>
+   228→        <CardContent className="p-0">
+   229→          {isLoading ? (
+   230→            <div className="p-6 space-y-3">
+   231→              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   232→            </div>
+   233→          ) : invoices.length === 0 ? (
+   234→            <div className="flex flex-col items-center justify-center py-16">
+   235→              <FileText className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   236→              <p className="text-sm text-muted-foreground">No invoices found</p>
+   237→              <Button size="sm" variant="outline" className="mt-3 gap-1.5 bg-rose-600 hover:bg-rose-700 text-white" onClick={() => setCreateOpen(true)}>
+   238→                <Plus className="h-3.5 w-3.5" /> Create Invoice
+   239→              </Button>
+   240→            </div>
+   241→          ) : (
+   242→            <div className="max-h-96 overflow-y-auto">
+   243→              <Table>
+   244→                <TableHeader>
+   245→                  <TableRow className="sticky top-0 bg-background z-10">
+   246→                    <TableHead>Invoice #</TableHead>
+   247→                    <TableHead>Customer</TableHead>
+   248→                    <TableHead className="hidden md:table-cell">Ticket</TableHead>
+   249→                    <TableHead className="hidden lg:table-cell text-right">Labour</TableHead>
+   250→                    <TableHead className="hidden lg:table-cell text-right">Materials</TableHead>
+   251→                    <TableHead className="text-right">Tax</TableHead>
+   252→                    <TableHead className="text-right">Total</TableHead>
+   253→                    <TableHead>Status</TableHead>
+   254→                    <TableHead className="hidden sm:table-cell">Date</TableHead>
+   255→                    <TableHead className="w-32">Actions</TableHead>
+   256→                  </TableRow>
+   257→                </TableHeader>
+   258→                <TableBody>
+   259→                  {invoices.map((inv: any) => {
+   260→                    const stat = invoiceStatusConfig[inv.status] || invoiceStatusConfig.draft
+   261→                    return (
+   262→                      <TableRow key={inv.id}>
+   263→                        <TableCell className="text-sm font-mono font-medium">{inv.mivNo}</TableCell>
+   264→                        <TableCell className="text-sm">{inv.customerName || inv.customer?.name || '—'}</TableCell>
+   265→                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{inv.ticketNo || '—'}</TableCell>
+   266→                        <TableCell className="hidden lg:table-cell text-right text-sm">{formatCurrency(inv.labourCost || 0)}</TableCell>
+   267→                        <TableCell className="hidden lg:table-cell text-right text-sm">{formatCurrency(inv.materialCost || 0)}</TableCell>
+   268→                        <TableCell className="text-right text-sm">{formatCurrency(inv.tax || 0)}</TableCell>
+   269→                        <TableCell className="text-right text-sm font-bold">{formatCurrency(inv.total || 0)}</TableCell>
+   270→                        <TableCell>
+   271→                          <Badge variant="secondary" className={cn('text-xs', stat.color)}>{stat.label}</Badge>
+   272→                        </TableCell>
+   273→                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{formatDate(inv.createdAt)}</TableCell>
+   274→                        <TableCell>
+   275→                          <div className="flex items-center gap-1">
+   276→                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setViewingInvoice(inv); setViewOpen(true) }} title="View">
+   277→                              <Eye className="h-3 w-3" />
+   278→                            </Button>
+   279→                            {inv.status === 'draft' && (
+   280→                              <>
+   281→                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingInvoice(inv); setEditOpen(true) }} title="Edit">
+   282→                                  <Pencil className="h-3 w-3" />
+   283→                                </Button>
+   284→                                <Button size="sm" variant="ghost" className="h-7 text-xs text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'sent' })}>
+   285→                                  <Send className="h-3 w-3 mr-0.5" /> Send
+   286→                                </Button>
+   287→                              </>
+   288→                            )}
+   289→                            {inv.status === 'sent' && (
+   290→                              <Button size="sm" variant="ghost" className="h-7 text-xs text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'paid' })}>
+   291→                                <CheckCircle className="h-3 w-3 mr-0.5" /> Paid
+   292→                              </Button>
+   293→                            )}
+   294→                            {(inv.status === 'draft' || inv.status === 'sent') && (
+   295→                              <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'cancelled' })} title="Cancel">
+   296→                                <XCircle className="h-3 w-3" />
+   297→                              </Button>
+   298→                            )}
+   299→                          </div>
+   300→                        </TableCell>
+   301→                      </TableRow>
+   302→                    )
+   303→                  })}
+   304→                </TableBody>
+   305→              </Table>
+   306→            </div>
+   307→          )}
+   308→        </CardContent>
+   309→      </Card>
+   310→
+   311→      {/* Summary */}
+   312→      {invoices.length > 0 && (
+   313→        <Card className="border-rose-200 dark:border-rose-800">
+   314→          <CardContent className="p-4">
+   315→            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+   316→              <div>
+   317→                <span className="text-muted-foreground">Total Labour:</span>
+   318→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.labour)}</span>
+   319→              </div>
+   320→              <div>
+   321→                <span className="text-muted-foreground">Materials:</span>
+   322→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.materials)}</span>
+   323→              </div>
+   324→              <div>
+   325→                <span className="text-muted-foreground">Transport:</span>
+   326→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.transport)}</span>
+   327→              </div>
+   328→              <div>
+   329→                <span className="text-muted-foreground">Service:</span>
+   330→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.service)}</span>
+   331→              </div>
+   332→              <Separator orientation="vertical" className="h-4" />
+   333→              <div>
+   334→                <span className="text-muted-foreground">Tax:</span>
+   335→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.tax)}</span>
+   336→              </div>
+   337→              <div>
+   338→                <span className="text-muted-foreground">Discount:</span>
+   339→                <span className="font-medium ml-1 text-green-600">-{formatCurrency(summaryTotals.discount)}</span>
+   340→              </div>
+   341→              <Separator orientation="vertical" className="h-4" />
+   342→              <div className="text-lg font-bold text-rose-600">
+   343→                Grand Total: {formatCurrency(summaryTotals.total)}
+   344→              </div>
+   345→            </div>
+   346→          </CardContent>
+   347→        </Card>
+   348→      )}
+   349→
+   350→      {/* View Dialog */}
+   351→      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+   352→        <DialogContent className="sm:max-w-lg">
+   353→          <DialogHeader>
+   354→            <DialogTitle>Invoice Details</DialogTitle>
+   355→          </DialogHeader>
+   356→          {viewingInvoice && (
+   357→            <div className="space-y-4">
+   358→              <div className="grid grid-cols-2 gap-4 text-sm">
+   359→                <div><span className="text-muted-foreground">Invoice #:</span> <span className="font-mono font-medium">{viewingInvoice.mivNo}</span></div>
+   360→                <div><span className="text-muted-foreground">Status:</span> <Badge variant="secondary" className={cn('text-xs', invoiceStatusConfig[viewingInvoice.status]?.color)}>{invoiceStatusConfig[viewingInvoice.status]?.label}</Badge></div>
+   361→                <div><span className="text-muted-foreground">Customer:</span> <span className="font-medium">{viewingInvoice.customerName || '—'}</span></div>
+   362→                <div><span className="text-muted-foreground">Ticket:</span> <span>{viewingInvoice.ticketNo || '—'}</span></div>
+   363→                <div><span className="text-muted-foreground">Date:</span> <span>{formatDate(viewingInvoice.createdAt)}</span></div>
+   364→              </div>
+   365→              <Separator />
+   366→              <div className="space-y-2 text-sm">
+   367→                <div className="flex justify-between"><span className="text-muted-foreground">Labour Cost</span><span>{formatCurrency(viewingInvoice.labourCost || 0)}</span></div>
+   368→                <div className="flex justify-between"><span className="text-muted-foreground">Material Cost</span><span>{formatCurrency(viewingInvoice.materialCost || 0)}</span></div>
+   369→                <div className="flex justify-between"><span className="text-muted-foreground">Transport Cost</span><span>{formatCurrency(viewingInvoice.transportCost || 0)}</span></div>
+   370→                <div className="flex justify-between"><span className="text-muted-foreground">Service Charges</span><span>{formatCurrency(viewingInvoice.serviceCharges || 0)}</span></div>
+   371→                <Separator />
+   372→                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-medium">{formatCurrency((viewingInvoice.labourCost || 0) + (viewingInvoice.materialCost || 0) + (viewingInvoice.transportCost || 0) + (viewingInvoice.serviceCharges || 0))}</span></div>
+   373→                <div className="flex justify-between"><span className="text-muted-foreground">Tax ({viewingInvoice.taxPercent || 0}%)</span><span>{formatCurrency(viewingInvoice.tax || 0)}</span></div>
+   374→                <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(viewingInvoice.discount || 0)}</span></div>
+   375→                <Separator />
+   376→                <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(viewingInvoice.total || 0)}</span></div>
+   377→              </div>
+   378→              {viewingInvoice.notes && (
+   379→                <div className="text-sm"><span className="text-muted-foreground">Notes:</span> <p className="mt-1">{viewingInvoice.notes}</p></div>
+   380→              )}
+   381→            </div>
+   382→          )}
+   383→        </DialogContent>
+   384→      </Dialog>
+   385→
+   386→      {/* Edit Dialog */}
+   387→      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+   388→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+   389→          <DialogHeader>
+   390→            <DialogTitle>Edit Invoice</DialogTitle>
+   391→            <DialogDescription>Update invoice details</DialogDescription>
+   392→          </DialogHeader>
+   393→          {editingInvoice && (
+   394→            <EditInvoiceForm
+   395→              invoice={editingInvoice}
+   396→              onSubmit={(body) => updateMutation.mutate({ id: editingInvoice.id, body })}
+   397→              loading={updateMutation.isPending}
+   398→            />
+   399→          )}
+   400→        </DialogContent>
+   401→      </Dialog>
+   402→    </div>
+   403→  )
+   404→}
+   405→
+   406→// ─── Create Invoice Form ───
+   407→function CreateInvoiceForm({ customers, tickets, onSubmit, loading }: {
+   408→  customers: any[]; tickets: any[]; onSubmit: (data: any) => void; loading: boolean
+   409→}) {
+   410→  const { formatCurrency } = useFormat()
+   411→  const [form, setForm] = useState({
+   412→    customerId: '',
+   413→    ticketId: '',
+   414→    workOrderId: '',
+   415→    labourCost: 0,
+   416→    materialCost: 0,
+   417→    transportCost: 0,
+   418→    serviceCharges: 0,
+   419→    taxPercent: 0,
+   420→    discount: 0,
+   421→    notes: '',
+   422→  })
+   423→
+   424→  const subtotal = form.labourCost + form.materialCost + form.transportCost + form.serviceCharges
+   425→  const tax = subtotal * (form.taxPercent / 100)
+   426→  const total = subtotal + tax - form.discount
+   427→
+   428→  const handleTicketSelect = (ticketId: string) => {
+   429→    const ticket = tickets.find((t: any) => t.id === ticketId)
+   430→    setForm((f) => ({
+   431→      ...f,
+   432→      ticketId,
+   433→      customerId: ticket?.customerId || f.customerId,
+   434→    }))
+   435→  }
+   436→
+   437→  const handleSubmit = (e: React.FormEvent) => {
+   438→    e.preventDefault()
+   439→    if (!form.customerId) return
+   440→    onSubmit({
+   441→      ...form,
+   442→      tax,
+   443→      total,
+   444→    })
+   445→    setForm({ customerId: '', ticketId: '', workOrderId: '', labourCost: 0, materialCost: 0, transportCost: 0, serviceCharges: 0, taxPercent: 0, discount: 0, notes: '' })
+   446→  }
+   447→
+   448→  return (
+   449→    <form onSubmit={handleSubmit} className="space-y-4">
+   450→      <div className="space-y-2">
+   451→        <Label>Customer *</Label>
+   452→        <Select value={form.customerId} onValueChange={(v) => setForm((f) => ({ ...f, customerId: v }))}>
+   453→          <SelectTrigger><SelectValue placeholder="Select customer..." /></SelectTrigger>
+   454→          <SelectContent>
+   455→            {customers.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+   456→          </SelectContent>
+   457→        </Select>
+   458→      </div>
+   459→      <div className="space-y-2">
+   460→        <Label>Link to Ticket (optional)</Label>
+   461→        <Select value={form.ticketId} onValueChange={handleTicketSelect}>
+   462→          <SelectTrigger><SelectValue placeholder="Select ticket..." /></SelectTrigger>
+   463→          <SelectContent>
+   464→            {tickets.filter((t: any) => !form.customerId || t.customerId === form.customerId).map((t: any) => (
+   465→              <SelectItem key={t.id} value={t.id}>{t.ticketNo} — {t.title || t.subject || 'Untitled'}</SelectItem>
+   466→            ))}
+   467→          </SelectContent>
+   468→        </Select>
+   469→      </div>
+   470→
+   471→      <Separator />
+   472→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   473→        <div className="space-y-2">
+   474→          <Label>Labour Cost ($)</Label>
+   475→          <Input type="number" min={0} step={0.01} value={form.labourCost} onChange={(e) => setForm((f) => ({ ...f, labourCost: Number(e.target.value) }))} />
+   476→        </div>
+   477→        <div className="space-y-2">
+   478→          <Label>Material Cost ($)</Label>
+   479→          <Input type="number" min={0} step={0.01} value={form.materialCost} onChange={(e) => setForm((f) => ({ ...f, materialCost: Number(e.target.value) }))} />
+   480→        </div>
+   481→        <div className="space-y-2">
+   482→          <Label>Transport Cost ($)</Label>
+   483→          <Input type="number" min={0} step={0.01} value={form.transportCost} onChange={(e) => setForm((f) => ({ ...f, transportCost: Number(e.target.value) }))} />
+   484→        </div>
+   485→        <div className="space-y-2">
+   486→          <Label>Service Charges ($)</Label>
+   487→          <Input type="number" min={0} step={0.01} value={form.serviceCharges} onChange={(e) => setForm((f) => ({ ...f, serviceCharges: Number(e.target.value) }))} />
+   488→        </div>
+   489→        <div className="space-y-2">
+   490→          <Label>Tax (%)</Label>
+   491→          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+   492→        </div>
+   493→        <div className="space-y-2">
+   494→          <Label>Discount ($)</Label>
+   495→          <Input type="number" min={0} step={0.01} value={form.discount} onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))} />
+   496→        </div>
+   497→      </div>
+   498→
+   499→      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-200 dark:border-rose-800 space-y-1 text-sm">
+   500→        <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+   501→        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+   502→        <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(form.discount)}</span></div>
+   503→        <Separator />
+   504→        <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(total)}</span></div>
+   505→      </div>
+   506→
+   507→      <div className="space-y-2">
+   508→        <Label>Notes</Label>
+   509→        <Textarea placeholder="Invoice notes..." rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+   510→      </div>
+   511→
+   512→      <DialogFooter>
+   513→        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+   514→        <Button type="submit" disabled={loading || !form.customerId} className="bg-rose-600 hover:bg-rose-700">
+   515→          {loading ? 'Creating...' : 'Create Invoice'}
+   516→        </Button>
+   517→      </DialogFooter>
+   518→    </form>
+   519→  )
+   520→}
+   521→
+   522→// ─── Edit Invoice Form ───
+   523→function EditInvoiceForm({ invoice, onSubmit, loading }: {
+   524→  invoice: any; onSubmit: (data: any) => void; loading: boolean
+   525→}) {
+   526→  const { formatCurrency } = useFormat()
+   527→  const [form, setForm] = useState({
+   528→    labourCost: invoice.labourCost || 0,
+   529→    materialCost: invoice.materialCost || 0,
+   530→    transportCost: invoice.transportCost || 0,
+   531→    serviceCharges: invoice.serviceCharges || 0,
+   532→    taxPercent: invoice.taxPercent || 0,
+   533→    discount: invoice.discount || 0,
+   534→    notes: invoice.notes || '',
+   535→  })
+   536→
+   537→  const subtotal = form.labourCost + form.materialCost + form.transportCost + form.serviceCharges
+   538→  const tax = subtotal * (form.taxPercent / 100)
+   539→  const total = subtotal + tax - form.discount
+   540→
+   541→  const handleSubmit = (e: React.FormEvent) => {
+   542→    e.preventDefault()
+   543→    onSubmit({ ...form, tax, total })
+   544→  }
+   545→
+   546→  return (
+   547→    <form onSubmit={handleSubmit} className="space-y-4">
+   548→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   549→        <div className="space-y-2"><Label>Customer</Label><Input value={invoice.customerName || '—'} disabled /></div>
+   550→        <div className="space-y-2"><Label>Invoice #</Label><Input value={invoice.mivNo} disabled /></div>
+   551→      </div>
+   552→      <Separator />
+   553→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   554→        <div className="space-y-2">
+   555→          <Label>Labour Cost ($)</Label>
+   556→          <Input type="number" min={0} step={0.01} value={form.labourCost} onChange={(e) => setForm((f) => ({ ...f, labourCost: Number(e.target.value) }))} />
+   557→        </div>
+   558→        <div className="space-y-2">
+   559→          <Label>Material Cost ($)</Label>
+   560→          <Input type="number" min={0} step={0.01} value={form.materialCost} onChange={(e) => setForm((f) => ({ ...f, materialCost: Number(e.target.value) }))} />
+   561→        </div>
+   562→        <div className="space-y-2">
+   563→          <Label>Transport Cost ($)</Label>
+   564→          <Input type="number" min={0} step={0.01} value={form.transportCost} onChange={(e) => setForm((f) => ({ ...f, transportCost: Number(e.target.value) }))} />
+   565→        </div>
+   566→        <div className="space-y-2">
+   567→          <Label>Service Charges ($)</Label>
+   568→          <Input type="number" min={0} step={0.01} value={form.serviceCharges} onChange={(e) => setForm((f) => ({ ...f, serviceCharges: Number(e.target.value) }))} />
+   569→        </div>
+   570→        <div className="space-y-2">
+   571→          <Label>Tax (%)</Label>
+   572→          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+   573→        </div>
+   574→        <div className="space-y-2">
+   575→          <Label>Discount ($)</Label>
+   576→          <Input type="number" min={0} step={0.01} value={form.discount} onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))} />
+   577→        </div>
+   578→      </div>
+   579→      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-200 dark:border-rose-800 space-y-1 text-sm">
+   580→        <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+   581→        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+   582→        <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(form.discount)}</span></div>
+   583→        <Separator />
+   584→        <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(total)}</span></div>
+   585→      </div>
+   586→      <div className="space-y-2">
+   587→        <Label>Notes</Label>
+   588→        <Textarea rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+   589→      </div>
+   590→      <DialogFooter>
+   591→        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+   592→        <Button type="submit" disabled={loading} className="bg-rose-600 hover:bg-rose-700">
+   593→          {loading ? 'Saving...' : 'Save Changes'}
+   594→        </Button>
+   595→      </DialogFooter>
+   596→    </form>
+   597→  )
+   598→}

@@ -1,0 +1,1089 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useEffect, useRef } from 'react'
+     4→     4→import { useFormat } from '@/hooks/use-format'
+     5→     5→import { useRegion } from '@/components/providers/regional-provider'
+     6→     6→import { useAppStore } from '@/lib/store'
+     7→     7→import Link from 'next/link'
+     8→     8→import { useRouter } from 'next/navigation'
+     9→     9→import { toast } from 'sonner'
+    10→    10→import { motion, AnimatePresence } from 'framer-motion'
+    11→    11→import { Button } from '@/components/ui/button'
+    12→    12→import { Input } from '@/components/ui/input'
+    13→    13→import { Label } from '@/components/ui/label'
+    14→    14→import { Checkbox } from '@/components/ui/checkbox'
+    15→    15→import { Separator } from '@/components/ui/separator'
+    16→    16→import {
+    17→    17→  InputOTP,
+    18→    18→  InputOTPGroup,
+    19→    19→  InputOTPSlot,
+    20→    20→} from '@/components/ui/input-otp'
+    21→    21→import {
+    22→    22→  Eye,
+    23→    23→  EyeOff,
+    24→    24→  Loader2,
+    25→    25→  Mail,
+    26→    26→  MessageSquare,
+    27→    27→  Phone,
+    28→    28→  ArrowRight,
+    29→    29→  CheckCircle2,
+    30→    30→  Building2,
+    31→    31→  HardHat,
+    32→    32→  Shield,
+    33→    33→  BarChart3,
+    34→    34→  Users,
+    35→    35→  Construction,
+    36→    36→  Wrench,
+    37→    37→  SquareIcon,
+    38→    38→  UserPlus,
+    39→    39→  LogIn,
+    40→    40→  ChevronRight,
+    41→    41→} from 'lucide-react'
+    42→    42→
+    43→    43→// ═══════════════════════════════════════════════════════════════════
+    44→    44→// OVERLAY CONTENT DATA
+    45→    45→// ═══════════════════════════════════════════════════════════════════
+    46→    46→
+    47→    47→const features = [
+    48→    48→  { icon: Building2, label: 'Project Management' },
+    49→    49→  { icon: Wrench, label: 'Maintenance Management' },
+    50→    50→  { icon: Construction, label: 'Facility Management' },
+    51→    51→  { icon: Users, label: 'Resource Management' },
+    52→    52→]
+    53→    53→
+    54→    54→// ═══════════════════════════════════════════════════════════════════
+    55→    55→// ANIMATION VARIANTS FOR FORM FIELDS
+    56→    56→// ═══════════════════════════════════════════════════════════════════
+    57→    57→
+    58→    58→const fieldVariants = {
+    59→    59→  initial: { opacity: 0, y: 15 },
+    60→    60→  animate: (i: number) => ({
+    61→    61→    opacity: 1,
+    62→    62→    y: 0,
+    63→    63→    transition: { duration: 0.4, delay: 0.15 + i * 0.05 },
+    64→    64→  }),
+    65→    65→}
+    66→    66→
+    67→    67→const formPanelVariants = {
+    68→    68→  initial: { opacity: 0, x: 30 },
+    69→    69→  animate: { opacity: 1, x: 0, transition: { duration: 0.4, delay: 0.1 } },
+    70→    70→  exit: { opacity: 0, x: -30, transition: { duration: 0.25 } },
+    71→    71→}
+    72→    72→
+    73→    73→// ═══════════════════════════════════════════════════════════════════
+    74→    74→// LOGIN FORM (preserves ALL existing business logic)
+    75→    75→// ═══════════════════════════════════════════════════════════════════
+    76→    76→
+    77→    77→function LoginFormContent() {
+    78→    78→  const router = useRouter()
+    79→    79→  const { getCallingCode, getPhonePlaceholder } = useFormat()
+    80→    80→  const { country } = useRegion()
+    81→    81→  const { setToken, setUser } = useAppStore()
+    82→    82→
+    83→    83→  // Login tab state: 'email' or 'whatsapp'
+    84→    84→  const [loginTab, setLoginTab] = useState<'email' | 'whatsapp'>('email')
+    85→    85→
+    86→    86→  // Email login state
+    87→    87→  const [email, setEmail] = useState('')
+    88→    88→  const [password, setPassword] = useState('')
+    89→    89→  const [showPassword, setShowPassword] = useState(false)
+    90→    90→  const [rememberMe, setRememberMe] = useState(false)
+    91→    91→  const [loginLoading, setLoginLoading] = useState(false)
+    92→    92→  const [loginError, setLoginError] = useState('')
+    93→    93→
+    94→    94→  // WhatsApp OTP state
+    95→    95→  const [phoneNumber, setPhoneNumber] = useState('')
+    96→    96→  const [otpSent, setOtpSent] = useState(false)
+    97→    97→  const [otpValue, setOtpValue] = useState('')
+    98→    98→  const [otpLoading, setOtpLoading] = useState(false)
+    99→    99→  const [otpVerifyLoading, setOtpVerifyLoading] = useState(false)
+   100→   100→  const [resendTimer, setResendTimer] = useState(0)
+   101→   101→  const [otpError, setOtpError] = useState('')
+   102→   102→
+   103→   103→  const resendInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+   104→   104→
+   105→   105→  useEffect(() => {
+   106→   106→    if (resendTimer > 0) {
+   107→   107→      resendInterval.current = setInterval(() => {
+   108→   108→        setResendTimer((t) => {
+   109→   109→          if (t <= 1) {
+   110→   110→            if (resendInterval.current) clearInterval(resendInterval.current)
+   111→   111→            return 0
+   112→   112→          }
+   113→   113→          return t - 1
+   114→   114→        })
+   115→   115→      }, 1000)
+   116→   116→    }
+   117→   117→    return () => {
+   118→   118→      if (resendInterval.current) clearInterval(resendInterval.current)
+   119→   119→    }
+   120→   120→  }, [resendTimer])
+   121→   121→
+   122→   122→  // ──────── AUTH HANDLERS (preserved from original) ────────
+   123→   123→
+   124→   124→  const handleEmailLogin = async (e: React.FormEvent) => {
+   125→   125→    e.preventDefault()
+   126→   126→    setLoginError('')
+   127→   127→    setLoginLoading(true)
+   128→   128→
+   129→   129→    try {
+   130→   130→      const res = await fetch('/api/auth/login', {
+   131→   131→        method: 'POST',
+   132→   132→        headers: { 'Content-Type': 'application/json' },
+   133→   133→        body: JSON.stringify({ email, password }),
+   134→   134→      })
+   135→   135→      const data = await res.json()
+   136→   136→
+   137→   137→      if (data.success) {
+   138→   138→        setToken(data.data.token)
+   139→   139→        setUser(data.data.user)
+   140→   140→        toast.success('Welcome back!', {
+   141→   141→          description: `Logged in as ${data.data.user?.name || data.data.user?.email}`,
+   142→   142→        })
+   143→   143→        window.location.href = '/'
+   144→   144→      } else {
+   145→   145→        setLoginError(data.error || 'Login failed. Please try again.')
+   146→   146→      }
+   147→   147→    } catch {
+   148→   148→      setLoginError('Network error. Please check your connection.')
+   149→   149→    } finally {
+   150→   150→      setLoginLoading(false)
+   151→   151→    }
+   152→   152→  }
+   153→   153→
+   154→   154→  const handleSendOtp = () => {
+   155→   155→    if (!phoneNumber.trim()) {
+   156→   156→      setOtpError('Please enter your phone number')
+   157→   157→      return
+   158→   158→    }
+   159→   159→    setOtpLoading(true)
+   160→   160→    setOtpError('')
+   161→   161→    setTimeout(() => {
+   162→   162→      setOtpSent(true)
+   163→   163→      setOtpLoading(false)
+   164→   164→      setResendTimer(60)
+   165→   165→    }, 1500)
+   166→   166→  }
+   167→   167→
+   168→   168→  const handleVerifyOtp = () => {
+   169→   169→    if (otpValue.length !== 6) {
+   170→   170→      setOtpError('Please enter the complete 6-digit code')
+   171→   171→      return
+   172→   172→    }
+   173→   173→    setOtpVerifyLoading(true)
+   174→   174→    setOtpError('')
+   175→   175→    setTimeout(() => {
+   176→   176→      setOtpVerifyLoading(false)
+   177→   177→      setOtpError('WhatsApp OTP login is coming soon. Please use email login.')
+   178→   178→    }, 1500)
+   179→   179→  }
+   180→   180→
+   181→   181→  const handleResendOtp = () => {
+   182→   182→    setResendTimer(60)
+   183→   183→    setOtpValue('')
+   184→   184→    setOtpError('')
+   185→   185→  }
+   186→   186→
+   187→   187→  return (
+   188→   188→    <motion.div variants={formPanelVariants} initial="initial" animate="animate" exit="exit">
+   189→   189→      {/* Logo */}
+   190→   190→      <div className="flex items-center gap-2.5 mb-6">
+   191→   191→        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+   192→   192→          <SquareIcon className="w-5 h-5 text-white fill-white" strokeWidth={0} />
+   193→   193→        </div>
+   194→   194→        <div>
+   195→   195→          <span className="text-lg font-extrabold tracking-tight text-slate-900">SmartBuild</span>
+   196→   196→          <span className="block text-[9px] font-medium tracking-[0.2em] uppercase text-amber-600">Construction ERP</span>
+   197→   197→        </div>
+   198→   198→      </div>
+   199→   199→
+   200→   200→      <h2 className="text-2xl font-bold text-slate-900 mb-1">Welcome Back</h2>
+   201→   201→      <p className="text-sm text-slate-500 mb-6">
+   202→   202→        Sign in to your account to continue
+   203→   203→      </p>
+   204→   204→
+   205→   205→      {/* Tab switcher */}
+   206→   206→      <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-5">
+   207→   207→        <button
+   208→   208→          onClick={() => setLoginTab('email')}
+   209→   209→          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+   210→   210→            loginTab === 'email'
+   211→   211→              ? 'bg-white text-slate-900 shadow-sm'
+   212→   212→              : 'text-slate-500 hover:text-slate-700'
+   213→   213→          }`}
+   214→   214→        >
+   215→   215→          <Mail className="w-4 h-4" />
+   216→   216→          Email
+   217→   217→        </button>
+   218→   218→        <button
+   219→   219→          onClick={() => setLoginTab('whatsapp')}
+   220→   220→          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+   221→   221→            loginTab === 'whatsapp'
+   222→   222→              ? 'bg-white text-slate-900 shadow-sm'
+   223→   223→              : 'text-slate-500 hover:text-slate-700'
+   224→   224→          }`}
+   225→   225→        >
+   226→   226→          <MessageSquare className="w-4 h-4" />
+   227→   227→          WhatsApp OTP
+   228→   228→        </button>
+   229→   229→      </div>
+   230→   230→
+   231→   231→      <AnimatePresence mode="wait">
+   232→   232→        {loginTab === 'email' ? (
+   233→   233→          <motion.form
+   234→   234→            key="email-login"
+   235→   235→            onSubmit={handleEmailLogin}
+   236→   236→            initial={{ opacity: 0, y: 10 }}
+   237→   237→            animate={{ opacity: 1, y: 0 }}
+   238→   238→            exit={{ opacity: 0, y: -10 }}
+   239→   239→            transition={{ duration: 0.25 }}
+   240→   240→            className="space-y-4"
+   241→   241→          >
+   242→   242→            {loginError && (
+   243→   243→              <motion.div
+   244→   244→                initial={{ opacity: 0, y: -5 }}
+   245→   245→                animate={{ opacity: 1, y: 0 }}
+   246→   246→                className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2"
+   247→   247→              >
+   248→   248→                <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   249→   249→                  <span className="text-red-500 text-xs font-bold">!</span>
+   250→   250→                </div>
+   251→   251→                {loginError}
+   252→   252→              </motion.div>
+   253→   253→            )}
+   254→   254→
+   255→   255→            {/* Email field */}
+   256→   256→            <div className="space-y-1.5">
+   257→   257→              <Label htmlFor="login-email" className="text-sm font-medium text-slate-700">
+   258→   258→                Email Address
+   259→   259→              </Label>
+   260→   260→              <div className="relative">
+   261→   261→                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+   262→   262→                <Input
+   263→   263→                  id="login-email"
+   264→   264→                  type="email"
+   265→   265→                  placeholder="you@company.com"
+   266→   266→                  value={email}
+   267→   267→                  onChange={(e) => { setEmail(e.target.value); setLoginError('') }}
+   268→   268→                  required
+   269→   269→                  className="h-11 pl-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white transition-colors focus:border-amber-400 focus:ring-amber-400/20"
+   270→   270→                />
+   271→   271→              </div>
+   272→   272→            </div>
+   273→   273→
+   274→   274→            {/* Password field */}
+   275→   275→            <div className="space-y-1.5">
+   276→   276→              <Label htmlFor="login-password" className="text-sm font-medium text-slate-700">
+   277→   277→                Password
+   278→   278→              </Label>
+   279→   279→              <div className="relative">
+   280→   280→                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   281→   281→                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   282→   282→                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   283→   283→                </svg>
+   284→   284→                <Input
+   285→   285→                  id="login-password"
+   286→   286→                  type={showPassword ? 'text' : 'password'}
+   287→   287→                  placeholder="Enter your password"
+   288→   288→                  value={password}
+   289→   289→                  onChange={(e) => { setPassword(e.target.value); setLoginError('') }}
+   290→   290→                  required
+   291→   291→                  className="h-11 pl-11 pr-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white transition-colors focus:border-amber-400 focus:ring-amber-400/20"
+   292→   292→                />
+   293→   293→                <button
+   294→   294→                  type="button"
+   295→   295→                  onClick={() => setShowPassword(!showPassword)}
+   296→   296→                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   297→   297→                  tabIndex={-1}
+   298→   298→                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+   299→   299→                >
+   300→   300→                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   301→   301→                </button>
+   302→   302→              </div>
+   303→   303→            </div>
+   304→   304→
+   305→   305→            {/* Remember me & forgot password */}
+   306→   306→            <div className="flex items-center justify-between">
+   307→   307→              <label className="flex items-center gap-2 cursor-pointer group">
+   308→   308→                <Checkbox
+   309→   309→                  checked={rememberMe}
+   310→   310→                  onCheckedChange={(v) => setRememberMe(!!v)}
+   311→   311→                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 rounded"
+   312→   312→                />
+   313→   313→                <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+   314→   314→                  Remember me
+   315→   315→                </span>
+   316→   316→              </label>
+   317→   317→              <Link
+   318→   318→                href="/forgot-password"
+   319→   319→                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+   320→   320→              >
+   321→   321→                Forgot Password?
+   322→   322→              </Link>
+   323→   323→            </div>
+   324→   324→
+   325→   325→            {/* Submit button */}
+   326→   326→            <motion.div custom={3} variants={fieldVariants} initial="initial" animate="animate">
+   327→   327→              <Button
+   328→   328→                type="submit"
+   329→   329→                disabled={loginLoading}
+   330→   330→                className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   331→   331→              >
+   332→   332→                {loginLoading ? (
+   333→   333→                  <span className="flex items-center gap-2">
+   334→   334→                    <Loader2 className="w-4 h-4 animate-spin" />
+   335→   335→                    Signing in...
+   336→   336→                  </span>
+   337→   337→                ) : (
+   338→   338→                  <span className="flex items-center gap-2">
+   339→   339→                    Sign In
+   340→   340→                    <ArrowRight className="w-4 h-4" />
+   341→   341→                  </span>
+   342→   342→                )}
+   343→   343→              </Button>
+   344→   344→            </motion.div>
+   345→   345→          </motion.form>
+   346→   346→        ) : (
+   347→   347→          <motion.div
+   348→   348→            key="whatsapp-login"
+   349→   349→            initial={{ opacity: 0, y: 10 }}
+   350→   350→            animate={{ opacity: 1, y: 0 }}
+   351→   351→            exit={{ opacity: 0, y: -10 }}
+   352→   352→            transition={{ duration: 0.25 }}
+   353→   353→            className="space-y-4"
+   354→   354→          >
+   355→   355→            {otpError && (
+   356→   356→              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+   357→   357→                <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   358→   358→                  <span className="text-red-500 text-xs font-bold">!</span>
+   359→   359→                </div>
+   360→   360→                {otpError}
+   361→   361→              </div>
+   362→   362→            )}
+   363→   363→
+   364→   364→            {!otpSent ? (
+   365→   365→              <>
+   366→   366→                <div className="space-y-1.5">
+   367→   367→                  <Label htmlFor="whatsapp-phone" className="text-sm font-medium text-slate-700">
+   368→   368→                    Phone Number
+   369→   369→                  </Label>
+   370→   370→                  <div className="flex gap-2">
+   371→   371→                    <div className="flex items-center gap-1.5 px-3 h-11 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-600 shrink-0 font-medium">
+   372→   372→                      <Phone className="w-4 h-4 text-slate-400" />
+   373→   373→                      <span>{getCallingCode()}</span>
+   374→   374→                    </div>
+   375→   375→                    <Input
+   376→   376→                      id="whatsapp-phone"
+   377→   377→                      type="tel"
+   378→   378→                      placeholder={getPhonePlaceholder()}
+   379→   379→                      value={phoneNumber}
+   380→   380→                      onChange={(e) => { setPhoneNumber(e.target.value); setOtpError('') }}
+   381→   381→                      className="flex-1 h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors"
+   382→   382→                    />
+   383→   383→                  </div>
+   384→   384→                </div>
+   385→   385→
+   386→   386→                <Button
+   387→   387→                  onClick={handleSendOtp}
+   388→   388→                  disabled={otpLoading}
+   389→   389→                  className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   390→   390→                >
+   391→   391→                  {otpLoading ? (
+   392→   392→                    <span className="flex items-center gap-2">
+   393→   393→                      <Loader2 className="w-4 h-4 animate-spin" />
+   394→   394→                      Sending OTP...
+   395→   395→                    </span>
+   396→   396→                  ) : (
+   397→   397→                    <span className="flex items-center gap-2">
+   398→   398→                      Send OTP Code
+   399→   399→                      <ArrowRight className="w-4 h-4" />
+   400→   400→                    </span>
+   401→   401→                  )}
+   402→   402→                </Button>
+   403→   403→              </>
+   404→   404→            ) : (
+   405→   405→              <>
+   406→   406→                <div className="text-center space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
+   407→   407→                  <p className="text-sm text-slate-500">Enter the 6-digit code sent to</p>
+   408→   408→                  <p className="text-sm font-semibold text-slate-900">{getCallingCode()} {phoneNumber}</p>
+   409→   409→                </div>
+   410→   410→
+   411→   411→                <div className="flex justify-center py-2">
+   412→   412→                  <InputOTP
+   413→   413→                    maxLength={6}
+   414→   414→                    value={otpValue}
+   415→   415→                    onChange={(val) => { setOtpValue(val); setOtpError('') }}
+   416→   416→                  >
+   417→   417→                    <InputOTPGroup>
+   418→   418→                      <InputOTPSlot index={0} className="h-14 w-12 rounded-lg" />
+   419→   419→                      <InputOTPSlot index={1} className="h-14 w-12 rounded-lg" />
+   420→   420→                      <InputOTPSlot index={2} className="h-14 w-12 rounded-lg" />
+   421→   421→                    </InputOTPGroup>
+   422→   422→                    <div className="w-3 flex items-center justify-center text-slate-300 text-xl font-bold">-</div>
+   423→   423→                    <InputOTPGroup>
+   424→   424→                      <InputOTPSlot index={3} className="h-14 w-12 rounded-lg" />
+   425→   425→                      <InputOTPSlot index={4} className="h-14 w-12 rounded-lg" />
+   426→   426→                      <InputOTPSlot index={5} className="h-14 w-12 rounded-lg" />
+   427→   427→                    </InputOTPGroup>
+   428→   428→                  </InputOTP>
+   429→   429→                </div>
+   430→   430→
+   431→   431→                <Button
+   432→   432→                  onClick={handleVerifyOtp}
+   433→   433→                  disabled={otpVerifyLoading}
+   434→   434→                  className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   435→   435→                >
+   436→   436→                  {otpVerifyLoading ? (
+   437→   437→                    <span className="flex items-center gap-2">
+   438→   438→                      <Loader2 className="w-4 h-4 animate-spin" />
+   439→   439→                      Verifying...
+   440→   440→                    </span>
+   441→   441→                  ) : (
+   442→   442→                    <span className="flex items-center gap-2">
+   443→   443→                      Verify & Login
+   444→   444→                      <CheckCircle2 className="w-4 h-4" />
+   445→   445→                    </span>
+   446→   446→                  )}
+   447→   447→                </Button>
+   448→   448→
+   449→   449→                <div className="text-center">
+   450→   450→                  {resendTimer > 0 ? (
+   451→   451→                    <p className="text-sm text-slate-500">
+   452→   452→                      Resend code in <span className="font-semibold text-amber-600">{resendTimer}s</span>
+   453→   453→                    </p>
+   454→   454→                  ) : (
+   455→   455→                    <button
+   456→   456→                      onClick={handleResendOtp}
+   457→   457→                      className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors cursor-pointer"
+   458→   458→                    >
+   459→   459→                      Resend OTP Code
+   460→   460→                    </button>
+   461→   461→                  )}
+   462→   462→                </div>
+   463→   463→              </>
+   464→   464→            )}
+   465→   465→          </motion.div>
+   466→   466→        )}
+   467→   467→      </AnimatePresence>
+   468→   468→
+   469→   469→      {/* Divider */}
+   470→   470→      <div className="relative my-5">
+   471→   471→        <Separator className="bg-slate-200" />
+   472→   472→        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-slate-400 uppercase tracking-wider">
+   473→   473→          or continue with
+   474→   474→        </span>
+   475→   475→      </div>
+   476→   476→
+   477→   477→      {/* Social Login */}
+   478→   478→      <div className="grid grid-cols-2 gap-3">
+   479→   479→        <Button
+   480→   480→          variant="outline"
+   481→   481→          className="h-11 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+   482→   482→          type="button"
+   483→   483→        >
+   484→   484→          <svg className="w-5 h-5" viewBox="0 0 24 24">
+   485→   485→            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+   486→   486→            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+   487→   487→            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+   488→   488→            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+   489→   489→          </svg>
+   490→   490→          Google
+   491→   491→        </Button>
+   492→   492→        <Button
+   493→   493→          variant="outline"
+   494→   494→          className="h-11 gap-2 font-medium text-sm rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+   495→   495→          type="button"
+   496→   496→        >
+   497→   497→          <svg className="w-5 h-5" viewBox="0 0 24 24">
+   498→   498→            <rect x="1" y="1" width="10" height="10" fill="#F25022" />
+   499→   499→            <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
+   500→   500→            <rect x="1" y="13" width="10" height="10" fill="#00A4EF" />
+   501→   501→            <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
+   502→   502→          </svg>
+   503→   503→          Microsoft
+   504→   504→        </Button>
+   505→   505→      </div>
+   506→   506→    </motion.div>
+   507→   507→  )
+   508→   508→}
+   509→   509→
+   510→   510→// ═══════════════════════════════════════════════════════════════════
+   511→   511→// REGISTER FORM (preserves ALL existing business logic)
+   512→   512→// ═══════════════════════════════════════════════════════════════════
+   513→   513→
+   514→   514→function RegisterFormContent() {
+   515→   515→  const router = useRouter()
+   516→   516→  const { getCallingCode, getPhonePlaceholder } = useFormat()
+   517→   517→  const { country } = useRegion()
+   518→   518→
+   519→   519→  // Register state
+   520→   520→  const [regFirstName, setRegFirstName] = useState('')
+   521→   521→  const [regLastName, setRegLastName] = useState('')
+   522→   522→  const [regEmail, setRegEmail] = useState('')
+   523→   523→  const [regPhone, setRegPhone] = useState('')
+   524→   524→  const [regCompany, setRegCompany] = useState('')
+   525→   525→  const [regPosition, setRegPosition] = useState('')
+   526→   526→  const [regPassword, setRegPassword] = useState('')
+   527→   527→  const [regConfirmPassword, setRegConfirmPassword] = useState('')
+   528→   528→  const [regShowPassword, setRegShowPassword] = useState(false)
+   529→   529→  const [regLoading, setRegLoading] = useState(false)
+   530→   530→  const [regError, setRegError] = useState('')
+   531→   531→
+   532→   532→  const handleRegister = async (e: React.FormEvent) => {
+   533→   533→    e.preventDefault()
+   534→   534→    setRegError('')
+   535→   535→    if (regPassword !== regConfirmPassword) {
+   536→   536→      setRegError('Passwords do not match')
+   537→   537→      return
+   538→   538→    }
+   539→   539→    if (regPassword.length < 6) {
+   540→   540→      setRegError('Password must be at least 6 characters')
+   541→   541→      return
+   542→   542→    }
+   543→   543→    setRegLoading(true)
+   544→   544→    try {
+   545→   545→      const res = await fetch('/api/auth/register', {
+   546→   546→        method: 'POST',
+   547→   547→        headers: { 'Content-Type': 'application/json' },
+   548→   548→        body: JSON.stringify({
+   549→   549→          name: `${regFirstName} ${regLastName}`.trim(),
+   550→   550→          email: regEmail,
+   551→   551→          password: regPassword,
+   552→   552→          phone: regPhone ? `${getCallingCode()} ${regPhone}` : undefined,
+   553→   553→        }),
+   554→   554→      })
+   555→   555→      const data = await res.json()
+   556→   556→      if (data.success) {
+   557→   557→        router.push('/login')
+   558→   558→      } else {
+   559→   559→        setRegError(data.error || 'Registration failed. Please try again.')
+   560→   560→      }
+   561→   561→    } catch {
+   562→   562→      setRegError('Network error. Please check your connection.')
+   563→   563→    } finally {
+   564→   564→      setRegLoading(false)
+   565→   565→    }
+   566→   566→  }
+   567→   567→
+   568→   568→  return (
+   569→   569→    <motion.div variants={formPanelVariants} initial="initial" animate="animate" exit="exit">
+   570→   570→      {/* Logo */}
+   571→   571→      <div className="flex items-center gap-2.5 mb-6">
+   572→   572→        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+   573→   573→          <SquareIcon className="w-5 h-5 text-white fill-white" strokeWidth={0} />
+   574→   574→        </div>
+   575→   575→        <div>
+   576→   576→          <span className="text-lg font-extrabold tracking-tight text-slate-900">SmartBuild</span>
+   577→   577→          <span className="block text-[9px] font-medium tracking-[0.2em] uppercase text-amber-600">Construction ERP</span>
+   578→   578→        </div>
+   579→   579→      </div>
+   580→   580→
+   581→   581→      <h2 className="text-2xl font-bold text-slate-900 mb-1">Create Account</h2>
+   582→   582→      <p className="text-sm text-slate-500 mb-5">
+   583→   583→        Fill in your details to get started
+   584→   584→      </p>
+   585→   585→
+   586→   586→      <form onSubmit={handleRegister} className="space-y-3">
+   587→   587→        {regError && (
+   588→   588→          <motion.div
+   589→   589→            initial={{ opacity: 0, y: -5 }}
+   590→   590→            animate={{ opacity: 1, y: 0 }}
+   591→   591→            className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2"
+   592→   592→          >
+   593→   593→            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+   594→   594→              <span className="text-red-500 text-xs font-bold">!</span>
+   595→   595→            </div>
+   596→   596→            {regError}
+   597→   597→          </motion.div>
+   598→   598→        )}
+   599→   599→
+   600→   600→        {/* Name row */}
+   601→   601→        <div className="grid grid-cols-2 gap-2.5">
+   602→   602→          <div className="space-y-1">
+   603→   603→            <Label htmlFor="reg-first" className="text-xs font-medium text-slate-700">First Name</Label>
+   604→   604→            <Input
+   605→   605→              id="reg-first"
+   606→   606→              placeholder="John"
+   607→   607→              value={regFirstName}
+   608→   608→              onChange={(e) => { setRegFirstName(e.target.value); setRegError('') }}
+   609→   609→              required
+   610→   610→              className="h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   611→   611→            />
+   612→   612→          </div>
+   613→   613→          <div className="space-y-1">
+   614→   614→            <Label htmlFor="reg-last" className="text-xs font-medium text-slate-700">Last Name</Label>
+   615→   615→            <Input
+   616→   616→              id="reg-last"
+   617→   617→              placeholder="Doe"
+   618→   618→              value={regLastName}
+   619→   619→              onChange={(e) => { setRegLastName(e.target.value); setRegError('') }}
+   620→   620→              required
+   621→   621→              className="h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   622→   622→            />
+   623→   623→          </div>
+   624→   624→        </div>
+   625→   625→
+   626→   626→        {/* Email */}
+   627→   627→        <div className="space-y-1">
+   628→   628→          <Label htmlFor="reg-email" className="text-xs font-medium text-slate-700">Email Address</Label>
+   629→   629→          <div className="relative">
+   630→   630→            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   631→   631→            <Input
+   632→   632→              id="reg-email"
+   633→   633→              type="email"
+   634→   634→              placeholder="john@company.com"
+   635→   635→              value={regEmail}
+   636→   636→              onChange={(e) => { setRegEmail(e.target.value); setRegError('') }}
+   637→   637→              required
+   638→   638→              className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   639→   639→            />
+   640→   640→          </div>
+   641→   641→        </div>
+   642→   642→
+   643→   643→        {/* Phone */}
+   644→   644→        <div className="space-y-1">
+   645→   645→          <Label htmlFor="reg-phone" className="text-xs font-medium text-slate-700">Phone Number</Label>
+   646→   646→          <div className="flex gap-2">
+   647→   647→            <div className="flex items-center gap-1 px-2.5 h-10 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-600 shrink-0 font-medium">
+   648→   648→              <span>{country?.flagEmoji ?? '🇧🇳'}</span>
+   649→   649→              <span>{getCallingCode()}</span>
+   650→   650→            </div>
+   651→   651→            <Input
+   652→   652→              id="reg-phone"
+   653→   653→              type="tel"
+   654→   654→              placeholder={getPhonePlaceholder()}
+   655→   655→              value={regPhone}
+   656→   656→              onChange={(e) => { setRegPhone(e.target.value); setRegError('') }}
+   657→   657→              className="flex-1 h-10 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   658→   658→            />
+   659→   659→          </div>
+   660→   660→        </div>
+   661→   661→
+   662→   662→        {/* Company & Position */}
+   663→   663→        <div className="grid grid-cols-2 gap-2.5">
+   664→   664→          <div className="space-y-1">
+   665→   665→            <Label htmlFor="reg-company" className="text-xs font-medium text-slate-700">Company</Label>
+   666→   666→            <div className="relative">
+   667→   667→              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   668→   668→              <Input
+   669→   669→                id="reg-company"
+   670→   670→                placeholder="Company Name"
+   671→   671→                value={regCompany}
+   672→   672→                onChange={(e) => setRegCompany(e.target.value)}
+   673→   673→                className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   674→   674→              />
+   675→   675→            </div>
+   676→   676→          </div>
+   677→   677→          <div className="space-y-1">
+   678→   678→            <Label htmlFor="reg-position" className="text-xs font-medium text-slate-700">Position</Label>
+   679→   679→            <div className="relative">
+   680→   680→              <HardHat className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+   681→   681→              <Input
+   682→   682→                id="reg-position"
+   683→   683→                placeholder="Project Manager"
+   684→   684→                value={regPosition}
+   685→   685→                onChange={(e) => setRegPosition(e.target.value)}
+   686→   686→                className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   687→   687→              />
+   688→   688→            </div>
+   689→   689→          </div>
+   690→   690→        </div>
+   691→   691→
+   692→   692→        {/* Password */}
+   693→   693→        <div className="space-y-1">
+   694→   694→          <Label htmlFor="reg-password" className="text-xs font-medium text-slate-700">Password</Label>
+   695→   695→          <div className="relative">
+   696→   696→            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   697→   697→              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   698→   698→              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   699→   699→            </svg>
+   700→   700→            <Input
+   701→   701→              id="reg-password"
+   702→   702→              type={regShowPassword ? 'text' : 'password'}
+   703→   703→              placeholder="Min. 6 characters"
+   704→   704→              value={regPassword}
+   705→   705→              onChange={(e) => { setRegPassword(e.target.value); setRegError('') }}
+   706→   706→              required
+   707→   707→              className="h-10 pl-9 pr-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   708→   708→            />
+   709→   709→            <button
+   710→   710→              type="button"
+   711→   711→              onClick={() => setRegShowPassword(!regShowPassword)}
+   712→   712→              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   713→   713→              tabIndex={-1}
+   714→   714→            >
+   715→   715→              {regShowPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+   716→   716→            </button>
+   717→   717→          </div>
+   718→   718→        </div>
+   719→   719→
+   720→   720→        {/* Confirm Password */}
+   721→   721→        <div className="space-y-1">
+   722→   722→          <Label htmlFor="reg-confirm" className="text-xs font-medium text-slate-700">Confirm Password</Label>
+   723→   723→          <div className="relative">
+   724→   724→            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+   725→   725→              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+   726→   726→              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   727→   727→            </svg>
+   728→   728→            <Input
+   729→   729→              id="reg-confirm"
+   730→   730→              type={regShowPassword ? 'text' : 'password'}
+   731→   731→              placeholder="Re-enter your password"
+   732→   732→              value={regConfirmPassword}
+   733→   733→              onChange={(e) => { setRegConfirmPassword(e.target.value); setRegError('') }}
+   734→   734→              required
+   735→   735→              className="h-10 pl-9 rounded-xl border-slate-200 bg-slate-50/50 focus:border-amber-400 focus:ring-amber-400/20 transition-colors text-sm"
+   736→   736→            />
+   737→   737→          </div>
+   738→   738→        </div>
+   739→   739→
+   740→   740→        {/* Terms */}
+   741→   741→        <label className="flex items-start gap-2 cursor-pointer">
+   742→   742→          <Checkbox className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 rounded mt-0.5" />
+   743→   743→          <span className="text-xs text-slate-500 leading-relaxed">
+   744→   744→            I agree to the{' '}
+   745→   745→            <Link href="/terms-of-service" className="text-amber-600 hover:underline">Terms of Service</Link>
+   746→   746→            {' '}and{' '}
+   747→   747→            <Link href="/privacy-policy" className="text-amber-600 hover:underline">Privacy Policy</Link>
+   748→   748→          </span>
+   749→   749→        </label>
+   750→   750→
+   751→   751→        {/* Submit button */}
+   752→   752→        <Button
+   753→   753→          type="submit"
+   754→   754→          disabled={regLoading}
+   755→   755→          className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+   756→   756→        >
+   757→   757→          {regLoading ? (
+   758→   758→            <span className="flex items-center gap-2">
+   759→   759→              <Loader2 className="w-4 h-4 animate-spin" />
+   760→   760→              Creating Account...
+   761→   761→            </span>
+   762→   762→          ) : (
+   763→   763→            <span className="flex items-center gap-2">
+   764→   764→              Create Account
+   765→   765→              <ArrowRight className="w-4 h-4" />
+   766→   766→            </span>
+   767→   767→          )}
+   768→   768→        </Button>
+   769→   769→      </form>
+   770→   770→    </motion.div>
+   771→   771→  )
+   772→   772→}
+   773→   773→
+   774→   774→// ═══════════════════════════════════════════════════════════════════
+   775→   775→// MOBILE VIEW — Stacked single card layout
+   776→   776→// ═══════════════════════════════════════════════════════════════════
+   777→   777→
+   778→   778→function MobileAuthCard({ initialMode = 'login' }: { initialMode?: 'login' | 'register' }) {
+   779→   779→  const [mode, setMode] = useState<'login' | 'register'>(initialMode)
+   780→   780→
+   781→   781→  return (
+   782→   782→    <div className="w-full max-w-md mx-auto">
+   783→   783→      <AnimatePresence mode="wait">
+   784→   784→        {mode === 'login' ? (
+   785→   785→          <motion.div
+   786→   786→            key="mobile-login"
+   787→   787→            initial={{ opacity: 0, x: 30 }}
+   788→   788→            animate={{ opacity: 1, x: 0 }}
+   789→   789→            exit={{ opacity: 0, x: -30 }}
+   790→   790→            transition={{ duration: 0.35 }}
+   791→   791→          >
+   792→   792→            <LoginFormContent />
+   793→   793→            <div className="mt-6 text-center">
+   794→   794→              <p className="text-sm text-slate-500">
+   795→   795→                Don&apos;t have an account?{' '}
+   796→   796→                <button
+   797→   797→                  onClick={() => setMode('register')}
+   798→   798→                  className="text-amber-600 hover:text-amber-700 font-semibold transition-colors cursor-pointer"
+   799→   799→                >
+   800→   800→                  Create Account
+   801→   801→                </button>
+   802→   802→              </p>
+   803→   803→            </div>
+   804→   804→          </motion.div>
+   805→   805→        ) : (
+   806→   806→          <motion.div
+   807→   807→            key="mobile-register"
+   808→   808→            initial={{ opacity: 0, x: 30 }}
+   809→   809→            animate={{ opacity: 1, x: 0 }}
+   810→   810→            exit={{ opacity: 0, x: -30 }}
+   811→   811→            transition={{ duration: 0.35 }}
+   812→   812→          >
+   813→   813→            <RegisterFormContent />
+   814→   814→            <div className="mt-4 text-center">
+   815→   815→              <p className="text-sm text-slate-500">
+   816→   816→                Already have an account?{' '}
+   817→   817→                <button
+   818→   818→                  onClick={() => setMode('login')}
+   819→   819→                  className="text-amber-600 hover:text-amber-700 font-semibold transition-colors cursor-pointer"
+   820→   820→                >
+   821→   821→                  Sign In
+   822→   822→                </button>
+   823→   823→              </p>
+   824→   824→            </div>
+   825→   825→          </motion.div>
+   826→   826→        )}
+   827→   827→      </AnimatePresence>
+   828→   828→    </div>
+   829→   829→  )
+   830→   830→}
+   831→   831→
+   832→   832→// ═══════════════════════════════════════════════════════════════════
+   833→   833→// MAIN PREMIUM AUTH CARD — Desktop sliding panel + mobile stacked
+   834→   834→// ═══════════════════════════════════════════════════════════════════
+   835→   835→
+   836→   836→interface PremiumAuthCardProps {
+   837→   837→  initialMode?: 'login' | 'register'
+   838→   838→}
+   839→   839→
+   840→   840→export function PremiumAuthCard({ initialMode = 'login' }: PremiumAuthCardProps) {
+   841→   841→  const [isLoginMode, setIsLoginMode] = useState(initialMode === 'login')
+   842→   842→
+   843→   843→  const switchMode = () => setIsLoginMode(!isLoginMode)
+   844→   844→
+   845→   845→  return (
+   846→   846→    <div className="w-full min-h-screen flex items-center justify-center px-4 py-8 lg:py-0 relative">
+   847→   847→      {/* Desktop: Sliding Panel Card */}
+   848→   848→      <div className="hidden lg:block">
+   849→   849→        <motion.div
+   850→   850→          initial={{ opacity: 0, scale: 0.92, y: 30 }}
+   851→   851→          animate={{ opacity: 1, scale: 1, y: 0 }}
+   852→   852→          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+   853→   853→          className="relative w-[1100px] h-[700px] rounded-3xl overflow-hidden shadow-2xl"
+   854→   854→          style={{
+   855→   855→            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+   856→   856→          }}
+   857→   857→        >
+   858→   858→          {/* Glass effect base */}
+   859→   859→          <div className="absolute inset-0 bg-white/95 backdrop-blur-xl" />
+   860→   860→
+   861→   861→          {/* ═══ LEFT PANEL — Login Form (visible when isLoginMode) ═══ */}
+   862→   862→          <div className="absolute inset-y-0 left-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14">
+   863→   863→            <div className="w-full max-w-[380px]">
+   864→   864→              <AnimatePresence mode="wait">
+   865→   865→                {isLoginMode ? (
+   866→   866→                  <motion.div
+   867→   867→                    key="left-login"
+   868→   868→                    initial={{ opacity: 0 }}
+   869→   869→                    animate={{ opacity: 1 }}
+   870→   870→                    exit={{ opacity: 0 }}
+   871→   871→                    transition={{ duration: 0.3 }}
+   872→   872→                  >
+   873→   873→                    <LoginFormContent />
+   874→   874→                  </motion.div>
+   875→   875→                ) : (
+   876→   876→                  <motion.div
+   877→   877→                    key="left-register-hidden"
+   878→   878→                    initial={{ opacity: 0 }}
+   879→   879→                    animate={{ opacity: 1 }}
+   880→   880→                    exit={{ opacity: 0 }}
+   881→   881→                    transition={{ duration: 0.3 }}
+   882→   882→                  >
+   883→   883→                    {/* Hidden — covered by overlay */}
+   884→   884→                    <div className="invisible">
+   885→   885→                      <LoginFormContent />
+   886→   886→                    </div>
+   887→   887→                  </motion.div>
+   888→   888→                )}
+   889→   889→              </AnimatePresence>
+   890→   890→            </div>
+   891→   891→          </div>
+   892→   892→
+   893→   893→          {/* ═══ RIGHT PANEL — Register Form (visible when NOT isLoginMode) ═══ */}
+   894→   894→          <div className="absolute inset-y-0 right-0 w-1/2 z-10 flex items-center justify-center px-10 xl:px-14">
+   895→   895→            <div className="w-full max-w-[380px]">
+   896→   896→              <AnimatePresence mode="wait">
+   897→   897→                {!isLoginMode ? (
+   898→   898→                  <motion.div
+   899→   899→                    key="right-register"
+   900→   900→                    initial={{ opacity: 0 }}
+   901→   901→                    animate={{ opacity: 1 }}
+   902→   902→                    exit={{ opacity: 0 }}
+   903→   903→                    transition={{ duration: 0.3 }}
+   904→   904→                  >
+   905→   905→                    <RegisterFormContent />
+   906→   906→                  </motion.div>
+   907→   907→                ) : (
+   908→   908→                  <motion.div
+   909→   909→                    key="right-login-hidden"
+   910→   910→                    initial={{ opacity: 0 }}
+   911→   911→                    animate={{ opacity: 1 }}
+   912→   912→                    exit={{ opacity: 0 }}
+   913→   913→                    transition={{ duration: 0.3 }}
+   914→   914→                  >
+   915→   915→                    {/* Hidden — covered by overlay */}
+   916→   916→                    <div className="invisible">
+   917→   917→                      <RegisterFormContent />
+   918→   918→                    </div>
+   919→   919→                  </motion.div>
+   920→   920→                )}
+   921→   921→              </AnimatePresence>
+   922→   922→            </div>
+   923→   923→          </div>
+   924→   924→
+   925→   925→          {/* ═══ CENTER DIVIDER ═══ */}
+   926→   926→          <div className="absolute inset-y-0 left-1/2 w-px bg-slate-200/60 z-20 pointer-events-none" />
+   927→   927→
+   928→   928→          {/* ═══ SLIDING OVERLAY PANEL ═══ */}
+   929→   929→          <div
+   930→   930→            className="absolute inset-y-0 w-1/2 z-30"
+   931→   931→            style={{
+   932→   932→              left: isLoginMode ? '50%' : '0%',
+   933→   933→              transition: 'left 0.7s cubic-bezier(0.45, 0, 0.55, 1)',
+   934→   934→              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+   935→   935→            }}
+   936→   936→          >
+   937→   937→            {/* Decorative shapes inside overlay */}
+   938→   938→            <div className="absolute inset-0 overflow-hidden">
+   939→   939→              {/* Grid pattern */}
+   940→   940→              <div
+   941→   941→                className="absolute inset-0 opacity-[0.04]"
+   942→   942→                style={{
+   943→   943→                  backgroundImage: `
+   944→   944→                    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px),
+   945→   945→                    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.3) 39px, rgba(255,255,255,0.3) 40px)
+   946→   946→                  `,
+   947→   947→                }}
+   948→   948→              />
+   949→   949→
+   950→   950→              {/* Floating circles */}
+   951→   951→              <motion.div
+   952→   952→                className="absolute w-32 h-32 rounded-full bg-white/[0.03] blur-sm"
+   953→   953→                style={{ top: '10%', right: '10%' }}
+   954→   954→                animate={{ y: [0, -15, 0], scale: [1, 1.1, 1] }}
+   955→   955→                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+   956→   956→              />
+   957→   957→              <motion.div
+   958→   958→                className="absolute w-24 h-24 rounded-full bg-amber-500/[0.05] blur-sm"
+   959→   959→                style={{ bottom: '15%', left: '15%' }}
+   960→   960→                animate={{ y: [0, 12, 0], scale: [1, 0.9, 1] }}
+   961→   961→                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+   962→   962→              />
+   963→   963→              <motion.div
+   964→   964→                className="absolute w-16 h-16 rounded-full bg-white/[0.04]"
+   965→   965→                style={{ top: '50%', left: '50%' }}
+   966→   966→                animate={{ y: [0, -10, 0], x: [0, 8, 0] }}
+   967→   967→                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+   968→   968→              />
+   969→   969→
+   970→   970→              {/* Radial glow */}
+   971→   971→              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] bg-amber-500/[0.08] rounded-full blur-[80px] pointer-events-none" />
+   972→   972→            </div>
+   973→   973→
+   974→   974→            {/* ═══ OVERLAY CONTENT: Login mode (overlay on RIGHT) ═══ */}
+   975→   975→            <div
+   976→   976→              className="absolute inset-0 flex flex-col items-center justify-center px-10 xl:px-16 text-center"
+   977→   977→              style={{
+   978→   978→                opacity: isLoginMode ? 1 : 0,
+   979→   979→                transition: 'opacity 0.4s ease 0.3s',
+   980→   980→                pointerEvents: isLoginMode ? 'auto' : 'none',
+   981→   981→              }}
+   982→   982→            >
+   983→   983→              <div className="mb-6">
+   984→   984→                <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20 mb-4">
+   985→   985→                  <SquareIcon className="w-9 h-9 text-white fill-white" strokeWidth={0} />
+   986→   986→                </div>
+   987→   987→                <h2 className="text-2xl xl:text-3xl font-extrabold text-white tracking-tight">SmartBuild</h2>
+   988→   988→                <p className="text-white/50 text-[10px] font-medium tracking-[0.25em] uppercase mt-1">Construction ERP</p>
+   989→   989→              </div>
+   990→   990→
+   991→   991→              <h3 className="text-xl xl:text-2xl font-bold text-white mb-3">Welcome to SmartBuild</h3>
+   992→   992→              <p className="text-white/70 text-sm leading-relaxed max-w-xs mb-8">
+   993→   993→                Manage Projects, Maintenance, Assets, Resources and Finance from a single platform.
+   994→   994→              </p>
+   995→   995→
+   996→   996→              <div className="space-y-3 mb-8 w-full max-w-[220px]">
+   997→   997→                {features.map((feat) => {
+   998→   998→                  const Icon = feat.icon
+   999→   999→                  return (
+  1000→  1000→                    <div key={feat.label} className="flex items-center gap-3 text-white/80">
+  1001→  1001→                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+  1002→  1002→                        <Icon className="w-4 h-4" />
+  1003→  1003→                      </div>
+  1004→  1004→                      <span className="text-sm">{feat.label}</span>
+  1005→  1005→                    </div>
+  1006→  1006→                  )
+  1007→  1007→                })}
+  1008→  1008→              </div>
+  1009→  1009→
+  1010→  1010→              <button
+  1011→  1011→                onClick={switchMode}
+  1012→  1012→                className="flex items-center gap-2 px-8 py-3 bg-white text-slate-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
+  1013→  1013→              >
+  1014→  1014→                <UserPlus className="w-4 h-4" />
+  1015→  1015→                Create Account
+  1016→  1016→                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+  1017→  1017→              </button>
+  1018→  1018→            </div>
+  1019→  1019→
+  1020→  1020→            {/* ═══ OVERLAY CONTENT: Register mode (overlay on LEFT) ═══ */}
+  1021→  1021→            <div
+  1022→  1022→              className="absolute inset-0 flex flex-col items-center justify-center px-10 xl:px-16 text-center"
+  1023→  1023→              style={{
+  1024→  1024→                opacity: isLoginMode ? 0 : 1,
+  1025→  1025→                transition: 'opacity 0.4s ease 0.3s',
+  1026→  1026→                pointerEvents: isLoginMode ? 'none' : 'auto',
+  1027→  1027→              }}
+  1028→  1028→            >
+  1029→  1029→              <div className="mb-6">
+  1030→  1030→                <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20 mb-4">
+  1031→  1031→                  <SquareIcon className="w-9 h-9 text-white fill-white" strokeWidth={0} />
+  1032→  1032→                </div>
+  1033→  1033→                <h2 className="text-2xl xl:text-3xl font-extrabold text-white tracking-tight">SmartBuild</h2>
+  1034→  1034→                <p className="text-white/50 text-[10px] font-medium tracking-[0.25em] uppercase mt-1">Construction ERP</p>
+  1035→  1035→              </div>
+  1036→  1036→
+  1037→  1037→              <h3 className="text-xl xl:text-2xl font-bold text-white mb-3">Welcome Back</h3>
+  1038→  1038→              <p className="text-white/70 text-sm leading-relaxed max-w-xs mb-8">
+  1039→  1039→                Already have an account? Sign in to continue managing your operations.
+  1040→  1040→              </p>
+  1041→  1041→
+  1042→  1042→              <div className="space-y-3 mb-8 w-full max-w-[220px]">
+  1043→  1043→                {features.map((feat) => {
+  1044→  1044→                  const Icon = feat.icon
+  1045→  1045→                  return (
+  1046→  1046→                    <div key={feat.label} className="flex items-center gap-3 text-white/80">
+  1047→  1047→                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+  1048→  1048→                        <Icon className="w-4 h-4" />
+  1049→  1049→                      </div>
+  1050→  1050→                      <span className="text-sm">{feat.label}</span>
+  1051→  1051→                    </div>
+  1052→  1052→                  )
+  1053→  1053→                })}
+  1054→  1054→              </div>
+  1055→  1055→
+  1056→  1056→              <button
+  1057→  1057→                onClick={switchMode}
+  1058→  1058→                className="flex items-center gap-2 px-8 py-3 bg-white text-slate-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
+  1059→  1059→              >
+  1060→  1060→                <LogIn className="w-4 h-4" />
+  1061→  1061→                Sign In
+  1062→  1062→                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+  1063→  1063→              </button>
+  1064→  1064→            </div>
+  1065→  1065→          </div>
+  1066→  1066→
+  1067→  1067→          {/* Card border glow */}
+  1068→  1068→          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none z-40" />
+  1069→  1069→        </motion.div>
+  1070→  1070→      </div>
+  1071→  1071→
+  1072→  1072→      {/* Mobile: Stacked Single Card */}
+  1073→  1073→      <div className="lg:hidden">
+  1074→  1074→        <motion.div
+  1075→  1075→          initial={{ opacity: 0, y: 20 }}
+  1076→  1076→          animate={{ opacity: 1, y: 0 }}
+  1077→  1077→          transition={{ duration: 0.5 }}
+  1078→  1078→          className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8"
+  1079→  1079→          style={{
+  1080→  1080→            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+  1081→  1081→          }}
+  1082→  1082→        >
+  1083→  1083→          <MobileAuthCard initialMode={initialMode} />
+  1084→  1084→        </motion.div>
+  1085→  1085→      </div>
+  1086→  1086→    </div>
+  1087→  1087→  )
+  1088→  1088→}
+  1089→  1089→

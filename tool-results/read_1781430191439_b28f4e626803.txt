@@ -1,0 +1,892 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api, useAppStore } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Separator } from '@/components/ui/separator'
+    14→import {
+    15→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    16→} from '@/components/ui/select'
+    17→import {
+    18→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+    19→} from '@/components/ui/dialog'
+    20→import { ScrollArea } from '@/components/ui/scroll-area'
+    21→import { useToast } from '@/hooks/use-toast'
+    22→import { cn } from '@/lib/utils'
+    23→import {
+    24→  ArrowLeft, CheckCircle2, Clock, User, MapPin, Phone, Calendar,
+    25→  Building2, Wrench, FileText, MessageSquare, Plus, Star,
+    26→  Send, Package, ClipboardList, PenLine, ThumbsUp, ChevronRight,
+    27→} from 'lucide-react'
+    28→
+    29→// ─── Shared Constants ───
+    30→const PRIORITY_CONFIG: Record<string, { label: string; color: string; dotColor: string }> = {
+    31→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+    32→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+    33→  medium: { label: 'Medium', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300', dotColor: 'bg-yellow-500' },
+    34→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+    35→  preventive: { label: 'Preventive', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', dotColor: 'bg-blue-500' },
+    36→}
+    37→
+    38→const STATUS_CONFIG: Record<string, { label: string; color: string; step: number; dotColor: string }> = {
+    39→  new: { label: 'New', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400', step: 0, dotColor: 'bg-slate-500' },
+    40→  under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', step: 1, dotColor: 'bg-blue-500' },
+    41→  assigned: { label: 'Assigned', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300', step: 2, dotColor: 'bg-indigo-500' },
+    42→  accepted: { label: 'Accepted', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300', step: 3, dotColor: 'bg-violet-500' },
+    43→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 4, dotColor: 'bg-amber-500' },
+    44→  pending_parts: { label: 'Pending Parts', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', step: 5, dotColor: 'bg-orange-500' },
+    45→  pending_customer: { label: 'Pending Customer', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 6, dotColor: 'bg-cyan-500' },
+    46→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 7, dotColor: 'bg-emerald-500' },
+    47→  customer_verification: { label: 'Customer Verification', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300', step: 8, dotColor: 'bg-teal-500' },
+    48→  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400', step: 9, dotColor: 'bg-gray-500' },
+    49→}
+    50→
+    51→const STATUS_WORKFLOW = [
+    52→  'new', 'under_review', 'assigned', 'accepted', 'in_progress',
+    53→  'pending_parts', 'pending_customer', 'completed', 'customer_verification', 'closed',
+    54→]
+    55→
+    56→const CATEGORY_LABELS: Record<string, string> = {
+    57→  air_conditioning: 'Air Conditioning',
+    58→  electrical: 'Electrical',
+    59→  plumbing: 'Plumbing',
+    60→  fire_protection: 'Fire Protection',
+    61→  mechanical: 'Mechanical',
+    62→  civil: 'Civil',
+    63→  cleaning: 'Cleaning',
+    64→  security: 'Security',
+    65→  it: 'IT',
+    66→  general_maintenance: 'General Maintenance',
+    67→  other: 'Other',
+    68→}
+    69→
+    70→const TYPE_LABELS: Record<string, string> = {
+    71→  complaint: 'Complaint',
+    72→  work_request: 'Work Request',
+    73→  emergency: 'Emergency',
+    74→  inspection: 'Inspection',
+    75→  quotation: 'Quotation',
+    76→  preventive_maintenance: 'Preventive Maintenance',
+    77→}
+    78→
+    79→const TYPE_BADGE_COLORS: Record<string, string> = {
+    80→  complaint: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300',
+    81→  work_request: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    82→  emergency: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    83→  inspection: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    84→  quotation: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    85→  preventive_maintenance: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
+    86→}
+    87→
+    88→const TIMELINE_ACTION_COLORS: Record<string, string> = {
+    89→  created: 'bg-slate-500',
+    90→  status_change: 'bg-blue-500',
+    91→  assigned: 'bg-indigo-500',
+    92→  note: 'bg-amber-500',
+    93→  work_order_created: 'bg-violet-500',
+    94→  material_request: 'bg-orange-500',
+    95→  customer_approval: 'bg-emerald-500',
+    96→  rating: 'bg-yellow-500',
+    97→  sla_warning: 'bg-red-500',
+    98→}
+    99→
+   100→// ─── SLA Countdown ───
+   101→function SLACountdown({ deadline }: { deadline: string }) {
+   102→  const [remaining, setRemaining] = useState('')
+   103→
+   104→  useEffect(() => {
+   105→    function calc() {
+   106→      const diff = new Date(deadline).getTime() - Date.now()
+   107→      if (diff <= 0) {
+   108→        setRemaining('BREACHED')
+   109→        return
+   110→      }
+   111→      const hours = Math.floor(diff / 3600000)
+   112→      const mins = Math.floor((diff % 3600000) / 60000)
+   113→      if (hours > 24) {
+   114→        const days = Math.floor(hours / 24)
+   115→        setRemaining(`${days}d ${hours % 24}h remaining`)
+   116→      } else {
+   117→        setRemaining(`${hours}h ${mins}m remaining`)
+   118→      }
+   119→    }
+   120→    calc()
+   121→    const interval = setInterval(calc, 60000)
+   122→    return () => clearInterval(interval)
+   123→  }, [deadline])
+   124→
+   125→  const isBreached = remaining === 'BREACHED'
+   126→
+   127→  return (
+   128→    <div className={cn(
+   129→      'flex items-center gap-2 px-3 py-2 rounded-lg text-sm',
+   130→      isBreached
+   131→        ? 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900'
+   132→        : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900'
+   133→    )}>
+   134→      <Clock className="h-4 w-4" />
+   135→      <span className="font-medium">SLA: {isBreached ? '⚠ BREACHED' : remaining}</span>
+   136→    </div>
+   137→  )
+   138→}
+   139→
+   140→// ─── Progress Stepper ───
+   141→function ProgressStepper({ status }: { status: string }) {
+   142→  const currentStep = STATUS_CONFIG[status]?.step ?? -1
+   143→
+   144→  return (
+   145→    <div className="space-y-3">
+   146→      <div className="flex items-center gap-0 overflow-x-auto pb-2">
+   147→        {STATUS_WORKFLOW.map((step, idx) => {
+   148→          const isActive = currentStep >= idx
+   149→          const isCurrent = currentStep === idx
+   150→          const stepConfig = STATUS_CONFIG[step]
+   151→          return (
+   152→            <React.Fragment key={step}>
+   153→              <div className="flex flex-col items-center min-w-[56px]">
+   154→                <div
+   155→                  className={cn(
+   156→                    'h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors',
+   157→                    isActive
+   158→                      ? isCurrent
+   159→                        ? 'bg-rose-500 text-white ring-2 ring-rose-200 dark:ring-rose-800 shadow-sm'
+   160→                        : 'text-white'
+   161→                      : 'bg-muted text-muted-foreground'
+   162→                  )}
+   163→                  style={isActive && !isCurrent ? { backgroundColor: stepConfig.dotColor } : undefined}
+   164→                  title={stepConfig.label}
+   165→                >
+   166→                  {isActive ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
+   167→                </div>
+   168→                <span className={cn(
+   169→                  'text-[10px] mt-1 text-center whitespace-nowrap',
+   170→                  isCurrent ? 'font-semibold text-rose-600 dark:text-rose-400' : 'text-muted-foreground'
+   171→                )}>
+   172→                  {stepConfig.label}
+   173→                </span>
+   174→              </div>
+   175→              {idx < STATUS_WORKFLOW.length - 1 && (
+   176→                <div className={cn(
+   177→                  'flex-1 h-1 min-w-[12px] mt-[-12px]',
+   178→                  currentStep > idx
+   179→                    ? 'bg-rose-400'
+   180→                    : 'bg-muted'
+   181→                )} />
+   182→              )}
+   183→            </React.Fragment>
+   184→          )
+   185→        })}
+   186→      </div>
+   187→    </div>
+   188→  )
+   189→}
+   190→
+   191→// ─── Star Rating Component ───
+   192→function StarRating({ value, onChange, readonly = false }: { value: number; onChange?: (v: number) => void; readonly?: boolean }) {
+   193→  return (
+   194→    <div className="flex gap-1">
+   195→      {[1, 2, 3, 4, 5].map(star => (
+   196→        <Star
+   197→          key={star}
+   198→          className={cn(
+   199→            'h-6 w-6 transition-colors',
+   200→            star <= value
+   201→              ? 'fill-yellow-400 text-yellow-400'
+   202→              : 'text-gray-300 dark:text-gray-600',
+   203→            !readonly && 'cursor-pointer hover:scale-110'
+   204→          )}
+   205→          onClick={() => !readonly && onChange?.(star)}
+   206→        />
+   207→      ))}
+   208→    </div>
+   209→  )
+   210→}
+   211→
+   212→// ─── Main Component ───
+   213→export function TicketDetail({ ticketId }: { ticketId: string }) {
+   214→  const { navigate } = useAppStore()
+   215→  const { toast } = useToast()
+   216→  const queryClient = useQueryClient()
+   217→
+   218→  // Dialogs
+   219→  const [assignOpen, setAssignOpen] = useState(false)
+   220→  const [statusOpen, setStatusOpen] = useState(false)
+   221→  const [woOpen, setWoOpen] = useState(false)
+   222→  const [noteOpen, setNoteOpen] = useState(false)
+   223→  const [approvalOpen, setApprovalOpen] = useState(false)
+   224→
+   225→  // Form states
+   226→  const [selectedTechId, setSelectedTechId] = useState('')
+   227→  const [newStatus, setNewStatus] = useState('')
+   228→  const [noteText, setNoteText] = useState('')
+   229→  const [approvalRating, setApprovalRating] = useState(0)
+   230→  const [approvalFeedback, setApprovalFeedback] = useState('')
+   231→  const [approvalSignature, setApprovalSignature] = useState('')
+   232→
+   233→  // Fetch ticket
+   234→  const { data, isLoading } = useQuery({
+   235→    queryKey: ['maintenance-ticket', ticketId],
+   236→    queryFn: () => api.get(`/api/maintenance/tickets/${ticketId}`),
+   237→    enabled: !!ticketId,
+   238→  })
+   239→
+   240→  // Fetch timeline
+   241→  const { data: timelineData } = useQuery({
+   242→    queryKey: ['maintenance-ticket-timeline', ticketId],
+   243→    queryFn: () => api.get(`/api/maintenance/tickets/${ticketId}/timeline`),
+   244→    enabled: !!ticketId,
+   245→  })
+   246→
+   247→  // Fetch technicians for assignment
+   248→  const { data: techsData } = useQuery({
+   249→    queryKey: ['maintenance-technicians'],
+   250→    queryFn: () => api.get('/api/maintenance/technicians'),
+   251→    enabled: assignOpen,
+   252→  })
+   253→
+   254→  const ticket = data?.data as any
+   255→  const timeline = (timelineData?.data || []) as any[]
+   256→  const technicians = (techsData?.data || []) as any[]
+   257→
+   258→  // Assign mutation
+   259→  const assignMutation = useMutation({
+   260→    mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/assign`, { technicianId: selectedTechId }),
+   261→    onSuccess: () => {
+   262→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+   263→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-timeline', ticketId] })
+   264→      setAssignOpen(false)
+   265→      setSelectedTechId('')
+   266→      toast({ title: 'Technician Assigned', description: 'The technician has been assigned to this ticket.' })
+   267→    },
+   268→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to assign', variant: 'destructive' }),
+   269→  })
+   270→
+   271→  // Update status mutation
+   272→  const statusMutation = useMutation({
+   273→    mutationFn: () => api.put(`/api/maintenance/tickets/${ticketId}`, { status: newStatus }),
+   274→    onSuccess: () => {
+   275→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+   276→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-timeline', ticketId] })
+   277→      setStatusOpen(false)
+   278→      setNewStatus('')
+   279→      toast({ title: 'Status Updated', description: `Ticket status changed to ${STATUS_CONFIG[newStatus]?.label || newStatus}.` })
+   280→    },
+   281→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to update', variant: 'destructive' }),
+   282→  })
+   283→
+   284→  // Add timeline note mutation
+   285→  const noteMutation = useMutation({
+   286→    mutationFn: () => api.post(`/api/maintenance/tickets/${ticketId}/timeline`, {
+   287→      action: 'note',
+   288→      note: noteText,
+   289→    }),
+   290→    onSuccess: () => {
+   291→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-timeline', ticketId] })
+   292→      setNoteOpen(false)
+   293→      setNoteText('')
+   294→      toast({ title: 'Note Added', description: 'Timeline note has been added.' })
+   295→    },
+   296→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to add note', variant: 'destructive' }),
+   297→  })
+   298→
+   299→  // Customer approval mutation
+   300→  const approvalMutation = useMutation({
+   301→    mutationFn: () => api.put(`/api/maintenance/tickets/${ticketId}`, {
+   302→      status: 'completed',
+   303→      approvalData: { rating: approvalRating, feedback: approvalFeedback, signature: approvalSignature },
+   304→    }),
+   305→    onSuccess: () => {
+   306→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+   307→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-timeline', ticketId] })
+   308→      setApprovalOpen(false)
+   309→      setApprovalRating(0)
+   310→      setApprovalFeedback('')
+   311→      setApprovalSignature('')
+   312→      toast({ title: 'Approved', description: 'Ticket has been approved and marked as completed.' })
+   313→    },
+   314→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to approve', variant: 'destructive' }),
+   315→  })
+   316→
+   317→  // Create work order mutation
+   318→  const woMutation = useMutation({
+   319→    mutationFn: () => api.post('/api/maintenance/work-orders', { ticketId }),
+   320→    onSuccess: () => {
+   321→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+   322→      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-timeline', ticketId] })
+   323→      setWoOpen(false)
+   324→      toast({ title: 'Work Order Created', description: 'A work order has been generated from this ticket.' })
+   325→    },
+   326→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed to create work order', variant: 'destructive' }),
+   327→  })
+   328→
+   329→  if (isLoading || !ticket) {
+   330→    return (
+   331→      <div className="p-4 md:p-6 space-y-6">
+   332→        <div className="flex items-center gap-3">
+   333→          <Skeleton className="h-9 w-9" />
+   334→          <Skeleton className="h-8 w-48" />
+   335→        </div>
+   336→        <Skeleton className="h-20 rounded-xl" />
+   337→        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   338→          <Skeleton className="h-64 rounded-xl" />
+   339→          <Skeleton className="h-64 rounded-xl" />
+   340→        </div>
+   341→        <Skeleton className="h-96 rounded-xl" />
+   342→      </div>
+   343→    )
+   344→  }
+   345→
+   346→  const pri = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.medium
+   347→  const stat = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.new
+   348→
+   349→  // Material requests
+   350→  const materialRequests = ticket.materialRequests || []
+   351→  // Work orders
+   352→  const workOrders = ticket.workOrders || []
+   353→
+   354→  // Determine available next statuses
+   355→  const currentStep = stat.step
+   356→  const availableStatuses = STATUS_WORKFLOW.filter((_, idx) => idx > currentStep && idx <= currentStep + 2)
+   357→
+   358→  return (
+   359→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   360→      {/* Header */}
+   361→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   362→        <div className="flex items-center gap-3">
+   363→          <Button size="icon" variant="ghost" onClick={() => navigate('maintenance-service-requests')}>
+   364→            <ArrowLeft className="h-4 w-4" />
+   365→          </Button>
+   366→          <div>
+   367→            <div className="flex items-center gap-2 flex-wrap">
+   368→              <h1 className="text-2xl font-bold tracking-tight font-mono text-rose-600">{ticket.ticketNo}</h1>
+   369→              <Badge variant="secondary" className={cn('text-xs', TYPE_BADGE_COLORS[ticket.type] || '')}>
+   370→                {TYPE_LABELS[ticket.type] || ticket.type}
+   371→              </Badge>
+   372→              <Badge variant="secondary" className={cn('gap-1 text-xs', pri.color)}>
+   373→                <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+   374→                {pri.label}
+   375→              </Badge>
+   376→              <Badge variant="secondary" className={cn('text-xs', stat.color)}>
+   377→                {stat.label}
+   378→              </Badge>
+   379→            </div>
+   380→            <p className="text-muted-foreground text-sm mt-0.5">{ticket.subject}</p>
+   381→          </div>
+   382→        </div>
+   383→      </div>
+   384→
+   385→      {/* Progress Stepper */}
+   386→      <Card className="bg-rose-50/50 dark:bg-rose-950/10">
+   387→        <CardContent className="p-4">
+   388→          <ProgressStepper status={ticket.status} />
+   389→        </CardContent>
+   390→      </Card>
+   391→
+   392→      {/* SLA Countdown */}
+   393→      {ticket.slaDeadline && <SLACountdown deadline={ticket.slaDeadline} />}
+   394→
+   395→      {/* Two-Column Details */}
+   396→      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+   397→        {/* Left: Ticket Details */}
+   398→        <Card>
+   399→          <CardHeader className="pb-3">
+   400→            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   401→              <FileText className="h-4 w-4 text-rose-500" /> Ticket Details
+   402→            </CardTitle>
+   403→          </CardHeader>
+   404→          <CardContent className="space-y-4">
+   405→            <DetailRow label="Subject" value={ticket.subject} />
+   406→            <DetailRow label="Description" value={ticket.description || 'No description'} />
+   407→            <DetailRow label="Category" value={CATEGORY_LABELS[ticket.category] || ticket.category} />
+   408→            <DetailRow label="Priority" value={pri.label} />
+   409→            <DetailRow label="Status" value={stat.label} />
+   410→            <div className="grid grid-cols-2 gap-4">
+   411→              <div>
+   412→                <span className="text-xs text-muted-foreground">Created</span>
+   413→                <p className="text-sm font-medium">{new Date(ticket.createdAt).toLocaleString()}</p>
+   414→              </div>
+   415→              {ticket.completedAt && (
+   416→                <div>
+   417→                  <span className="text-xs text-muted-foreground">Completed</span>
+   418→                  <p className="text-sm font-medium">{new Date(ticket.completedAt).toLocaleString()}</p>
+   419→                </div>
+   420→              )}
+   421→            </div>
+   422→          </CardContent>
+   423→        </Card>
+   424→
+   425→        {/* Right: Customer, Site, Equipment, Contact Info */}
+   426→        <div className="space-y-6">
+   427→          <Card>
+   428→            <CardHeader className="pb-3">
+   429→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   430→                <Building2 className="h-4 w-4 text-rose-500" /> Site Information
+   431→              </CardTitle>
+   432→            </CardHeader>
+   433→            <CardContent className="space-y-3">
+   434→              <DetailRow label="Site" value={ticket.site?.name || '—'} />
+   435→              <div className="grid grid-cols-3 gap-3">
+   436→                <DetailRow label="Building" value={ticket.building || '—'} />
+   437→                <DetailRow label="Floor" value={ticket.floor || '—'} />
+   438→                <DetailRow label="Room" value={ticket.room || '—'} />
+   439→              </div>
+   440→              <DetailRow label="Location" value={ticket.location || '—'} />
+   441→            </CardContent>
+   442→          </Card>
+   443→
+   444→          <Card>
+   445→            <CardHeader className="pb-3">
+   446→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   447→                <User className="h-4 w-4 text-rose-500" /> Contact Information
+   448→              </CardTitle>
+   449→            </CardHeader>
+   450→            <CardContent className="space-y-3">
+   451→              <DetailRow label="Contact Person" value={ticket.contactPerson || '—'} />
+   452→              <DetailRow label="Contact Phone" value={ticket.contactPhone || '—'} />
+   453→              <DetailRow label="Customer" value={ticket.customer?.name || '—'} />
+   454→            </CardContent>
+   455→          </Card>
+   456→
+   457→          <Card>
+   458→            <CardHeader className="pb-3">
+   459→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   460→                <Wrench className="h-4 w-4 text-rose-500" /> Equipment
+   461→              </CardTitle>
+   462→            </CardHeader>
+   463→            <CardContent>
+   464→              {ticket.asset ? (
+   465→                <div className="space-y-2">
+   466→                  <DetailRow label="Equipment" value={ticket.asset.name} />
+   467→                  <DetailRow label="Code" value={ticket.asset.code || ticket.asset.assetCode || '—'} />
+   468→                  <DetailRow label="Serial No." value={ticket.asset.serialNumber || '—'} />
+   469→                </div>
+   470→              ) : (
+   471→                <p className="text-sm text-muted-foreground">No equipment linked</p>
+   472→              )}
+   473→              <DetailRow label="Technician" value={ticket.technician?.employee?.name || 'Not assigned'} />
+   474→            </CardContent>
+   475→          </Card>
+   476→        </div>
+   477→      </div>
+   478→
+   479→      {/* Timeline */}
+   480→      <Card>
+   481→        <CardHeader className="pb-3">
+   482→          <div className="flex items-center justify-between">
+   483→            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   484→              <MessageSquare className="h-4 w-4 text-rose-500" /> Activity Timeline
+   485→            </CardTitle>
+   486→            <Button
+   487→              size="sm"
+   488→              variant="outline"
+   489→              className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
+   490→              onClick={() => setNoteOpen(true)}
+   491→            >
+   492→              <Plus className="h-3.5 w-3.5" /> Add Note
+   493→            </Button>
+   494→          </div>
+   495→        </CardHeader>
+   496→        <CardContent>
+   497→          {timeline.length > 0 ? (
+   498→            <div className="relative space-y-0">
+   499→              {timeline.map((entry: any, idx: number) => {
+   500→                const actionColor = TIMELINE_ACTION_COLORS[entry.action] || 'bg-gray-500'
+   501→                return (
+   502→                  <div key={entry.id || idx} className="flex gap-3 pb-6 last:pb-0">
+   503→                    {/* Timeline line + dot */}
+   504→                    <div className="flex flex-col items-center">
+   505→                      <div className={cn('h-3 w-3 rounded-full mt-1.5 shrink-0', actionColor)} />
+   506→                      {idx < timeline.length - 1 && (
+   507→                        <div className="w-px flex-1 bg-border mt-1" />
+   508→                      )}
+   509→                    </div>
+   510→                    {/* Content */}
+   511→                    <div className="flex-1 -mt-0.5">
+   512→                      <div className="flex items-center gap-2 flex-wrap">
+   513→                        <span className="text-sm font-medium capitalize">
+   514→                          {entry.action?.replace(/_/g, ' ') || 'Activity'}
+   515→                        </span>
+   516→                        {entry.fromStatus && (
+   517→                          <Badge variant="secondary" className="text-[10px]">
+   518→                            {STATUS_CONFIG[entry.fromStatus]?.label || entry.fromStatus}
+   519→                            <ChevronRight className="h-3 w-3 mx-0.5" />
+   520→                            {STATUS_CONFIG[entry.toStatus]?.label || entry.toStatus}
+   521→                          </Badge>
+   522→                        )}
+   523→                        {entry.technician && (
+   524→                          <Badge variant="secondary" className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+   525→                            {entry.technician.employee?.name || 'Technician'}
+   526→                          </Badge>
+   527→                        )}
+   528→                        <span className="text-xs text-muted-foreground ml-auto">
+   529→                          {entry.createdBy?.name || 'System'} · {new Date(entry.createdAt).toLocaleString()}
+   530→                        </span>
+   531→                      </div>
+   532→                      {entry.note && (
+   533→                        <p className="text-sm text-muted-foreground mt-1 bg-muted/50 rounded-lg p-2">{entry.note}</p>
+   534→                      )}
+   535→                      {entry.oldValues && (
+   536→                        <div className="text-xs text-muted-foreground mt-1 bg-muted/30 rounded-lg p-2 font-mono">
+   537→                          {JSON.stringify(entry.oldValues, null, 2)}
+   538→                        </div>
+   539→                      )}
+   540→                    </div>
+   541→                  </div>
+   542→                )
+   543→              })}
+   544→            </div>
+   545→          ) : (
+   546→            <div className="flex flex-col items-center justify-center py-8">
+   547→              <MessageSquare className="h-8 w-8 text-muted-foreground/30 mb-2" />
+   548→              <p className="text-sm text-muted-foreground">No activity recorded yet</p>
+   549→            </div>
+   550→          )}
+   551→        </CardContent>
+   552→      </Card>
+   553→
+   554→      {/* Work Orders */}
+   555→      {workOrders.length > 0 && (
+   556→        <Card>
+   557→          <CardHeader className="pb-3">
+   558→            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   559→              <ClipboardList className="h-4 w-4 text-rose-500" /> Work Orders ({workOrders.length})
+   560→            </CardTitle>
+   561→          </CardHeader>
+   562→          <CardContent className="space-y-3">
+   563→            {workOrders.map((wo: any) => (
+   564→              <div key={wo.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+   565→                <div>
+   566→                  <p className="text-sm font-medium font-mono">{wo.woNo}</p>
+   567→                  <p className="text-xs text-muted-foreground">
+   568→                    Created: {new Date(wo.createdAt).toLocaleDateString()}
+   569→                    {wo.estimatedCost && ` · Est. Cost: $${wo.estimatedCost.toLocaleString()}`}
+   570→                  </p>
+   571→                </div>
+   572→                <Badge variant="secondary" className="text-xs">{wo.status}</Badge>
+   573→              </div>
+   574→            ))}
+   575→          </CardContent>
+   576→        </Card>
+   577→      )}
+   578→
+   579→      {/* Material Requests */}
+   580→      {materialRequests.length > 0 && (
+   581→        <Card>
+   582→          <CardHeader className="pb-3">
+   583→            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   584→              <Package className="h-4 w-4 text-rose-500" /> Material Requests ({materialRequests.length})
+   585→            </CardTitle>
+   586→          </CardHeader>
+   587→          <CardContent className="space-y-3">
+   588→            {materialRequests.map((mr: any) => (
+   589→              <div key={mr.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+   590→                <div>
+   591→                  <p className="text-sm font-medium font-mono">{mr.mrNo}</p>
+   592→                  <p className="text-xs text-muted-foreground">
+   593→                    {mr.description || 'No description'}
+   594→                    {mr.quantity && ` · Qty: ${mr.quantity}`}
+   595→                  </p>
+   596→                </div>
+   597→                <Badge
+   598→                  variant="secondary"
+   599→                  className={cn(
+   600→                    'text-xs',
+   601→                    mr.status === 'issued' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+   602→                      : mr.status === 'approved' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+   603→                      : mr.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+   604→                      : ''
+   605→                  )}
+   606→                >
+   607→                  {mr.status}
+   608→                </Badge>
+   609→              </div>
+   610→            ))}
+   611→          </CardContent>
+   612→        </Card>
+   613→      )}
+   614→
+   615→      {/* Customer Approval Section */}
+   616→      {ticket.status === 'pending_customer' && (
+   617→        <Card className="border-cyan-200 dark:border-cyan-900 bg-cyan-50/50 dark:bg-cyan-950/20">
+   618→          <CardHeader className="pb-3">
+   619→            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-cyan-700 dark:text-cyan-300">
+   620→              <ThumbsUp className="h-4 w-4" /> Customer Approval Required
+   621→            </CardTitle>
+   622→            <CardDescription className="text-xs">Please review the completed work and provide your approval.</CardDescription>
+   623→          </CardHeader>
+   624→          <CardContent>
+   625→            <Button
+   626→              className="gap-1.5 bg-cyan-600 hover:bg-cyan-700"
+   627→              onClick={() => setApprovalOpen(true)}
+   628→            >
+   629→              <CheckCircle2 className="h-3.5 w-3.5" /> Approve & Complete
+   630→            </Button>
+   631→          </CardContent>
+   632→        </Card>
+   633→      )}
+   634→
+   635→      {/* Actions Section */}
+   636→      <Card>
+   637→        <CardHeader className="pb-3">
+   638→          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   639→            <PenLine className="h-4 w-4 text-rose-500" /> Actions
+   640→          </CardTitle>
+   641→        </CardHeader>
+   642→        <CardContent>
+   643→          <div className="flex flex-wrap gap-2">
+   644→            <Button
+   645→              variant="outline"
+   646→              className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
+   647→              onClick={() => setAssignOpen(true)}
+   648→              disabled={ticket.status === 'closed' || ticket.status === 'completed'}
+   649→            >
+   650→              <User className="h-3.5 w-3.5" /> Assign Technician
+   651→            </Button>
+   652→
+   653→            <Button
+   654→              variant="outline"
+   655→              className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
+   656→              onClick={() => setStatusOpen(true)}
+   657→              disabled={ticket.status === 'closed'}
+   658→            >
+   659→              <CheckCircle2 className="h-3.5 w-3.5" /> Update Status
+   660→            </Button>
+   661→
+   662→            <Button
+   663→              variant="outline"
+   664→              className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
+   665→              onClick={() => setWoOpen(true)}
+   666→              disabled={workOrders.length > 0 || ticket.status === 'closed'}
+   667→            >
+   668→              <ClipboardList className="h-3.5 w-3.5" /> Create Work Order
+   669→            </Button>
+   670→
+   671→            <Button
+   672→              variant="outline"
+   673→              className="gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/30"
+   674→              onClick={() => setNoteOpen(true)}
+   675→              disabled={ticket.status === 'closed'}
+   676→            >
+   677→              <MessageSquare className="h-3.5 w-3.5" /> Add Note
+   678→            </Button>
+   679→          </div>
+   680→        </CardContent>
+   681→      </Card>
+   682→
+   683→      {/* ─── DIALOGS ─── */}
+   684→
+   685→      {/* Assign Technician Dialog */}
+   686→      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+   687→        <DialogContent className="sm:max-w-md">
+   688→          <DialogHeader>
+   689→            <DialogTitle>Assign Technician</DialogTitle>
+   690→          </DialogHeader>
+   691→          <div className="space-y-4">
+   692→            <div className="space-y-2">
+   693→              <Label>Select Technician</Label>
+   694→              <Select value={selectedTechId} onValueChange={setSelectedTechId}>
+   695→                <SelectTrigger>
+   696→                  <SelectValue placeholder="Choose a technician..." />
+   697→                </SelectTrigger>
+   698→                <SelectContent>
+   699→                  {technicians.map((t: any) => (
+   700→                    <SelectItem key={t.id} value={t.id}>
+   701→                      {t.employee?.name || t.name} — {t.specialization || 'General'}
+   702→                      {t.activeJobs > 0 && ` (${t.activeJobs} active)`}
+   703→                    </SelectItem>
+   704→                  ))}
+   705→                </SelectContent>
+   706→              </Select>
+   707→            </div>
+   708→          </div>
+   709→          <DialogFooter>
+   710→            <DialogClose asChild>
+   711→              <Button variant="outline">Cancel</Button>
+   712→            </DialogClose>
+   713→            <Button
+   714→              className="bg-rose-600 hover:bg-rose-700"
+   715→              disabled={!selectedTechId || assignMutation.isPending}
+   716→              onClick={() => assignMutation.mutate()}
+   717→            >
+   718→              {assignMutation.isPending ? 'Assigning...' : 'Assign'}
+   719→            </Button>
+   720→          </DialogFooter>
+   721→        </DialogContent>
+   722→      </Dialog>
+   723→
+   724→      {/* Update Status Dialog */}
+   725→      <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
+   726→        <DialogContent className="sm:max-w-md">
+   727→          <DialogHeader>
+   728→            <DialogTitle>Update Status</DialogTitle>
+   729→          </DialogHeader>
+   730→          <div className="space-y-4">
+   731→            <div className="space-y-2">
+   732→              <Label>Current Status</Label>
+   733→              <Badge variant="secondary" className={cn('text-xs', stat.color)}>{stat.label}</Badge>
+   734→            </div>
+   735→            <div className="space-y-2">
+   736→              <Label>New Status</Label>
+   737→              <Select value={newStatus} onValueChange={setNewStatus}>
+   738→                <SelectTrigger>
+   739→                  <SelectValue placeholder="Select new status..." />
+   740→                </SelectTrigger>
+   741→                <SelectContent>
+   742→                  {availableStatuses.map((s) => (
+   743→                    <SelectItem key={s} value={s}>
+   744→                      {STATUS_CONFIG[s]?.label || s}
+   745→                    </SelectItem>
+   746→                  ))}
+   747→                </SelectContent>
+   748→              </Select>
+   749→            </div>
+   750→          </div>
+   751→          <DialogFooter>
+   752→            <DialogClose asChild>
+   753→              <Button variant="outline">Cancel</Button>
+   754→            </DialogClose>
+   755→            <Button
+   756→              className="bg-rose-600 hover:bg-rose-700"
+   757→              disabled={!newStatus || statusMutation.isPending}
+   758→              onClick={() => statusMutation.mutate()}
+   759→            >
+   760→              {statusMutation.isPending ? 'Updating...' : 'Update Status'}
+   761→            </Button>
+   762→          </DialogFooter>
+   763→        </DialogContent>
+   764→      </Dialog>
+   765→
+   766→      {/* Create Work Order Dialog */}
+   767→      <Dialog open={woOpen} onOpenChange={setWoOpen}>
+   768→        <DialogContent className="sm:max-w-md">
+   769→          <DialogHeader>
+   770→            <DialogTitle>Create Work Order</DialogTitle>
+   771→          </DialogHeader>
+   772→          <div className="space-y-4">
+   773→            <p className="text-sm text-muted-foreground">
+   774→              This will create a new work order from ticket <span className="font-mono font-medium text-rose-600">{ticket.ticketNo}</span>.
+   775→              The work order will inherit the ticket&apos;s details.
+   776→            </p>
+   777→          </div>
+   778→          <DialogFooter>
+   779→            <DialogClose asChild>
+   780→              <Button variant="outline">Cancel</Button>
+   781→            </DialogClose>
+   782→            <Button
+   783→              className="bg-rose-600 hover:bg-rose-700"
+   784→              disabled={woMutation.isPending}
+   785→              onClick={() => woMutation.mutate()}
+   786→            >
+   787→              {woMutation.isPending ? 'Creating...' : 'Create Work Order'}
+   788→            </Button>
+   789→          </DialogFooter>
+   790→        </DialogContent>
+   791→      </Dialog>
+   792→
+   793→      {/* Add Note Dialog */}
+   794→      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+   795→        <DialogContent className="sm:max-w-md">
+   796→          <DialogHeader>
+   797→            <DialogTitle>Add Timeline Note</DialogTitle>
+   798→          </DialogHeader>
+   799→          <div className="space-y-4">
+   800→            <div className="space-y-2">
+   801→              <Label>Note</Label>
+   802→              <Textarea
+   803→                placeholder="Enter your note..."
+   804→                rows={4}
+   805→                value={noteText}
+   806→                onChange={e => setNoteText(e.target.value)}
+   807→              />
+   808→            </div>
+   809→          </div>
+   810→          <DialogFooter>
+   811→            <DialogClose asChild>
+   812→              <Button variant="outline">Cancel</Button>
+   813→            </DialogClose>
+   814→            <Button
+   815→              className="bg-rose-600 hover:bg-rose-700"
+   816→              disabled={!noteText.trim() || noteMutation.isPending}
+   817→              onClick={() => noteMutation.mutate()}
+   818→            >
+   819→              {noteMutation.isPending ? 'Adding...' : 'Add Note'}
+   820→            </Button>
+   821→          </DialogFooter>
+   822→        </DialogContent>
+   823→      </Dialog>
+   824→
+   825→      {/* Customer Approval Dialog */}
+   826→      <Dialog open={approvalOpen} onOpenChange={setApprovalOpen}>
+   827→        <DialogContent className="sm:max-w-lg">
+   828→          <DialogHeader>
+   829→            <DialogTitle>Customer Approval</DialogTitle>
+   830→          </DialogHeader>
+   831→          <div className="space-y-4">
+   832→            <p className="text-sm text-muted-foreground">
+   833→              Please rate the completed work and provide your feedback. This ticket will be marked as completed upon approval.
+   834→            </p>
+   835→            <div className="space-y-2">
+   836→              <Label>Rating</Label>
+   837→              <StarRating value={approvalRating} onChange={setApprovalRating} />
+   838→              {approvalRating > 0 && (
+   839→                <p className="text-xs text-muted-foreground">
+   840→                  {approvalRating === 1 && 'Poor'}
+   841→                  {approvalRating === 2 && 'Below Average'}
+   842→                  {approvalRating === 3 && 'Average'}
+   843→                  {approvalRating === 4 && 'Good'}
+   844→                  {approvalRating === 5 && 'Excellent'}
+   845→                </p>
+   846→              )}
+   847→            </div>
+   848→            <div className="space-y-2">
+   849→              <Label>Feedback</Label>
+   850→              <Textarea
+   851→                placeholder="Share your feedback about the service..."
+   852→                rows={3}
+   853→                value={approvalFeedback}
+   854→                onChange={e => setApprovalFeedback(e.target.value)}
+   855→              />
+   856→            </div>
+   857→            <div className="space-y-2">
+   858→              <Label>Signature (Type your full name)</Label>
+   859→              <Input
+   860→                placeholder="Your full name as signature"
+   861→                value={approvalSignature}
+   862→                onChange={e => setApprovalSignature(e.target.value)}
+   863→              />
+   864→            </div>
+   865→          </div>
+   866→          <DialogFooter>
+   867→            <DialogClose asChild>
+   868→              <Button variant="outline">Cancel</Button>
+   869→            </DialogClose>
+   870→            <Button
+   871→              className="bg-emerald-600 hover:bg-emerald-700"
+   872→              disabled={approvalRating === 0 || !approvalSignature.trim() || approvalMutation.isPending}
+   873→              onClick={() => approvalMutation.mutate()}
+   874→            >
+   875→              {approvalMutation.isPending ? 'Approving...' : 'Approve & Complete'}
+   876→            </Button>
+   877→          </DialogFooter>
+   878→        </DialogContent>
+   879→      </Dialog>
+   880→    </div>
+   881→  )
+   882→}
+   883→
+   884→// ─── Detail Row Helper ───
+   885→function DetailRow({ label, value }: { label: string; value: string }) {
+   886→  return (
+   887→    <div>
+   888→      <span className="text-xs text-muted-foreground">{label}</span>
+   889→      <p className="text-sm font-medium">{value}</p>
+   890→    </div>
+   891→  )
+   892→}

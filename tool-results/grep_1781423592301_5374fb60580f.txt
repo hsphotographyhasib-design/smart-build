@@ -1,0 +1,252 @@
+/home/z/my-project/src/components/maintenance/service-reports.tsx:77:          <Card key={stat.label}>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:78:            <CardContent className="p-4">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:79:              <p className="text-xs text-muted-foreground">{stat.label}</p>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:80:              <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:81:            </CardContent>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:82:          </Card>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:83:        ))}
+/home/z/my-project/src/components/maintenance/service-reports.tsx:84:      </div>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:85:
+/home/z/my-project/src/components/maintenance/service-reports.tsx:86:      {/* Reports Table */}
+/home/z/my-project/src/components/maintenance/service-reports.tsx:87:      <Card>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:88:        <CardHeader className="pb-3">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:89:          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:90:            <CardTitle className="text-base font-semibold">All Service Reports</CardTitle>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:91:            <div className="flex items-center gap-2">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:92:              <div className="relative">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:93:                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+/home/z/my-project/src/components/maintenance/service-reports.tsx:94:                <Input placeholder="Search reports..." className="pl-9 h-9 w-[200px]" />
+/home/z/my-project/src/components/maintenance/service-reports.tsx:95:              </div>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:96:              <Button variant="outline" size="sm" className="gap-2">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:97:                <Filter className="h-4 w-4" />
+/home/z/my-project/src/components/maintenance/service-reports.tsx:98:                Filter
+/home/z/my-project/src/components/maintenance/service-reports.tsx:99:              </Button>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:100:            </div>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:101:          </div>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:102:        </CardHeader>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:103:        <CardContent>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:104:          <Table>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:105:            <TableHeader>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:106:              <TableRow>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:107:                <TableHead className="w-[100px]">ID</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:108:                <TableHead>Title</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:109:                <TableHead className="hidden md:table-cell">Site</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:110:                <TableHead className="hidden sm:table-cell">Type</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:111:                <TableHead>Status</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:112:                <TableHead className="hidden lg:table-cell">Technician</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:113:                <TableHead className="hidden sm:table-cell">Date</TableHead>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:114:              </TableRow>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:115:            </TableHeader>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:116:            <TableBody>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:117:              {reports.map((r) => (
+/home/z/my-project/src/components/maintenance/service-reports.tsx:118:                <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:119:                  <TableCell className="font-mono text-xs">{r.id}</TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:120:                  <TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:121:                    <div className="flex items-center gap-2">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:122:                      <FileBarChart className="h-4 w-4 text-muted-foreground shrink-0" />
+/home/z/my-project/src/components/maintenance/service-reports.tsx:123:                      <span className="font-medium text-sm">{r.title}</span>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:124:                    </div>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:125:                  </TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:126:                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{r.site}</TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:127:                  <TableCell className="hidden sm:table-cell">
+/home/z/my-project/src/components/maintenance/service-reports.tsx:128:                    <Badge variant="secondary" className={getTypeBadge(r.type)}>{r.type}</Badge>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:129:                  </TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:130:                  <TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:131:                    <Badge variant="secondary" className={getStatusBadge(r.status)}>{r.status}</Badge>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:132:                  </TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:133:                  <TableCell className="hidden lg:table-cell text-sm">{r.technician}</TableCell>
+/home/z/my-project/src/components/maintenance/service-reports.tsx:134:                  <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{r.date}</TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:230:          <Card key={kpi.label} className="relative overflow-hidden">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:231:            <CardContent className="p-4">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:232:              <div className="flex items-start justify-between">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:233:                <div className="space-y-1">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:234:                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:235:                  <p className="text-2xl font-bold">{kpi.value}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:236:                  <p className="text-xs text-muted-foreground">{kpi.sub}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:237:                </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:238:                <div className={cn('p-2.5 rounded-lg', kpi.bg)}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:239:                  <kpi.icon className={cn('h-5 w-5', kpi.color)} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:240:                </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:241:              </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:242:            </CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:243:          </Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:244:        ))}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:245:      </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:246:
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:247:      {/* Charts Row */}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:248:      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:249:        {/* Category Breakdown Pie Chart */}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:250:        <Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:251:          <CardHeader className="pb-2">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:252:            <CardTitle className="text-sm font-semibold">Tickets by Category</CardTitle>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:253:            <CardDescription className="text-xs">Distribution across maintenance categories</CardDescription>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:254:          </CardHeader>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:255:          <CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:256:            {categoryChartData.length > 0 ? (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:257:              <div className="h-72">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:258:                <ResponsiveContainer width="100%" height="100%">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:259:                  <PieChart>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:260:                    <Pie
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:261:                      data={categoryChartData}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:262:                      dataKey="value"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:263:                      nameKey="name"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:264:                      cx="50%"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:265:                      cy="45%"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:266:                      outerRadius={80}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:267:                      label={({ name, percent }) => `${name.slice(0, 12)} ${(percent * 100).toFixed(0)}%`}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:268:                      labelLine={{ strokeWidth: 1 }}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:269:                    >
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:270:                      {categoryChartData.map((_, i) => (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:271:                        <Cell key={i} fill={ROSE_COLORS[i % ROSE_COLORS.length]} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:272:                      ))}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:273:                    </Pie>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:274:                    <Tooltip formatter={(value: number) => `${value} tickets`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:275:                  </PieChart>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:276:                </ResponsiveContainer>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:277:              </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:278:            ) : (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:279:              <div className="h-72 flex items-center justify-center text-sm text-muted-foreground">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:280:                No ticket data available
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:281:              </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:282:            )}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:283:          </CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:284:        </Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:285:
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:286:        {/* Priority Breakdown Bar Chart */}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:287:        <Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:288:          <CardHeader className="pb-2">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:289:            <CardTitle className="text-sm font-semibold">Tickets by Priority</CardTitle>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:290:            <CardDescription className="text-xs">Current ticket distribution by priority level</CardDescription>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:291:          </CardHeader>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:292:          <CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:293:            {priorityChartData.length > 0 ? (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:294:              <div className="h-72">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:295:                <ResponsiveContainer width="100%" height="100%">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:296:                  <BarChart data={priorityChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:297:                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:298:                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:299:                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:300:                    <Tooltip
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:301:                      formatter={(value: number) => `${value} tickets`}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:302:                      contentStyle={{ fontSize: 12, borderRadius: 8 }}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:303:                    />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:304:                    <Bar dataKey="count" name="Tickets" radius={[4, 4, 0, 0]}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:305:                      {priorityChartData.map((entry, i) => (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:306:                        <Cell key={i} fill={entry.fill} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:307:                      ))}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:308:                    </Bar>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:309:                  </BarChart>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:310:                </ResponsiveContainer>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:311:              </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:312:            ) : (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:313:              <div className="h-72 flex items-center justify-center text-sm text-muted-foreground">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:314:                No ticket data available
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:315:              </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:316:            )}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:317:          </CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:318:        </Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:319:      </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:320:
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:321:      {/* Recent Tickets Table */}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:322:      <Card>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:323:        <CardHeader className="pb-2">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:324:          <div className="flex items-center justify-between">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:325:            <div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:326:              <CardTitle className="text-sm font-semibold">Recent Tickets</CardTitle>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:327:              <CardDescription className="text-xs">Last 10 maintenance tickets</CardDescription>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:328:            </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:329:            <Button
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:330:              variant="link"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:331:              size="sm"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:332:              className="text-rose-600"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:333:              onClick={() => navigate('maintenance-service-requests')}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:334:            >
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:335:              View All
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:336:            </Button>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:337:          </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:338:        </CardHeader>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:339:        <CardContent className="p-0">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:340:          {recentTickets && recentTickets.length > 0 ? (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:341:            <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:342:              <Table>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:343:                <TableHeader>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:344:                  <TableRow>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:345:                    <TableHead className="w-8"></TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:346:                    <TableHead className="text-xs">Ticket #</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:347:                    <TableHead className="text-xs">Subject</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:348:                    <TableHead className="text-xs">Category</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:349:                    <TableHead className="text-xs">Priority</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:350:                    <TableHead className="text-xs">Status</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:351:                    <TableHead className="text-xs">Created</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:352:                  </TableRow>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:353:                </TableHeader>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:354:                <TableBody>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:355:                  {recentTickets.slice(0, 10).map((ticket: any) => {
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:356:                    const pri = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.medium
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:357:                    const stat = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.new
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:358:                    const isExpanded = expandedId === ticket.id
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:359:                    return (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:360:                      <React.Fragment key={ticket.id}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:361:                        <TableRow
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:362:                          className="cursor-pointer hover:bg-muted/40"
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:363:                          onClick={() => setExpandedId(prev => prev === ticket.id ? null : ticket.id)}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:364:                        >
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:365:                          <TableCell className="py-3">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:366:                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:367:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:368:                          <TableCell className="text-xs font-mono text-rose-600">{ticket.ticketNo}</TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:369:                          <TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:370:                            <div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:371:                              <p className="text-sm font-medium">{ticket.subject}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:372:                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">{ticket.description}</p>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:373:                            </div>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:374:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:375:                          <TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:376:                            <Badge variant="secondary" className="text-xs">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:377:                              {CATEGORY_LABELS[ticket.category] || ticket.category}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:378:                            </Badge>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:379:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:380:                          <TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:381:                            <Badge variant="secondary" className={cn('gap-1.5 text-xs', pri.color)}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:382:                              <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:383:                              {pri.label}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:384:                            </Badge>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:385:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:386:                          <TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:387:                            <Badge variant="secondary" className={cn('text-xs', stat.color)}>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:388:                              {stat.label}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:389:                            </Badge>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:390:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:391:                          <TableCell className="text-xs text-muted-foreground">
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:392:                            {new Date(ticket.createdAt).toLocaleDateString()}
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:393:                          </TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:394:                        </TableRow>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:395:                        {isExpanded && (
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:396:                          <TableRow>
+/home/z/my-project/src/components/maintenance/maintenance-dashboard.tsx:397:                            <TableCell colSpan={7} className="bg-muted/20 px-6 py-4">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:164:        <Card>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:165:          <CardContent className="p-4">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:166:            <div className="flex items-center gap-2 mb-1">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:167:              <Receipt className="h-4 w-4 text-muted-foreground" />
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:168:              <p className="text-xs text-muted-foreground">Total</p>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:169:            </div>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:170:            <p className="text-2xl font-bold">{invoices.length}</p>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:171:          </CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:172:        </Card>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:173:        <Card className="border-gray-200 dark:border-gray-700">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:174:          <CardContent className="p-4">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:175:            <div className="flex items-center gap-2 mb-1">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:176:              <FileText className="h-4 w-4 text-gray-500" />
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:177:              <p className="text-xs text-muted-foreground">Draft</p>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:178:            </div>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:179:            <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{draftCount}</p>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:180:          </CardContent>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:181:        </Card>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:182:        <Card className="border-blue-200 dark:border-blue-800">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:183:          <CardContent className="p-4">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:184:            <div className="flex items-center gap-2 mb-1">
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:185:              <Send className="h-4 w-4 text-blue-600" />
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:186:              <p className="text-xs text-muted-foreground">Sent</p>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:187:            </div>
+
+[Showing results with pagination = limit: 250]

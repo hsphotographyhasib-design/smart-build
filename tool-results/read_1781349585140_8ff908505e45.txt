@@ -1,0 +1,598 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import React, { useState } from 'react'
+     4→     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→     5→import { api } from '@/lib/store'
+     6→     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→     7→import { Badge } from '@/components/ui/badge'
+     8→     8→import { Button } from '@/components/ui/button'
+     9→     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→    10→import { Input } from '@/components/ui/input'
+    11→    11→import { Label } from '@/components/ui/label'
+    12→    12→import { Textarea } from '@/components/ui/textarea'
+    13→    13→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    14→    14→import { Separator } from '@/components/ui/separator'
+    15→    15→import {
+    16→    16→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger,
+    17→    17→} from '@/components/ui/dialog'
+    18→    18→import {
+    19→    19→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    20→    20→} from '@/components/ui/table'
+    21→    21→import { useToast } from '@/hooks/use-toast'
+    22→    22→import {
+    23→    23→  Plus, Pencil, Eye, Send, CheckCircle, XCircle, FileText, DollarSign,
+    24→    24→  Receipt, TrendingUp,
+    25→    25→} from 'lucide-react'
+    26→    26→import { cn } from '@/lib/utils'
+    27→    27→
+    28→    28→// ─── Config ───
+    29→    29→const invoiceStatusConfig: Record<string, { label: string; color: string }> = {
+    30→    30→  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+    31→    31→  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+    32→    32→  paid: { label: 'Paid', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' },
+    33→    33→  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' },
+    34→    34→}
+    35→    35→
+    36→    36→function formatCurrency(val: number) {
+    37→    37→  return `$${val.toFixed(2)}`
+    38→    38→}
+    39→    39→
+    40→    40→function formatDate(d: string | null) {
+    41→    41→  if (!d) return '—'
+    42→    42→  return new Date(d).toLocaleDateString()
+    43→    43→}
+    44→    44→
+    45→    45→export function MaintenanceInvoices() {
+    46→    46→  const { toast } = useToast()
+    47→    47→  const queryClient = useQueryClient()
+    48→    48→  const [createOpen, setCreateOpen] = useState(false)
+    49→    49→  const [viewOpen, setViewOpen] = useState(false)
+    50→    50→  const [editOpen, setEditOpen] = useState(false)
+    51→    51→  const [viewingInvoice, setViewingInvoice] = useState<any>(null)
+    52→    52→  const [editingInvoice, setEditingInvoice] = useState<any>(null)
+    53→    53→  const [statusFilter, setStatusFilter] = useState('all')
+    54→    54→
+    55→    55→  // Fetch invoices
+    56→    56→  const { data: invData, isLoading } = useQuery({
+    57→    57→    queryKey: ['maintenance-invoices', statusFilter],
+    58→    58→    queryFn: () => {
+    59→    59→      const params = new URLSearchParams()
+    60→    60→      if (statusFilter !== 'all') params.set('status', statusFilter)
+    61→    61→      return api.get(`/api/maintenance/invoices${params.toString() ? `?${params.toString()}` : ''}`)
+    62→    62→    },
+    63→    63→  })
+    64→    64→  const invoices = invData?.data || []
+    65→    65→
+    66→    66→  // Fetch customers
+    67→    67→  const { data: customersData } = useQuery({
+    68→    68→    queryKey: ['customers-inv'],
+    69→    69→    queryFn: () => api.get('/api/customers'),
+    70→    70→  })
+    71→    71→  const customers = customersData?.data || []
+    72→    72→
+    73→    73→  // Fetch tickets for linking
+    74→    74→  const { data: ticketsData } = useQuery({
+    75→    75→    queryKey: ['maintenance-tickets-inv'],
+    76→    76→    queryFn: () => api.get('/api/maintenance/tickets?status=resolved'),
+    77→    77→  })
+    78→    78→  const tickets = ticketsData?.data || []
+    79→    79→
+    80→    80→  // Create mutation
+    81→    81→  const createMutation = useMutation({
+    82→    82→    mutationFn: (body: any) => api.post('/api/maintenance/invoices', body),
+    83→    83→    onSuccess: () => {
+    84→    84→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+    85→    85→      setCreateOpen(false)
+    86→    86→      toast({ title: 'Invoice Created', description: 'New maintenance invoice created.' })
+    87→    87→    },
+    88→    88→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+    89→    89→  })
+    90→    90→
+    91→    91→  // Update mutation
+    92→    92→  const updateMutation = useMutation({
+    93→    93→    mutationFn: ({ id, body }: { id: string; body: any }) => api.put(`/api/maintenance/invoices/${id}`, body),
+    94→    94→    onSuccess: () => {
+    95→    95→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+    96→    96→      setEditOpen(false)
+    97→    97→      setEditingInvoice(null)
+    98→    98→      setViewOpen(false)
+    99→    99→      setViewingInvoice(null)
+   100→   100→      toast({ title: 'Updated', description: 'Invoice updated.' })
+   101→   101→    },
+   102→   102→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+   103→   103→  })
+   104→   104→
+   105→   105→  // Status change mutation
+   106→   106→  const statusMutation = useMutation({
+   107→   107→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/maintenance/invoices/${id}`, { status }),
+   108→   108→    onSuccess: (_, vars) => {
+   109→   109→      queryClient.invalidateQueries({ queryKey: ['maintenance-invoices'] })
+   110→   110→      toast({ title: 'Status Updated', description: `Invoice marked as ${vars.status}.` })
+   111→   111→    },
+   112→   112→    onError: (err: any) => toast({ title: 'Error', description: err.error || 'Failed', variant: 'destructive' }),
+   113→   113→  })
+   114→   114→
+   115→   115→  // Compute stats
+   116→   116→  const draftCount = invoices.filter((inv: any) => inv.status === 'draft').length
+   117→   117→  const sentCount = invoices.filter((inv: any) => inv.status === 'sent').length
+   118→   118→  const paidCount = invoices.filter((inv: any) => inv.status === 'paid').length
+   119→   119→  const totalRevenue = invoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + (inv.total || 0), 0)
+   120→   120→
+   121→   121→  // Summary totals
+   122→   122→  const summaryTotals = invoices.reduce(
+   123→   123→    (acc, inv: any) => ({
+   124→   124→      labour: acc.labour + (inv.labourCost || 0),
+   125→   125→      materials: acc.materials + (inv.materialCost || 0),
+   126→   126→      transport: acc.transport + (inv.transportCost || 0),
+   127→   127→      service: acc.service + (inv.serviceCharges || 0),
+   128→   128→      tax: acc.tax + (inv.tax || 0),
+   129→   129→      discount: acc.discount + (inv.discount || 0),
+   130→   130→      total: acc.total + (inv.total || 0),
+   131→   131→    }),
+   132→   132→    { labour: 0, materials: 0, transport: 0, service: 0, tax: 0, discount: 0, total: 0 }
+   133→   133→  )
+   134→   134→
+   135→   135→  return (
+   136→   136→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   137→   137→      {/* Header */}
+   138→   138→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   139→   139→        <div>
+   140→   140→          <h1 className="text-2xl font-bold tracking-tight">Maintenance Invoicing</h1>
+   141→   141→          <p className="text-muted-foreground text-sm mt-0.5">Generate and manage invoices for maintenance work</p>
+   142→   142→        </div>
+   143→   143→        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+   144→   144→          <DialogTrigger asChild>
+   145→   145→            <Button className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   146→   146→              <Plus className="h-3.5 w-3.5" /> New Invoice
+   147→   147→            </Button>
+   148→   148→          </DialogTrigger>
+   149→   149→          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+   150→   150→            <DialogHeader>
+   151→   151→              <DialogTitle>Create Invoice</DialogTitle>
+   152→   152→              <DialogDescription>Generate a new maintenance invoice</DialogDescription>
+   153→   153→            </DialogHeader>
+   154→   154→            <CreateInvoiceForm
+   155→   155→              customers={customers}
+   156→   156→              tickets={tickets}
+   157→   157→              onSubmit={(body) => createMutation.mutate(body)}
+   158→   158→              loading={createMutation.isPending}
+   159→   159→            />
+   160→   160→          </DialogContent>
+   161→   161→        </Dialog>
+   162→   162→      </div>
+   163→   163→
+   164→   164→      {/* Stat Cards */}
+   165→   165→      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+   166→   166→        <Card>
+   167→   167→          <CardContent className="p-4">
+   168→   168→            <div className="flex items-center gap-2 mb-1">
+   169→   169→              <Receipt className="h-4 w-4 text-muted-foreground" />
+   170→   170→              <p className="text-xs text-muted-foreground">Total</p>
+   171→   171→            </div>
+   172→   172→            <p className="text-2xl font-bold">{invoices.length}</p>
+   173→   173→          </CardContent>
+   174→   174→        </Card>
+   175→   175→        <Card className="border-gray-200 dark:border-gray-700">
+   176→   176→          <CardContent className="p-4">
+   177→   177→            <div className="flex items-center gap-2 mb-1">
+   178→   178→              <FileText className="h-4 w-4 text-gray-500" />
+   179→   179→              <p className="text-xs text-muted-foreground">Draft</p>
+   180→   180→            </div>
+   181→   181→            <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{draftCount}</p>
+   182→   182→          </CardContent>
+   183→   183→        </Card>
+   184→   184→        <Card className="border-blue-200 dark:border-blue-800">
+   185→   185→          <CardContent className="p-4">
+   186→   186→            <div className="flex items-center gap-2 mb-1">
+   187→   187→              <Send className="h-4 w-4 text-blue-600" />
+   188→   188→              <p className="text-xs text-muted-foreground">Sent</p>
+   189→   189→            </div>
+   190→   190→            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{sentCount}</p>
+   191→   191→          </CardContent>
+   192→   192→        </Card>
+   193→   193→        <Card className="border-green-200 dark:border-green-800">
+   194→   194→          <CardContent className="p-4">
+   195→   195→            <div className="flex items-center gap-2 mb-1">
+   196→   196→              <CheckCircle className="h-4 w-4 text-green-600" />
+   197→   197→              <p className="text-xs text-muted-foreground">Paid</p>
+   198→   198→            </div>
+   199→   199→            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{paidCount}</p>
+   200→   200→          </CardContent>
+   201→   201→        </Card>
+   202→   202→        <Card className="border-emerald-200 dark:border-emerald-800">
+   203→   203→          <CardContent className="p-4">
+   204→   204→            <div className="flex items-center gap-2 mb-1">
+   205→   205→              <DollarSign className="h-4 w-4 text-emerald-600" />
+   206→   206→              <p className="text-xs text-muted-foreground">Revenue (Paid)</p>
+   207→   207→            </div>
+   208→   208→            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(totalRevenue)}</p>
+   209→   209→          </CardContent>
+   210→   210→        </Card>
+   211→   211→      </div>
+   212→   212→
+   213→   213→      {/* Status Filter */}
+   214→   214→      <div className="flex gap-2">
+   215→   215→        {['all', 'draft', 'sent', 'paid', 'cancelled'].map((s) => (
+   216→   216→          <Button
+   217→   217→            key={s}
+   218→   218→            size="sm"
+   219→   219→            variant={statusFilter === s ? 'default' : 'outline'}
+   220→   220→            className={statusFilter === s ? 'bg-rose-600 hover:bg-rose-700' : ''}
+   221→   221→            onClick={() => setStatusFilter(s)}
+   222→   222→          >
+   223→   223→            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+   224→   224→          </Button>
+   225→   225→        ))}
+   226→   226→      </div>
+   227→   227→
+   228→   228→      {/* Table */}
+   229→   229→      <Card>
+   230→   230→        <CardContent className="p-0">
+   231→   231→          {isLoading ? (
+   232→   232→            <div className="p-6 space-y-3">
+   233→   233→              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   234→   234→            </div>
+   235→   235→          ) : invoices.length === 0 ? (
+   236→   236→            <div className="flex flex-col items-center justify-center py-16">
+   237→   237→              <FileText className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   238→   238→              <p className="text-sm text-muted-foreground">No invoices found</p>
+   239→   239→              <Button size="sm" variant="outline" className="mt-3 gap-1.5 bg-rose-600 hover:bg-rose-700 text-white" onClick={() => setCreateOpen(true)}>
+   240→   240→                <Plus className="h-3.5 w-3.5" /> Create Invoice
+   241→   241→              </Button>
+   242→   242→            </div>
+   243→   243→          ) : (
+   244→   244→            <div className="max-h-96 overflow-y-auto">
+   245→   245→              <Table>
+   246→   246→                <TableHeader>
+   247→   247→                  <TableRow className="sticky top-0 bg-background z-10">
+   248→   248→                    <TableHead>Invoice #</TableHead>
+   249→   249→                    <TableHead>Customer</TableHead>
+   250→   250→                    <TableHead className="hidden md:table-cell">Ticket</TableHead>
+   251→   251→                    <TableHead className="hidden lg:table-cell text-right">Labour</TableHead>
+   252→   252→                    <TableHead className="hidden lg:table-cell text-right">Materials</TableHead>
+   253→   253→                    <TableHead className="text-right">Tax</TableHead>
+   254→   254→                    <TableHead className="text-right">Total</TableHead>
+   255→   255→                    <TableHead>Status</TableHead>
+   256→   256→                    <TableHead className="hidden sm:table-cell">Date</TableHead>
+   257→   257→                    <TableHead className="w-32">Actions</TableHead>
+   258→   258→                  </TableRow>
+   259→   259→                </TableHeader>
+   260→   260→                <TableBody>
+   261→   261→                  {invoices.map((inv: any) => {
+   262→   262→                    const stat = invoiceStatusConfig[inv.status] || invoiceStatusConfig.draft
+   263→   263→                    return (
+   264→   264→                      <TableRow key={inv.id}>
+   265→   265→                        <TableCell className="text-sm font-mono font-medium">{inv.mivNo}</TableCell>
+   266→   266→                        <TableCell className="text-sm">{inv.customerName || inv.customer?.name || '—'}</TableCell>
+   267→   267→                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{inv.ticketNo || '—'}</TableCell>
+   268→   268→                        <TableCell className="hidden lg:table-cell text-right text-sm">{formatCurrency(inv.labourCost || 0)}</TableCell>
+   269→   269→                        <TableCell className="hidden lg:table-cell text-right text-sm">{formatCurrency(inv.materialCost || 0)}</TableCell>
+   270→   270→                        <TableCell className="text-right text-sm">{formatCurrency(inv.tax || 0)}</TableCell>
+   271→   271→                        <TableCell className="text-right text-sm font-bold">{formatCurrency(inv.total || 0)}</TableCell>
+   272→   272→                        <TableCell>
+   273→   273→                          <Badge variant="secondary" className={cn('text-xs', stat.color)}>{stat.label}</Badge>
+   274→   274→                        </TableCell>
+   275→   275→                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{formatDate(inv.createdAt)}</TableCell>
+   276→   276→                        <TableCell>
+   277→   277→                          <div className="flex items-center gap-1">
+   278→   278→                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setViewingInvoice(inv); setViewOpen(true) }} title="View">
+   279→   279→                              <Eye className="h-3 w-3" />
+   280→   280→                            </Button>
+   281→   281→                            {inv.status === 'draft' && (
+   282→   282→                              <>
+   283→   283→                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingInvoice(inv); setEditOpen(true) }} title="Edit">
+   284→   284→                                  <Pencil className="h-3 w-3" />
+   285→   285→                                </Button>
+   286→   286→                                <Button size="sm" variant="ghost" className="h-7 text-xs text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'sent' })}>
+   287→   287→                                  <Send className="h-3 w-3 mr-0.5" /> Send
+   288→   288→                                </Button>
+   289→   289→                              </>
+   290→   290→                            )}
+   291→   291→                            {inv.status === 'sent' && (
+   292→   292→                              <Button size="sm" variant="ghost" className="h-7 text-xs text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'paid' })}>
+   293→   293→                                <CheckCircle className="h-3 w-3 mr-0.5" /> Paid
+   294→   294→                              </Button>
+   295→   295→                            )}
+   296→   296→                            {(inv.status === 'draft' || inv.status === 'sent') && (
+   297→   297→                              <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => statusMutation.mutate({ id: inv.id, status: 'cancelled' })} title="Cancel">
+   298→   298→                                <XCircle className="h-3 w-3" />
+   299→   299→                              </Button>
+   300→   300→                            )}
+   301→   301→                          </div>
+   302→   302→                        </TableCell>
+   303→   303→                      </TableRow>
+   304→   304→                    )
+   305→   305→                  })}
+   306→   306→                </TableBody>
+   307→   307→              </Table>
+   308→   308→            </div>
+   309→   309→          )}
+   310→   310→        </CardContent>
+   311→   311→      </Card>
+   312→   312→
+   313→   313→      {/* Summary */}
+   314→   314→      {invoices.length > 0 && (
+   315→   315→        <Card className="border-rose-200 dark:border-rose-800">
+   316→   316→          <CardContent className="p-4">
+   317→   317→            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+   318→   318→              <div>
+   319→   319→                <span className="text-muted-foreground">Total Labour:</span>
+   320→   320→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.labour)}</span>
+   321→   321→              </div>
+   322→   322→              <div>
+   323→   323→                <span className="text-muted-foreground">Materials:</span>
+   324→   324→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.materials)}</span>
+   325→   325→              </div>
+   326→   326→              <div>
+   327→   327→                <span className="text-muted-foreground">Transport:</span>
+   328→   328→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.transport)}</span>
+   329→   329→              </div>
+   330→   330→              <div>
+   331→   331→                <span className="text-muted-foreground">Service:</span>
+   332→   332→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.service)}</span>
+   333→   333→              </div>
+   334→   334→              <Separator orientation="vertical" className="h-4" />
+   335→   335→              <div>
+   336→   336→                <span className="text-muted-foreground">Tax:</span>
+   337→   337→                <span className="font-medium ml-1">{formatCurrency(summaryTotals.tax)}</span>
+   338→   338→              </div>
+   339→   339→              <div>
+   340→   340→                <span className="text-muted-foreground">Discount:</span>
+   341→   341→                <span className="font-medium ml-1 text-green-600">-{formatCurrency(summaryTotals.discount)}</span>
+   342→   342→              </div>
+   343→   343→              <Separator orientation="vertical" className="h-4" />
+   344→   344→              <div className="text-lg font-bold text-rose-600">
+   345→   345→                Grand Total: {formatCurrency(summaryTotals.total)}
+   346→   346→              </div>
+   347→   347→            </div>
+   348→   348→          </CardContent>
+   349→   349→        </Card>
+   350→   350→      )}
+   351→   351→
+   352→   352→      {/* View Dialog */}
+   353→   353→      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+   354→   354→        <DialogContent className="sm:max-w-lg">
+   355→   355→          <DialogHeader>
+   356→   356→            <DialogTitle>Invoice Details</DialogTitle>
+   357→   357→          </DialogHeader>
+   358→   358→          {viewingInvoice && (
+   359→   359→            <div className="space-y-4">
+   360→   360→              <div className="grid grid-cols-2 gap-4 text-sm">
+   361→   361→                <div><span className="text-muted-foreground">Invoice #:</span> <span className="font-mono font-medium">{viewingInvoice.mivNo}</span></div>
+   362→   362→                <div><span className="text-muted-foreground">Status:</span> <Badge variant="secondary" className={cn('text-xs', invoiceStatusConfig[viewingInvoice.status]?.color)}>{invoiceStatusConfig[viewingInvoice.status]?.label}</Badge></div>
+   363→   363→                <div><span className="text-muted-foreground">Customer:</span> <span className="font-medium">{viewingInvoice.customerName || '—'}</span></div>
+   364→   364→                <div><span className="text-muted-foreground">Ticket:</span> <span>{viewingInvoice.ticketNo || '—'}</span></div>
+   365→   365→                <div><span className="text-muted-foreground">Date:</span> <span>{formatDate(viewingInvoice.createdAt)}</span></div>
+   366→   366→              </div>
+   367→   367→              <Separator />
+   368→   368→              <div className="space-y-2 text-sm">
+   369→   369→                <div className="flex justify-between"><span className="text-muted-foreground">Labour Cost</span><span>{formatCurrency(viewingInvoice.labourCost || 0)}</span></div>
+   370→   370→                <div className="flex justify-between"><span className="text-muted-foreground">Material Cost</span><span>{formatCurrency(viewingInvoice.materialCost || 0)}</span></div>
+   371→   371→                <div className="flex justify-between"><span className="text-muted-foreground">Transport Cost</span><span>{formatCurrency(viewingInvoice.transportCost || 0)}</span></div>
+   372→   372→                <div className="flex justify-between"><span className="text-muted-foreground">Service Charges</span><span>{formatCurrency(viewingInvoice.serviceCharges || 0)}</span></div>
+   373→   373→                <Separator />
+   374→   374→                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-medium">{formatCurrency((viewingInvoice.labourCost || 0) + (viewingInvoice.materialCost || 0) + (viewingInvoice.transportCost || 0) + (viewingInvoice.serviceCharges || 0))}</span></div>
+   375→   375→                <div className="flex justify-between"><span className="text-muted-foreground">Tax ({viewingInvoice.taxPercent || 0}%)</span><span>{formatCurrency(viewingInvoice.tax || 0)}</span></div>
+   376→   376→                <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(viewingInvoice.discount || 0)}</span></div>
+   377→   377→                <Separator />
+   378→   378→                <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(viewingInvoice.total || 0)}</span></div>
+   379→   379→              </div>
+   380→   380→              {viewingInvoice.notes && (
+   381→   381→                <div className="text-sm"><span className="text-muted-foreground">Notes:</span> <p className="mt-1">{viewingInvoice.notes}</p></div>
+   382→   382→              )}
+   383→   383→            </div>
+   384→   384→          )}
+   385→   385→        </DialogContent>
+   386→   386→      </Dialog>
+   387→   387→
+   388→   388→      {/* Edit Dialog */}
+   389→   389→      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+   390→   390→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+   391→   391→          <DialogHeader>
+   392→   392→            <DialogTitle>Edit Invoice</DialogTitle>
+   393→   393→            <DialogDescription>Update invoice details</DialogDescription>
+   394→   394→          </DialogHeader>
+   395→   395→          {editingInvoice && (
+   396→   396→            <EditInvoiceForm
+   397→   397→              invoice={editingInvoice}
+   398→   398→              onSubmit={(body) => updateMutation.mutate({ id: editingInvoice.id, body })}
+   399→   399→              loading={updateMutation.isPending}
+   400→   400→            />
+   401→   401→          )}
+   402→   402→        </DialogContent>
+   403→   403→      </Dialog>
+   404→   404→    </div>
+   405→   405→  )
+   406→   406→}
+   407→   407→
+   408→   408→// ─── Create Invoice Form ───
+   409→   409→function CreateInvoiceForm({ customers, tickets, onSubmit, loading }: {
+   410→   410→  customers: any[]; tickets: any[]; onSubmit: (data: any) => void; loading: boolean
+   411→   411→}) {
+   412→   412→  const [form, setForm] = useState({
+   413→   413→    customerId: '',
+   414→   414→    ticketId: '',
+   415→   415→    workOrderId: '',
+   416→   416→    labourCost: 0,
+   417→   417→    materialCost: 0,
+   418→   418→    transportCost: 0,
+   419→   419→    serviceCharges: 0,
+   420→   420→    taxPercent: 10,
+   421→   421→    discount: 0,
+   422→   422→    notes: '',
+   423→   423→  })
+   424→   424→
+   425→   425→  const subtotal = form.labourCost + form.materialCost + form.transportCost + form.serviceCharges
+   426→   426→  const tax = subtotal * (form.taxPercent / 100)
+   427→   427→  const total = subtotal + tax - form.discount
+   428→   428→
+   429→   429→  const handleTicketSelect = (ticketId: string) => {
+   430→   430→    const ticket = tickets.find((t: any) => t.id === ticketId)
+   431→   431→    setForm((f) => ({
+   432→   432→      ...f,
+   433→   433→      ticketId,
+   434→   434→      customerId: ticket?.customerId || f.customerId,
+   435→   435→    }))
+   436→   436→  }
+   437→   437→
+   438→   438→  const handleSubmit = (e: React.FormEvent) => {
+   439→   439→    e.preventDefault()
+   440→   440→    if (!form.customerId) return
+   441→   441→    onSubmit({
+   442→   442→      ...form,
+   443→   443→      tax,
+   444→   444→      total,
+   445→   445→    })
+   446→   446→    setForm({ customerId: '', ticketId: '', workOrderId: '', labourCost: 0, materialCost: 0, transportCost: 0, serviceCharges: 0, taxPercent: 10, discount: 0, notes: '' })
+   447→   447→  }
+   448→   448→
+   449→   449→  return (
+   450→   450→    <form onSubmit={handleSubmit} className="space-y-4">
+   451→   451→      <div className="space-y-2">
+   452→   452→        <Label>Customer *</Label>
+   453→   453→        <Select value={form.customerId} onValueChange={(v) => setForm((f) => ({ ...f, customerId: v }))}>
+   454→   454→          <SelectTrigger><SelectValue placeholder="Select customer..." /></SelectTrigger>
+   455→   455→          <SelectContent>
+   456→   456→            {customers.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+   457→   457→          </SelectContent>
+   458→   458→        </Select>
+   459→   459→      </div>
+   460→   460→      <div className="space-y-2">
+   461→   461→        <Label>Link to Ticket (optional)</Label>
+   462→   462→        <Select value={form.ticketId} onValueChange={handleTicketSelect}>
+   463→   463→          <SelectTrigger><SelectValue placeholder="Select ticket..." /></SelectTrigger>
+   464→   464→          <SelectContent>
+   465→   465→            {tickets.filter((t: any) => !form.customerId || t.customerId === form.customerId).map((t: any) => (
+   466→   466→              <SelectItem key={t.id} value={t.id}>{t.ticketNo} — {t.title || t.subject || 'Untitled'}</SelectItem>
+   467→   467→            ))}
+   468→   468→          </SelectContent>
+   469→   469→        </Select>
+   470→   470→      </div>
+   471→   471→
+   472→   472→      <Separator />
+   473→   473→      <div className="grid grid-cols-2 gap-4">
+   474→   474→        <div className="space-y-2">
+   475→   475→          <Label>Labour Cost ($)</Label>
+   476→   476→          <Input type="number" min={0} step={0.01} value={form.labourCost} onChange={(e) => setForm((f) => ({ ...f, labourCost: Number(e.target.value) }))} />
+   477→   477→        </div>
+   478→   478→        <div className="space-y-2">
+   479→   479→          <Label>Material Cost ($)</Label>
+   480→   480→          <Input type="number" min={0} step={0.01} value={form.materialCost} onChange={(e) => setForm((f) => ({ ...f, materialCost: Number(e.target.value) }))} />
+   481→   481→        </div>
+   482→   482→        <div className="space-y-2">
+   483→   483→          <Label>Transport Cost ($)</Label>
+   484→   484→          <Input type="number" min={0} step={0.01} value={form.transportCost} onChange={(e) => setForm((f) => ({ ...f, transportCost: Number(e.target.value) }))} />
+   485→   485→        </div>
+   486→   486→        <div className="space-y-2">
+   487→   487→          <Label>Service Charges ($)</Label>
+   488→   488→          <Input type="number" min={0} step={0.01} value={form.serviceCharges} onChange={(e) => setForm((f) => ({ ...f, serviceCharges: Number(e.target.value) }))} />
+   489→   489→        </div>
+   490→   490→        <div className="space-y-2">
+   491→   491→          <Label>Tax (%)</Label>
+   492→   492→          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+   493→   493→        </div>
+   494→   494→        <div className="space-y-2">
+   495→   495→          <Label>Discount ($)</Label>
+   496→   496→          <Input type="number" min={0} step={0.01} value={form.discount} onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))} />
+   497→   497→        </div>
+   498→   498→      </div>
+   499→   499→
+   500→   500→      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-200 dark:border-rose-800 space-y-1 text-sm">
+   501→   501→        <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+   502→   502→        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+   503→   503→        <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(form.discount)}</span></div>
+   504→   504→        <Separator />
+   505→   505→        <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(total)}</span></div>
+   506→   506→      </div>
+   507→   507→
+   508→   508→      <div className="space-y-2">
+   509→   509→        <Label>Notes</Label>
+   510→   510→        <Textarea placeholder="Invoice notes..." rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+   511→   511→      </div>
+   512→   512→
+   513→   513→      <DialogFooter>
+   514→   514→        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+   515→   515→        <Button type="submit" disabled={loading || !form.customerId} className="bg-rose-600 hover:bg-rose-700">
+   516→   516→          {loading ? 'Creating...' : 'Create Invoice'}
+   517→   517→        </Button>
+   518→   518→      </DialogFooter>
+   519→   519→    </form>
+   520→   520→  )
+   521→   521→}
+   522→   522→
+   523→   523→// ─── Edit Invoice Form ───
+   524→   524→function EditInvoiceForm({ invoice, onSubmit, loading }: {
+   525→   525→  invoice: any; onSubmit: (data: any) => void; loading: boolean
+   526→   526→}) {
+   527→   527→  const [form, setForm] = useState({
+   528→   528→    labourCost: invoice.labourCost || 0,
+   529→   529→    materialCost: invoice.materialCost || 0,
+   530→   530→    transportCost: invoice.transportCost || 0,
+   531→   531→    serviceCharges: invoice.serviceCharges || 0,
+   532→   532→    taxPercent: invoice.taxPercent || 10,
+   533→   533→    discount: invoice.discount || 0,
+   534→   534→    notes: invoice.notes || '',
+   535→   535→  })
+   536→   536→
+   537→   537→  const subtotal = form.labourCost + form.materialCost + form.transportCost + form.serviceCharges
+   538→   538→  const tax = subtotal * (form.taxPercent / 100)
+   539→   539→  const total = subtotal + tax - form.discount
+   540→   540→
+   541→   541→  const handleSubmit = (e: React.FormEvent) => {
+   542→   542→    e.preventDefault()
+   543→   543→    onSubmit({ ...form, tax, total })
+   544→   544→  }
+   545→   545→
+   546→   546→  return (
+   547→   547→    <form onSubmit={handleSubmit} className="space-y-4">
+   548→   548→      <div className="grid grid-cols-2 gap-4">
+   549→   549→        <div className="space-y-2"><Label>Customer</Label><Input value={invoice.customerName || '—'} disabled /></div>
+   550→   550→        <div className="space-y-2"><Label>Invoice #</Label><Input value={invoice.mivNo} disabled /></div>
+   551→   551→      </div>
+   552→   552→      <Separator />
+   553→   553→      <div className="grid grid-cols-2 gap-4">
+   554→   554→        <div className="space-y-2">
+   555→   555→          <Label>Labour Cost ($)</Label>
+   556→   556→          <Input type="number" min={0} step={0.01} value={form.labourCost} onChange={(e) => setForm((f) => ({ ...f, labourCost: Number(e.target.value) }))} />
+   557→   557→        </div>
+   558→   558→        <div className="space-y-2">
+   559→   559→          <Label>Material Cost ($)</Label>
+   560→   560→          <Input type="number" min={0} step={0.01} value={form.materialCost} onChange={(e) => setForm((f) => ({ ...f, materialCost: Number(e.target.value) }))} />
+   561→   561→        </div>
+   562→   562→        <div className="space-y-2">
+   563→   563→          <Label>Transport Cost ($)</Label>
+   564→   564→          <Input type="number" min={0} step={0.01} value={form.transportCost} onChange={(e) => setForm((f) => ({ ...f, transportCost: Number(e.target.value) }))} />
+   565→   565→        </div>
+   566→   566→        <div className="space-y-2">
+   567→   567→          <Label>Service Charges ($)</Label>
+   568→   568→          <Input type="number" min={0} step={0.01} value={form.serviceCharges} onChange={(e) => setForm((f) => ({ ...f, serviceCharges: Number(e.target.value) }))} />
+   569→   569→        </div>
+   570→   570→        <div className="space-y-2">
+   571→   571→          <Label>Tax (%)</Label>
+   572→   572→          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+   573→   573→        </div>
+   574→   574→        <div className="space-y-2">
+   575→   575→          <Label>Discount ($)</Label>
+   576→   576→          <Input type="number" min={0} step={0.01} value={form.discount} onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))} />
+   577→   577→        </div>
+   578→   578→      </div>
+   579→   579→      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-200 dark:border-rose-800 space-y-1 text-sm">
+   580→   580→        <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+   581→   581→        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+   582→   582→        <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-green-600">-{formatCurrency(form.discount)}</span></div>
+   583→   583→        <Separator />
+   584→   584→        <div className="flex justify-between text-lg font-bold"><span>Total</span><span className="text-rose-600">{formatCurrency(total)}</span></div>
+   585→   585→      </div>
+   586→   586→      <div className="space-y-2">
+   587→   587→        <Label>Notes</Label>
+   588→   588→        <Textarea rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+   589→   589→      </div>
+   590→   590→      <DialogFooter>
+   591→   591→        <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+   592→   592→        <Button type="submit" disabled={loading} className="bg-rose-600 hover:bg-rose-700">
+   593→   593→          {loading ? 'Saving...' : 'Save Changes'}
+   594→   594→        </Button>
+   595→   595→      </DialogFooter>
+   596→   596→    </form>
+   597→   597→  )
+   598→   598→}

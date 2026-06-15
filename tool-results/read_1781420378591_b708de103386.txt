@@ -1,0 +1,982 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api } from '@/lib/store'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Separator } from '@/components/ui/separator'
+    14→import { ScrollArea } from '@/components/ui/scroll-area'
+    15→import { Progress } from '@/components/ui/progress'
+    16→import {
+    17→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    18→} from '@/components/ui/select'
+    19→import {
+    20→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    21→} from '@/components/ui/table'
+    22→import {
+    23→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogTrigger,
+    24→} from '@/components/ui/dialog'
+    25→import { useToast } from '@/hooks/use-toast'
+    26→import { cn } from '@/lib/utils'
+    27→import {
+    28→  Plus, Search, Filter, ChevronDown, ChevronUp, FileText, DollarSign,
+    29→  Clock, CheckCircle2, CircleDot, Play, Pause, Wrench, User, MapPin,
+    30→  Calendar, Timer, Package, Image as ImageIcon, ExternalLink,
+    31→  ArrowRight, TrendingUp, AlertCircle, ListOrdered, X as XIcon,
+    32→  ClipboardList, Eye, RefreshCw, Trash2, CalendarDays,
+    33→} from 'lucide-react'
+    34→
+    35→// ─── Types ───
+    36→interface WorkOrder {
+    37→  id: string
+    38→  woNo: string
+    39→  status: string
+    40→  startDate: string
+    41→  targetDate: string
+    42→  completedDate?: string
+    43→  serviceNotes?: string
+    44→  completionNotes?: string
+    45→  laborCost: number
+    46→  materialCost: number
+    47→  otherCost: number
+    48→  totalCost: number
+    49→  createdAt: string
+    50→  ticket: {
+    51→    id: string
+    52→    ticketNo: string
+    53→    subject: string
+    54→    priority: string
+    55→    customer: { id: string; name: string } | null
+    56→    site: { id: string; name: string } | null
+    57→  }
+    58→  technician: {
+    59→    id: string
+    60→    employee: { id: string; name: string } | null
+    61→  } | null
+    62→  materialRequests?: Array<{ id: string; mrNo: string; status: string }>
+    63→  photos?: Array<{ id: string; url: string }>
+    64→  invoice?: { id: string; invoiceNo: string }
+    65→}
+    66→
+    67→interface UnworkedTicket {
+    68→  id: string
+    69→  ticketNo: string
+    70→  subject: string
+    71→  priority: string
+    72→  customer: { id: string; name: string } | null
+    73→  site: { id: string; name: string } | null
+    74→  technician: { id: string; employee: { name: string } | null } | null
+    75→  status: string
+    76→}
+    77→
+    78→// ─── Config ───
+    79→const statusConfig: Record<string, { label: string; color: string; step: number; icon: any }> = {
+    80→  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', step: 0, icon: FileText },
+    81→  pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 1, icon: Clock },
+    82→  in_progress: { label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300', step: 2, icon: Play },
+    83→  on_hold: { label: 'On Hold', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', step: 2, icon: Pause },
+    84→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 3, icon: CheckCircle2 },
+    85→  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', step: -1, icon: XIcon },
+    86→}
+    87→
+    88→const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
+    89→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+    90→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+    91→  medium: { label: 'Medium', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', dotColor: 'bg-amber-500' },
+    92→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+    93→}
+    94→
+    95→const materialStatusConfig: Record<string, { label: string; color: string }> = {
+    96→  requested: { label: 'Requested', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
+    97→  supervisor_approved: { label: 'Supervisor Approved', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+    98→  store_approved: { label: 'Store Approved', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300' },
+    99→  issued: { label: 'Issued', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
+   100→  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' },
+   101→}
+   102→
+   103→function formatCurrency(val: number) {
+   104→  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+   105→  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+   106→  return `$${val.toFixed(0)}`
+   107→}
+   108→
+   109→// ─── Main Component ───
+   110→export function WorkOrders() {
+   111→  const { toast } = useToast()
+   112→  const queryClient = useQueryClient()
+   113→
+   114→  const [searchQuery, setSearchQuery] = useState('')
+   115→  const [statusFilter, setStatusFilter] = useState('all')
+   116→  const [customerFilter, setCustomerFilter] = useState('all')
+   117→  const [technicianFilter, setTechnicianFilter] = useState('all')
+   118→  const [dateFilter, setDateFilter] = useState('all')
+   119→  const [expandedId, setExpandedId] = useState<string | null>(null)
+   120→  const [createOpen, setCreateOpen] = useState(false)
+   121→  const [selectedWO, setSelectedWO] = useState<WorkOrder | null>(null)
+   122→  const [detailOpen, setDetailOpen] = useState(false)
+   123→  const [statusUpdateOpen, setStatusUpdateOpen] = useState(false)
+   124→  const [newStatus, setNewStatus] = useState('')
+   125→
+   126→  // Fetch work orders
+   127→  const { data, isLoading } = useQuery({
+   128→    queryKey: ['maintenance-work-orders', statusFilter, customerFilter, technicianFilter, dateFilter],
+   129→    queryFn: () => {
+   130→      const params = new URLSearchParams()
+   131→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   132→      if (customerFilter !== 'all') params.set('customerId', customerFilter)
+   133→      if (technicianFilter !== 'all') params.set('technicianId', technicianFilter)
+   134→      const qs = params.toString()
+   135→      return api.get<WorkOrder[]>(`/api/maintenance/work-orders${qs ? `?${qs}` : ''}`).then(r => r.data || [])
+   136→    },
+   137→  })
+   138→
+   139→  // Fetch un-work-ordered tickets for creation
+   140→  const { data: ticketsData } = useQuery({
+   141→    queryKey: ['unworked-tickets'],
+   142→    queryFn: () => api.get<UnworkedTicket[]>('/api/maintenance/tickets?hasWorkOrder=false&status=assigned,accepted,in_progress,completed,verified').then(r => r.data || []),
+   143→  })
+   144→
+   145→  const workOrders = data || []
+   146→  const unworkedTickets = ticketsData || []
+   147→
+   148→  // Create work order mutation
+   149→  const createWOMutation = useMutation({
+   150→    mutationFn: (body: any) => api.post('/api/maintenance/work-orders', body),
+   151→    onSuccess: () => {
+   152→      queryClient.invalidateQueries({ queryKey: ['maintenance-work-orders'] })
+   153→      queryClient.invalidateQueries({ queryKey: ['unworked-tickets'] })
+   154→      setCreateOpen(false)
+   155→      toast({ title: 'Work Order Created', description: 'New work order has been created successfully.' })
+   156→    },
+   157→    onError: (err: any) => {
+   158→      toast({ title: 'Creation Failed', description: err.error || 'Failed to create work order', variant: 'destructive' })
+   159→    },
+   160→  })
+   161→
+   162→  // Update work order mutation
+   163→  const updateWOMutation = useMutation({
+   164→    mutationFn: ({ id, ...body }: { id: string; [key: string]: any }) =>
+   165→      api.put(`/api/maintenance/work-orders/${id}`, body),
+   166→    onSuccess: () => {
+   167→      queryClient.invalidateQueries({ queryKey: ['maintenance-work-orders'] })
+   168→      setStatusUpdateOpen(false)
+   169→      toast({ title: 'Work Order Updated', description: 'Status has been updated.' })
+   170→    },
+   171→    onError: (err: any) => {
+   172→      toast({ title: 'Update Failed', description: err.error || 'Failed to update', variant: 'destructive' })
+   173→    },
+   174→  })
+   175→
+   176→  // Stats
+   177→  const stats = useMemo(() => {
+   178→    const total = workOrders.length
+   179→    const pending = workOrders.filter(wo => wo.status === 'pending' || wo.status === 'draft').length
+   180→    const inProgress = workOrders.filter(wo => wo.status === 'in_progress' || wo.status === 'on_hold').length
+   181→    const completed = workOrders.filter(wo => wo.status === 'completed').length
+   182→    const totalCost = workOrders.reduce((sum, wo) => sum + (wo.totalCost || 0), 0)
+   183→    return { total, pending, inProgress, completed, totalCost }
+   184→  }, [workOrders])
+   185→
+   186→  // Unique customers/technicians for filters
+   187→  const uniqueCustomers = useMemo(() => {
+   188→    const map = new Map<string, string>()
+   189→    workOrders.forEach(wo => {
+   190→      if (wo.ticket?.customer?.id && wo.ticket.customer.name) {
+   191→        map.set(wo.ticket.customer.id, wo.ticket.customer.name)
+   192→      }
+   193→    })
+   194→    return Array.from(map.entries())
+   195→  }, [workOrders])
+   196→
+   197→  const uniqueTechnicians = useMemo(() => {
+   198→    const map = new Map<string, string>()
+   199→    workOrders.forEach(wo => {
+   200→      if (wo.technician?.id && wo.technician.employee?.name) {
+   201→        map.set(wo.technician.id, wo.technician.employee.name)
+   202→      }
+   203→    })
+   204→    return Array.from(map.entries())
+   205→  }, [workOrders])
+   206→
+   207→  // Search filter
+   208→  const filtered = useMemo(() => {
+   209→    if (!searchQuery) return workOrders
+   210→    const q = searchQuery.toLowerCase()
+   211→    return workOrders.filter(wo =>
+   212→      wo.woNo.toLowerCase().includes(q) ||
+   213→      wo.ticket?.ticketNo?.toLowerCase().includes(q) ||
+   214→      wo.ticket?.subject?.toLowerCase().includes(q) ||
+   215→      wo.ticket?.customer?.name?.toLowerCase().includes(q) ||
+   216→      wo.technician?.employee?.name?.toLowerCase().includes(q)
+   217→    )
+   218→  }, [workOrders, searchQuery])
+   219→
+   220→  const openStatusUpdate = (wo: WorkOrder) => {
+   221→    setSelectedWO(wo)
+   222→    setNewStatus(wo.status)
+   223→    setStatusUpdateOpen(true)
+   224→  }
+   225→
+   226→  const openDetail = (wo: WorkOrder) => {
+   227→    setSelectedWO(wo)
+   228→    setDetailOpen(true)
+   229→  }
+   230→
+   231→  return (
+   232→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   233→      {/* Header */}
+   234→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   235→        <div>
+   236→          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+   237→            <ClipboardList className="h-6 w-6 text-rose-600" />
+   238→            Work Orders
+   239→          </h1>
+   240→          <p className="text-muted-foreground text-sm mt-1">Manage maintenance work orders, costs, and progress</p>
+   241→        </div>
+   242→        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+   243→          <DialogTrigger asChild>
+   244→            <Button className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   245→              <Plus className="h-3.5 w-3.5" /> Create Work Order
+   246→            </Button>
+   247→          </DialogTrigger>
+   248→          <DialogContent className="sm:max-w-lg">
+   249→            <DialogHeader>
+   250→              <DialogTitle>Create Work Order</DialogTitle>
+   251→              <p className="text-sm text-muted-foreground">Select a ticket to create a work order</p>
+   252→            </DialogHeader>
+   253→            <CreateWOForm
+   254→              tickets={unworkedTickets}
+   255→              onSubmit={(data) => createWOMutation.mutate(data)}
+   256→              loading={createWOMutation.isPending}
+   257→            />
+   258→          </DialogContent>
+   259→        </Dialog>
+   260→      </div>
+   261→
+   262→      {/* Stat Cards */}
+   263→      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+   264→        <Card>
+   265→          <CardContent className="p-4">
+   266→            <div className="flex items-start justify-between">
+   267→              <div className="space-y-1">
+   268→                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total WOs</p>
+   269→                <p className="text-2xl font-bold">{stats.total}</p>
+   270→              </div>
+   271→              <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30">
+   272→                <ListOrdered className="h-4 w-4 text-rose-600" />
+   273→              </div>
+   274→            </div>
+   275→          </CardContent>
+   276→        </Card>
+   277→        <Card>
+   278→          <CardContent className="p-4">
+   279→            <div className="flex items-start justify-between">
+   280→              <div className="space-y-1">
+   281→                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending</p>
+   282→                <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+   283→              </div>
+   284→              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+   285→                <Clock className="h-4 w-4 text-amber-600" />
+   286→              </div>
+   287→            </div>
+   288→          </CardContent>
+   289→        </Card>
+   290→        <Card>
+   291→          <CardContent className="p-4">
+   292→            <div className="flex items-start justify-between">
+   293→              <div className="space-y-1">
+   294→                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Progress</p>
+   295→                <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+   296→              </div>
+   297→              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+   298→                <Play className="h-4 w-4 text-blue-600" />
+   299→              </div>
+   300→            </div>
+   301→          </CardContent>
+   302→        </Card>
+   303→        <Card>
+   304→          <CardContent className="p-4">
+   305→            <div className="flex items-start justify-between">
+   306→              <div className="space-y-1">
+   307→                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Completed</p>
+   308→                <p className="text-2xl font-bold text-emerald-600">{stats.completed}</p>
+   309→              </div>
+   310→              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+   311→                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+   312→              </div>
+   313→            </div>
+   314→          </CardContent>
+   315→        </Card>
+   316→        <Card className="col-span-2 sm:col-span-1">
+   317→          <CardContent className="p-4">
+   318→            <div className="flex items-start justify-between">
+   319→              <div className="space-y-1">
+   320→                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Cost</p>
+   321→                <p className="text-2xl font-bold">{formatCurrency(stats.totalCost)}</p>
+   322→              </div>
+   323→              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+   324→                <DollarSign className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+   325→              </div>
+   326→            </div>
+   327→          </CardContent>
+   328→        </Card>
+   329→      </div>
+   330→
+   331→      {/* Filters */}
+   332→      <Card>
+   333→        <CardContent className="p-4">
+   334→          <div className="flex flex-col sm:flex-row gap-3">
+   335→            <div className="relative flex-1">
+   336→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   337→              <Input
+   338→                placeholder="Search by WO#, ticket#, customer, technician..."
+   339→                value={searchQuery}
+   340→                onChange={(e) => setSearchQuery(e.target.value)}
+   341→                className="pl-9"
+   342→              />
+   343→            </div>
+   344→            <Select value={statusFilter} onValueChange={setStatusFilter}>
+   345→              <SelectTrigger className="sm:w-40">
+   346→                <SelectValue placeholder="All Status" />
+   347→              </SelectTrigger>
+   348→              <SelectContent>
+   349→                <SelectItem value="all">All Status</SelectItem>
+   350→                {Object.entries(statusConfig).map(([key, val]) => (
+   351→                  <SelectItem key={key} value={key}>{val.label}</SelectItem>
+   352→                ))}
+   353→              </SelectContent>
+   354→            </Select>
+   355→            <Select value={customerFilter} onValueChange={setCustomerFilter}>
+   356→              <SelectTrigger className="sm:w-48">
+   357→                <SelectValue placeholder="All Customers" />
+   358→              </SelectTrigger>
+   359→              <SelectContent>
+   360→                <SelectItem value="all">All Customers</SelectItem>
+   361→                {uniqueCustomers.map(([id, name]) => (
+   362→                  <SelectItem key={id} value={id}>{name}</SelectItem>
+   363→                ))}
+   364→              </SelectContent>
+   365→            </Select>
+   366→            <Select value={technicianFilter} onValueChange={setTechnicianFilter}>
+   367→              <SelectTrigger className="sm:w-44">
+   368→                <SelectValue placeholder="All Technicians" />
+   369→              </SelectTrigger>
+   370→              <SelectContent>
+   371→                <SelectItem value="all">All Technicians</SelectItem>
+   372→                {uniqueTechnicians.map(([id, name]) => (
+   373→                  <SelectItem key={id} value={id}>{name}</SelectItem>
+   374→                ))}
+   375→              </SelectContent>
+   376→            </Select>
+   377→            <Select value={dateFilter} onValueChange={setDateFilter}>
+   378→              <SelectTrigger className="sm:w-36">
+   379→                <SelectValue placeholder="All Time" />
+   380→              </SelectTrigger>
+   381→              <SelectContent>
+   382→                <SelectItem value="all">All Time</SelectItem>
+   383→                <SelectItem value="today">Today</SelectItem>
+   384→                <SelectItem value="this_week">This Week</SelectItem>
+   385→                <SelectItem value="this_month">This Month</SelectItem>
+   386→              </SelectContent>
+   387→            </Select>
+   388→          </div>
+   389→        </CardContent>
+   390→      </Card>
+   391→
+   392→      {/* Work Orders Table */}
+   393→      <Card>
+   394→        <CardContent className="p-0">
+   395→          {isLoading ? (
+   396→            <div className="p-6 space-y-3">
+   397→              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   398→            </div>
+   399→          ) : filtered.length === 0 ? (
+   400→            <div className="flex flex-col items-center justify-center py-16">
+   401→              <ClipboardList className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   402→              <p className="text-sm text-muted-foreground">No work orders found</p>
+   403→              <Button size="sm" variant="outline" className="mt-3 gap-1.5" onClick={() => setCreateOpen(true)}>
+   404→                <Plus className="h-3.5 w-3.5" /> Create Work Order
+   405→              </Button>
+   406→            </div>
+   407→          ) : (
+   408→            <div className="overflow-x-auto">
+   409→              <Table>
+   410→                <TableHeader>
+   411→                  <TableRow>
+   412→                    <TableHead className="w-8"></TableHead>
+   413→                    <TableHead className="text-xs">WO#</TableHead>
+   414→                    <TableHead className="text-xs">Ticket#</TableHead>
+   415→                    <TableHead className="text-xs">Customer</TableHead>
+   416→                    <TableHead className="text-xs">Technician</TableHead>
+   417→                    <TableHead className="text-xs">Status</TableHead>
+   418→                    <TableHead className="text-xs">Start Date</TableHead>
+   419→                    <TableHead className="text-xs">Target Date</TableHead>
+   420→                    <TableHead className="text-xs text-right">Cost</TableHead>
+   421→                    <TableHead className="text-xs w-24">Actions</TableHead>
+   422→                  </TableRow>
+   423→                </TableHeader>
+   424→                <TableBody>
+   425→                  {filtered.map((wo) => {
+   426→                    const stat = statusConfig[wo.status] || statusConfig.draft
+   427→                    const pri = priorityConfig[wo.ticket?.priority] || priorityConfig.medium
+   428→                    const isExpanded = expandedId === wo.id
+   429→                    return (
+   430→                      <React.Fragment key={wo.id}>
+   431→                        <TableRow
+   432→                          className="cursor-pointer hover:bg-muted/40"
+   433→                          onClick={() => setExpandedId(prev => prev === wo.id ? null : wo.id)}
+   434→                        >
+   435→                          <TableCell className="py-3">
+   436→                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+   437→                          </TableCell>
+   438→                          <TableCell className="text-xs font-mono font-medium text-rose-600">{wo.woNo}</TableCell>
+   439→                          <TableCell className="text-xs font-mono">{wo.ticket?.ticketNo || '—'}</TableCell>
+   440→                          <TableCell className="text-xs">{wo.ticket?.customer?.name || '—'}</TableCell>
+   441→                          <TableCell className="text-xs text-muted-foreground">{wo.technician?.employee?.name || '—'}</TableCell>
+   442→                          <TableCell>
+   443→                            <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', stat.color)}>
+   444→                              <stat.icon className="h-3 w-3" />
+   445→                              {stat.label}
+   446→                            </Badge>
+   447→                          </TableCell>
+   448→                          <TableCell className="text-xs text-muted-foreground">
+   449→                            {wo.startDate ? new Date(wo.startDate).toLocaleDateString() : '—'}
+   450→                          </TableCell>
+   451→                          <TableCell className="text-xs text-muted-foreground">
+   452→                            {wo.targetDate ? new Date(wo.targetDate).toLocaleDateString() : '—'}
+   453→                          </TableCell>
+   454→                          <TableCell className="text-xs text-right font-medium">
+   455→                            {formatCurrency(wo.totalCost || 0)}
+   456→                          </TableCell>
+   457→                          <TableCell>
+   458→                            <div className="flex gap-1">
+   459→                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openDetail(wo) }}>
+   460→                                <Eye className="h-3.5 w-3.5" />
+   461→                              </Button>
+   462→                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openStatusUpdate(wo) }}>
+   463→                                <RefreshCw className="h-3.5 w-3.5" />
+   464→                              </Button>
+   465→                            </div>
+   466→                          </TableCell>
+   467→                        </TableRow>
+   468→
+   469→                        {/* Expanded Row */}
+   470→                        {isExpanded && (
+   471→                          <TableRow>
+   472→                            <TableCell colSpan={10} className="bg-muted/20 px-6 py-4">
+   473→                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+   474→                                {/* Service Info */}
+   475→                                <div>
+   476→                                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Info</h4>
+   477→                                  <div className="space-y-2 text-sm">
+   478→                                    <div>
+   479→                                      <span className="text-muted-foreground text-xs">Subject:</span>
+   480→                                      <p className="font-medium text-xs">{wo.ticket?.subject || '—'}</p>
+   481→                                    </div>
+   482→                                    <div>
+   483→                                      <span className="text-muted-foreground text-xs">Priority:</span>
+   484→                                      <Badge variant="secondary" className={cn('ml-1 text-[10px]', pri.color)}>
+   485→                                        {pri.label}
+   486→                                      </Badge>
+   487→                                    </div>
+   488→                                    <div>
+   489→                                      <span className="text-muted-foreground text-xs">Site:</span>
+   490→                                      <p className="font-medium text-xs">{wo.ticket?.site?.name || '—'}</p>
+   491→                                    </div>
+   492→                                  </div>
+   493→                                </div>
+   494→
+   495→                                {/* Service Notes */}
+   496→                                <div>
+   497→                                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Notes</h4>
+   498→                                  <p className="text-xs text-muted-foreground max-h-24 overflow-y-auto">
+   499→                                    {wo.serviceNotes || 'No service notes recorded'}
+   500→                                  </p>
+   501→                                </div>
+   502→
+   503→                                {/* Cost Summary */}
+   504→                                <div>
+   505→                                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Cost Summary</h4>
+   506→                                  <div className="space-y-1.5 text-xs">
+   507→                                    <div className="flex justify-between">
+   508→                                      <span className="text-muted-foreground">Labor:</span>
+   509→                                      <span className="font-medium">{formatCurrency(wo.laborCost || 0)}</span>
+   510→                                    </div>
+   511→                                    <div className="flex justify-between">
+   512→                                      <span className="text-muted-foreground">Material:</span>
+   513→                                      <span className="font-medium">{formatCurrency(wo.materialCost || 0)}</span>
+   514→                                    </div>
+   515→                                    <div className="flex justify-between">
+   516→                                      <span className="text-muted-foreground">Other:</span>
+   517→                                      <span className="font-medium">{formatCurrency(wo.otherCost || 0)}</span>
+   518→                                    </div>
+   519→                                    <Separator className="my-1" />
+   520→                                    <div className="flex justify-between font-semibold">
+   521→                                      <span>Total:</span>
+   522→                                      <span className="text-rose-600">{formatCurrency(wo.totalCost || 0)}</span>
+   523→                                    </div>
+   524→                                  </div>
+   525→                                </div>
+   526→
+   527→                                {/* Links & Materials */}
+   528→                                <div>
+   529→                                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Related</h4>
+   530→                                  <div className="space-y-2">
+   531→                                    {/* Material Requests */}
+   532→                                    {wo.materialRequests && wo.materialRequests.length > 0 && (
+   533→                                      <div>
+   534→                                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+   535→                                          <Package className="h-3 w-3" /> Material Requests
+   536→                                        </p>
+   537→                                        <div className="space-y-1">
+   538→                                          {wo.materialRequests.slice(0, 3).map(mr => {
+   539→                                            const ms = materialStatusConfig[mr.status] || materialStatusConfig.requested
+   540→                                            return (
+   541→                                              <div key={mr.id} className="flex items-center justify-between text-xs">
+   542→                                                <span className="font-mono">{mr.mrNo}</span>
+   543→                                                <Badge variant="secondary" className={cn('text-[10px] px-1 py-0', ms.color)}>
+   544→                                                  {ms.label}
+   545→                                                </Badge>
+   546→                                              </div>
+   547→                                            )
+   548→                                          })}
+   549→                                        </div>
+   550→                                      </div>
+   551→                                    )}
+   552→
+   553→                                    {/* Photos */}
+   554→                                    {wo.photos && wo.photos.length > 0 && (
+   555→                                      <div>
+   556→                                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+   557→                                          <ImageIcon className="h-3 w-3" /> {wo.photos.length} photo(s) attached
+   558→                                        </p>
+   559→                                      </div>
+   560→                                    )}
+   561→
+   562→                                    {/* Invoice */}
+   563→                                    {wo.invoice && (
+   564→                                      <div className="flex items-center gap-1.5 text-xs">
+   565→                                        <ExternalLink className="h-3 w-3" />
+   566→                                        <span className="font-mono font-medium text-rose-600">{wo.invoice.invoiceNo}</span>
+   567→                                      </div>
+   568→                                    )}
+   569→
+   570→                                    {!wo.materialRequests?.length && !wo.photos?.length && !wo.invoice && (
+   571→                                      <p className="text-xs text-muted-foreground">No related items</p>
+   572→                                    )}
+   573→                                  </div>
+   574→                                </div>
+   575→                              </div>
+   576→                            </TableCell>
+   577→                          </TableRow>
+   578→                        )}
+   579→                      </React.Fragment>
+   580→                    )
+   581→                  })}
+   582→                </TableBody>
+   583→              </Table>
+   584→            </div>
+   585→          )}
+   586→        </CardContent>
+   587→      </Card>
+   588→
+   589→      {/* Detail Dialog */}
+   590→      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+   591→        <DialogContent className="sm:max-w-2xl max-h-[80vh]">
+   592→          <DialogHeader>
+   593→            <DialogTitle className="flex items-center gap-2">
+   594→              <span className="font-mono text-rose-600">{selectedWO?.woNo}</span>
+   595→              <Badge variant="secondary" className={cn('text-[10px]', statusConfig[selectedWO?.status || 'draft']?.color)}>
+   596→                {statusConfig[selectedWO?.status || 'draft']?.label}
+   597→              </Badge>
+   598→            </DialogTitle>
+   599→          </DialogHeader>
+   600→          {selectedWO && (
+   601→            <ScrollArea className="max-h-[60vh] pr-4">
+   602→              <div className="space-y-6">
+   603→                {/* Ticket Info */}
+   604→                <div>
+   605→                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Ticket Information</h4>
+   606→                  <div className="p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
+   607→                    <div className="grid grid-cols-2 gap-2">
+   608→                      <div>
+   609→                        <span className="text-xs text-muted-foreground">Ticket #:</span>
+   610→                        <p className="font-mono font-medium text-xs">{selectedWO.ticket?.ticketNo}</p>
+   611→                      </div>
+   612→                      <div>
+   613→                        <span className="text-xs text-muted-foreground">Customer:</span>
+   614→                        <p className="font-medium text-xs">{selectedWO.ticket?.customer?.name || '—'}</p>
+   615→                      </div>
+   616→                      <div>
+   617→                        <span className="text-xs text-muted-foreground">Site:</span>
+   618→                        <p className="font-medium text-xs">{selectedWO.ticket?.site?.name || '—'}</p>
+   619→                      </div>
+   620→                      <div>
+   621→                        <span className="text-xs text-muted-foreground">Technician:</span>
+   622→                        <p className="font-medium text-xs">{selectedWO.technician?.employee?.name || '—'}</p>
+   623→                      </div>
+   624→                      <div>
+   625→                        <span className="text-xs text-muted-foreground">Start Date:</span>
+   626→                        <p className="text-xs">{selectedWO.startDate ? new Date(selectedWO.startDate).toLocaleDateString() : '—'}</p>
+   627→                      </div>
+   628→                      <div>
+   629→                        <span className="text-xs text-muted-foreground">Target Date:</span>
+   630→                        <p className="text-xs">{selectedWO.targetDate ? new Date(selectedWO.targetDate).toLocaleDateString() : '—'}</p>
+   631→                      </div>
+   632→                    </div>
+   633→                    <div>
+   634→                      <span className="text-xs text-muted-foreground">Subject:</span>
+   635→                      <p className="font-medium text-xs">{selectedWO.ticket?.subject}</p>
+   636→                    </div>
+   637→                  </div>
+   638→                </div>
+   639→
+   640→                {/* Service Notes */}
+   641→                <div>
+   642→                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Service Notes</h4>
+   643→                  <p className="text-sm">{selectedWO.serviceNotes || 'No service notes recorded'}</p>
+   644→                </div>
+   645→
+   646→                {/* Completion Notes */}
+   647→                {selectedWO.completionNotes && (
+   648→                  <div>
+   649→                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Completion Notes</h4>
+   650→                    <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900">
+   651→                      <p className="text-sm">{selectedWO.completionNotes}</p>
+   652→                    </div>
+   653→                  </div>
+   654→                )}
+   655→
+   656→                {/* Cost Breakdown */}
+   657→                <div>
+   658→                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Cost Breakdown</h4>
+   659→                  <div className="p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
+   660→                    <div className="flex justify-between">
+   661→                      <span className="text-muted-foreground">Labor Cost</span>
+   662→                      <span className="font-medium">{formatCurrency(selectedWO.laborCost || 0)}</span>
+   663→                    </div>
+   664→                    <div className="flex justify-between">
+   665→                      <span className="text-muted-foreground">Material Cost</span>
+   666→                      <span className="font-medium">{formatCurrency(selectedWO.materialCost || 0)}</span>
+   667→                    </div>
+   668→                    <div className="flex justify-between">
+   669→                      <span className="text-muted-foreground">Other Costs</span>
+   670→                      <span className="font-medium">{formatCurrency(selectedWO.otherCost || 0)}</span>
+   671→                    </div>
+   672→                    <Separator />
+   673→                    <div className="flex justify-between font-semibold text-base">
+   674→                      <span>Total</span>
+   675→                      <span className="text-rose-600">{formatCurrency(selectedWO.totalCost || 0)}</span>
+   676→                    </div>
+   677→                  </div>
+   678→                </div>
+   679→
+   680→                {/* Material Requests */}
+   681→                {selectedWO.materialRequests && selectedWO.materialRequests.length > 0 && (
+   682→                  <div>
+   683→                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Material Requests</h4>
+   684→                    <div className="space-y-2">
+   685→                      {selectedWO.materialRequests.map(mr => {
+   686→                        const ms = materialStatusConfig[mr.status] || materialStatusConfig.requested
+   687→                        return (
+   688→                          <div key={mr.id} className="flex items-center justify-between p-2.5 rounded-lg border text-sm">
+   689→                            <span className="font-mono text-xs font-medium">{mr.mrNo}</span>
+   690→                            <Badge variant="secondary" className={cn('text-[10px]', ms.color)}>
+   691→                              {ms.label}
+   692→                            </Badge>
+   693→                          </div>
+   694→                        )
+   695→                      })}
+   696→                    </div>
+   697→                  </div>
+   698→                )}
+   699→
+   700→                {/* Photos */}
+   701→                {selectedWO.photos && selectedWO.photos.length > 0 && (
+   702→                  <div>
+   703→                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Photos ({selectedWO.photos.length})</h4>
+   704→                    <div className="flex flex-wrap gap-2">
+   705→                      {selectedWO.photos.map(photo => (
+   706→                        <div key={photo.id} className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center border">
+   707→                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+   708→                        </div>
+   709→                      ))}
+   710→                    </div>
+   711→                  </div>
+   712→                )}
+   713→
+   714→                {/* Invoice */}
+   715→                {selectedWO.invoice && (
+   716→                  <div>
+   717→                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Invoice</h4>
+   718→                    <div className="flex items-center gap-2 p-3 rounded-lg border">
+   719→                      <FileText className="h-5 w-5 text-rose-600" />
+   720→                      <div>
+   721→                        <p className="font-mono font-medium text-sm">{selectedWO.invoice.invoiceNo}</p>
+   722→                        <p className="text-xs text-muted-foreground">View invoice for full billing details</p>
+   723→                      </div>
+   724→                    </div>
+   725→                  </div>
+   726→                )}
+   727→              </div>
+   728→            </ScrollArea>
+   729→          )}
+   730→          <DialogFooter>
+   731→            <DialogClose asChild>
+   732→              <Button variant="outline">Close</Button>
+   733→            </DialogClose>
+   734→            {selectedWO && selectedWO.status !== 'completed' && selectedWO.status !== 'cancelled' && (
+   735→              <Button
+   736→                className="bg-rose-600 hover:bg-rose-700"
+   737→                onClick={() => { setDetailOpen(false); openStatusUpdate(selectedWO) }}
+   738→              >
+   739→                Update Status
+   740→              </Button>
+   741→            )}
+   742→          </DialogFooter>
+   743→        </DialogContent>
+   744→      </Dialog>
+   745→
+   746→      {/* Status Update Dialog */}
+   747→      <Dialog open={statusUpdateOpen} onOpenChange={setStatusUpdateOpen}>
+   748→        <DialogContent className="sm:max-w-md">
+   749→          <DialogHeader>
+   750→            <DialogTitle>Update Work Order Status</DialogTitle>
+   751→            <p className="text-sm text-muted-foreground">
+   752→              {selectedWO?.woNo} — Currently: {statusConfig[selectedWO?.status || 'draft']?.label}
+   753→            </p>
+   754→          </DialogHeader>
+   755→          <div className="space-y-4">
+   756→            <div className="space-y-2">
+   757→              <Label>New Status</Label>
+   758→              <Select value={newStatus} onValueChange={setNewStatus}>
+   759→                <SelectTrigger>
+   760→                  <SelectValue placeholder="Select status..." />
+   761→                </SelectTrigger>
+   762→                <SelectContent>
+   763→                  {Object.entries(statusConfig)
+   764→                    .filter(([key]) => key !== 'cancelled')
+   765→                    .map(([key, val]) => (
+   766→                      <SelectItem key={key} value={key}>
+   767→                        <span className="flex items-center gap-2">
+   768→                          <val.icon className="h-3.5 w-3.5" />
+   769→                          {val.label}
+   770→                        </span>
+   771→                      </SelectItem>
+   772→                    ))}
+   773→                </SelectContent>
+   774→              </Select>
+   775→            </div>
+   776→
+   777→            {newStatus === 'completed' && (
+   778→              <div className="space-y-2">
+   779→                <Label>Completion Notes</Label>
+   780→                <Textarea
+   781→                  placeholder="Describe the work completed..."
+   782→                  rows={3}
+   783→                  id="completion-notes"
+   784→                />
+   785→              </div>
+   786→            )}
+   787→          </div>
+   788→          <DialogFooter>
+   789→            <DialogClose asChild>
+   790→              <Button variant="outline">Cancel</Button>
+   791→            </DialogClose>
+   792→            <Button
+   793→              className="bg-rose-600 hover:bg-rose-700"
+   794→              disabled={newStatus === selectedWO?.status || updateWOMutation.isPending}
+   795→              onClick={() => {
+   796→                if (!selectedWO) return
+   797→                const body: any = { id: selectedWO.id, status: newStatus }
+   798→                if (newStatus === 'completed') {
+   799→                  const notes = (document.getElementById('completion-notes') as HTMLTextAreaElement)?.value
+   800→                  if (notes) body.completionNotes = notes
+   801→                  body.completedDate = new Date().toISOString()
+   802→                }
+   803→                updateWOMutation.mutate(body)
+   804→              }}
+   805→            >
+   806→              {updateWOMutation.isPending ? 'Updating...' : 'Update Status'}
+   807→            </Button>
+   808→          </DialogFooter>
+   809→        </DialogContent>
+   810→      </Dialog>
+   811→    </div>
+   812→  )
+   813→}
+   814→
+   815→// ─── Create Work Order Form ───
+   816→function CreateWOForm({
+   817→  tickets,
+   818→  onSubmit,
+   819→  loading,
+   820→}: {
+   821→  tickets: UnworkedTicket[]
+   822→  onSubmit: (data: any) => void
+   823→  loading: boolean
+   824→}) {
+   825→  const [form, setForm] = useState({
+   826→    ticketId: '',
+   827→    startDate: new Date().toISOString().split('T')[0],
+   828→    targetDate: '',
+   829→    serviceNotes: '',
+   830→    laborCost: 0,
+   831→    materialCost: 0,
+   832→    otherCost: 0,
+   833→  })
+   834→
+   835→  const handleSubmit = (e: React.FormEvent) => {
+   836→    e.preventDefault()
+   837→    if (!form.ticketId) return
+   838→    onSubmit(form)
+   839→    setForm({
+   840→      ticketId: '',
+   841→      startDate: new Date().toISOString().split('T')[0],
+   842→      targetDate: '',
+   843→      serviceNotes: '',
+   844→      laborCost: 0,
+   845→      materialCost: 0,
+   846→      otherCost: 0,
+   847→    })
+   848→  }
+   849→
+   850→  const selectedTicket = tickets.find(t => t.id === form.ticketId)
+   851→
+   852→  return (
+   853→    <form onSubmit={handleSubmit} className="space-y-4">
+   854→      <div className="space-y-2">
+   855→        <Label>Select Ticket *</Label>
+   856→        {tickets.length === 0 ? (
+   857→          <div className="p-4 rounded-lg border border-dashed text-center">
+   858→            <p className="text-sm text-muted-foreground">No eligible tickets available</p>
+   859→            <p className="text-xs text-muted-foreground mt-1">Tickets must be assigned and not already have a work order</p>
+   860→          </div>
+   861→        ) : (
+   862→          <Select value={form.ticketId} onValueChange={(v) => setForm(f => ({ ...f, ticketId: v }))}>
+   863→            <SelectTrigger>
+   864→              <SelectValue placeholder="Select a ticket..." />
+   865→            </SelectTrigger>
+   866→            <SelectContent>
+   867→              {tickets.map(t => (
+   868→                <SelectItem key={t.id} value={t.id}>
+   869→                  <div className="flex items-center gap-2">
+   870→                    <span className="font-mono text-xs">{t.ticketNo}</span>
+   871→                    <span className="text-muted-foreground">—</span>
+   872→                    <span className="text-xs">{t.subject}</span>
+   873→                    {t.technician?.employee?.name && (
+   874→                      <Badge variant="secondary" className="text-[10px] ml-2">
+   875→                        {t.technician.employee.name}
+   876→                      </Badge>
+   877→                    )}
+   878→                  </div>
+   879→                </SelectItem>
+   880→              ))}
+   881→            </SelectContent>
+   882→          </Select>
+   883→        )}
+   884→
+   885→        {selectedTicket && (
+   886→          <div className="p-3 rounded-lg bg-muted/50 text-xs space-y-1">
+   887→            <div className="flex justify-between">
+   888→              <span className="text-muted-foreground">Customer:</span>
+   889→              <span className="font-medium">{selectedTicket.customer?.name || '—'}</span>
+   890→            </div>
+   891→            <div className="flex justify-between">
+   892→              <span className="text-muted-foreground">Site:</span>
+   893→              <span className="font-medium">{selectedTicket.site?.name || '—'}</span>
+   894→            </div>
+   895→            <div className="flex justify-between">
+   896→              <span className="text-muted-foreground">Technician:</span>
+   897→              <span className="font-medium">{selectedTicket.technician?.employee?.name || '—'}</span>
+   898→            </div>
+   899→          </div>
+   900→        )}
+   901→      </div>
+   902→
+   903→      <div className="grid grid-cols-2 gap-4">
+   904→        <div className="space-y-2">
+   905→          <Label>Start Date *</Label>
+   906→          <Input
+   907→            type="date"
+   908→            value={form.startDate}
+   909→            onChange={(e) => setForm(f => ({ ...f, startDate: e.target.value }))}
+   910→          />
+   911→        </div>
+   912→        <div className="space-y-2">
+   913→          <Label>Target Date</Label>
+   914→          <Input
+   915→            type="date"
+   916→            value={form.targetDate}
+   917→            onChange={(e) => setForm(f => ({ ...f, targetDate: e.target.value }))}
+   918→          />
+   919→        </div>
+   920→      </div>
+   921→
+   922→      <div className="space-y-2">
+   923→        <Label>Service Notes</Label>
+   924→        <Textarea
+   925→          placeholder="Describe the scope of work..."
+   926→          rows={3}
+   927→          value={form.serviceNotes}
+   928→          onChange={(e) => setForm(f => ({ ...f, serviceNotes: e.target.value }))}
+   929→        />
+   930→      </div>
+   931→
+   932→      <div className="grid grid-cols-3 gap-3">
+   933→        <div className="space-y-2">
+   934→          <Label>Labor Cost</Label>
+   935→          <Input
+   936→            type="number"
+   937→            min="0"
+   938→            step="0.01"
+   939→            placeholder="0.00"
+   940→            value={form.laborCost || ''}
+   941→            onChange={(e) => setForm(f => ({ ...f, laborCost: Number(e.target.value) }))}
+   942→          />
+   943→        </div>
+   944→        <div className="space-y-2">
+   945→          <Label>Material Cost</Label>
+   946→          <Input
+   947→            type="number"
+   948→            min="0"
+   949→            step="0.01"
+   950→            placeholder="0.00"
+   951→            value={form.materialCost || ''}
+   952→            onChange={(e) => setForm(f => ({ ...f, materialCost: Number(e.target.value) }))}
+   953→          />
+   954→        </div>
+   955→        <div className="space-y-2">
+   956→          <Label>Other Cost</Label>
+   957→          <Input
+   958→            type="number"
+   959→            min="0"
+   960→            step="0.01"
+   961→            placeholder="0.00"
+   962→            value={form.otherCost || ''}
+   963→            onChange={(e) => setForm(f => ({ ...f, otherCost: Number(e.target.value) }))}
+   964→          />
+   965→        </div>
+   966→      </div>
+   967→
+   968→      <DialogFooter>
+   969→        <DialogClose asChild>
+   970→          <Button type="button" variant="outline">Cancel</Button>
+   971→        </DialogClose>
+   972→        <Button
+   973→          type="submit"
+   974→          className="bg-rose-600 hover:bg-rose-700"
+   975→          disabled={loading || !form.ticketId || !form.startDate}
+   976→        >
+   977→          {loading ? 'Creating...' : 'Create Work Order'}
+   978→        </Button>
+   979→      </DialogFooter>
+   980→    </form>
+   981→  )
+   982→}

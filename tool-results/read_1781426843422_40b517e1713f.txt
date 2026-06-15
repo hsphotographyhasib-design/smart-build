@@ -1,0 +1,820 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect, useRef, useCallback } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api, useAppStore } from '@/lib/store'
+     6→import { Card, CardContent } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Input } from '@/components/ui/input'
+    10→import { ScrollArea } from '@/components/ui/scroll-area'
+    11→import { Separator } from '@/components/ui/separator'
+    12→import {
+    13→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    14→} from '@/components/ui/select'
+    15→import { useToast } from '@/hooks/use-toast'
+    16→import { cn } from '@/lib/utils'
+    17→import {
+    18→  Send, ArrowLeft, Paperclip, ImagePlus, MessageSquare, Phone,
+    19→  MoreVertical, Check, CheckCheck, RotateCcw, CircleDot,
+    20→  AlertTriangle, Clock, ChevronRight,
+    21→} from 'lucide-react'
+    22→
+    23→// ─── Types ───
+    24→interface ChatMessage {
+    25→  id: string
+    26→  type: 'sent' | 'received'
+    27→  text?: string
+    28→  image?: string
+    29→  timestamp: Date
+    30→  isSystem?: boolean
+    31→  options?: { label: string; value: string }[]
+    32→  priorityOptions?: { label: string; value: string; color: string }[]
+    33→  showSiteSelect?: boolean
+    34→  showPhotoInput?: boolean
+    35→  isTicketConfirmation?: boolean
+    36→  ticketNo?: string
+    37→}
+    38→
+    39→type FlowStep = 'initial' | 'awaiting_description' | 'parsing' | 'awaiting_category' | 'awaiting_priority' | 'awaiting_site' | 'awaiting_photo' | 'submitting' | 'done'
+    40→
+    41→// ─── Constants ───
+    42→const CATEGORIES = [
+    43→  { label: 'Air Conditioning', value: 'air_conditioning', icon: '❄️' },
+    44→  { label: 'Electrical', value: 'electrical', icon: '⚡' },
+    45→  { label: 'Plumbing', value: 'plumbing', icon: '🔧' },
+    46→  { label: 'Fire Protection', value: 'fire_protection', icon: '🔥' },
+    47→  { label: 'Mechanical', value: 'mechanical', icon: '⚙️' },
+    48→  { label: 'Civil', value: 'civil', icon: '🏗️' },
+    49→  { label: 'Cleaning', value: 'cleaning', icon: '🧹' },
+    50→  { label: 'Security', value: 'security', icon: '🔒' },
+    51→  { label: 'IT', value: 'it', icon: '💻' },
+    52→  { label: 'General Maintenance', value: 'general_maintenance', icon: '🛠️' },
+    53→  { label: 'Other', value: 'other', icon: '📋' },
+    54→]
+    55→
+    56→const PRIORITIES = [
+    57→  { label: 'Emergency', value: 'emergency', color: 'bg-red-500 hover:bg-red-600 text-white' },
+    58→  { label: 'High', value: 'high', color: 'bg-orange-500 hover:bg-orange-600 text-white' },
+    59→  { label: 'Medium', value: 'medium', color: 'bg-yellow-500 hover:bg-yellow-600 text-white' },
+    60→  { label: 'Low', value: 'low', color: 'bg-emerald-500 hover:bg-emerald-600 text-white' },
+    61→]
+    62→
+    63→const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+    64→  new: { label: 'New', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' },
+    65→  under_review: { label: 'Under Review', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+    66→  assigned: { label: 'Assigned', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' },
+    67→  accepted: { label: 'Accepted', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300' },
+    68→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' },
+    69→  pending_parts: { label: 'Pending Parts', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
+    70→  pending_customer: { label: 'Pending Customer', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300' },
+    71→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
+    72→  customer_verification: { label: 'Verification', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300' },
+    73→  closed: { label: 'Closed', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
+    74→}
+    75→
+    76→const CATEGORY_LABELS: Record<string, string> = {
+    77→  air_conditioning: 'AC',
+    78→  electrical: 'Electrical',
+    79→  plumbing: 'Plumbing',
+    80→  fire_protection: 'Fire',
+    81→  mechanical: 'Mechanical',
+    82→  civil: 'Civil',
+    83→  cleaning: 'Cleaning',
+    84→  security: 'Security',
+    85→  it: 'IT',
+    86→  general_maintenance: 'General',
+    87→  other: 'Other',
+    88→}
+    89→
+    90→function getTimeStr(d: Date) {
+    91→  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    92→}
+    93→
+    94→function genId() {
+    95→  return Math.random().toString(36).substring(2, 10)
+    96→}
+    97→
+    98→// ─── Typing Indicator ───
+    99→function TypingIndicator() {
+   100→  return (
+   101→    <div className="flex items-end gap-2 mb-3">
+   102→      <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
+   103→        <span className="text-white text-xs font-bold">SB</span>
+   104→      </div>
+   105→      <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm max-w-xs">
+   106→        <div className="flex gap-1.5 items-center h-4">
+   107→          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+   108→          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+   109→          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+   110→        </div>
+   111→      </div>
+   112→    </div>
+   113→  )
+   114→}
+   115→
+   116→// ─── Main Component ───
+   117→export function WhatsAppComplaint() {
+   118→  const { user } = useAppStore()
+   119→  const { toast } = useToast()
+   120→  const queryClient = useQueryClient()
+   121→  const scrollRef = useRef<HTMLDivElement>(null)
+   122→  const inputRef = useRef<HTMLInputElement>(null)
+   123→
+   124→  // Chat state
+   125→  const [messages, setMessages] = useState<ChatMessage[]>([])
+   126→  const [inputText, setInputText] = useState('')
+   127→  const [flowStep, setFlowStep] = useState<FlowStep>('initial')
+   128→  const [isTyping, setIsTyping] = useState(false)
+   129→  const [complaintData, setComplaintData] = useState({
+   130→    description: '',
+   131→    category: '',
+   132→    priority: '',
+   133→    siteId: '',
+   134→    customLocation: '',
+   135→    photos: [] as string[],
+   136→  })
+   137→  const [photoUrl, setPhotoUrl] = useState('')
+   138→  const [showRecent, setShowRecent] = useState(false)
+   139→
+   140→  // Fetch sites
+   141→  const { data: sitesData } = useQuery({
+   142→    queryKey: ['maintenance-sites-all'],
+   143→    queryFn: () => api.get('/api/maintenance/sites?limit=100'),
+   144→    enabled: true,
+   145→  })
+   146→
+   147→  const sites = (sitesData?.data || []) as Array<{ id: string; name: string; code: string; customer?: { name: string } }>
+   148→
+   149→  // Fetch recent tickets
+   150→  const { data: recentTickets, isLoading: loadingTickets } = useQuery({
+   151→    queryKey: ['recent-whatsapp-tickets'],
+   152→    queryFn: () => api.get('/api/maintenance/tickets?limit=10'),
+   153→    enabled: showRecent,
+   154→  })
+   155→
+   156→  const tickets = (recentTickets?.data || []) as Array<Record<string, unknown>>
+   157→
+   158→  // Create ticket mutation
+   159→  const createTicket = useMutation({
+   160→    mutationFn: (body: Record<string, unknown>) => api.post('/api/maintenance/tickets', body),
+   161→    onSuccess: (res) => {
+   162→      if (res.success && res.data) {
+   163→        const ticket = res.data as { ticketNo: string }
+   164→        setIsTyping(false)
+   165→        addSystemMessage(`✅ Ticket Created!\n\n📋 ${ticket.ticketNo}\n\nA technician will be assigned shortly. You can track the status in your service requests.`, true, ticket.ticketNo)
+   166→        setFlowStep('done')
+   167→        queryClient.invalidateQueries({ queryKey: ['recent-whatsapp-tickets'] })
+   168→        toast({ title: 'Complaint submitted', description: `Ticket ${ticket.ticketNo} created successfully` })
+   169→      } else {
+   170→        setIsTyping(false)
+   171→        addSystemMessage(`❌ Sorry, something went wrong: ${res.error || 'Unknown error'}. Please try again.`)
+   172→        setFlowStep('initial')
+   173→      }
+   174→    },
+   175→    onError: (err) => {
+   176→      setIsTyping(false)
+   177→      addSystemMessage(`❌ Network error. Please check your connection and try again.`)
+   178→      setFlowStep('initial')
+   179→    },
+   180→  })
+   181→
+   182→  // Helper: add system (received) message
+   183→  const addSystemMessage = useCallback((
+   184→    text: string,
+   185→    isTicketConfirmation = false,
+   186→    ticketNo = '',
+   187→  ) => {
+   188→    const msg: ChatMessage = {
+   189→      id: genId(),
+   190→      type: 'received',
+   191→      text,
+   192→      timestamp: new Date(),
+   193→      isSystem: true,
+   194→      isTicketConfirmation,
+   195→      ticketNo,
+   196→    }
+   197→    setMessages(prev => [...prev, msg])
+   198→  }, [])
+   199→
+   200→  // Helper: add user (sent) message
+   201→  const addUserMessage = useCallback((text: string) => {
+   202→    const msg: ChatMessage = {
+   203→      id: genId(),
+   204→      type: 'sent',
+   205→      text,
+   206→      timestamp: new Date(),
+   207→    }
+   208→    setMessages(prev => [...prev, msg])
+   209→  }, [])
+   210→
+   211→  // Helper: add received message with options
+   212→  const addOptionsMessage = useCallback((text: string, options: { label: string; value: string }[]) => {
+   213→    const msg: ChatMessage = {
+   214→      id: genId(),
+   215→      type: 'received',
+   216→      text,
+   217→      timestamp: new Date(),
+   218→      isSystem: true,
+   219→      options,
+   220→    }
+   221→    setMessages(prev => [...prev, msg])
+   222→  }, [])
+   223→
+   224→  // Helper: add received message with priority options
+   225→  const addPriorityMessage = useCallback((text: string) => {
+   226→    const msg: ChatMessage = {
+   227→      id: genId(),
+   228→      type: 'received',
+   229→      text,
+   230→      timestamp: new Date(),
+   231→      isSystem: true,
+   232→      priorityOptions: PRIORITIES,
+   233→    }
+   234→    setMessages(prev => [...prev, msg])
+   235→  }, [])
+   236→
+   237→  // Helper: add received message with site select
+   238→  const addSiteSelectMessage = useCallback((text: string) => {
+   239→    const msg: ChatMessage = {
+   240→      id: genId(),
+   241→      type: 'received',
+   242→      text,
+   243→      timestamp: new Date(),
+   244→      isSystem: true,
+   245→      showSiteSelect: true,
+   246→    }
+   247→    setMessages(prev => [...prev, msg])
+   248→  }, [])
+   249→
+   250→  // Helper: add received message with photo input
+   251→  const addPhotoInputMessage = useCallback((text: string) => {
+   252→    const msg: ChatMessage = {
+   253→      id: genId(),
+   254→      type: 'received',
+   255→      text,
+   256→      timestamp: new Date(),
+   257→      isSystem: true,
+   258→      showPhotoInput: true,
+   259→    }
+   260→    setMessages(prev => [...prev, msg])
+   261→  }, [])
+   262→
+   263→  // Auto-scroll
+   264→  useEffect(() => {
+   265→    if (scrollRef.current) {
+   266→      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+   267→    }
+   268→  }, [messages, isTyping])
+   269→
+   270→  // Focus input when step changes
+   271→  useEffect(() => {
+   272→    if (inputRef.current && (flowStep === 'initial' || flowStep === 'awaiting_description' || flowStep === 'awaiting_site')) {
+   273→      setTimeout(() => inputRef.current?.focus(), 300)
+   274→    }
+   275→  }, [flowStep])
+   276→
+   277→  // Handle category selection
+   278→  const handleCategorySelect = useCallback((value: string) => {
+   279→    const cat = CATEGORIES.find(c => c.value === value)
+   280→    setComplaintData(prev => ({ ...prev, category: value }))
+   281→    addUserMessage(`${cat?.icon || ''} ${cat?.label || value}`)
+   282→    setIsTyping(true)
+   283→    setTimeout(() => {
+   284→      setIsTyping(false)
+   285→      addPriorityMessage('👆 How urgent is this issue? Please select the priority level:')
+   286→      setFlowStep('awaiting_priority')
+   287→    }, 800)
+   288→  }, [addUserMessage, addPriorityMessage])
+   289→
+   290→  // Handle priority selection
+   291→  const handlePrioritySelect = useCallback((value: string) => {
+   292→    const pri = PRIORITIES.find(p => p.value === value)
+   293→    setComplaintData(prev => ({ ...prev, priority: value }))
+   294→    addUserMessage(pri?.label || value)
+   295→    setIsTyping(true)
+   296→    setTimeout(() => {
+   297→      setIsTyping(false)
+   298→      if (sites.length > 0) {
+   299→        addSiteSelectMessage('📍 Where is this issue located? Select your site or type a custom location:')
+   300→      } else {
+   301→        addSystemMessage('📍 Please type your site/location:')
+   302→      }
+   303→      setFlowStep('awaiting_site')
+   304→    }, 800)
+   305→  }, [addUserMessage, addSiteSelectMessage, addSystemMessage, sites.length])
+   306→
+   307→  // Handle site selection
+   308→  const handleSiteSelect = useCallback((siteId: string) => {
+   309→    const site = sites.find(s => s.id === siteId)
+   310→    setComplaintData(prev => ({ ...prev, siteId }))
+   311→    addUserMessage(`📍 ${site?.name || siteId}${site?.customer ? ` (${site.customer.name})` : ''}`)
+   312→    setIsTyping(true)
+   313→    setTimeout(() => {
+   314→      setIsTyping(false)
+   315→      addPhotoInputMessage('📷 Would you like to add a photo? Enter an image URL, or type "skip" to continue.')
+   316→      setFlowStep('awaiting_photo')
+   317→    }, 800)
+   318→  }, [addUserMessage, addPhotoInputMessage, sites])
+   319→
+   320→  // Submit ticket
+   321→  const submitTicket = useCallback(() => {
+   322→    if (!complaintData.category || !complaintData.description) {
+   323→      addSystemMessage('⚠️ Missing required information. Please start over.')
+   324→      setFlowStep('initial')
+   325→      return
+   326→    }
+   327→    setFlowStep('submitting')
+   328→    setIsTyping(true)
+   329→    addUserMessage('Submit complaint')
+   330→
+   331→    createTicket.mutate({
+   332→      type: 'complaint',
+   333→      category: complaintData.category,
+   334→      priority: complaintData.priority || 'medium',
+   335→      subject: complaintData.description.substring(0, 100),
+   336→      description: complaintData.description,
+   337→      siteId: complaintData.siteId || undefined,
+   338→      location: complaintData.customLocation || undefined,
+   339→      photos: complaintData.photos.length > 0 ? complaintData.photos : undefined,
+   340→    })
+   341→  }, [complaintData, createTicket, addUserMessage, addSystemMessage])
+   342→
+   343→  // Handle "done" from photo step
+   344→  const handlePhotoDone = useCallback(() => {
+   345→    submitTicket()
+   346→  }, [submitTicket])
+   347→
+   348→  // Handle send message
+   349→  const handleSend = useCallback(() => {
+   350→    const text = inputText.trim()
+   351→    if (!text) return
+   352→
+   353→    setInputText('')
+   354→
+   355→    if (flowStep === 'initial' || flowStep === 'awaiting_description') {
+   356→      addUserMessage(text)
+   357→      setComplaintData(prev => ({ ...prev, description: text }))
+   358→      setFlowStep('parsing')
+   359→      setIsTyping(true)
+   360→      setTimeout(() => {
+   361→        setIsTyping(false)
+   362→        addSystemMessage(`Received! Let me get some details... 📝`)
+   363→        setTimeout(() => {
+   364→          setIsTyping(true)
+   365→          setTimeout(() => {
+   366→            setIsTyping(false)
+   367→            addOptionsMessage('🏷️ What category best describes your issue?', CATEGORIES.map(c => ({ label: `${c.icon} ${c.label}`, value: c.value })))
+   368→            setFlowStep('awaiting_category')
+   369→          }, 600)
+   370→        }, 800)
+   371→      }, 1200)
+   372→    } else if (flowStep === 'awaiting_site') {
+   373→      addUserMessage(`📍 ${text}`)
+   374→      setComplaintData(prev => ({ ...prev, customLocation: text }))
+   375→      setIsTyping(true)
+   376→      setTimeout(() => {
+   377→        setIsTyping(false)
+   378→        addPhotoInputMessage('📷 Would you like to add a photo? Enter an image URL, or type "skip" to continue.')
+   379→        setFlowStep('awaiting_photo')
+   380→      }, 800)
+   381→    } else if (flowStep === 'awaiting_photo') {
+   382→      if (text.toLowerCase() === 'skip' || text.toLowerCase() === 'no') {
+   383→        addUserMessage('Skip')
+   384→        submitTicket()
+   385→      } else if (text.toLowerCase() === 'done') {
+   386→        addUserMessage('Done')
+   387→        submitTicket()
+   388→      } else {
+   389→        addUserMessage(`📷 ${text}`)
+   390→        setComplaintData(prev => ({ ...prev, photos: [...prev.photos, text] }))
+   391→        setPhotoUrl('')
+   392→        setIsTyping(true)
+   393→        setTimeout(() => {
+   394→          setIsTyping(false)
+   395→          addSystemMessage('Photo added! ✅ Type another URL to add more, or type "done" to submit.')
+   396→        }, 600)
+   397→      }
+   398→    } else if (flowStep === 'done') {
+   399→      addUserMessage(text)
+   400→      setIsTyping(true)
+   401→      setTimeout(() => {
+   402→        setIsTyping(false)
+   403→        addSystemMessage('Your complaint has been submitted. To create a new complaint, click the "New Complaint" button below. 👇')
+   404→      }, 800)
+   405→    } else {
+   406→      addUserMessage(text)
+   407→      setIsTyping(true)
+   408→      setTimeout(() => {
+   409→        setIsTyping(false)
+   410→        addSystemMessage('Please follow the steps above to submit your complaint. 👆')
+   411→      }, 600)
+   412→    }
+   413→  }, [inputText, flowStep, addUserMessage, addSystemMessage, addOptionsMessage, addPhotoInputMessage, submitTicket])
+   414→
+   415→  // Handle photo URL submit
+   416→  const handlePhotoUrlSubmit = useCallback(() => {
+   417→    const url = photoUrl.trim()
+   418→    if (!url) return
+   419→    setPhotoUrl('')
+   420→    addUserMessage(`📷 ${url}`)
+   421→    setComplaintData(prev => ({ ...prev, photos: [...prev.photos, url] }))
+   422→    setIsTyping(true)
+   423→    setTimeout(() => {
+   424→      setIsTyping(false)
+   425→      addSystemMessage('Photo added! ✅ Add another URL, or click "Done" to submit.')
+   426→    }, 600)
+   427→  }, [photoUrl, addUserMessage, addSystemMessage])
+   428→
+   429→  // New complaint
+   430→  const handleNewComplaint = useCallback(() => {
+   431→    setMessages([])
+   432→    setFlowStep('initial')
+   433→    setComplaintData({
+   434→      description: '',
+   435→      category: '',
+   436→      priority: '',
+   437→      siteId: '',
+   438→      customLocation: '',
+   439→      photos: [],
+   440→    })
+   441→    setPhotoUrl('')
+   442→    setShowRecent(false)
+   443→  }, [])
+   444→
+   445→  // Initial welcome
+   446→  useEffect(() => {
+   447→    const timer = setTimeout(() => {
+   448→      addSystemMessage(
+   449→        '👋 Welcome to SmartBuild Service Desk!\n\n' +
+   450→        'Describe your maintenance issue and I\'ll help you create a ticket quickly.\n\n' +
+   451→        'For example: "Aircon not cooling at Office 3" or "Water leaking in bathroom"'
+   452→      )
+   453→    }, 500)
+   454→    return () => clearTimeout(timer)
+   455→  }, [addSystemMessage])
+   456→
+   457→  const inputDisabled = flowStep === 'awaiting_category' || flowStep === 'awaiting_priority' || flowStep === 'submitting'
+   458→
+   459→  return (
+   460→    <div className="h-full flex flex-col lg:flex-row gap-4 p-2 md:p-4 max-w-6xl mx-auto">
+   461→      {/* Chat Panel */}
+   462→      <Card className="flex-1 flex flex-col overflow-hidden border-0 shadow-lg">
+   463→        {/* WhatsApp Header */}
+   464→        <div className="bg-emerald-600 text-white px-4 py-3 flex items-center gap-3 flex-shrink-0">
+   465→          <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center">
+   466→            <MessageSquare className="w-5 h-5" />
+   467→          </div>
+   468→          <div className="flex-1 min-w-0">
+   469→            <h2 className="font-semibold text-sm">SmartBuild Service Desk</h2>
+   470→            <p className="text-emerald-100 text-xs flex items-center gap-1">
+   471→              <CircleDot className="w-3 h-3" />
+   472→              Online — Maintenance Support
+   473→            </p>
+   474→          </div>
+   475→          <div className="flex items-center gap-1">
+   476→            <Button
+   477→              variant="ghost"
+   478→              size="icon"
+   479→              className="text-white hover:bg-emerald-700 h-8 w-8"
+   480→              onClick={() => setShowRecent(!showRecent)}
+   481→            >
+   482→              <Clock className="w-4 h-4" />
+   483→            </Button>
+   484→            <Button
+   485→              variant="ghost"
+   486→              size="icon"
+   487→              className="text-emerald-100 hover:bg-emerald-700 h-8 w-8"
+   488→              onClick={handleNewComplaint}
+   489→            >
+   490→              <RotateCcw className="w-4 h-4" />
+   491→            </Button>
+   492→          </div>
+   493→        </div>
+   494→
+   495→        {/* Chat Messages */}
+   496→        <div
+   497→          ref={scrollRef}
+   498→          className="flex-1 overflow-y-auto bg-emerald-50 dark:bg-emerald-950 px-3 py-4 space-y-1"
+   499→          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%2316a34a\' fill-opacity=\'0.04\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}
+   500→        >
+   501→          {messages.map((msg) => (
+   502→            <div
+   503→              key={msg.id}
+   504→              className={cn(
+   505→                'flex items-end gap-2 mb-1',
+   506→                msg.type === 'sent' ? 'justify-end' : 'justify-start'
+   507→              )}
+   508→            >
+   509→              {msg.type === 'received' && (
+   510→                <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
+   511→                  <span className="text-white text-[10px] font-bold">SB</span>
+   512→                </div>
+   513→              )}
+   514→
+   515→              <div className="max-w-[80%] min-w-[120px]">
+   516→                <div
+   517→                  className={cn(
+   518→                    'rounded-2xl px-3 py-2 shadow-sm text-sm leading-relaxed',
+   519→                    msg.type === 'sent'
+   520→                      ? 'bg-emerald-500 text-white rounded-br-sm'
+   521→                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-sm',
+   522→                    msg.isTicketConfirmation && 'border-2 border-emerald-300 dark:border-emerald-700'
+   523→                  )}
+   524→                >
+   525→                  {msg.image && (
+   526→                    <div className="mb-2 rounded-lg overflow-hidden">
+   527→                      <img
+   528→                        src={msg.image}
+   529→                        alt="Uploaded photo"
+   530→                        className="w-full h-auto max-h-48 object-cover"
+   531→                        onError={(e) => {
+   532→                          (e.target as HTMLImageElement).style.display = 'none'
+   533→                        }}
+   534→                      />
+   535→                    </div>
+   536→                  )}
+   537→                  {msg.text && (
+   538→                    <p className="whitespace-pre-wrap">{msg.text}</p>
+   539→                  )}
+   540→                </div>
+   541→
+   542→                {/* Category Options */}
+   543→                {msg.options && (
+   544→                  <div className="mt-2 flex flex-wrap gap-1.5">
+   545→                    {msg.options.map(opt => (
+   546→                      <button
+   547→                        key={opt.value}
+   548→                        onClick={() => handleCategorySelect(opt.value)}
+   549→                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full
+   550→                          bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800
+   551→                          text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900
+   552→                          transition-colors shadow-sm"
+   553→                      >
+   554→                        {opt.label}
+   555→                      </button>
+   556→                    ))}
+   557→                  </div>
+   558→                )}
+   559→
+   560→                {/* Priority Options */}
+   561→                {msg.priorityOptions && (
+   562→                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+   563→                    {msg.priorityOptions.map(pri => (
+   564→                      <button
+   565→                        key={pri.value}
+   566→                        onClick={() => handlePrioritySelect(pri.value)}
+   567→                        className={cn(
+   568→                          'px-3 py-2 text-xs font-semibold rounded-lg transition-colors shadow-sm',
+   569→                          pri.color
+   570→                        )}
+   571→                      >
+   572→                        {pri.label}
+   573→                      </button>
+   574→                    ))}
+   575→                  </div>
+   576→                )}
+   577→
+   578→                {/* Site Select */}
+   579→                {msg.showSiteSelect && (
+   580→                  <div className="mt-2 space-y-2">
+   581→                    <Select onValueChange={handleSiteSelect}>
+   582→                      <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-emerald-200 dark:border-emerald-800 text-sm">
+   583→                        <SelectValue placeholder="Select a site..." />
+   584→                      </SelectTrigger>
+   585→                      <SelectContent>
+   586→                        {sites.map(site => (
+   587→                          <SelectItem key={site.id} value={site.id}>
+   588→                            {site.name} {site.customer ? `(${site.customer.name})` : ''}
+   589→                          </SelectItem>
+   590→                        ))}
+   591→                      </SelectContent>
+   592→                    </Select>
+   593→                    <p className="text-[10px] text-gray-500 dark:text-gray-400 px-1">
+   594→                      Or type your location in the message box below
+   595→                    </p>
+   596→                  </div>
+   597→                )}
+   598→
+   599→                {/* Photo Input */}
+   600→                {msg.showPhotoInput && (
+   601→                  <div className="mt-2 space-y-2">
+   602→                    <div className="flex gap-1.5">
+   603→                      <Input
+   604→                        value={photoUrl}
+   605→                        onChange={(e) => setPhotoUrl(e.target.value)}
+   606→                        placeholder="Paste image URL..."
+   607→                        className="h-8 text-xs bg-white dark:bg-gray-800 border-emerald-200 dark:border-emerald-800"
+   608→                        onKeyDown={(e) => {
+   609→                          if (e.key === 'Enter') {
+   610→                            e.preventDefault()
+   611→                            handlePhotoUrlSubmit()
+   612→                          }
+   613→                        }}
+   614→                      />
+   615→                      <Button
+   616→                        size="sm"
+   617→                        onClick={handlePhotoUrlSubmit}
+   618→                        disabled={!photoUrl.trim()}
+   619→                        className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white"
+   620→                      >
+   621→                        Add
+   622→                      </Button>
+   623→                    </div>
+   624→                    <div className="flex gap-1.5">
+   625→                      <Button
+   626→                        size="sm"
+   627→                        variant="outline"
+   628→                        onClick={handlePhotoDone}
+   629→                        className="h-7 text-xs flex-1 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900"
+   630→                      >
+   631→                        Done — Submit
+   632→                      </Button>
+   633→                      <Button
+   634→                        size="sm"
+   635→                        variant="outline"
+   636→                        onClick={() => {
+   637→                          addUserMessage('skip')
+   638→                          submitTicket()
+   639→                        }}
+   640→                        className="h-7 text-xs border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+   641→                      >
+   642→                        Skip
+   643→                      </Button>
+   644→                    </div>
+   645→                  </div>
+   646→                )}
+   647→
+   648→                {/* Timestamp & Read Status */}
+   649→                <div className={cn(
+   650→                  'flex items-center gap-1 mt-0.5 px-1',
+   651→                  msg.type === 'sent' ? 'justify-end' : 'justify-start'
+   652→                )}>
+   653→                  <span className="text-[10px] text-gray-400">{getTimeStr(msg.timestamp)}</span>
+   654→                  {msg.type === 'sent' && (
+   655→                    <CheckCheck className="w-3.5 h-3.5 text-emerald-500" />
+   656→                  )}
+   657→                </div>
+   658→              </div>
+   659→
+   660→              {msg.type === 'sent' && (
+   661→                <div className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+   662→                  <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">
+   663→                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+   664→                  </span>
+   665→                </div>
+   666→              )}
+   667→            </div>
+   668→          ))}
+   669→
+   670→          {/* Typing indicator */}
+   671→          {isTyping && <TypingIndicator />}
+   672→
+   673→          {/* Done button after ticket created */}
+   674→          {flowStep === 'done' && !isTyping && (
+   675→            <div className="flex justify-center mt-4">
+   676→              <Button
+   677→                onClick={handleNewComplaint}
+   678→                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 shadow-md"
+   679→              >
+   680→                <RotateCcw className="w-4 h-4 mr-2" />
+   681→                New Complaint
+   682→              </Button>
+   683→            </div>
+   684→          )}
+   685→        </div>
+   686→
+   687→        {/* Input Bar */}
+   688→        <div className="bg-gray-50 dark:bg-gray-900 border-t px-3 py-2 flex-shrink-0">
+   689→          <div className="flex items-center gap-2">
+   690→            <Button
+   691→              variant="ghost"
+   692→              size="icon"
+   693→              className="text-gray-400 hover:text-emerald-600 h-9 w-9 flex-shrink-0"
+   694→              disabled={flowStep !== 'awaiting_photo'}
+   695→            >
+   696→              <ImagePlus className="w-5 h-5" />
+   697→            </Button>
+   698→            <Input
+   699→              ref={inputRef}
+   700→              value={inputText}
+   701→              onChange={(e) => setInputText(e.target.value)}
+   702→              onKeyDown={(e) => {
+   703→                if (e.key === 'Enter' && !e.shiftKey) {
+   704→                  e.preventDefault()
+   705→                  handleSend()
+   706→                }
+   707→              }}
+   708→              placeholder={
+   709→                flowStep === 'awaiting_site'
+   710→                  ? 'Type your location...'
+   711→                  : flowStep === 'awaiting_photo'
+   712→                    ? 'Type image URL or "skip"...'
+   713→                    : flowStep === 'awaiting_category'
+   714→                      ? 'Select a category above...'
+   715→                      : flowStep === 'awaiting_priority'
+   716→                        ? 'Select priority above...'
+   717→                        : 'Describe your issue...'
+   718→              }
+   719→              disabled={inputDisabled}
+   720→              className="flex-1 border-gray-200 dark:border-gray-700 rounded-full bg-white dark:bg-gray-800 h-10 px-4"
+   721→            />
+   722→            <Button
+   723→              onClick={handleSend}
+   724→              disabled={inputDisabled || !inputText.trim()}
+   725→              className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 w-9 rounded-full p-0 flex-shrink-0"
+   726→              size="icon"
+   727→            >
+   728→              <Send className="w-4 h-4" />
+   729→            </Button>
+   730→          </div>
+   731→        </div>
+   732→      </Card>
+   733→
+   734→      {/* Recent Complaints Sidebar */}
+   735→      {showRecent && (
+   736→        <Card className="w-full lg:w-80 xl:w-96 flex flex-col overflow-hidden border-0 shadow-lg">
+   737→          <div className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+   738→            <div className="flex items-center gap-2">
+   739→              <Clock className="w-4 h-4" />
+   740→              <h3 className="font-semibold text-sm">Recent Complaints</h3>
+   741→            </div>
+   742→            <Button
+   743→              variant="ghost"
+   744→              size="icon"
+   745→              className="text-white hover:bg-emerald-700 h-7 w-7"
+   746→              onClick={() => setShowRecent(false)}
+   747→            >
+   748→              ✕
+   749→            </Button>
+   750→          </div>
+   751→          <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950">
+   752→            {loadingTickets ? (
+   753→              <div className="p-4 space-y-3">
+   754→                {[1, 2, 3].map(i => (
+   755→                  <div key={i} className="animate-pulse space-y-2">
+   756→                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+   757→                    <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+   758→                  </div>
+   759→                ))}
+   760→              </div>
+   761→            ) : tickets.length === 0 ? (
+   762→              <div className="p-6 text-center">
+   763→                <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+   764→                <p className="text-sm text-gray-500">No recent complaints</p>
+   765→              </div>
+   766→            ) : (
+   767→              <div className="divide-y">
+   768→                {tickets.map((ticket: Record<string, unknown>) => {
+   769→                  const status = String(ticket.status || 'new')
+   770→                  const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.new
+   771→                  const priority = String(ticket.priority || 'medium')
+   772→                  const cat = String(ticket.category || 'other')
+   773→                  return (
+   774→                    <button
+   775→                      key={String(ticket.id)}
+   776→                      className="w-full text-left p-3 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors"
+   777→                      onClick={() => {
+   778→                        setShowRecent(false)
+   779→                        if (ticket.ticketNo) {
+   780→                          addSystemMessage(
+   781→                            `📋 Ticket: ${ticket.ticketNo}\n` +
+   782→                            `📝 ${String(ticket.subject || '').substring(0, 80)}\n` +
+   783→                            `🏷️ ${CATEGORY_LABELS[cat] || cat} • ${statusCfg.label}\n` +
+   784→                            `🕒 Created: ${ticket.createdAt ? new Date(String(ticket.createdAt)).toLocaleDateString() : 'N/A'}`
+   785→                          )
+   786→                        }
+   787→                      }}
+   788→                    >
+   789→                      <div className="flex items-start justify-between gap-2">
+   790→                        <div className="min-w-0 flex-1">
+   791→                          <div className="flex items-center gap-2 mb-1">
+   792→                            <span className="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-400">
+   793→                              {String(ticket.ticketNo || '')}
+   794→                            </span>
+   795→                            <Badge className={cn('text-[10px] px-1.5 py-0 h-4', statusCfg.color)}>
+   796→                              {statusCfg.label}
+   797→                            </Badge>
+   798→                          </div>
+   799→                          <p className="text-xs text-gray-700 dark:text-gray-300 truncate font-medium">
+   800→                            {String(ticket.subject || 'No subject')}
+   801→                          </p>
+   802→                          <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-2">
+   803→                            <span>{CATEGORY_LABELS[cat] || cat}</span>
+   804→                            <span>•</span>
+   805→                            <span>{ticket.createdAt ? new Date(String(ticket.createdAt)).toLocaleDateString() : ''}</span>
+   806→                          </p>
+   807→                        </div>
+   808→                        <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 mt-1" />
+   809→                      </div>
+   810→                    </button>
+   811→                  )
+   812→                })}
+   813→              </div>
+   814→            )}
+   815→          </div>
+   816→        </Card>
+   817→      )}
+   818→    </div>
+   819→  )
+   820→}

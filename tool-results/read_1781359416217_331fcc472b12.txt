@@ -1,0 +1,792 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import React, { useState, useCallback, useMemo } from 'react'
+     4→     4→import {
+     5→     5→  LayoutDashboard, FolderKanban, FileText, Receipt, Calculator,
+     6→     6→  ShoppingCart, Package, Users, UserCheck, Clock, DollarSign,
+     7→     7→  ClipboardList, Wrench, Truck, CalendarRange, Store,
+     8→     8→  Bell, ShieldCheck, UserCog, BarChart3, ScrollText, FileSpreadsheet,
+     9→     9→  ChevronLeft, ChevronRight, HardHat, Settings, LogOut,
+    10→    10→  Activity, Gauge, Hammer, Car, Ruler, UsersRound, ClipboardCheck, TrendingUp, LineChart,
+    11→    11→  Wallet, Tags, GitBranch, Target, Megaphone, MessageSquare,
+    12→    12→  Brain, Sparkles, FileBarChart, Eye, AlertTriangle,
+    13→    13→  Shield, MapPin, Zap, Clock4, FileCheck, Star, MessageCircle, Building, Headphones,
+    14→    14→  User, ChevronDown, Mail, ChevronUp,
+    15→    15→  // New icons for expanded menu
+    16→    16→  ListTodo, Camera, CalendarDays, UserCircle, FileBox,
+    17→    17→  CheckSquare, Warehouse, ArrowRightLeft, FileSearch,
+    18→    18→  GraduationCap, Plane, Award,
+    19→    19→  QrCode, HandAssignment, BadgeDollarSign,
+    20→    20→  PieChart, FileClock,
+    21→    21→  type LucideIcon,
+    22→    22→} from 'lucide-react'
+    23→    23→import { cn } from '@/lib/utils'
+    24→    24→import { useAppStore, type AppPage } from '@/lib/store'
+    25→    25→import { Button } from '@/components/ui/button'
+    26→    26→import {
+    27→    27→  DropdownMenu,
+    28→    28→  DropdownMenuContent,
+    29→    29→  DropdownMenuItem,
+    30→    30→  DropdownMenuLabel,
+    31→    31→  DropdownMenuSeparator,
+    32→    32→  DropdownMenuTrigger,
+    33→    33→  DropdownMenuGroup,
+    34→    34→  DropdownMenuShortcut,
+    35→    35→} from '@/components/ui/dropdown-menu'
+    36→    36→import { ScrollArea } from '@/components/ui/scroll-area'
+    37→    37→import { Separator } from '@/components/ui/separator'
+    38→    38→import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+    39→    39→import { Badge } from '@/components/ui/badge'
+    40→    40→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    41→    41→import { MobileHeader } from '@/components/layout/mobile-header'
+    42→    42→import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+    43→    43→import { AnimatePresence, motion } from 'framer-motion'
+    44→    44→
+    45→    45→// ─────────────────────────────────────────────────────────────────────
+    46→    46→// MENU DATA STRUCTURE — Hierarchical configuration
+    47→    47→// ─────────────────────────────────────────────────────────────────────
+    48→    48→
+    49→    49→interface MenuItem {
+    50→    50→  label: string
+    51→    51→  page: AppPage
+    52→    52→  icon: LucideIcon
+    53→    53→  badge?: number
+    54→    54→}
+    55→    55→
+    56→    56→interface MenuGroup {
+    57→    57→  id: string
+    58→    58→  label: string
+    59→    59→  icon: LucideIcon
+    60→    60→  items: MenuItem[]
+    61→    61→  // Which roles can see this group (empty = all roles)
+    62→    62→  roles?: string[]
+    63→    63→  // Default expanded on first load
+    64→    64→  defaultExpanded?: boolean
+    65→    65→}
+    66→    66→
+    67→    67→// ── ROLE → ACCESSIBLE GROUPS ──
+    68→    68→const roleGroupAccess: Record<string, string[]> = {
+    69→    69→  admin: [],        // admin sees everything (empty = no filter)
+    70→    70→  supervisor: ['dashboard', 'projects', 'finance', 'procurement', 'labour-hr', 'operations', 'resources', 'cost-control', 'collaboration', 'ai-analytics', 'maintenance', 'sales', 'reports', 'settings'],
+    71→    71→  project_manager: ['dashboard', 'projects', 'finance', 'procurement', 'labour-hr', 'resources', 'cost-control', 'collaboration', 'ai-analytics', 'reports'],
+    72→    72→  site_engineer: ['dashboard', 'projects', 'procurement', 'labour-hr', 'operations', 'resources', 'maintenance'],
+    73→    73→  qs: ['dashboard', 'projects', 'procurement', 'operations', 'resources', 'cost-control'],
+    74→    74→  accountant: ['dashboard', 'finance', 'cost-control', 'reports'],
+    75→    75→  hr_manager: ['dashboard', 'labour-hr', 'reports', 'settings'],
+    76→    76→  store_manager: ['dashboard', 'procurement', 'operations', 'resources', 'reports'],
+    77→    77→  client: ['dashboard', 'client-portal', 'reports'],
+    78→    78→  technician: ['dashboard', 'maintenance', 'labour-hr'],
+    79→    79→  dispatcher: ['dashboard', 'maintenance'],
+    80→    80→  labour: ['dashboard', 'labour-hr'],
+    81→    81→}
+    82→    82→
+    83→    83→// ── MENU GROUPS CONFIGURATION ──
+    84→    84→const menuGroups: MenuGroup[] = [
+    85→    85→  {
+    86→    86→    id: 'dashboard',
+    87→    87→    label: 'Dashboard',
+    88→    88→    icon: LayoutDashboard,
+    89→    89→    items: [
+    90→    90→      { label: 'Overview', page: 'dashboard', icon: LayoutDashboard },
+    91→    91→    ],
+    92→    92→    defaultExpanded: true,
+    93→    93→  },
+    94→    94→  {
+    95→    95→    id: 'projects',
+    96→    96→    label: 'Project Management',
+    97→    97→    icon: FolderKanban,
+    98→    98→    items: [
+    99→    99→      { label: 'Projects', page: 'projects', icon: FolderKanban },
+   100→   100→      { label: 'Scheduling', page: 'scheduling', icon: CalendarRange },
+   101→   101→    ],
+   102→   102→  },
+   103→   103→  {
+   104→   104→    id: 'finance',
+   105→   105→    label: 'Finance',
+   106→   106→    icon: DollarSign,
+   107→   107→    items: [
+   108→   108→      { label: 'Invoices', page: 'invoices', icon: FileText },
+   109→   109→      { label: 'Payments', page: 'payments', icon: Receipt },
+   110→   110→      { label: 'BOQ', page: 'boq', icon: Calculator },
+   111→   111→      { label: 'Day Book', page: 'daybook', icon: FileSpreadsheet },
+   112→   112→      { label: 'Cashflow', page: 'cashflow', icon: DollarSign },
+   113→   113→    ],
+   114→   114→  },
+   115→   115→  {
+   116→   116→    id: 'procurement',
+   117→   117→    label: 'Procurement',
+   118→   118→    icon: ShoppingCart,
+   119→   119→    items: [
+   120→   120→      { label: 'Purchase Requests', page: 'purchase-requests', icon: ShoppingCart },
+   121→   121→      { label: 'Purchase Orders', page: 'purchase-orders', icon: ClipboardList },
+   122→   122→      { label: 'Suppliers', page: 'suppliers', icon: Users },
+   123→   123→      { label: 'Inventory', page: 'inventory', icon: Package },
+   124→   124→    ],
+   125→   125→  },
+   126→   126→  {
+   127→   127→    id: 'labour-hr',
+   128→   128→    label: 'HR & Payroll',
+   129→   129→    icon: Users,
+   130→   130→    items: [
+   131→   131→      { label: 'Labour Groups', page: 'labour-groups', icon: UserCheck },
+   132→   132→      { label: 'Attendance', page: 'attendance', icon: Clock },
+   133→   133→      { label: 'Payroll', page: 'payroll', icon: DollarSign },
+   134→   134→      { label: 'Employees', page: 'employees', icon: Users },
+   135→   135→      { label: 'Leave Mgmt', page: 'leave', icon: ScrollText },
+   136→   136→    ],
+   137→   137→  },
+   138→   138→  {
+   139→   139→    id: 'operations',
+   140→   140→    label: 'Operations',
+   141→   141→    icon: Wrench,
+   142→   142→    items: [
+   143→   143→      { label: 'Sub Contractors', page: 'subcontractors', icon: Truck },
+   144→   144→      { label: 'Assets', page: 'assets', icon: Wrench },
+   145→   145→      { label: 'Work Orders', page: 'work-orders', icon: ClipboardList },
+   146→   146→    ],
+   147→   147→  },
+   148→   148→  {
+   149→   149→    id: 'resources',
+   150→   150→    label: 'Resource Management',
+   151→   151→    icon: Activity,
+   152→   152→    items: [
+   153→   153→      { label: 'Resource Dashboard', page: 'resource-dashboard', icon: Activity },
+   154→   154→      { label: 'Resource Planning', page: 'resource-planning', icon: Gauge },
+   155→   155→      { label: 'Labour', page: 'labour-resources', icon: HardHat },
+   156→   156→      { label: 'Equipment', page: 'equipment-resources', icon: Hammer },
+   157→   157→      { label: 'Vehicles', page: 'vehicle-resources', icon: Car },
+   158→   158→      { label: 'Tools', page: 'tool-resources', icon: Ruler },
+   159→   159→      { label: 'Crew Management', page: 'crew-management', icon: UsersRound },
+   160→   160→      { label: 'Resource Requests', page: 'resource-requests', icon: ClipboardCheck },
+   161→   161→      { label: 'Productivity', page: 'resource-productivity', icon: TrendingUp },
+   162→   162→      { label: 'Forecasting', page: 'resource-forecasting', icon: LineChart },
+   163→   163→    ],
+   164→   164→  },
+   165→   165→  {
+   166→   166→    id: 'cost-control',
+   167→   167→    label: 'Cost Control',
+   168→   168→    icon: Wallet,
+   169→   169→    items: [
+   170→   170→      { label: 'Cost Dashboard', page: 'cost-control-dashboard', icon: Wallet },
+   171→   171→      { label: 'Budgets', page: 'budget-management', icon: FileSpreadsheet },
+   172→   172→      { label: 'Cost Codes', page: 'cost-codes', icon: Tags },
+   173→   173→      { label: 'Change Orders', page: 'budget-change-orders', icon: GitBranch },
+   174→   174→      { label: 'Cost Forecasting', page: 'cost-forecasting', icon: Target },
+   175→   175→    ],
+   176→   176→  },
+   177→   177→  {
+   178→   178→    id: 'collaboration',
+   179→   179→    label: 'Collaboration',
+   180→   180→    icon: MessageSquare,
+   181→   181→    items: [
+   182→   182→      { label: 'Collab Hub', page: 'collaboration-dashboard', icon: MessageSquare },
+   183→   183→      { label: 'RFI Management', page: 'collaboration-rfis', icon: ClipboardList },
+   184→   184→      { label: 'Submittals', page: 'collaboration-submittals', icon: FileText },
+   185→   185→      { label: 'Discussions', page: 'collaboration-discussions', icon: MessageSquare },
+   186→   186→      { label: 'Approvals', page: 'collaboration-approvals', icon: ClipboardCheck },
+   187→   187→      { label: 'Announcements', page: 'collaboration-announcements', icon: Megaphone },
+   188→   188→    ],
+   189→   189→  },
+   190→   190→  {
+   191→   191→    id: 'client-portal',
+   192→   192→    label: 'Client Portal',
+   193→   193→    icon: Users,
+   194→   194→    roles: ['admin', 'supervisor', 'project_manager'],
+   195→   195→    items: [
+   196→   196→      { label: 'Portal Dashboard', page: 'client-dashboard', icon: Users },
+   197→   197→      { label: 'Progress', page: 'client-progress', icon: TrendingUp },
+   198→   198→      { label: 'Invoices', page: 'client-invoices', icon: Receipt },
+   199→   199→      { label: 'Documents', page: 'client-documents', icon: FileText },
+   200→   200→      { label: 'Complaints', page: 'client-complaints', icon: MessageSquare },
+   201→   201→      { label: 'Service Requests', page: 'client-service-requests', icon: Headphones },
+   202→   202→    ],
+   203→   203→  },
+   204→   204→  {
+   205→   205→    id: 'ai-analytics',
+   206→   206→    label: 'AI & Analytics',
+   207→   207→    icon: Brain,
+   208→   208→    items: [
+   209→   209→      { label: 'AI Dashboard', page: 'ai-dashboard', icon: Brain },
+   210→   210→      { label: 'AI Insights', page: 'ai-insights', icon: Sparkles },
+   211→   211→      { label: 'AI Forecasting', page: 'ai-forecast', icon: LineChart },
+   212→   212→      { label: 'Project Analytics', page: 'project-analytics', icon: Eye },
+   213→   213→      { label: 'Advanced Reports', page: 'advanced-reports', icon: FileBarChart },
+   214→   214→    ],
+   215→   215→  },
+   216→   216→  {
+   217→   217→    id: 'maintenance',
+   218→   218→    label: 'Maintenance',
+   219→   219→    icon: Shield,
+   220→   220→    items: [
+   221→   221→      { label: 'Dashboard', page: 'maintenance-dashboard', icon: Shield },
+   222→   222→      { label: 'Service Requests', page: 'maintenance-service-requests', icon: FileText },
+   223→   223→      { label: 'Dispatch Center', page: 'maintenance-dispatch', icon: MapPin },
+   224→   224→      { label: 'Technician Portal', page: 'maintenance-technician-portal', icon: Zap },
+   225→   225→      { label: 'Work Orders', page: 'maintenance-work-orders', icon: ClipboardList },
+   226→   226→      { label: 'SLA Management', page: 'maintenance-sla', icon: Clock4 },
+   227→   227→      { label: 'PM Schedules', page: 'maintenance-pm', icon: CalendarRange },
+   228→   228→      { label: 'AMC Contracts', page: 'maintenance-amc', icon: FileCheck },
+   229→   229→      { label: 'Materials', page: 'maintenance-materials', icon: Package },
+   230→   230→      { label: 'Invoicing', page: 'maintenance-invoices', icon: Receipt },
+   231→   231→      { label: 'Reports', page: 'maintenance-reports', icon: BarChart3 },
+   232→   232→      { label: 'Sites', page: 'maintenance-sites', icon: Building },
+   233→   233→      { label: 'WhatsApp', page: 'maintenance-whatsapp', icon: MessageCircle },
+   234→   234→    ],
+   235→   235→  },
+   236→   236→  {
+   237→   237→    id: 'sales',
+   238→   238→    label: 'Sales',
+   239→   239→    icon: Store,
+   240→   240→    items: [
+   241→   241→      { label: 'Product Catalog', page: 'product-catalog', icon: Store },
+   242→   242→      { label: 'Customers', page: 'customers', icon: Users },
+   243→   243→      { label: 'Sales Invoices', page: 'sales-invoices', icon: FileText },
+   244→   244→    ],
+   245→   245→  },
+   246→   246→  {
+   247→   247→    id: 'reports',
+   248→   248→    label: 'Reports',
+   249→   249→    icon: BarChart3,
+   250→   250→    items: [
+   251→   251→      { label: 'Reports', page: 'reports', icon: BarChart3 },
+   252→   252→      { label: 'Audit Log', page: 'audit-log', icon: ShieldCheck },
+   253→   253→      { label: 'Notifications', page: 'notifications', icon: Bell },
+   254→   254→    ],
+   255→   255→  },
+   256→   256→  {
+   257→   257→    id: 'settings',
+   258→   258→    label: 'Settings',
+   259→   259→    icon: Settings,
+   260→   260→    items: [
+   261→   261→      { label: 'Users', page: 'users', icon: UserCog },
+   262→   262→      { label: 'Settings', page: 'settings', icon: Settings },
+   263→   263→    ],
+   264→   264→  },
+   265→   265→]
+   266→   266→
+   267→   267→// ─────────────────────────────────────────────────────────────────────
+   268→   268→// ANIMATION VARIANTS
+   269→   269→// ─────────────────────────────────────────────────────────────────────
+   270→   270→
+   271→   271→const expandVariants = {
+   272→   272→  hidden: {
+   273→   273→    height: 0,
+   274→   274→    opacity: 0,
+   275→   275→    overflow: 'hidden',
+   276→   276→  },
+   277→   277→  visible: {
+   278→   278→    height: 'auto',
+   279→   279→    opacity: 1,
+   280→   280→    overflow: 'hidden',
+   281→   281→    transition: {
+   282→   282→      height: {
+   283→   283→        duration: 0.25,
+   284→   284→        ease: [0.4, 0, 0.2, 1], // ease-out-quart
+   285→   285→      },
+   286→   286→      opacity: {
+   287→   287→        duration: 0.2,
+   288→   288→        delay: 0.05,
+   289→   289→        ease: 'easeOut',
+   290→   290→      },
+   291→   291→    },
+   292→   292→  },
+   293→   293→  exit: {
+   294→   294→    height: 0,
+   295→   295→    opacity: 0,
+   296→   296→    overflow: 'hidden',
+   297→   297→    transition: {
+   298→   298→      height: {
+   299→   299→        duration: 0.2,
+   300→   300→        ease: [0.4, 0, 1, 1], // ease-in-quart
+   301→   301→      },
+   302→   302→      opacity: {
+   303→   303→        duration: 0.15,
+   304→   304→        ease: 'easeIn',
+   305→   305→      },
+   306→   306→    },
+   307→   307→  },
+   308→   308→}
+   309→   309→
+   310→   310→// ─────────────────────────────────────────────────────────────────────
+   311→   311→// SIDEBAR COMPONENT
+   312→   312→// ─────────────────────────────────────────────────────────────────────
+   313→   313→
+   314→   314→export function AppSidebar() {
+   315→   315→  const { sidebarOpen, setSidebarOpen, user, logout, currentPage } = useAppStore()
+   316→   316→
+   317→   317→  // Track which groups are expanded (state per session)
+   318→   318→  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+   319→   319→    // Initialize: expand groups that contain the current page, and defaultExpanded groups
+   320→   320→    const initial: Record<string, boolean> = {}
+   321→   321→    for (const group of menuGroups) {
+   322→   322→      if (group.defaultExpanded || group.items.some((item) => item.page === currentPage)) {
+   323→   323→        initial[group.id] = true
+   324→   324→      }
+   325→   325→    }
+   326→   326→    return initial
+   327→   327→  })
+   328→   328→
+   329→   329→  // Get user role and filter groups
+   330→   330→  const userRole = user?.role || 'labour'
+   331→   331→  const accessibleGroupIds = roleGroupAccess[userRole]
+   332→   332→
+   333→   333→  const visibleGroups = useMemo(() => {
+   334→   334→    // Empty array means "see all" (admin)
+   335→   335→    if (!accessibleGroupIds || accessibleGroupIds.length === 0) return menuGroups
+   336→   336→    return menuGroups.filter((g) => accessibleGroupIds.includes(g.id))
+   337→   337→  }, [accessibleGroupIds])
+   338→   338→
+   339→   339→  // Auto-expand the group containing the active page
+   340→   340→  const activeGroupId = useMemo(() => {
+   341→   341→    for (const group of visibleGroups) {
+   342→   342→      if (group.items.some((item) => item.page === currentPage)) {
+   343→   343→        return group.id
+   344→   344→      }
+   345→   345→    }
+   346→   346→    return null
+   347→   347→  }, [visibleGroups, currentPage])
+   348→   348→
+   349→   349→  // Auto-expand when page changes
+   350→   350→  React.useEffect(() => {
+   351→   351→    if (activeGroupId && !expandedGroups[activeGroupId]) {
+   352→   352→      setExpandedGroups((prev) => ({ ...prev, [activeGroupId]: true }))
+   353→   353→    }
+   354→   354→  }, [activeGroupId, expandedGroups])
+   355→   355→
+   356→   356→  const toggleGroup = useCallback((groupId: string) => {
+   357→   357→    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
+   358→   358→  }, [])
+   359→   359→
+   360→   360→  return (
+   361→   361→    <aside
+   362→   362→      className={cn(
+   363→   363→        'flex flex-col border-r bg-card transition-all duration-300 ease-in-out h-screen sticky top-0',
+   364→   364→        sidebarOpen ? 'w-[260px]' : 'w-16'
+   365→   365→      )}
+   366→   366→    >
+   367→   367→      {/* Logo */}
+   368→   368→      <div className="flex items-center h-14 px-3 border-b shrink-0">
+   369→   369→        {sidebarOpen ? (
+   370→   370→          <div className="flex items-center gap-2 w-full">
+   371→   371→            <div className="h-8 w-8 rounded-lg bg-amber-600 flex items-center justify-center shrink-0">
+   372→   372→              <HardHat className="h-5 w-5 text-white" />
+   373→   373→            </div>
+   374→   374→            <div className="flex flex-col min-w-0">
+   375→   375→              <span className="font-bold text-sm leading-none">SMARTBUILD</span>
+   376→   376→              <span className="text-[10px] text-muted-foreground">Construction ERP</span>
+   377→   377→            </div>
+   378→   378→          </div>
+   379→   379→        ) : (
+   380→   380→          <div className="h-8 w-8 rounded-lg bg-amber-600 flex items-center justify-center mx-auto">
+   381→   381→            <HardHat className="h-5 w-5 text-white" />
+   382→   382→          </div>
+   383→   383→        )}
+   384→   384→      </div>
+   385→   385→
+   386→   386→      {/* Navigation */}
+   387→   387→      <ScrollArea className="flex-1 py-2">
+   388→   388→        <div className="space-y-0.5 px-2">
+   389→   389→          {visibleGroups.map((group) => (
+   390→   390→            <SidebarGroup
+   391→   391→              key={group.id}
+   392→   392→              group={group}
+   393→   393→              expanded={!!expandedGroups[group.id]}
+   394→   394→              activePage={currentPage}
+   395→   395→              collapsed={!sidebarOpen}
+   396→   396→              onToggle={() => toggleGroup(group.id)}
+   397→   397→              onNavigate={() => {}}
+   398→   398→            />
+   399→   399→          ))}
+   400→   400→        </div>
+   401→   401→      </ScrollArea>
+   402→   402→
+   403→   403→      {/* User */}
+   404→   404→      <div className="border-t p-2 shrink-0">
+   405→   405→        {sidebarOpen ? (
+   406→   406→          <div className="flex items-center gap-2 px-2 py-1.5">
+   407→   407→            <Avatar className="h-8 w-8 shrink-0">
+   408→   408→              <AvatarFallback className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+   409→   409→                {user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
+   410→   410→              </AvatarFallback>
+   411→   411→            </Avatar>
+   412→   412→            <div className="flex-1 min-w-0">
+   413→   413→              <p className="text-sm font-medium truncate">{user?.name}</p>
+   414→   414→              <p className="text-[11px] text-muted-foreground truncate capitalize">{user?.role?.replace('_', ' ')}</p>
+   415→   415→            </div>
+   416→   416→            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => logout()}>
+   417→   417→              <LogOut className="h-3.5 w-3.5" />
+   418→   418→            </Button>
+   419→   419→          </div>
+   420→   420→        ) : (
+   421→   421→          <TooltipProvider delayDuration={0}>
+   422→   422→            <Tooltip>
+   423→   423→              <TooltipTrigger asChild>
+   424→   424→                <Button variant="ghost" size="icon" className="w-full h-9" onClick={() => logout()}>
+   425→   425→                  <LogOut className="h-4 w-4" />
+   426→   426→                </Button>
+   427→   427→              </TooltipTrigger>
+   428→   428→              <TooltipContent side="right">Logout</TooltipContent>
+   429→   429→            </Tooltip>
+   430→   430→          </TooltipProvider>
+   431→   431→        )}
+   432→   432→      </div>
+   433→   433→
+   434→   434→      {/* Toggle */}
+   435→   435→      <Button
+   436→   436→        variant="outline"
+   437→   437→        size="icon"
+   438→   438→        className="absolute -right-3 top-16 h-6 w-6 rounded-full border bg-card shadow-sm z-10"
+   439→   439→        onClick={() => setSidebarOpen(!sidebarOpen)}
+   440→   440→      >
+   441→   441→        {sidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+   442→   442→      </Button>
+   443→   443→    </aside>
+   444→   444→  )
+   445→   445→}
+   446→   446→
+   447→   447→// ─────────────────────────────────────────────────────────────────────
+   448→   448→// SIDEBAR GROUP (Collapsible Parent Menu)
+   449→   449→// ─────────────────────────────────────────────────────────────────────
+   450→   450→
+   451→   451→interface SidebarGroupProps {
+   452→   452→  group: MenuGroup
+   453→   453→  expanded: boolean
+   454→   454→  activePage: AppPage
+   455→   455→  collapsed: boolean
+   456→   456→  onToggle: () => void
+   457→   457→  onNavigate: () => void
+   458→   458→}
+   459→   459→
+   460→   460→function SidebarGroup({ group, expanded, activePage, collapsed, onToggle, onNavigate }: SidebarGroupProps) {
+   461→   461→  const { navigate } = useAppStore()
+   462→   462→
+   463→   463→  // Special case: Dashboard has only 1 item, no need for collapsible
+   464→   464→  const isSingleItem = group.items.length === 1
+   465→   465→
+   466→   466→  // Check if any child is active
+   467→   467→  const hasActiveChild = group.items.some((item) => item.page === activePage)
+   468→   468→
+   469→   469→  // For collapsed sidebar: show only icon as tooltip
+   470→   470→  if (collapsed) {
+   471→   471→    return (
+   472→   472→      <TooltipProvider delayDuration={0}>
+   473→   473→        {isSingleItem ? (
+   474→   474→          // Single item: click navigates directly
+   475→   475→          <Tooltip>
+   476→   476→            <TooltipTrigger asChild>
+   477→   477→              <Button
+   478→   478→                variant={hasActiveChild ? 'secondary' : 'ghost'}
+   479→   479→                size="icon"
+   480→   480→                className="w-full h-9"
+   481→   481→                onClick={() => navigate(group.items[0].page)}
+   482→   482→              >
+   483→   483→                <group.icon className="h-4 w-4" />
+   484→   484→              </Button>
+   485→   485→            </TooltipTrigger>
+   486→   486→            <TooltipContent side="right">
+   487→   487→              {group.label}
+   488→   488→              {group.items.length > 1 && (
+   489→   489→                <div className="mt-1 pt-1 border-t border-border/50">
+   490→   490→                  {group.items.map((item) => (
+   491→   491→                    <div key={item.page} className={cn("text-xs py-0.5", item.page === activePage && "text-amber-600 font-medium")}>
+   492→   492→                      {item.label}
+   493→   493→                    </div>
+   494→   494→                  ))}
+   495→   495→                </div>
+   496→   496→              )}
+   497→   497→            </TooltipContent>
+   498→   498→          </Tooltip>
+   499→   499→        ) : (
+   500→   500→          // Multi-item: icon shows tooltip with submenu
+   501→   501→          <Tooltip>
+   502→   502→            <TooltipTrigger asChild>
+   503→   503→              <Button
+   504→   504→                variant={hasActiveChild ? 'secondary' : 'ghost'}
+   505→   505→                size="icon"
+   506→   506→                className={cn("w-full h-9", hasActiveChild && "bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:bg-amber-950/30 dark:text-amber-200")}
+   507→   507→              >
+   508→   508→                <group.icon className="h-4 w-4" />
+   509→   509→              </Button>
+   510→   510→            </TooltipTrigger>
+   511→   511→            <TooltipContent side="right">
+   512→   512→              <p className="font-semibold text-xs">{group.label}</p>
+   513→   513→              <div className="mt-1 pt-1 border-t border-border/50">
+   514→   514→                {group.items.map((item) => (
+   515→   515→                  <button
+   516→   516→                    key={item.page}
+   517→   517→                    className={cn(
+   518→   518→                      "block text-xs py-0.5 w-full text-left hover:text-amber-600 transition-colors",
+   519→   519→                      item.page === activePage && "text-amber-600 font-medium"
+   520→   520→                    )}
+   521→   521→                    onClick={() => navigate(item.page)}
+   522→   522→                  >
+   523→   523→                    {item.label}
+   524→   524→                  </button>
+   525→   525→                ))}
+   526→   526→              </div>
+   527→   527→            </TooltipContent>
+   528→   528→          </Tooltip>
+   529→   529→        )}
+   530→   530→      </TooltipProvider>
+   531→   531→    )
+   532→   532→  }
+   533→   533→
+   534→   534→  return (
+   535→   535→    <div className="flex flex-col">
+   536→   536→      {/* Parent button */}
+   537→   537→      <button
+   538→   538→        onClick={() => {
+   539→   539→          if (isSingleItem) {
+   540→   540→            navigate(group.items[0].page)
+   541→   541→          } else {
+   542→   542→            onToggle()
+   543→   543→          }
+   544→   544→        }}
+   545→   545→        className={cn(
+   546→   546→          'flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-sm font-semibold transition-colors',
+   547→   547→          'hover:bg-accent/50',
+   548→   548→          hasActiveChild
+   549→   549→            ? 'text-amber-900 bg-amber-50/80 dark:text-amber-200 dark:bg-amber-950/20'
+   550→   550→            : 'text-foreground'
+   551→   551→        )}
+   552→   552→        aria-expanded={isSingleItem ? undefined : expanded}
+   553→   553→      >
+   554→   554→        <group.icon className={cn(
+   555→   555→          'h-4 w-4 shrink-0',
+   556→   556→          hasActiveChild ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+   557→   557→        )} />
+   558→   558→        <span className="flex-1 text-left truncate">{group.label}</span>
+   559→   559→        {!isSingleItem && (
+   560→   560→          <motion.div
+   561→   561→            animate={{ rotate: expanded ? 0 : -90 }}
+   562→   562→            transition={{ duration: 0.2, ease: 'easeInOut' }}
+   563→   563→          >
+   564→   564→            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+   565→   565→          </motion.div>
+   566→   566→        )}
+   567→   567→      </button>
+   568→   568→
+   569→   569→      {/* Children */}
+   570→   570→      {isSingleItem ? null : (
+   571→   571→        <AnimatePresence initial={false}>
+   572→   572→          {expanded && (
+   573→   573→            <motion.div
+   574→   574→              key={`${group.id}-children`}
+   575→   575→              variants={expandVariants}
+   576→   576→              initial="hidden"
+   577→   577→              animate="visible"
+   578→   578→              exit="exit"
+   579→   579→            >
+   580→   580→              <div className="pl-4 pr-1 py-1 space-y-0.5">
+   581→   581→                {group.items.map((item) => {
+   582→   582→                  const isActive = item.page === activePage
+   583→   583→                  const Icon = item.icon
+   584→   584→                  return (
+   585→   585→                    <button
+   586→   586→                      key={item.page}
+   587→   587→                      onClick={() => navigate(item.page)}
+   588→   588→                      className={cn(
+   589→   589→                        'flex items-center gap-2.5 w-full h-8 px-2.5 rounded-md text-[13px] transition-colors',
+   590→   590→                        'hover:bg-accent/50',
+   591→   591→                        isActive
+   592→   592→                          ? 'font-medium bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60'
+   593→   593→                          : 'text-muted-foreground hover:text-foreground'
+   594→   594→                      )}
+   595→   595→                    >
+   596→   596→                      <Icon className={cn(
+   597→   597→                        'h-3.5 w-3.5 shrink-0',
+   598→   598→                        isActive ? 'text-amber-600 dark:text-amber-400' : ''
+   599→   599→                      )} />
+   600→   600→                      <span className="truncate">{item.label}</span>
+   601→   601→                      {item.badge && item.badge > 0 && (
+   602→   602→                        <Badge variant="destructive" className="ml-auto h-4 min-w-4 px-1 text-[9px]">
+   603→   603→                          {item.badge > 9 ? '9+' : item.badge}
+   604→   604→                        </Badge>
+   605→   605→                      )}
+   606→   606→                    </button>
+   607→   607→                  )
+   608→   608→                })}
+   609→   609→              </div>
+   610→   610→            </motion.div>
+   611→   611→          )}
+   612→   612→        </AnimatePresence>
+   613→   613→      )}
+   614→   614→    </div>
+   615→   615→  )
+   616→   616→}
+   617→   617→
+   618→   618→// ─────────────────────────────────────────────────────────────────────
+   619→   619→// HEADER
+   620→   620→// ─────────────────────────────────────────────────────────────────────
+   621→   621→
+   622→   622→function getRoleColor(role: string) {
+   623→   623→  const colors: Record<string, string> = {
+   624→   624→    admin: 'bg-amber-100 text-amber-700',
+   625→   625→    supervisor: 'bg-blue-100 text-blue-700',
+   626→   626→    manager: 'bg-purple-100 text-purple-700',
+   627→   627→    accountant: 'bg-emerald-100 text-emerald-700',
+   628→   628→    client: 'bg-teal-100 text-teal-700',
+   629→   629→    technician: 'bg-orange-100 text-orange-700',
+   630→   630→    labour: 'bg-stone-100 text-stone-700',
+   631→   631→    dispatcher: 'bg-cyan-100 text-cyan-700',
+   632→   632→  }
+   633→   633→  return colors[role] || 'bg-stone-100 text-stone-700'
+   634→   634→}
+   635→   635→
+   636→   636→function getInitials(name: string) {
+   637→   637→  if (!name) return 'U'
+   638→   638→  return name
+   639→   639→    .split(' ')
+   640→   640→    .map((n) => n[0])
+   641→   641→    .join('')
+   642→   642→    .toUpperCase()
+   643→   643→    .slice(0, 2)
+   644→   644→}
+   645→   645→
+   646→   646→export function AppHeader() {
+   647→   647→  const { breadcrumbs, navigate, user, logout } = useAppStore()
+   648→   648→
+   649→   649→  const initials = getInitials(user?.name || '')
+   650→   650→  const roleColor = getRoleColor(user?.role || '')
+   651→   651→  const roleName = (user?.role || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+   652→   652→
+   653→   653→  return (
+   654→   654→    <header className="h-14 border-b bg-card flex items-center justify-between px-4 sticky top-0 z-40">
+   655→   655→      {/* Left: Breadcrumbs */}
+   656→   656→      <div className="flex items-center gap-2">
+   657→   657→        <nav className="flex items-center gap-1.5 text-sm">
+   658→   658→          {breadcrumbs.map((crumb, i) => (
+   659→   659→            <React.Fragment key={i}>
+   660→   660→              {i > 0 && <span className="text-muted-foreground">/</span>}
+   661→   661→              <button
+   662→   662→                onClick={() => crumb.page && navigate(crumb.page, crumb.params)}
+   663→   663→                className={cn(
+   664→   664→                  'hover:text-foreground transition-colors',
+   665→   665→                  i === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
+   666→   666→                )}
+   667→   667→              >
+   668→   668→                {crumb.label}
+   669→   669→              </button>
+   670→   670→            </React.Fragment>
+   671→   671→          ))}
+   672→   672→        </nav>
+   673→   673→      </div>
+   674→   674→
+   675→   675→      {/* Right: Notifications + Profile */}
+   676→   676→      <div className="flex items-center gap-2">
+   677→   677→        <Button
+   678→   678→          variant="ghost"
+   679→   679→          size="icon"
+   680→   680→          className="h-9 w-9"
+   681→   681→          onClick={() => navigate('notifications')}
+   682→   682→        >
+   683→   683→          <Bell className="h-4 w-4" />
+   684→   684→        </Button>
+   685→   685→
+   686→   686→        <DropdownMenu>
+   687→   687→          <DropdownMenuTrigger asChild>
+   688→   688→            <Button
+   689→   689→              variant="ghost"
+   690→   690→              className="h-9 gap-2 px-2 hover:bg-accent"
+   691→   691→            >
+   692→   692→              <Avatar className="h-7 w-7 shrink-0">
+   693→   693→                <AvatarFallback className={cn('text-[11px] font-semibold', roleColor)}>
+   694→   694→                  {initials}
+   695→   695→                </AvatarFallback>
+   696→   696→              </Avatar>
+   697→   697→              <div className="hidden sm:flex flex-col items-start leading-none">
+   698→   698→                <span className="text-sm font-medium">{user?.name || 'User'}</span>
+   699→   699→                <span className="text-[10px] text-muted-foreground capitalize">{roleName}</span>
+   700→   700→              </div>
+   701→   701→              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+   702→   702→            </Button>
+   703→   703→          </DropdownMenuTrigger>
+   704→   704→          <DropdownMenuContent align="end" className="w-56">
+   705→   705→            {/* User Info */}
+   706→   706→            <DropdownMenuLabel className="p-3">
+   707→   707→              <div className="flex items-center gap-3">
+   708→   708→                <Avatar className="h-10 w-10 shrink-0">
+   709→   709→                  <AvatarFallback className={cn('text-sm font-semibold', roleColor)}>
+   710→   710→                    {initials}
+   711→   711→                  </AvatarFallback>
+   712→   712→                </Avatar>
+   713→   713→                <div className="flex-1 min-w-0">
+   714→   714→                  <p className="text-sm font-semibold truncate">{user?.name || 'User'}</p>
+   715→   715→                  <div className="flex items-center gap-1.5 mt-0.5">
+   716→   716→                    <Shield className="h-3 w-3 text-muted-foreground" />
+   717→   717→                    <span className="text-xs text-muted-foreground capitalize">{roleName}</span>
+   718→   718→                  </div>
+   719→   719→                  {user?.email && (
+   720→   720→                    <div className="flex items-center gap-1 mt-0.5">
+   721→   721→                      <Mail className="h-3 w-3 text-muted-foreground" />
+   722→   722→                      <span className="text-[11px] text-muted-foreground truncate">{user.email}</span>
+   723→   723→                    </div>
+   724→   724→                  )}
+   725→   725→                </div>
+   726→   726→              </div>
+   727→   727→            </DropdownMenuLabel>
+   728→   728→
+   729→   729→            <DropdownMenuSeparator />
+   730→   730→
+   731→   731→            {/* Profile & Settings */}
+   732→   732→            <DropdownMenuGroup>
+   733→   733→              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate('settings')}>
+   734→   734→                <User className="h-4 w-4" />
+   735→   735→                <span>My Profile</span>
+   736→   736→                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+   737→   737→              </DropdownMenuItem>
+   738→   738→              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate('settings')}>
+   739→   739→                <Settings className="h-4 w-4" />
+   740→   740→                <span>Settings</span>
+   741→   741→                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+   742→   742→              </DropdownMenuItem>
+   743→   743→            </DropdownMenuGroup>
+   744→   744→
+   745→   745→            <DropdownMenuSeparator />
+   746→   746→
+   747→   747→            {/* Logout */}
+   748→   748→            <DropdownMenuItem
+   749→   749→              className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+   750→   750→              onClick={() => logout()}
+   751→   751→            >
+   752→   752→              <LogOut className="h-4 w-4" />
+   753→   753→              <span>Log out</span>
+   754→   754→              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+   755→   755→            </DropdownMenuItem>
+   756→   756→          </DropdownMenuContent>
+   757→   757→        </DropdownMenu>
+   758→   758→      </div>
+   759→   759→    </header>
+   760→   760→  )
+   761→   761→}
+   762→   762→
+   763→   763→// ─────────────────────────────────────────────────────────────────────
+   764→   764→// LAYOUT
+   765→   765→// ─────────────────────────────────────────────────────────────────────
+   766→   766→
+   767→   767→export function AppLayout({ children }: { children: React.ReactNode }) {
+   768→   768→  return (
+   769→   769→    <div className="min-h-screen">
+   770→   770→      {/* ── Mobile Layout (< 768px) ── */}
+   771→   771→      <div className="flex flex-col md:hidden">
+   772→   772→        <MobileHeader />
+   773→   773→        <main className="flex-1 overflow-auto">
+   774→   774→          {children}
+   775→   775→        </main>
+   776→   776→        <MobileBottomNav />
+   777→   777→      </div>
+   778→   778→
+   779→   779→      {/* ── Desktop / Tablet Layout (>= 768px) ── */}
+   780→   780→      <div className="hidden md:flex min-h-screen">
+   781→   781→        <AppSidebar />
+   782→   782→        <div className="flex-1 flex flex-col min-w-0">
+   783→   783→          <AppHeader />
+   784→   784→          <main className="flex-1 overflow-auto">
+   785→   785→            {children}
+   786→   786→          </main>
+   787→   787→        </div>
+   788→   788→      </div>
+   789→   789→    </div>
+   790→   790→  )
+   791→   791→}
+   792→   792→

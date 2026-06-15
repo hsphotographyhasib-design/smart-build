@@ -1,0 +1,252 @@
+/home/z/my-project/src/app/api/cashflow/route.ts:18:    const payments = await db.payment.findMany({
+/home/z/my-project/src/app/api/cashflow/route.ts:27:    const expenses = await db.dayBookEntry.findMany({
+/home/z/my-project/src/app/api/invoicing/workflows/route.ts:10:    const workflows = await db.invoiceWorkflow.findMany({
+/home/z/my-project/src/app/api/invoicing/workflows/route.ts:43:      await db.invoiceWorkflow.updateMany({
+/home/z/my-project/src/app/api/invoicing/workflows/route.ts:49:    const workflow = await db.invoiceWorkflow.create({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:12:    const workflow = await db.invoiceWorkflow.findUnique({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:41:    const existing = await db.invoiceWorkflow.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:48:      await db.invoiceWorkflow.updateMany({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:56:      await db.invoiceWorkflowStep.deleteMany({ where: { workflowId: id } })
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:58:        await db.invoiceWorkflowStep.createMany({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:76:    const updated = await db.invoiceWorkflow.update({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:104:    const existing = await db.invoiceWorkflow.findUnique({
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/route.ts:120:    await db.invoiceWorkflow.delete({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/publish/route.ts:12:    const workflow = await db.invoiceWorkflow.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/publish/route.ts:17:    const steps = await db.invoiceWorkflowStep.count({ where: { workflowId: id } })
+/home/z/my-project/src/app/api/invoicing/workflows/[id]/publish/route.ts:22:    const updated = await db.invoiceWorkflow.update({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:14:    const invoicesByMonth = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:34:    const approvedInvoices = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:55:    const actions = await db.invoiceApprovalAction.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:62:      ? await db.invoiceWorkflowInstance.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:92:    const outstandingByProject = await db.invoice.groupBy({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:100:      ? await db.project.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:108:    const unpaidInvoices = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:132:    const approvedMonthly = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/analytics/route.ts:136:    const paymentsMonthly = await db.payment.findMany({
+/home/z/my-project/src/app/api/invoicing/payments/route.ts:21:      db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/payments/route.ts:32:      db.invoice.count({ where }),
+/home/z/my-project/src/app/api/invoicing/payments/[invoiceId]/record/route.ts:21:    const invoice = await db.invoice.findUnique({ where: { id: invoiceId } })
+/home/z/my-project/src/app/api/invoicing/payments/[invoiceId]/record/route.ts:31:    const count = await db.payment.count()
+/home/z/my-project/src/app/api/invoicing/payments/[invoiceId]/record/route.ts:40:    const payment = await db.payment.create({
+/home/z/my-project/src/app/api/invoicing/payments/[invoiceId]/record/route.ts:72:    const updatedInvoice = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/route.ts:44:      db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/route.ts:62:      db.invoice.count({ where }),
+/home/z/my-project/src/app/api/invoicing/route.ts:109:    const countThisYear = await db.invoice.count({
+/home/z/my-project/src/app/api/invoicing/route.ts:137:      const defaultWorkflow = await db.invoiceWorkflow.findFirst({
+/home/z/my-project/src/app/api/invoicing/route.ts:142:        const fallbackWorkflow = await db.invoiceWorkflow.findFirst({
+/home/z/my-project/src/app/api/invoicing/route.ts:152:    const created = await db.invoice.create({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:14:      db.invoice.aggregate({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:18:      db.invoice.aggregate({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:25:    const byProject = await db.invoice.groupBy({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:33:      ? await db.project.findMany({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:41:    const byVendor = await db.invoice.groupBy({
+/home/z/my-project/src/app/api/invoicing/retention/route.ts:49:    const overdueRetention = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/retention/[invoiceId]/release/route.ts:18:    const invoice = await db.invoice.findUnique({ where: { id: invoiceId } })
+/home/z/my-project/src/app/api/invoicing/retention/[invoiceId]/release/route.ts:33:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/delegate/route.ts:18:    const targetUser = await db.user.findUnique({ where: { id: targetUserId } })
+/home/z/my-project/src/app/api/invoicing/[id]/delegate/route.ts:23:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/delegate/route.ts:46:    await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/delegate/route.ts:58:    const updated = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/documents/route.ts:12:    const documents = await db.invoiceDocument.findMany({
+/home/z/my-project/src/app/api/invoicing/[id]/documents/route.ts:38:    const invoice = await db.invoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/[id]/documents/route.ts:43:    const document = await db.invoiceDocument.create({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:12:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:36:      const workflow = await db.invoiceWorkflow.findFirst({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:48:        const instance = await db.invoiceWorkflowInstance.create({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:61:      await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:69:      const instance = await db.invoiceWorkflowInstance.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:75:        await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/submit/route.ts:88:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/comments/route.ts:12:    const comments = await db.invoiceComment.findMany({
+/home/z/my-project/src/app/api/invoicing/[id]/comments/route.ts:45:    const invoice = await db.invoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/[id]/comments/route.ts:52:      const parent = await db.invoiceComment.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/comments/route.ts:60:    const comment = await db.invoiceComment.create({
+/home/z/my-project/src/app/api/invoicing/[id]/return/route.ts:18:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/return/route.ts:34:        await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/return/route.ts:47:      await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/return/route.ts:53:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:12:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:82:    const existing = await db.invoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:120:      await db.invoiceItem.deleteMany({ where: { invoiceId: id } })
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:122:        await db.invoiceItem.createMany({
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:136:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:200:    const existing = await db.invoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/invoicing/[id]/route.ts:209:    const cancelled = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/reject/route.ts:18:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/reject/route.ts:40:        await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/reject/route.ts:54:      await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/reject/route.ts:60:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/escalate/route.ts:14:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/escalate/route.ts:49:    await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/escalate/route.ts:62:    await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/escalate/route.ts:68:    const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:14:    const invoice = await db.invoice.findUnique({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:52:    await db.invoiceApprovalAction.create({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:70:      await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:75:      const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:120:      await db.invoiceWorkflowInstance.update({
+/home/z/my-project/src/app/api/invoicing/[id]/approve/route.ts:125:      const updated = await db.invoice.update({
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:21:      db.invoice.count({ where: { status: { in: ['pending_review', 'under_review', 'pending_approval'] } } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:22:      db.invoice.count({ where: { status: 'approved' } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:23:      db.invoice.count({ where: { status: 'rejected' } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:24:      db.invoice.count({ where: { status: 'draft' } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:25:      db.invoice.count({ where: { paymentStatus: 'paid' } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:26:      db.invoice.count({ where: { paymentStatus: 'overdue' } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:32:        db.invoice.aggregate({ _sum: { total: true }, where: { status: { not: 'cancelled' } } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:33:        db.invoice.aggregate({ _sum: { outstandingAmount: true }, where: { status: { not: 'cancelled' }, outstandingAmount: { gt: 0 } } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:34:        db.invoice.aggregate({ _sum: { retentionAmount: true }, where: { retentionAmount: { gt: 0 } } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:35:        db.invoice.aggregate({ _sum: { retentionReleased: true }, where: { retentionReleased: { gt: 0 } } }),
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:39:    const approvedInvoices = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:54:    const invoicesByMonth = await db.invoice.findMany({
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:73:    const topVendors = await db.invoice.groupBy({
+/home/z/my-project/src/app/api/invoicing/dashboard/route.ts:83:    const unpaidInvoices = await db.invoice.findMany({
+/home/z/my-project/src/app/api/materials/route.ts:23:    const materials = await db.material.findMany({
+/home/z/my-project/src/app/api/materials/route.ts:67:    const existing = await db.material.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/materials/route.ts:72:    const material = await db.material.create({
+/home/z/my-project/src/app/api/cost-control/cost-codes/route.ts:25:    const costCodes = await db.costCode.findMany({
+/home/z/my-project/src/app/api/cost-control/cost-codes/route.ts:60:    const existing = await db.costCode.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/cost-control/cost-codes/route.ts:65:    const costCode = await db.costCode.create({
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:13:    const costCode = await db.costCode.findUnique({
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:45:    const existing = await db.costCode.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:51:      const codeExists = await db.costCode.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:65:    const updated = await db.costCode.update({
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:85:    const costCode = await db.costCode.findUnique({
+/home/z/my-project/src/app/api/cost-control/cost-codes/[id]/route.ts:101:    await db.costCode.delete({ where: { id } })
+/home/z/my-project/src/app/api/materials/[id]/adjust-stock/route.ts:25:    const material = await db.material.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/suppliers/route.ts:27:    const suppliers = await db.supplier.findMany({
+/home/z/my-project/src/app/api/suppliers/route.ts:69:    const existing = await db.supplier.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/suppliers/route.ts:74:    const supplier = await db.supplier.create({
+/home/z/my-project/src/app/api/materials/[id]/route.ts:15:    const material = await db.material.findUnique({
+/home/z/my-project/src/app/api/materials/[id]/route.ts:65:    const existing = await db.material.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/materials/[id]/route.ts:71:      const codeExists = await db.material.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/materials/[id]/route.ts:77:    const updated = await db.material.update({
+/home/z/my-project/src/app/api/materials/[id]/route.ts:115:    const existing = await db.material.findUnique({
+/home/z/my-project/src/app/api/materials/[id]/route.ts:124:    await db.stockMovement.deleteMany({ where: { materialId: id } })
+/home/z/my-project/src/app/api/materials/[id]/route.ts:125:    await db.material.delete({ where: { id } })
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:15:    const supplier = await db.supplier.findUnique({
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:61:    const existing = await db.supplier.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:67:      const codeExists = await db.supplier.findUnique({ where: { code } })
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:73:    const updated = await db.supplier.update({
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:113:    const existing = await db.supplier.findUnique({
+/home/z/my-project/src/app/api/suppliers/[id]/route.ts:126:    await db.supplier.delete({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/forecast/route.ts:19:    const budgets = await db.budget.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/route.ts:20:    const budgets = await db.budget.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/route.ts:48:    const existing = await db.budget.findUnique({ where: { projectId } })
+/home/z/my-project/src/app/api/cost-control/budgets/route.ts:55:    const budget = await db.budget.create({
+/home/z/my-project/src/app/api/labour-groups/route.ts:12:    const groups = await db.labourGroup.findMany({
+/home/z/my-project/src/app/api/labour-groups/route.ts:45:    const group = await db.labourGroup.create({
+/home/z/my-project/src/app/api/maintenance/dispatch/route.ts:13:    const unassignedTickets = await db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/dispatch/route.ts:31:    const emergencyTickets = await db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/dispatch/route.ts:45:    const overdueTickets = await db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/dispatch/route.ts:62:    const technicians = await db.technicianProfile.findMany({
+/home/z/my-project/src/app/api/labour-groups/[id]/members/route.ts:17:    const members = await db.labour.findMany({
+/home/z/my-project/src/app/api/labour-groups/[id]/members/route.ts:47:    const group = await db.labourGroup.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/labour-groups/[id]/members/route.ts:52:    const labour = await db.labour.create({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:29:          db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:34:          db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:39:          db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:44:          db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:50:          db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:77:        const tickets = await db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:84:        const byPriority = await db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:103:        const tickets = await db.maintenanceTicket.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:110:        const byPriority = await db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:129:        const technicians = await db.technicianProfile.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:171:        const ratings = await db.serviceRating.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:184:        const summary = await db.serviceRating.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:189:        const byCategory = await db.serviceRating.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:211:          db.aMCContract.count({ where: ticketWhere }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:212:          db.aMCContract.count({ where: { ...ticketWhere, status: 'active' } }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:213:          db.aMCContract.count({ where: { ...ticketWhere, status: 'expired' } }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:214:          db.aMCContract.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:218:          db.aMCContract.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:224:        const byFrequency = await db.aMCContract.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:251:        const schedules = await db.pMSchedule.findMany({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:260:        const byType = await db.pMSchedule.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:284:          db.maintenanceTicket.count({ where: ticketWhere }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:285:          db.maintenanceTicket.count({ where: { ...ticketWhere, slaBreached: true } }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:286:          db.maintenanceTicket.count({ where: { ...ticketWhere, slaBreached: false, status: 'closed' } }),
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:289:        const breachByPriority = await db.maintenanceTicket.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:311:          db.maintenanceInvoice.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:316:          db.maintenanceInvoice.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:321:          db.maintenanceInvoice.aggregate({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:328:        const byStatus = await db.maintenanceInvoice.groupBy({
+/home/z/my-project/src/app/api/maintenance/reports/route.ts:335:        const byMonth = await db.maintenanceInvoice.findMany({
+/home/z/my-project/src/app/api/labour-groups/[id]/route.ts:17:    const group = await db.labourGroup.findUnique({
+/home/z/my-project/src/app/api/labour-groups/[id]/route.ts:51:    const existing = await db.labourGroup.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/labour-groups/[id]/route.ts:61:    const group = await db.labourGroup.update({
+/home/z/my-project/src/app/api/labour-groups/[id]/route.ts:94:    const existing = await db.labourGroup.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/labour-groups/[id]/route.ts:99:    await db.labourGroup.delete({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:13:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:18:    const lineItem = await db.budgetLineItem.findUnique({ where: { id: itemId, budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:33:    const updated = await db.budgetLineItem.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:40:    const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:43:    await db.budget.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:62:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:67:    const lineItem = await db.budgetLineItem.findUnique({ where: { id: itemId, budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:72:    await db.budgetLineItem.delete({ where: { id: itemId } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:75:    const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/[itemId]/route.ts:77:    await db.budget.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:13:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:18:    const lineItems = await db.budgetLineItem.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:38:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:53:    const lineItem = await db.budgetLineItem.create({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:65:    const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/line-items/route.ts:67:    await db.budget.update({
+/home/z/my-project/src/app/api/loans/route.ts:20:    const loans = await db.loan.findMany({
+/home/z/my-project/src/app/api/loans/route.ts:49:    const employee = await db.employee.findUnique({ where: { id: employeeId } })
+/home/z/my-project/src/app/api/loans/route.ts:54:    const loan = await db.loan.create({
+/home/z/my-project/src/app/api/maintenance/amc/route.ts:28:      db.aMCContract.findMany({
+/home/z/my-project/src/app/api/maintenance/amc/route.ts:38:      db.aMCContract.count({ where }),
+/home/z/my-project/src/app/api/maintenance/amc/route.ts:72:    const count = await db.aMCContract.count({
+/home/z/my-project/src/app/api/maintenance/amc/route.ts:77:    const contract = await db.aMCContract.create({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/snapshots/route.ts:13:    const snapshots = await db.budgetSnapshot.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/snapshots/route.ts:32:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/snapshots/route.ts:41:    const lineItems = await db.budgetLineItem.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/snapshots/route.ts:68:    const snapshot = await db.budgetSnapshot.create({
+/home/z/my-project/src/app/api/sales-invoices/route.ts:23:    const items = await db.salesInvoice.findMany({
+/home/z/my-project/src/app/api/sales-invoices/route.ts:68:    const count = await db.salesInvoice.count()
+/home/z/my-project/src/app/api/sales-invoices/route.ts:82:    const item = await db.salesInvoice.create({
+/home/z/my-project/src/app/api/maintenance/amc/[id]/route.ts:15:    const contract = await db.aMCContract.findUnique({
+/home/z/my-project/src/app/api/maintenance/amc/[id]/route.ts:45:    const existing = await db.aMCContract.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/maintenance/amc/[id]/route.ts:73:    const contract = await db.aMCContract.update({
+/home/z/my-project/src/app/api/maintenance/amc/[id]/route.ts:103:    const existing = await db.aMCContract.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/maintenance/amc/[id]/route.ts:108:    await db.aMCContract.delete({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/route.ts:21:    const changeOrders = await db.budgetChangeOrder.findMany({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/route.ts:43:    const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/route.ts:56:    const coCount = await db.budgetChangeOrder.count({ where: { budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/route.ts:61:    const changeOrder = await db.budgetChangeOrder.create({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/route.ts:85:    await db.budget.update({
+/home/z/my-project/src/app/api/sales-invoices/[id]/route.ts:14:    const item = await db.salesInvoice.findUnique({
+/home/z/my-project/src/app/api/sales-invoices/[id]/route.ts:36:    const existing = await db.salesInvoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/sales-invoices/[id]/route.ts:39:    const updated = await db.salesInvoice.update({
+/home/z/my-project/src/app/api/sales-invoices/[id]/route.ts:78:    const existing = await db.salesInvoice.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/sales-invoices/[id]/route.ts:81:    await db.salesInvoice.delete({ where: { id } })
+/home/z/my-project/src/app/api/maintenance/sites/route.ts:31:      db.maintenanceSite.findMany({
+/home/z/my-project/src/app/api/maintenance/sites/route.ts:41:      db.maintenanceSite.count({ where }),
+/home/z/my-project/src/app/api/maintenance/sites/route.ts:66:    const customer = await db.customer.findUnique({ where: { id: customerId } })
+/home/z/my-project/src/app/api/maintenance/sites/route.ts:71:    const siteCount = await db.maintenanceSite.count({ where: { customerId } })
+/home/z/my-project/src/app/api/maintenance/sites/route.ts:74:    const site = await db.maintenanceSite.create({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:13:    const co = await db.budgetChangeOrder.findUnique({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:42:    const co = await db.budgetChangeOrder.findUnique({ where: { id: coId, budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:64:        const updates = await db.budgetLineItemUpdate.findMany({ where: { budgetChangeOrderId: coId } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:66:          await db.budgetLineItem.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:72:        const allItems = await db.budgetLineItem.findMany({ where: { budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:74:        const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:75:        await db.budget.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:85:        const budget = await db.budget.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:87:          await db.budget.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:97:    const updated = await db.budgetChangeOrder.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:117:    const co = await db.budgetChangeOrder.findUnique({ where: { id: coId, budgetId: id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:127:      await db.budget.update({
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/change-orders/[coId]/route.ts:133:    await db.budgetChangeOrder.delete({ where: { id: coId } })
+/home/z/my-project/src/app/api/customers/route.ts:26:    const items = await db.customer.findMany({
+/home/z/my-project/src/app/api/customers/route.ts:64:    const item = await db.customer.create({
+/home/z/my-project/src/app/api/maintenance/sites/[id]/route.ts:15:    const site = await db.maintenanceSite.findUnique({
+/home/z/my-project/src/app/api/maintenance/sites/[id]/route.ts:54:    const existing = await db.maintenanceSite.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/maintenance/sites/[id]/route.ts:71:    const site = await db.maintenanceSite.update({
+/home/z/my-project/src/app/api/maintenance/sites/[id]/route.ts:101:    const existing = await db.maintenanceSite.findUnique({ where: { id } })
+/home/z/my-project/src/app/api/maintenance/sites/[id]/route.ts:106:    await db.maintenanceSite.delete({ where: { id } })
+/home/z/my-project/src/app/api/cost-control/budgets/[id]/route.ts:13:    const budget = await db.budget.findUnique({
+
+[Showing results with pagination = limit: 250]

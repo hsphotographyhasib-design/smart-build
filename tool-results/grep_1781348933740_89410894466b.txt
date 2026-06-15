@@ -1,0 +1,252 @@
+/home/z/my-project/src/components/sales/customers-page.tsx:59:  gstNo: string | null
+/home/z/my-project/src/components/sales/customers-page.tsx:92:    gstNo: customer?.gstNo || '',
+/home/z/my-project/src/components/sales/customers-page.tsx:115:      gstNo: form.gstNo.trim() || null,
+/home/z/my-project/src/components/sales/customers-page.tsx:143:            <Label>GST No</Label>
+/home/z/my-project/src/components/sales/customers-page.tsx:144:            <Input value={form.gstNo} onChange={(e) => setForm({ ...form, gstNo: e.target.value })} placeholder="GST number" />
+/home/z/my-project/src/components/sales/customers-page.tsx:183:            {customer.gstNo && (
+/home/z/my-project/src/components/sales/customers-page.tsx:186:                <div><span className="text-muted-foreground">GST</span><p className="font-medium">{customer.gstNo}</p></div>
+/home/z/my-project/src/components/sales/customers-page.tsx:283:                  <TableHead className="font-semibold text-xs hidden xl:table-cell">GST</TableHead>
+/home/z/my-project/src/components/sales/customers-page.tsx:298:                    <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{c.gstNo || '—'}</TableCell>
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:42:  tax: number
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:89:    taxPercent: '18',
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:118:      setForm({ customerId: '', invoiceDate: new Date().toISOString().split('T')[0], dueDate: '', taxPercent: '18', notes: '' })
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:155:  const taxAmount = lineTotal * (parseFloat(form.taxPercent) || 0) / 100
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:156:  const grandTotal = lineTotal + taxAmount
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:164:      taxPercent: parseFloat(form.taxPercent),
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:311:                <Label>Tax %</Label>
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:312:                <Input type="number" value={form.taxPercent} onChange={(e) => setForm({ ...form, taxPercent: e.target.value })} />
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:322:              <p>Tax: <span className="font-medium ml-2">{formatCurrency(taxAmount)}</span></p>
+/home/z/my-project/src/components/sales/sales-invoices-page.tsx:354:                <p>Tax: <span className="font-medium ml-2">{formatCurrency(viewItem.tax)}</span></p>
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1490:        <EmptyCard icon={ClipboardCheck} title="No daily notes" description="Record site observations and work progress."
+/home/z/my-project/src/components/projects/project-detail-page.tsx:1532:            <div><Label>Issues / Observations</Label><Textarea value={form.issues} onChange={e => setForm({ ...form, issues: e.target.value })} rows={2} /></div>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:128:      tax: acc.tax + (inv.tax || 0),
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:132:    { labour: 0, materials: 0, transport: 0, service: 0, tax: 0, discount: 0, total: 0 }
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:253:                    <TableHead className="text-right">Tax</TableHead>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:270:                        <TableCell className="text-right text-sm">{formatCurrency(inv.tax || 0)}</TableCell>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:336:                <span className="text-muted-foreground">Tax:</span>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:337:                <span className="font-medium ml-1">{formatCurrency(summaryTotals.tax)}</span>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:375:                <div className="flex justify-between"><span className="text-muted-foreground">Tax ({viewingInvoice.taxPercent || 0}%)</span><span>{formatCurrency(viewingInvoice.tax || 0)}</span></div>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:420:    taxPercent: 10,
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:426:  const tax = subtotal * (form.taxPercent / 100)
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:427:  const total = subtotal + tax - form.discount
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:443:      tax,
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:446:    setForm({ customerId: '', ticketId: '', workOrderId: '', labourCost: 0, materialCost: 0, transportCost: 0, serviceCharges: 0, taxPercent: 10, discount: 0, notes: '' })
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:491:          <Label>Tax (%)</Label>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:492:          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:502:        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:532:    taxPercent: invoice.taxPercent || 10,
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:538:  const tax = subtotal * (form.taxPercent / 100)
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:539:  const total = subtotal + tax - form.discount
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:543:    onSubmit({ ...form, tax, total })
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:571:          <Label>Tax (%)</Label>
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:572:          <Input type="number" min={0} max={100} value={form.taxPercent} onChange={(e) => setForm((f) => ({ ...f, taxPercent: Number(e.target.value) }))} />
+/home/z/my-project/src/components/maintenance/maintenance-invoices.tsx:581:        <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(tax)}</span></div>
+/home/z/my-project/src/components/maintenance/amc-contracts.tsx:422:        <Textarea placeholder='["HVAC System", "Elevator", "Fire Alarm"]' rows={2} value={form.coveredEquipment} onChange={(e) => setForm((f) => ({ ...f, coveredEquipment: e.target.value }))} />
+/home/z/my-project/src/components/maintenance/maintenance-sites.tsx:396:                            {site.isActive ? 'Deactivate' : 'Activate'}
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:42:  deactivated: { label: 'Deactivated', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:121:  // Deactivate mutation
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:122:  const deactivateMutation = useMutation({
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:123:    mutationFn: (id: string) => api.put(`/api/maintenance/pm-schedules/${id}`, { status: 'deactivated' }),
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:126:      toast({ title: 'Deactivated', description: 'PM schedule has been deactivated.' })
+/home/z/my-project/src/components/maintenance/pm-schedules.tsx:297:                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => deactivateMutation.mutate(pm.id)} title="Deactivate">
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:83:  tax: number
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:157:    tax: 0,
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:186:    setForm({ projectId: '', supplierId: '', orderDate: new Date().toISOString().split('T')[0], expectedDate: '', notes: '', tax: 0 })
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:217:      tax: form.tax,
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:283:              <Label>Tax (₹)</Label>
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:287:                value={form.tax || ''}
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:288:                onChange={(e) => setForm({ ...form, tax: parseFloat(e.target.value) || 0 })}
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:349:              Total: {formatCurrency(subtotal + form.tax)}
+/home/z/my-project/src/components/procurement/purchase-orders-page.tsx:450:            {po.tax > 0 && <span>Tax: {formatCurrency(po.tax)}</span>}
+/home/z/my-project/src/components/common/users-page.tsx:84:  const [deactivateId, setDeactivateId] = useState<string | null>(null)
+/home/z/my-project/src/components/common/users-page.tsx:118:  const deactivateMutation = useMutation({
+/home/z/my-project/src/components/common/users-page.tsx:122:      toast.success('User deactivated')
+/home/z/my-project/src/components/common/users-page.tsx:123:      setDeactivateId(null)
+/home/z/my-project/src/components/common/users-page.tsx:218:                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeactivateId(u.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+/home/z/my-project/src/components/common/users-page.tsx:284:      {/* Deactivate Dialog */}
+/home/z/my-project/src/components/common/users-page.tsx:285:      <AlertDialog open={!!deactivateId} onOpenChange={() => setDeactivateId(null)}>
+/home/z/my-project/src/components/common/users-page.tsx:288:            <AlertDialogTitle>Deactivate User?</AlertDialogTitle>
+/home/z/my-project/src/components/common/users-page.tsx:289:            <AlertDialogDescription>This will deactivate the user. They will not be able to log in.</AlertDialogDescription>
+/home/z/my-project/src/components/common/users-page.tsx:293:            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deactivateId && deactivateMutation.mutate(deactivateId)} disabled={deactivateMutation.isPending}>
+/home/z/my-project/src/components/common/users-page.tsx:294:              {deactivateMutation.isPending ? 'Deactivating...' : 'Deactivate'}
+/home/z/my-project/src/components/labour/labour-groups-page.tsx:287:                          title={labour.isActive ? 'Deactivate' : 'Activate'}
+/home/z/my-project/src/components/client-portal/client-invoices.tsx:286:                                        {inv.tax > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Tax</span><span>{formatCurrency(inv.tax)}</span></div>}
+/home/z/my-project/src/components/layout/app-layout.tsx:33:import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+/home/z/my-project/src/components/layout/app-layout.tsx:287:            <Avatar className="h-8 w-8 shrink-0">
+/home/z/my-project/src/components/layout/app-layout.tsx:288:              <AvatarFallback className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+/home/z/my-project/src/components/layout/app-layout.tsx:290:              </AvatarFallback>
+/home/z/my-project/src/components/layout/app-layout.tsx:291:            </Avatar>
+/home/z/my-project/src/components/layout/app-layout.tsx:397:              <Avatar className="h-7 w-7 shrink-0">
+/home/z/my-project/src/components/layout/app-layout.tsx:398:                <AvatarFallback className={cn('text-[11px] font-semibold', roleColor)}>
+/home/z/my-project/src/components/layout/app-layout.tsx:400:                </AvatarFallback>
+/home/z/my-project/src/components/layout/app-layout.tsx:401:              </Avatar>
+/home/z/my-project/src/components/layout/app-layout.tsx:413:                <Avatar className="h-10 w-10 shrink-0">
+/home/z/my-project/src/components/layout/app-layout.tsx:414:                  <AvatarFallback className={cn('text-sm font-semibold', roleColor)}>
+/home/z/my-project/src/components/layout/app-layout.tsx:416:                  </AvatarFallback>
+/home/z/my-project/src/components/layout/app-layout.tsx:417:                </Avatar>
+/home/z/my-project/src/components/layout/mobile-more-drawer.tsx:27:import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+/home/z/my-project/src/components/layout/mobile-more-drawer.tsx:80:            <Avatar className="h-12 w-12 shrink-0">
+/home/z/my-project/src/components/layout/mobile-more-drawer.tsx:81:              <AvatarFallback className="text-sm font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+/home/z/my-project/src/components/layout/mobile-more-drawer.tsx:83:              </AvatarFallback>
+/home/z/my-project/src/components/layout/mobile-more-drawer.tsx:84:            </Avatar>
+/home/z/my-project/src/components/layout/mobile-header.tsx:24:import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+/home/z/my-project/src/components/layout/mobile-header.tsx:143:        {/* Right: Notifications + Avatar */}
+/home/z/my-project/src/components/layout/mobile-header.tsx:158:          <Avatar className="h-8 w-8">
+/home/z/my-project/src/components/layout/mobile-header.tsx:159:            <AvatarFallback className={cn('text-xs font-semibold', roleColor)}>
+/home/z/my-project/src/components/layout/mobile-header.tsx:161:            </AvatarFallback>
+/home/z/my-project/src/components/layout/mobile-header.tsx:162:          </Avatar>
+/home/z/my-project/src/components/layout/mobile-header.tsx:174:              <Avatar className="h-12 w-12 shrink-0">
+/home/z/my-project/src/components/layout/mobile-header.tsx:175:                <AvatarFallback className={cn('text-sm font-bold', roleColor)}>
+/home/z/my-project/src/components/layout/mobile-header.tsx:177:                </AvatarFallback>
+/home/z/my-project/src/components/layout/mobile-header.tsx:178:              </Avatar>
+/home/z/my-project/src/components/landing/features.tsx:75:      'Multi-currency support & tax management',
+/home/z/my-project/src/components/landing/features.tsx:500:            { name: 'Excavator A', status: 'Active', util: 92, color: 'bg-green-500' },
+/home/z/my-project/src/components/landing/features.tsx:543:            <div className="text-[10px] text-gray-500">Excavator A passed</div>
+/home/z/my-project/src/components/ai/ai-insights.tsx:145:              <DialogDescription>Add a manual AI insight or observation</DialogDescription>
+/home/z/my-project/src/components/landing/testimonials.tsx:14:    avatarBg: 'bg-blue-600',
+/home/z/my-project/src/components/landing/testimonials.tsx:23:    avatarBg: 'bg-green-600',
+/home/z/my-project/src/components/landing/testimonials.tsx:32:    avatarBg: 'bg-purple-600',
+/home/z/my-project/src/components/landing/testimonials.tsx:41:    avatarBg: 'bg-pink-600',
+/home/z/my-project/src/components/landing/testimonials.tsx:50:    avatarBg: 'bg-orange-500',
+/home/z/my-project/src/components/landing/testimonials.tsx:59:    avatarBg: 'bg-teal-600',
+/home/z/my-project/src/components/landing/testimonials.tsx:136:                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${testimonial.avatarBg}`}
+/home/z/my-project/src/components/finance/invoices-page.tsx:73:  taxPercent: number
+/home/z/my-project/src/components/finance/invoices-page.tsx:76:  taxAmount: number
+/home/z/my-project/src/components/finance/invoices-page.tsx:117:function computeTotals(items: Array<{ quantity: number; unitPrice: number }>, taxPercent: number, discountPercent: number) {
+/home/z/my-project/src/components/finance/invoices-page.tsx:119:  const taxAmount = subtotal * (taxPercent / 100)
+/home/z/my-project/src/components/finance/invoices-page.tsx:121:  const total = subtotal + taxAmount - discountAmount
+/home/z/my-project/src/components/finance/invoices-page.tsx:122:  return { subtotal, taxAmount, discountAmount, total }
+/home/z/my-project/src/components/finance/invoices-page.tsx:158:    taxPercent: '18',
+/home/z/my-project/src/components/finance/invoices-page.tsx:170:    return computeTotals(items, parseFloat(form.taxPercent) || 0, parseFloat(form.discountPercent) || 0)
+/home/z/my-project/src/components/finance/invoices-page.tsx:171:  }, [form.items, form.taxPercent, form.discountPercent])
+/home/z/my-project/src/components/finance/invoices-page.tsx:224:      taxPercent: parseFloat(form.taxPercent) || 0,
+/home/z/my-project/src/components/finance/invoices-page.tsx:243:              taxPercent: String(invoice.taxPercent),
+/home/z/my-project/src/components/finance/invoices-page.tsx:252:              projectId: '', clientId: '', issueDate: format(new Date(), 'yyyy-MM-dd'), dueDate: '', taxPercent: '18', discountPercent: '0', notes: '',
+/home/z/my-project/src/components/finance/invoices-page.tsx:362:            <div className="flex justify-between"><span className="text-muted-foreground">Tax ({form.taxPercent}%)</span><span>{formatCurrency(computed.taxAmount)}</span></div>
+/home/z/my-project/src/components/finance/invoices-page.tsx:370:              <Label htmlFor="inv-tax">Tax %</Label>
+/home/z/my-project/src/components/finance/invoices-page.tsx:371:              <Input id="inv-tax" type="number" min="0" step="0.5" value={form.taxPercent} onChange={(e) => setForm({ ...form, taxPercent: e.target.value })} />
+/home/z/my-project/src/components/ui/avatar.tsx:4:import * as AvatarPrimitive from "@radix-ui/react-avatar"
+/home/z/my-project/src/components/ui/avatar.tsx:8:function Avatar({
+/home/z/my-project/src/components/ui/avatar.tsx:11:}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+/home/z/my-project/src/components/ui/avatar.tsx:13:    <AvatarPrimitive.Root
+/home/z/my-project/src/components/ui/avatar.tsx:14:      data-slot="avatar"
+/home/z/my-project/src/components/ui/avatar.tsx:24:function AvatarImage({
+/home/z/my-project/src/components/ui/avatar.tsx:27:}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+/home/z/my-project/src/components/ui/avatar.tsx:29:    <AvatarPrimitive.Image
+/home/z/my-project/src/components/ui/avatar.tsx:30:      data-slot="avatar-image"
+/home/z/my-project/src/components/ui/avatar.tsx:37:function AvatarFallback({
+/home/z/my-project/src/components/ui/avatar.tsx:40:}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+/home/z/my-project/src/components/ui/avatar.tsx:42:    <AvatarPrimitive.Fallback
+/home/z/my-project/src/components/ui/avatar.tsx:43:      data-slot="avatar-fallback"
+/home/z/my-project/src/components/ui/avatar.tsx:53:export { Avatar, AvatarImage, AvatarFallback }
+/home/z/my-project/src/hooks/use-format.ts:8:  const { currency, dateFormat, timezone, country, taxRules, phonePlaceholder } = useRegion()
+/home/z/my-project/src/hooks/use-format.ts:169:  const formatTax = useCallback((amount: number): string => {
+/home/z/my-project/src/hooks/use-format.ts:170:    if (!taxRules || taxRules.rate === 0) return 'No tax'
+/home/z/my-project/src/hooks/use-format.ts:171:    const taxAmount = amount * taxRules.rate
+/home/z/my-project/src/hooks/use-format.ts:172:    return `${taxRules.name} (${(taxRules.rate * 100).toFixed(0)}%): ${formatCurrency(taxAmount)}`
+/home/z/my-project/src/hooks/use-format.ts:173:  }, [taxRules, formatCurrency])
+/home/z/my-project/src/hooks/use-format.ts:190:    formatTax,
+/home/z/my-project/src/hooks/use-format.ts:199:    taxRules,
+/home/z/my-project/src/components/providers/regional-provider.tsx:33:  taxRules: { name: string; rate: number; appliesTo: string } | null
+/home/z/my-project/src/components/providers/regional-provider.tsx:48:  taxRules: null,
+/home/z/my-project/src/components/providers/regional-provider.tsx:149:    taxRules: regionConfig?.taxRules ?? null,
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:66:  gstNo: string | null
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:119:    gstNo: supplier?.gstNo || '',
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:145:      gstNo: form.gstNo.trim() || null,
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:185:            <Label>GST No</Label>
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:186:            <Input value={form.gstNo} onChange={(e) => setForm({ ...form, gstNo: e.target.value })} placeholder="GST number" />
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:243:            {supplier.gstNo && (
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:246:                <div><span className="text-muted-foreground">GST</span><p className="font-medium">{supplier.gstNo}</p></div>
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:363:                  <TableHead className="font-semibold text-xs hidden xl:table-cell">GST</TableHead>
+/home/z/my-project/src/components/procurement/suppliers-page.tsx:381:                    <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{s.gstNo || '—'}</TableCell>
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:62:  gstNo: string | null
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:99:    gstNo: item?.gstNo || '',
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:124:      gstNo: form.gstNo.trim() || null,
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:164:            <Label>GST No</Label>
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:165:            <Input value={form.gstNo} onChange={(e) => setForm({ ...form, gstNo: e.target.value })} placeholder="GST number" />
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:216:            {item.gstNo && (
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:219:                <div><span className="text-muted-foreground">GST</span><p className="font-medium">{item.gstNo}</p></div>
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:317:                  <TableHead className="font-semibold text-xs hidden xl:table-cell">GST</TableHead>
+/home/z/my-project/src/components/subcontractors/subcontractors-page.tsx:333:                    <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{s.gstNo || '—'}</TableCell>
+/home/z/my-project/src/lib/seed-maintenance.ts:57:      { name: 'Al Haramain Properties', email: 'info@alharamain.com', phone: '+966 12 123 4567', address: 'King Fahd Road, Jeddah', gstNo: 'GST-001', balance: 0, isActive: true },
+/home/z/my-project/src/lib/seed-maintenance.ts:58:      { name: 'Al Noor Tower Development', email: 'contact@alnoor.com', phone: '+966 11 987 6543', address: 'King Abdullah Road, Riyadh', gstNo: 'GST-002', balance: 0, isActive: true },
+/home/z/my-project/src/lib/seed-maintenance.ts:59:      { name: 'Madinah Gate Mall', email: 'admin@madinahgate.com', phone: '+966 14 555 7890', address: 'Prince Mohammed Road, Madinah', gstNo: 'GST-003', balance: 0, isActive: true },
+/home/z/my-project/src/lib/seed-maintenance.ts:60:      { name: 'Red Sea Resort', email: 'maintenance@redsearesort.com', phone: '+966 12 777 8899', address: 'North Coast, Red Sea', gstNo: 'GST-004', balance: 0, isActive: true },
+/home/z/my-project/src/lib/seed-maintenance.ts:61:      { name: 'Saudi Industrial City', email: 'ops@saudicity.com', phone: '+966 13 444 2233', address: 'Industrial Zone, Dammam', gstNo: 'GST-005', balance: 0, isActive: true },
+/home/z/my-project/src/lib/seed-maintenance.ts:133:        { name: 'Elevator Unit A', code: 'ELV-A-001', type: 'equipment', category: 'Mechanical', purchaseDate: daysAgo(900), purchasePrice: 200000, currentValue: 150000, status: 'maintenance', location: 'Al Noor Tower, Shaft A' },
+/home/z/my-project/src/lib/seed-maintenance.ts:170:      { ticketNo: `CMP-${year}-000009`, type: 'inspection', category: 'mechanical', priority: 'low', status: 'new', subject: 'Elevator annual inspection', description: 'Annual safety inspection required for all 3 elevator units. Check cables, brakes, sensors, and emergency systems.', customerId: customers[0].id, siteId: sites[1].id, building: 'Al Haramain Tower', equipmentId: assets[3].id, contactPerson: 'Fatima Hassan', contactPhone: '+966 55 222 3344', preferredVisitDate: daysFromNow(21), createdById: techUsers[0]?.id || 'system' },
+/home/z/my-project/src/lib/seed-maintenance.ts:256:          { contractNo: `AMC-${year}-000001`, customerId: customers[0].id, name: 'Al Haramain Annual Maintenance', description: 'Comprehensive annual maintenance for HQ and Tower', startDate: daysAgo(180), endDate: daysFromNow(185), totalVisits: 48, usedVisits: 24, visitFrequency: 'monthly', coveredEquipment: JSON.stringify(['Central AC', 'Generator', 'Elevators', 'Fire Alarm', 'Plumbing System']), annualValue: 480000, slaPriority: 'high', status: 'active', autoRenew: true, createdById: techUsers[0]?.id || 'system' },
+/home/z/my-project/src/lib/seed-maintenance.ts:273:          { scheduleNo: `PM-${year}-000004`, customerId: customers[1].id, siteId: sites[2].id, equipmentId: assets[3].id, scheduleType: 'annual', frequencyMonths: 12, assignedTechnicianId: techProfiles[3]?.id, description: 'Annual elevator safety inspection and certification', lastVisitDate: daysAgo(180), nextVisitDate: daysFromNow(185), visitCount: 0, totalVisits: 1, isActive: true, autoGenerateWorkOrder: true, createdById: techUsers[0]?.id || 'system' },
+/home/z/my-project/src/lib/seed-maintenance.ts:332:            tax: (t.labourHours * 150 + t.materialCost + t.transportCost + t.serviceCost) * 0.15,
+/home/z/my-project/src/lib/regional/regional-config.ts:14:  taxName: string
+/home/z/my-project/src/lib/regional/regional-config.ts:15:  taxRate: number        // decimal: 0.07 = 7%
+/home/z/my-project/src/lib/regional/regional-config.ts:45:    taxName: 'No Tax', taxRate: 0, addressFormat: 'street-district-city-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:53:    taxName: 'GST', taxRate: 0.09, addressFormat: 'street-city-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:61:    taxName: 'SST', taxRate: 0.10, addressFormat: 'street-city-state-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:69:    taxName: 'VAT', taxRate: 0.11, addressFormat: 'street-district-city-province-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:77:    taxName: 'VAT', taxRate: 0.07, addressFormat: 'street-district-city-province-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:85:    taxName: 'VAT', taxRate: 0.12, addressFormat: 'street-city-province-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:93:    taxName: 'VAT', taxRate: 0.10, addressFormat: 'street-district-city-province-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:101:    taxName: 'GST', taxRate: 0.10, addressFormat: 'street-city-state-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:109:    taxName: 'VAT', taxRate: 0.20, addressFormat: 'street-city-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:117:    taxName: 'Sales Tax', taxRate: 0, addressFormat: 'street-city-state-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:125:    taxName: 'VAT', taxRate: 0.05, addressFormat: 'street-city-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:133:    taxName: 'VAT', taxRate: 0.15, addressFormat: 'street-city-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:141:    taxName: 'GST', taxRate: 0.18, addressFormat: 'street-city-state-postal',
+/home/z/my-project/src/lib/regional/regional-config.ts:232:export function getCountryTaxRules(countryCode: string): { name: string; rate: number; appliesTo: string } | null {
+/home/z/my-project/src/lib/regional/regional-config.ts:235:  return { name: country.taxName, rate: country.taxRate, appliesTo: 'all' }
+/home/z/my-project/src/lib/regional/regional-config.ts:348:    taxRules: {
+/home/z/my-project/src/lib/regional/regional-config.ts:349:      name: country.taxName,
+/home/z/my-project/src/lib/regional/regional-config.ts:350:      rate: country.taxRate,
+/home/z/my-project/src/lib/seed-collaboration.ts:144:            description: 'During excavation, water seepage observed at gridline A-B. Need dewatering plan before proceeding.',
+/home/z/my-project/src/lib/seed-collaboration.ts:248:          description: 'As per structural drawing SKY-T1-STR-003, the anchor bolt spacing for base plates at column C1-C5 is shown as 200mm c/c. However, due to the existing rock strata encountered during excavation, the pedestal size needs to be reduced. We propose changing the bolt spacing to 150mm c/c with Grade 8.8 bolts. Please confirm structural adequacy.',
+/home/z/my-project/src/lib/seed-collaboration.ts:360:          description: 'Due to high water table encountered during excavation, additional waterproofing treatment required for basement walls and raft. Includes crystalline waterproofing additive and additional membrane layers.',
+/home/z/my-project/src/lib/seed-collaboration.ts:394:          title: 'Revised Excavation Method - Rock Blasting',
+/home/z/my-project/src/lib/seed-collaboration.ts:395:          description: 'Hard rock encountered below 8m depth requiring controlled blasting instead of mechanical excavation. Need specialized contractor and additional safety measures.',
+/home/z/my-project/src/lib/seed-collaboration.ts:488:            description: 'Excavation, earthwork, and foundation for basement B1-B2 levels',
+/home/z/my-project/src/lib/seed-collaboration.ts:679:            content: 'Safety audit completed. Overall rating: Satisfactory. Two minor observations noted - PPE compliance at east wing and housekeeping near material storage. Corrective actions assigned.',
+/home/z/my-project/src/lib/regional/seed-regional.ts:72:  // Tax rules
+/home/z/my-project/src/lib/regional/seed-regional.ts:73:  const countryTaxMap: Record<string, { name: string; rate: number }> = {
+/home/z/my-project/src/lib/regional/seed-regional.ts:74:    BN: { name: 'No Tax', rate: 0 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:75:    SG: { name: 'GST', rate: 0.09 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:77:    ID: { name: 'VAT', rate: 0.11 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:78:    TH: { name: 'VAT', rate: 0.07 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:79:    PH: { name: 'VAT', rate: 0.12 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:80:    VN: { name: 'VAT', rate: 0.10 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:81:    AU: { name: 'GST', rate: 0.10 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:82:    GB: { name: 'VAT', rate: 0.20 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:83:    US: { name: 'Sales Tax', rate: 0 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:84:    AE: { name: 'VAT', rate: 0.05 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:85:    SA: { name: 'VAT', rate: 0.15 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:86:    IN: { name: 'GST', rate: 0.18 },
+/home/z/my-project/src/lib/regional/seed-regional.ts:162:  // ──────────── Tax Rules ────────────
+/home/z/my-project/src/lib/regional/seed-regional.ts:163:  for (const [cc, tax] of Object.entries(countryTaxMap)) {
+/home/z/my-project/src/lib/regional/seed-regional.ts:167:    const existing = await db.taxRule.findFirst({ where: { countryId: cid, name: tax.name } })
+/home/z/my-project/src/lib/regional/seed-regional.ts:169:      await db.taxRule.create({
+/home/z/my-project/src/lib/regional/seed-regional.ts:170:        data: { countryId: cid, name: tax.name, rate: tax.rate },
+/home/z/my-project/src/lib/regional/seed-regional.ts:172:      console.log(`  ✅ Tax: ${cc} - ${tax.name} (${(tax.rate * 100).toFixed(0)}%)`)
+/home/z/my-project/src/lib/seed.ts:233:        gstNo: '29AABCU9630R1ZM',
+/home/z/my-project/src/lib/seed.ts:245:        gstNo: '29AABCT1234R1ZM',
+/home/z/my-project/src/lib/seed.ts:257:        gstNo: '29AABCD5678R1ZM',
+/home/z/my-project/src/lib/seed.ts:269:        gstNo: '29AABCA9012R1ZM',
+/home/z/my-project/src/lib/seed.ts:624:      tax: 900000,
+/home/z/my-project/src/lib/seed.ts:634:      { invoiceId: inv1.id, description: 'Excavation & Foundation Work - Stage 1', quantity: 1, unit: 'lot', unitPrice: 3000000, amount: 3000000 },
+/home/z/my-project/src/lib/seed.ts:663:      tax: 1440000,
+/home/z/my-project/src/lib/seed.ts:701:      tax: 1170000,
+/home/z/my-project/src/lib/seed.ts:725:      tax: 810000,
+/home/z/my-project/src/lib/seed.ts:930:      tax: 47700,
+/home/z/my-project/src/lib/seed.ts:945:      tax: 32400,
+/home/z/my-project/src/lib/seed.ts:1078:        gstNo: '29AABCS5678R1ZM',
+/home/z/my-project/src/lib/seed.ts:1087:        gstNo: '29AABCG1234R1ZM',
+/home/z/my-project/src/lib/seed.ts:1096:        gstNo: '29AABCB5678R1ZM',
+/home/z/my-project/src/lib/seed.ts:1105:        gstNo: '29AABCR9012R1ZM',
+/home/z/my-project/src/lib/auth.ts:10:  avatar: string | null
+/home/z/my-project/src/lib/auth.ts:61:      avatar: session.user.avatar,
+/home/z/my-project/src/app/(marketing)/request-demo/page.tsx:65:  'Asia/Dubai (GST)',
+/home/z/my-project/src/app/(marketing)/privacy-policy/page.tsx:60:                <li><strong>Complete your profile:</strong> Professional certifications, license numbers, areas of expertise, and company details including business address and tax identification numbers.</li>
+/home/z/my-project/src/app/(marketing)/privacy-policy/page.tsx:95:                <li><strong>To comply with legal obligations:</strong> Meeting regulatory requirements under applicable construction industry laws, tax regulations, data protection statutes, and government reporting obligations.</li>
+/home/z/my-project/src/app/(marketing)/privacy-policy/page.tsx:227:                  <p>SmartBuild Inc.<br />Attn: Privacy Officer<br />100 Innovation Drive, Suite 400<br />Austin, TX 78701<br />United States</p>
+/home/z/my-project/src/app/(marketing)/about/page.tsx:61:    title: 'Industry-First Innovation',
+/home/z/my-project/src/app/(marketing)/about/page.tsx:88:    title: 'Innovation',
+
+[Showing results with pagination = limit: 250]

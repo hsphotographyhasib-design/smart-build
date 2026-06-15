@@ -1,0 +1,779 @@
+     1→'use client'
+     2→
+     3→import React, { useState } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→import { useFormat } from '@/hooks/use-format'
+     7→import { cn } from '@/lib/utils'
+     8→import { toast } from 'sonner'
+     9→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    10→import { Button } from '@/components/ui/button'
+    11→import { Badge } from '@/components/ui/badge'
+    12→import { Input } from '@/components/ui/input'
+    13→import { Label } from '@/components/ui/label'
+    14→import { Textarea } from '@/components/ui/textarea'
+    15→import { Skeleton } from '@/components/ui/skeleton'
+    16→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    17→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    18→import { Separator } from '@/components/ui/separator'
+    19→import { ScrollArea } from '@/components/ui/scroll-area'
+    20→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    21→import {
+    22→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    23→} from '@/components/ui/table'
+    24→import {
+    25→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+    26→} from '@/components/ui/dialog'
+    27→import {
+    28→  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+    29→} from '@/components/ui/alert-dialog'
+    30→import {
+    31→  ArrowLeft, Pencil, Send, CheckCircle, XCircle, RotateCcw, ArrowUpCircle,
+    32→  UserCheck, DollarSign, Shield, Clock, FileText, Plus, Trash2, Upload,
+    33→  MessageSquare, GitBranch, CreditCard, Banknote, ChevronRight,
+    34→} from 'lucide-react'
+    35→
+    36→// ─── Config Maps ───
+    37→const statusConfig: Record<string, { label: string; className: string }> = {
+    38→  draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-200' },
+    39→  pending_review: { label: 'Pending Review', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    40→  under_review: { label: 'Under Review', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+    41→  pending_approval: { label: 'Pending Approval', className: 'bg-orange-50 text-orange-700 border-orange-200' },
+    42→  approved: { label: 'Approved', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    43→  rejected: { label: 'Rejected', className: 'bg-red-50 text-red-700 border-red-200' },
+    44→  returned: { label: 'Returned', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+    45→  revision_requested: { label: 'Revision Requested', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    46→  payment_pending: { label: 'Payment Pending', className: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+    47→  partial_paid: { label: 'Partial Paid', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+    48→  paid: { label: 'Paid', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    49→  overdue: { label: 'Overdue', className: 'bg-red-50 text-red-700 border-red-200' },
+    50→  cancelled: { label: 'Cancelled', className: 'bg-gray-100 text-gray-500 border-gray-200' },
+    51→}
+    52→
+    53→const typeConfig: Record<string, { label: string; className: string }> = {
+    54→  progress_claim: { label: 'Progress Claim', className: 'bg-violet-50 text-violet-700 border-violet-200' },
+    55→  interim_payment: { label: 'Interim Payment', className: 'bg-sky-50 text-sky-700 border-sky-200' },
+    56→  final_payment: { label: 'Final Payment', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    57→  variation_claim: { label: 'Variation Claim', className: 'bg-orange-50 text-orange-700 border-orange-200' },
+    58→  retention_release: { label: 'Retention Release', className: 'bg-teal-50 text-teal-700 border-teal-200' },
+    59→  back_charge: { label: 'Back Charge', className: 'bg-red-50 text-red-700 border-red-200' },
+    60→  credit_note: { label: 'Credit Note', className: 'bg-green-50 text-green-700 border-green-200' },
+    61→  debit_note: { label: 'Debit Note', className: 'bg-rose-50 text-rose-700 border-rose-200' },
+    62→  po_invoice: { label: 'PO Invoice', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    63→  subcontract_invoice: { label: 'Subcontract Invoice', className: 'bg-purple-50 text-purple-700 border-purple-200' },
+    64→}
+    65→
+    66→const actionIcons: Record<string, React.ElementType> = {
+    67→  submitted: Send, approved: CheckCircle, rejected: XCircle, returned: RotateCcw, escalated: ArrowUpCircle,
+    68→}
+    69→
+    70→// ─── Component ───
+    71→export function InvoiceDetailPage({ invoiceId }: { invoiceId: string }) {
+    72→  const { navigate, user } = useAppStore()
+    73→  const { formatCurrency, formatDate, formatDateTime } = useFormat()
+    74→  const queryClient = useQueryClient()
+    75→
+    76→  const [activeTab, setActiveTab] = useState('details')
+    77→  const [rejectDialog, setRejectDialog] = useState(false)
+    78→  const [returnDialog, setReturnDialog] = useState(false)
+    79→  const [delegateDialog, setDelegateDialog] = useState(false)
+    80→  const [paymentDialog, setPaymentDialog] = useState(false)
+    81→  const [retentionDialog, setRetentionDialog] = useState(false)
+    82→  const [deleteDialog, setDeleteDialog] = useState(false)
+    83→
+    84→  const [rejectReason, setRejectReason] = useState('')
+    85→  const [returnReason, setReturnReason] = useState('')
+    86→  const [delegateUserId, setDelegateUserId] = useState('')
+    87→  const [comment, setComment] = useState('')
+    88→
+    89→  // Payment form
+    90→  const [payForm, setPayForm] = useState({ amount: 0, method: 'bank_transfer', reference: '', bankReference: '', chequeNumber: '' })
+    91→  // Retention form
+    92→  const [retForm, setRetForm] = useState({ amount: 0, reference: '' })
+    93→  // Document form
+    94→  const [docForm, setDocForm] = useState({ fileName: '', fileType: '', fileSize: '', category: 'invoice', fileUrl: '' })
+    95→
+    96→  // ─── Queries ───
+    97→  const { data: invData, isLoading } = useQuery({
+    98→    queryKey: queryKeys.invoiceDetail(invoiceId),
+    99→    queryFn: () => api.get<any>(`/api/invoicing/${invoiceId}`),
+   100→  })
+   101→
+   102→  const inv = invData?.data
+   103→
+   104→  const { data: paymentsData } = useQuery({
+   105→    queryKey: ['invoice-payments', invoiceId],
+   106→    queryFn: () => api.get('/api/invoicing/payments'),
+   107→  })
+   108→
+   109→  const { data: commentsData, refetch: refetchComments } = useQuery({
+   110→    queryKey: ['invoice-comments', invoiceId],
+   111→    queryFn: () => api.get(`/api/invoicing/${invoiceId}/comments`),
+   112→    enabled: activeTab === 'comments',
+   113→  })
+   114→
+   115→  const { data: docsData, refetch: refetchDocs } = useQuery({
+   116→    queryKey: ['invoice-docs', invoiceId],
+   117→    queryFn: () => api.get(`/api/invoicing/${invoiceId}/documents`),
+   118→    enabled: activeTab === 'documents',
+   119→  })
+   120→
+   121→  const payments = paymentsData?.data || []
+   122→  const comments = commentsData?.data || []
+   123→  const documents = docsData?.data || []
+   124→
+   125→  // ─── Mutations ───
+   126→  const submitMutation = useMutation({
+   127→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/submit`),
+   128→    onSuccess: () => { toast.success('Invoice submitted for approval'); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   129→    onError: (e: any) => toast.error(e?.error || 'Submit failed'),
+   130→  })
+   131→  const approveMutation = useMutation({
+   132→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/approve`),
+   133→    onSuccess: () => { toast.success('Invoice approved'); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   134→    onError: (e: any) => toast.error(e?.error || 'Approve failed'),
+   135→  })
+   136→  const rejectMutation = useMutation({
+   137→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/reject`, { reason: rejectReason }),
+   138→    onSuccess: () => { toast.success('Invoice rejected'); setRejectDialog(false); setRejectReason(''); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   139→    onError: (e: any) => toast.error(e?.error || 'Reject failed'),
+   140→  })
+   141→  const returnMutation = useMutation({
+   142→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/return`, { reason: returnReason }),
+   143→    onSuccess: () => { toast.success('Invoice returned for revision'); setReturnDialog(false); setReturnReason(''); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   144→    onError: (e: any) => toast.error(e?.error || 'Return failed'),
+   145→  })
+   146→  const escalateMutation = useMutation({
+   147→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/escalate`),
+   148→    onSuccess: () => { toast.success('Invoice escalated'); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   149→    onError: (e: any) => toast.error(e?.error || 'Escalate failed'),
+   150→  })
+   151→  const delegateMutation = useMutation({
+   152→    mutationFn: () => api.post(`/api/invoicing/${invoiceId}/delegate`, { targetUserId: delegateUserId }),
+   153→    onSuccess: () => { toast.success('Invoice delegated'); setDelegateDialog(false); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   154→    onError: (e: any) => toast.error(e?.error || 'Delegate failed'),
+   155→  })
+   156→  const deleteMutation = useMutation({
+   157→    mutationFn: () => api.del(`/api/invoicing/${invoiceId}`),
+   158→    onSuccess: () => { toast.success('Invoice deleted'); navigate('invoice-management'); },
+   159→    onError: (e: any) => toast.error(e?.error || 'Delete failed'),
+   160→  })
+   161→  const recordPayMutation = useMutation({
+   162→    mutationFn: (body: any) => api.post(`/api/invoicing/payments/${invoiceId}/record`, body),
+   163→    onSuccess: () => { toast.success('Payment recorded'); setPaymentDialog(false); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   164→    onError: (e: any) => toast.error(e?.error || 'Payment failed'),
+   165→  })
+   166→  const releaseRetMutation = useMutation({
+   167→    mutationFn: (body: any) => api.post(`/api/invoicing/retention/${invoiceId}/release`, body),
+   168→    onSuccess: () => { toast.success('Retention released'); setRetentionDialog(false); queryClient.invalidateQueries({ queryKey: queryKeys.invoiceDetail(invoiceId) }); },
+   169→    onError: (e: any) => toast.error(e?.error || 'Release failed'),
+   170→  })
+   171→  const addCommentMutation = useMutation({
+   172→    mutationFn: (body: any) => api.post(`/api/invoicing/${invoiceId}/comments`, body),
+   173→    onSuccess: () => { toast.success('Comment added'); setComment(''); refetchComments(); },
+   174→    onError: (e: any) => toast.error(e?.error || 'Failed to add comment'),
+   175→  })
+   176→  const uploadDocMutation = useMutation({
+   177→    mutationFn: (body: any) => api.post(`/api/invoicing/${invoiceId}/documents`, body),
+   178→    onSuccess: () => { toast.success('Document added'); setDocForm({ fileName: '', fileType: '', fileSize: '', category: 'invoice', fileUrl: '' }); refetchDocs(); },
+   179→    onError: (e: any) => toast.error(e?.error || 'Failed to add document'),
+   180→  })
+   181→
+   182→  if (isLoading) {
+   183→    return (
+   184→      <div className="space-y-4">
+   185→        <Skeleton className="h-8 w-48" />
+   186→        <Skeleton className="h-32 rounded-lg" />
+   187→        <Skeleton className="h-64 rounded-lg" />
+   188→      </div>
+   189→    )
+   190→  }
+   191→
+   192→  if (!inv) {
+   193→    return (
+   194→      <div className="text-center py-16">
+   195→        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+   196→        <h2 className="text-lg font-semibold">Invoice not found</h2>
+   197→        <Button variant="outline" className="mt-4" onClick={() => navigate('invoice-management')}>Back to Invoices</Button>
+   198→      </div>
+   199→    )
+   200→  }
+   201→
+   202→  const sc = statusConfig[inv.status] || statusConfig.draft
+   203→  const tc = typeConfig[inv.type] || { label: inv.type, className: 'bg-gray-50 text-gray-600' }
+   204→  const isDraft = inv.status === 'draft'
+   205→  const isPending = ['pending_review', 'under_review', 'pending_approval'].includes(inv.status)
+   206→  const isApproved = inv.status === 'approved' || inv.status === 'payment_pending'
+   207→  const isRejected = ['rejected', 'returned', 'revision_requested'].includes(inv.status)
+   208→  const lineItems = inv.lineItems || inv.items || []
+   209→  const approvalHistory = inv.approvalHistory || []
+   210→  const subtotal = lineItems.reduce((s: number, i: any) => s + (i.qty * i.unitPrice), 0)
+   211→  const outstanding = (inv.total || 0) - (inv.paidAmount || 0)
+   212→  const retPct = inv.retentionRate || 0
+   213→  const retAmt = (inv.total || 0) * (retPct / 100)
+   214→
+   215→  return (
+   216→    <div className="space-y-6">
+   217→      {/* Header */}
+   218→      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+   219→        <div className="flex items-start gap-3">
+   220→          <Button variant="ghost" size="icon" className="mt-0.5" onClick={() => navigate('invoice-management')}>
+   221→            <ArrowLeft className="h-4 w-4" />
+   222→          </Button>
+   223→          <div>
+   224→            <div className="flex items-center gap-2 flex-wrap">
+   225→              <h1 className="text-xl sm:text-2xl font-bold tracking-tight font-mono">{inv.invoiceNo}</h1>
+   226→              <Badge variant="outline" className={cn(tc.className)}>{tc.label}</Badge>
+   227→              <Badge variant="outline" className={cn(sc.className)}>{sc.label}</Badge>
+   228→            </div>
+   229→            <p className="text-sm text-muted-foreground mt-1">{inv.project?.name || 'No project'} {inv.vendorName ? `• ${inv.vendorName}` : ''}</p>
+   230→          </div>
+   231→        </div>
+   232→        <div className="flex flex-wrap gap-2">
+   233→          {isDraft && (
+   234→            <>
+   235→              <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Edit mode coming soon')}><Pencil className="h-3.5 w-3.5" /> Edit</Button>
+   236→              <Button size="sm" className="gap-1" onClick={() => submitMutation.mutate()} disabled={submitMutation.isPending}><Send className="h-3.5 w-3.5" /> Submit</Button>
+   237→              <Button variant="outline" size="sm" className="gap-1 text-red-500" onClick={() => setDeleteDialog(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
+   238→            </>
+   239→          )}
+   240→          {isPending && (
+   241→            <>
+   242→              <Button size="sm" className="gap-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => approveMutation.mutate()} disabled={approveMutation.isPending}><CheckCircle className="h-3.5 w-3.5" /> Approve</Button>
+   243→              <Button variant="outline" size="sm" className="gap-1 text-red-500" onClick={() => setRejectDialog(true)}><XCircle className="h-3.5 w-3.5" /> Reject</Button>
+   244→              <Button variant="outline" size="sm" className="gap-1 text-amber-600" onClick={() => setReturnDialog(true)}><RotateCcw className="h-3.5 w-3.5" /> Return</Button>
+   245→              <Button variant="outline" size="sm" className="gap-1" onClick={() => escalateMutation.mutate()}><ArrowUpCircle className="h-3.5 w-3.5" /> Escalate</Button>
+   246→              <Button variant="outline" size="sm" className="gap-1" onClick={() => setDelegateDialog(true)}><UserCheck className="h-3.5 w-3.5" /> Delegate</Button>
+   247→            </>
+   248→          )}
+   249→          {isApproved && (
+   250→            <>
+   251→              <Button size="sm" className="gap-1" onClick={() => { setPaymentDialog(true); setPayForm(f => ({ ...f, amount: outstanding })) }}><DollarSign className="h-3.5 w-3.5" /> Record Payment</Button>
+   252→              {retAmt > 0 && (
+   253→                <Button variant="outline" size="sm" className="gap-1" onClick={() => { setRetentionDialog(true); setRetForm(f => ({ ...f, amount: retAmt })) }}><Shield className="h-3.5 w-3.5" /> Release Retention</Button>
+   254→              )}
+   255→            </>
+   256→          )}
+   257→          {isRejected && (
+   258→            <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Edit & resubmit coming soon')}><Pencil className="h-3.5 w-3.5" /> Edit & Resubmit</Button>
+   259→          )}
+   260→        </div>
+   261→      </div>
+   262→
+   263→      {/* Tabs */}
+   264→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   265→        <TabsList className="flex-wrap">
+   266→          <TabsTrigger value="details">Details</TabsTrigger>
+   267→          <TabsTrigger value="payments">Payments</TabsTrigger>
+   268→          <TabsTrigger value="retention">Retention</TabsTrigger>
+   269→          <TabsTrigger value="approval">Approval History</TabsTrigger>
+   270→          <TabsTrigger value="comments">Comments ({comments.length})</TabsTrigger>
+   271→          <TabsTrigger value="documents">Documents ({documents.length})</TabsTrigger>
+   272→        </TabsList>
+   273→
+   274→        {/* ─── Details Tab ─── */}
+   275→        <TabsContent value="details" className="space-y-6 mt-4">
+   276→          {/* Invoice Info */}
+   277→          <Card>
+   278→            <CardHeader className="pb-3">
+   279→              <CardTitle className="text-base font-semibold">Invoice Information</CardTitle>
+   280→            </CardHeader>
+   281→            <CardContent>
+   282→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 text-sm">
+   283→                <div><span className="text-muted-foreground">Project</span><p className="font-medium mt-0.5">{inv.project?.name || '—'}</p></div>
+   284→                <div><span className="text-muted-foreground">Vendor</span><p className="font-medium mt-0.5">{inv.vendorName || inv.vendor?.name || '—'}</p></div>
+   285→                <div><span className="text-muted-foreground">Type</span><p className="mt-0.5"><Badge variant="outline" className={cn(tc.className)}>{tc.label}</Badge></p></div>
+   286→                <div><span className="text-muted-foreground">Contract No</span><p className="font-medium mt-0.5">{inv.contractNo || '—'}</p></div>
+   287→                <div><span className="text-muted-foreground">Reference No</span><p className="font-medium mt-0.5">{inv.referenceNo || '—'}</p></div>
+   288→                <div><span className="text-muted-foreground">Issue Date</span><p className="font-medium mt-0.5">{formatDate(inv.issueDate)}</p></div>
+   289→                <div><span className="text-muted-foreground">Due Date</span><p className="font-medium mt-0.5">{formatDate(inv.dueDate)}</p></div>
+   290→                <div><span className="text-muted-foreground">Currency</span><p className="font-medium mt-0.5">{inv.currency || 'SGD'}</p></div>
+   291→                <div><span className="text-muted-foreground">PO Number</span><p className="font-medium mt-0.5">{inv.purchaseOrder?.poNo || inv.purchaseOrderId || '—'}</p></div>
+   292→                <div><span className="text-muted-foreground">Work Order</span><p className="font-medium mt-0.5">{inv.workOrder?.woNumber || inv.workOrderId || '—'}</p></div>
+   293→                <div><span className="text-muted-foreground">Cost Code</span><p className="font-medium mt-0.5">{inv.costCode?.code || inv.costCodeId || '—'}</p></div>
+   294→                <div><span className="text-muted-foreground">Notes</span><p className="font-medium mt-0.5 max-w-xs whitespace-pre-wrap">{inv.notes || '—'}</p></div>
+   295→              </div>
+   296→            </CardContent>
+   297→          </Card>
+   298→
+   299→          {/* Financial Summary */}
+   300→          <Card>
+   301→            <CardHeader className="pb-3">
+   302→              <CardTitle className="text-base font-semibold">Financial Summary</CardTitle>
+   303→            </CardHeader>
+   304→            <CardContent>
+   305→              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+   306→                <div className="space-y-1"><span className="text-xs text-muted-foreground">Subtotal</span><p className="text-lg font-semibold">{formatCurrency(subtotal)}</p></div>
+   307→                <div className="space-y-1"><span className="text-xs text-muted-foreground">Tax ({inv.taxRate || 0}%)</span><p className="text-lg font-semibold">{formatCurrency(inv.taxAmount || 0)}</p></div>
+   308→                <div className="space-y-1"><span className="text-xs text-muted-foreground">Total</span><p className="text-lg font-bold">{formatCurrency(inv.total || 0)}</p></div>
+   309→                <div className="space-y-1"><span className="text-xs text-muted-foreground">Paid</span><p className="text-lg font-semibold text-emerald-600">{formatCurrency(inv.paidAmount || 0)}</p></div>
+   310→                <div className="space-y-1"><span className="text-xs text-muted-foreground">Outstanding</span><p className="text-lg font-semibold text-orange-600">{formatCurrency(outstanding)}</p></div>
+   311→                <div className="space-y-1">
+   312→                  <span className="text-xs text-muted-foreground">Retention ({retPct}%)</span>
+   313→                  <p className="text-lg font-semibold text-purple-600">{formatCurrency(retAmt)}</p>
+   314→                </div>
+   315→              </div>
+   316→
+   317→              {/* Progress billing table */}
+   318→              {inv.type === 'progress_claim' && inv.progressBilling && (
+   319→                <div className="mt-6 rounded-lg border overflow-hidden">
+   320→                  <Table>
+   321→                    <TableHeader>
+   322→                      <TableRow className="bg-muted/50">
+   323→                        <TableHead className="text-xs">Original Contract Value</TableHead>
+   324→                        <TableHead className="text-xs">Previous Claims</TableHead>
+   325→                        <TableHead className="text-xs">This Period (%)</TableHead>
+   326→                        <TableHead className="text-xs">This Period ($)</TableHead>
+   327→                        <TableHead className="text-xs">Total Completed (%)</TableHead>
+   328→                        <TableHead className="text-xs">Retention</TableHead>
+   329→                        <TableHead className="text-xs">Certified Amount</TableHead>
+   330→                        <TableHead className="text-xs">Balance</TableHead>
+   331→                      </TableRow>
+   332→                    </TableHeader>
+   333→                    <TableBody>
+   334→                      <TableRow>
+   335→                        <TableCell className="text-sm font-medium">{formatCurrency(inv.progressBilling.originalContractValue || 0)}</TableCell>
+   336→                        <TableCell className="text-sm">{formatCurrency(inv.progressBilling.previousClaimsTotal || 0)}</TableCell>
+   337→                        <TableCell className="text-sm">{inv.progressBilling.workCompletedPct || 0}%</TableCell>
+   338→                        <TableCell className="text-sm font-medium">{formatCurrency(inv.progressBilling.workCompletedAmt || 0)}</TableCell>
+   339→                        <TableCell className="text-sm">{inv.progressBilling.totalCompletedPct || 0}%</TableCell>
+   340→                        <TableCell className="text-sm text-purple-600">{formatCurrency(inv.progressBilling.retentionAmount || 0)}</TableCell>
+   341→                        <TableCell className="text-sm font-semibold text-emerald-600">{formatCurrency(inv.progressBilling.certifiedAmount || 0)}</TableCell>
+   342→                        <TableCell className="text-sm">{formatCurrency(inv.progressBilling.balanceRemaining || 0)}</TableCell>
+   343→                      </TableRow>
+   344→                    </TableBody>
+   345→                  </Table>
+   346→                </div>
+   347→              )}
+   348→            </CardContent>
+   349→          </Card>
+   350→
+   351→          {/* Line Items */}
+   352→          <Card>
+   353→            <CardHeader className="pb-3">
+   354→              <CardTitle className="text-base font-semibold">Line Items</CardTitle>
+   355→            </CardHeader>
+   356→            <CardContent className="p-0">
+   357→              <div className="overflow-x-auto">
+   358→                <Table>
+   359→                  <TableHeader>
+   360→                    <TableRow>
+   361→                      <TableHead className="text-xs">#</TableHead>
+   362→                      <TableHead className="text-xs">Description</TableHead>
+   363→                      <TableHead className="text-xs text-right">Qty</TableHead>
+   364→                      <TableHead className="text-xs">Unit</TableHead>
+   365→                      <TableHead className="text-xs text-right">Unit Price</TableHead>
+   366→                      <TableHead className="text-xs text-right">Amount</TableHead>
+   367→                    </TableRow>
+   368→                  </TableHeader>
+   369→                  <TableBody>
+   370→                    {lineItems.map((item: any, idx: number) => (
+   371→                      <TableRow key={item.id || idx}>
+   372→                        <TableCell className="text-xs text-muted-foreground">{idx + 1}</TableCell>
+   373→                        <TableCell className="text-sm">{item.description}</TableCell>
+   374→                        <TableCell className="text-sm text-right">{item.qty}</TableCell>
+   375→                        <TableCell className="text-sm">{item.unit}</TableCell>
+   376→                        <TableCell className="text-sm text-right">{formatCurrency(item.unitPrice)}</TableCell>
+   377→                        <TableCell className="text-sm text-right font-medium">{formatCurrency(item.qty * item.unitPrice)}</TableCell>
+   378→                      </TableRow>
+   379→                    ))}
+   380→                    {lineItems.length === 0 && (
+   381→                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">No line items</TableCell></TableRow>
+   382→                    )}
+   383→                  </TableBody>
+   384→                  {lineItems.length > 0 && (
+   385→                    <tfoot>
+   386→                      <TableRow className="bg-muted/30 font-semibold">
+   387→                        <TableCell colSpan={5} className="text-sm text-right">Subtotal</TableCell>
+   388→                        <TableCell className="text-sm text-right">{formatCurrency(subtotal)}</TableCell>
+   389→                      </TableRow>
+   390→                      <TableRow className="bg-muted/30">
+   391→                        <TableCell colSpan={5} className="text-sm text-right">Tax</TableCell>
+   392→                        <TableCell className="text-sm text-right">{formatCurrency(inv.taxAmount || 0)}</TableCell>
+   393→                      </TableRow>
+   394→                      <TableRow className="bg-muted/50 font-bold text-base">
+   395→                        <TableCell colSpan={5} className="text-right">Total</TableCell>
+   396→                        <TableCell className="text-right">{formatCurrency(inv.total || 0)}</TableCell>
+   397→                      </TableRow>
+   398→                    </tfoot>
+   399→                  )}
+   400→                </Table>
+   401→              </div>
+   402→            </CardContent>
+   403→          </Card>
+   404→        </TabsContent>
+   405→
+   406→        {/* ─── Payments Tab ─── */}
+   407→        <TabsContent value="payments" className="space-y-4 mt-4">
+   408→          <Card>
+   409→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   410→              <CardTitle className="text-base font-semibold">Payment History</CardTitle>
+   411→              {(isApproved) && (
+   412→                <Button size="sm" className="gap-1" onClick={() => { setPaymentDialog(true); setPayForm(f => ({ ...f, amount: outstanding })) }}><Plus className="h-3.5 w-3.5" /> Record Payment</Button>
+   413→              )}
+   414→            </CardHeader>
+   415→            <CardContent className="p-0">
+   416→              <Table>
+   417→                <TableHeader>
+   418→                  <TableRow>
+   419→                    <TableHead className="text-xs">Date</TableHead>
+   420→                    <TableHead className="text-xs">Amount</TableHead>
+   421→                    <TableHead className="text-xs">Method</TableHead>
+   422→                    <TableHead className="text-xs">Reference</TableHead>
+   423→                    <TableHead className="text-xs">Status</TableHead>
+   424→                  </TableRow>
+   425→                </TableHeader>
+   426→                <TableBody>
+   427→                  {(inv.payments || []).map((p: any, i: number) => (
+   428→                    <TableRow key={p.id || i}>
+   429→                      <TableCell className="text-sm">{formatDate(p.paymentDate)}</TableCell>
+   430→                      <TableCell className="text-sm font-medium">{formatCurrency(p.amount)}</TableCell>
+   431→                      <TableCell className="text-sm capitalize">{p.method?.replace('_', ' ') || '—'}</TableCell>
+   432→                      <TableCell className="text-sm">{p.reference || '—'}</TableCell>
+   433→                      <TableCell><Badge variant="secondary" className="text-[10px]">{p.status || 'completed'}</Badge></TableCell>
+   434→                    </TableRow>
+   435→                  ))}
+   436→                  {(inv.payments || []).length === 0 && (
+   437→                    <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">No payments recorded</TableCell></TableRow>
+   438→                  )}
+   439→                </TableBody>
+   440→              </Table>
+   441→            </CardContent>
+   442→          </Card>
+   443→        </TabsContent>
+   444→
+   445→        {/* ─── Retention Tab ─── */}
+   446→        <TabsContent value="retention" className="space-y-4 mt-4">
+   447→          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   448→            <Card>
+   449→              <CardContent className="p-4 text-center">
+   450→                <Shield className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+   451→                <p className="text-xs text-muted-foreground">Retention Held</p>
+   452→                <p className="text-xl font-bold text-purple-600">{formatCurrency(inv.retentionHeld || retAmt)}</p>
+   453→              </CardContent>
+   454→            </Card>
+   455→            <Card>
+   456→              <CardContent className="p-4 text-center">
+   457→                <Banknote className="h-6 w-6 text-teal-600 mx-auto mb-2" />
+   458→                <p className="text-xs text-muted-foreground">Released</p>
+   459→                <p className="text-xl font-bold text-teal-600">{formatCurrency(inv.retentionReleased || 0)}</p>
+   460→              </CardContent>
+   461→            </Card>
+   462→            <Card>
+   463→              <CardContent className="p-4 text-center">
+   464→                <CreditCard className="h-6 w-6 text-orange-600 mx-auto mb-2" />
+   465→                <p className="text-xs text-muted-foreground">Outstanding</p>
+   466→                <p className="text-xl font-bold text-orange-600">{formatCurrency((inv.retentionHeld || retAmt) - (inv.retentionReleased || 0))}</p>
+   467→              </CardContent>
+   468→            </Card>
+   469→          </div>
+   470→          <Card>
+   471→            <CardHeader className="pb-3">
+   472→              <CardTitle className="text-base font-semibold">Retention Details</CardTitle>
+   473→            </CardHeader>
+   474→            <CardContent>
+   475→              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+   476→                <div><span className="text-muted-foreground">Retention Rate</span><p className="font-medium mt-0.5">{retPct}%</p></div>
+   477→                <div><span className="text-muted-foreground">Retention Amount</span><p className="font-medium mt-0.5">{formatCurrency(retAmt)}</p></div>
+   478→                <div><span className="text-muted-foreground">Released</span><p className="font-medium mt-0.5 text-teal-600">{formatCurrency(inv.retentionReleased || 0)}</p></div>
+   479→                <div><span className="text-muted-foreground">Due Date</span><p className="font-medium mt-0.5">{formatDate(inv.retentionDueDate)}</p></div>
+   480→              </div>
+   481→            </CardContent>
+   482→          </Card>
+   483→        </TabsContent>
+   484→
+   485→        {/* ─── Approval History Tab ─── */}
+   486→        <TabsContent value="approval" className="space-y-4 mt-4">
+   487→          <Card>
+   488→            <CardHeader className="pb-3">
+   489→              <CardTitle className="text-base font-semibold">Approval Timeline</CardTitle>
+   490→            </CardHeader>
+   491→            <CardContent>
+   492→              {approvalHistory.length === 0 ? (
+   493→                <p className="text-sm text-muted-foreground text-center py-8">No approval history yet</p>
+   494→              ) : (
+   495→                <div className="relative space-y-0">
+   496→                  {approvalHistory.map((step: any, idx: number) => {
+   497→                    const isLast = idx === approvalHistory.length - 1
+   498→                    const IconComp = actionIcons[step.action] || Clock
+   499→                    return (
+   500→                      <div key={step.id || idx} className="flex gap-4 pb-6">
+   501→                        {/* Line + icon */}
+   502→                        <div className="flex flex-col items-center">
+   503→                          <div className={cn(
+   504→                            'p-2 rounded-full z-10',
+   505→                            step.action === 'approved' ? 'bg-emerald-100 text-emerald-600' :
+   506→                            step.action === 'rejected' ? 'bg-red-100 text-red-600' :
+   507→                            step.action === 'returned' ? 'bg-yellow-100 text-yellow-600' :
+   508→                            'bg-blue-100 text-blue-600'
+   509→                          )}>
+   510→                            <IconComp className="h-4 w-4" />
+   511→                          </div>
+   512→                          {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
+   513→                        </div>
+   514→                        {/* Content */}
+   515→                        <div className="flex-1 pt-0.5">
+   516→                          <div className="flex items-center gap-2 flex-wrap">
+   517→                            <span className="font-semibold text-sm">{step.action?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+   518→                            <Badge variant="outline" className="text-[10px]">{step.stepLabel || step.stepName || ''}</Badge>
+   519→                          </div>
+   520→                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+   521→                            <div className="flex items-center gap-1">
+   522→                              <Avatar className="h-5 w-5"><AvatarFallback className="text-[10px]">{(step.userName || 'U').charAt(0)}</AvatarFallback></Avatar>
+   523→                              <span>{step.userName || 'System'}</span>
+   524→                            </div>
+   525→                            <span>{step.userRole || ''}</span>
+   526→                            <span>•</span>
+   527→                            <span>{formatDateTime(step.createdAt || step.date)}</span>
+   528→                            {step.ipAddress && <span>• {step.ipAddress}</span>}
+   529→                          </div>
+   530→                          {(step.comments || step.reason) && (
+   531→                            <p className="text-sm mt-2 bg-muted/50 rounded-md p-2 max-w-lg">{step.comments || step.reason}</p>
+   532→                          )}
+   533→                        </div>
+   534→                      </div>
+   535→                    )
+   536→                  })}
+   537→                </div>
+   538→              )}
+   539→            </CardContent>
+   540→          </Card>
+   541→        </TabsContent>
+   542→
+   543→        {/* ─── Comments Tab ─── */}
+   544→        <TabsContent value="comments" className="space-y-4 mt-4">
+   545→          <Card>
+   546→            <CardHeader className="pb-3">
+   547→              <CardTitle className="text-base font-semibold">Comments</CardTitle>
+   548→            </CardHeader>
+   549→            <CardContent className="space-y-4">
+   550→              <ScrollArea className="max-h-96">
+   551→                {comments.length === 0 ? (
+   552→                  <p className="text-sm text-muted-foreground text-center py-8">No comments yet</p>
+   553→                ) : (
+   554→                  <div className="space-y-4">
+   555→                    {comments.map((c: any, idx: number) => (
+   556→                      <div key={c.id || idx} className="flex gap-3 pb-4 border-b last:border-0">
+   557→                        <Avatar className="h-8 w-8 mt-0.5">
+   558→                          <AvatarFallback className="text-xs">{(c.userName || 'U').charAt(0)}</AvatarFallback>
+   559→                        </Avatar>
+   560→                        <div className="flex-1">
+   561→                          <div className="flex items-center gap-2">
+   562→                            <span className="text-sm font-semibold">{c.userName || 'User'}</span>
+   563→                            <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
+   564→                          </div>
+   565→                          <p className="text-sm mt-1">{c.content || c.text || c.body || ''}</p>
+   566→                          {/* Replies */}
+   567→                          {c.replies && c.replies.length > 0 && (
+   568→                            <div className="ml-4 mt-3 space-y-3 border-l-2 border-muted pl-3">
+   569→                              {c.replies.map((r: any, ri: number) => (
+   570→                                <div key={r.id || ri} className="flex gap-2">
+   571→                                  <Avatar className="h-6 w-6"><AvatarFallback className="text-[10px]">{(r.userName || 'U').charAt(0)}</AvatarFallback></Avatar>
+   572→                                  <div>
+   573→                                    <div className="flex items-center gap-2">
+   574→                                      <span className="text-xs font-semibold">{r.userName || 'User'}</span>
+   575→                                      <span className="text-[10px] text-muted-foreground">{formatDateTime(r.createdAt)}</span>
+   576→                                    </div>
+   577→                                    <p className="text-xs mt-0.5">{r.content || r.text || ''}</p>
+   578→                                  </div>
+   579→                                </div>
+   580→                              ))}
+   581→                            </div>
+   582→                          )}
+   583→                        </div>
+   584→                      </div>
+   585→                    ))}
+   586→                  </div>
+   587→                )}
+   588→              </ScrollArea>
+   589→              {/* Add comment */}
+   590→              <div className="flex gap-2 pt-2">
+   591→                <Input value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." className="flex-1" onKeyDown={e => e.key === 'Enter' && comment.trim() && addCommentMutation.mutate({ content: comment })} />
+   592→                <Button onClick={() => comment.trim() && addCommentMutation.mutate({ content: comment })} disabled={addCommentMutation.isPending || !comment.trim()}>Send</Button>
+   593→              </div>
+   594→            </CardContent>
+   595→          </Card>
+   596→        </TabsContent>
+   597→
+   598→        {/* ─── Documents Tab ─── */}
+   599→        <TabsContent value="documents" className="space-y-4 mt-4">
+   600→          <Card>
+   601→            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+   602→              <CardTitle className="text-base font-semibold">Documents</CardTitle>
+   603→              <Button size="sm" variant="outline" className="gap-1" onClick={() => {}}><Upload className="h-3.5 w-3.5" /> Upload</Button>
+   604→            </CardHeader>
+   605→            <CardContent>
+   606→              {documents.length === 0 ? (
+   607→                <p className="text-sm text-muted-foreground text-center py-8">No documents uploaded</p>
+   608→              ) : (
+   609→                <Table>
+   610→                  <TableHeader>
+   611→                    <TableRow>
+   612→                      <TableHead className="text-xs">File Name</TableHead>
+   613→                      <TableHead className="text-xs">Type</TableHead>
+   614→                      <TableHead className="text-xs">Size</TableHead>
+   615→                      <TableHead className="text-xs">Category</TableHead>
+   616→                      <TableHead className="text-xs">Upload Date</TableHead>
+   617→                    </TableRow>
+   618→                  </TableHeader>
+   619→                  <TableBody>
+   620→                    {documents.map((d: any, idx: number) => (
+   621→                      <TableRow key={d.id || idx}>
+   622→                        <TableCell className="text-sm font-medium">{d.fileName || d.name || '—'}</TableCell>
+   623→                        <TableCell className="text-sm">{d.fileType || d.type || '—'}</TableCell>
+   624→                        <TableCell className="text-sm">{d.fileSize || '—'}</TableCell>
+   625→                        <TableCell><Badge variant="secondary" className="text-[10px]">{d.category || 'general'}</Badge></TableCell>
+   626→                        <TableCell className="text-sm">{formatDate(d.createdAt)}</TableCell>
+   627→                      </TableRow>
+   628→                    ))}
+   629→                  </TableBody>
+   630→                </Table>
+   631→              )}
+   632→
+   633→              {/* Quick add document (metadata only) */}
+   634→              <Separator className="my-4" />
+   635→              <h4 className="text-sm font-semibold mb-3">Add Document Reference</h4>
+   636→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+   637→                <Input value={docForm.fileName} onChange={e => setDocForm(f => ({ ...f, fileName: e.target.value }))} placeholder="File name" />
+   638→                <Select value={docForm.category} onValueChange={v => setDocForm(f => ({ ...f, category: v }))}>
+   639→                  <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+   640→                  <SelectContent>
+   641→                    <SelectItem value="invoice">Invoice</SelectItem>
+   642→                    <SelectItem value="supporting">Supporting</SelectItem>
+   643→                    <SelectItem value="contract">Contract</SelectItem>
+   644→                    <SelectItem value="po">Purchase Order</SelectItem>
+   645→                    <SelectItem value="other">Other</SelectItem>
+   646→                  </SelectContent>
+   647→                </Select>
+   648→                <Input value={docForm.fileType} onChange={e => setDocForm(f => ({ ...f, fileType: e.target.value }))} placeholder="PDF, DOCX..." />
+   649→                <Input value={docForm.fileUrl} onChange={e => setDocForm(f => ({ ...f, fileUrl: e.target.value }))} placeholder="File URL" />
+   650→                <Button onClick={() => uploadDocMutation.mutate(docForm)} disabled={uploadDocMutation.isPending || !docForm.fileName}>Add</Button>
+   651→              </div>
+   652→            </CardContent>
+   653→          </Card>
+   654→        </TabsContent>
+   655→      </Tabs>
+   656→
+   657→      {/* ─── Reject Dialog ─── */}
+   658→      <Dialog open={rejectDialog} onOpenChange={setRejectDialog}>
+   659→        <DialogContent>
+   660→          <DialogHeader><DialogTitle>Reject Invoice</DialogTitle><DialogDescription>Provide a reason for rejection.</DialogDescription></DialogHeader>
+   661→          <Textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason for rejection..." rows={3} />
+   662→          <DialogFooter>
+   663→            <Button variant="outline" onClick={() => setRejectDialog(false)}>Cancel</Button>
+   664→            <Button className="bg-red-600 hover:bg-red-700" onClick={() => rejectMutation.mutate()} disabled={rejectMutation.isPending || !rejectReason.trim()}>Reject</Button>
+   665→          </DialogFooter>
+   666→        </DialogContent>
+   667→      </Dialog>
+   668→
+   669→      {/* ─── Return Dialog ─── */}
+   670→      <Dialog open={returnDialog} onOpenChange={setReturnDialog}>
+   671→        <DialogContent>
+   672→          <DialogHeader><DialogTitle>Return for Revision</DialogTitle><DialogDescription>Provide instructions for revision.</DialogDescription></DialogHeader>
+   673→          <Textarea value={returnReason} onChange={e => setReturnReason(e.target.value)} placeholder="Revision instructions..." rows={3} />
+   674→          <DialogFooter>
+   675→            <Button variant="outline" onClick={() => setReturnDialog(false)}>Cancel</Button>
+   676→            <Button className="bg-amber-600 hover:bg-amber-700" onClick={() => returnMutation.mutate()} disabled={returnMutation.isPending || !returnReason.trim()}>Return</Button>
+   677→          </DialogFooter>
+   678→        </DialogContent>
+   679→      </Dialog>
+   680→
+   681→      {/* ─── Delegate Dialog ─── */}
+   682→      <Dialog open={delegateDialog} onOpenChange={setDelegateDialog}>
+   683→        <DialogContent>
+   684→          <DialogHeader><DialogTitle>Delegate Invoice</DialogTitle><DialogDescription>Assign this invoice to another user for review.</DialogDescription></DialogHeader>
+   685→          <div className="space-y-2">
+   686→            <Label>User ID</Label>
+   687→            <Input value={delegateUserId} onChange={e => setDelegateUserId(e.target.value)} placeholder="Enter target user ID" />
+   688→          </div>
+   689→          <DialogFooter>
+   690→            <Button variant="outline" onClick={() => setDelegateDialog(false)}>Cancel</Button>
+   691→            <Button onClick={() => delegateMutation.mutate()} disabled={delegateMutation.isPending || !delegateUserId.trim()}>Delegate</Button>
+   692→          </DialogFooter>
+   693→        </DialogContent>
+   694→      </Dialog>
+   695→
+   696→      {/* ─── Record Payment Dialog ─── */}
+   697→      <Dialog open={paymentDialog} onOpenChange={setPaymentDialog}>
+   698→        <DialogContent>
+   699→          <DialogHeader><DialogTitle>Record Payment</DialogTitle><DialogDescription>Record a payment for this invoice.</DialogDescription></DialogHeader>
+   700→          <div className="space-y-3">
+   701→            <div className="grid grid-cols-2 gap-3">
+   702→              <div className="space-y-2">
+   703→                <Label>Amount</Label>
+   704→                <Input type="number" min={0} step={0.01} value={payForm.amount} onChange={e => setPayForm(f => ({ ...f, amount: Number(e.target.value) }))} />
+   705→                <p className="text-xs text-muted-foreground">Outstanding: {formatCurrency(outstanding)}</p>
+   706→              </div>
+   707→              <div className="space-y-2">
+   708→                <Label>Method</Label>
+   709→                <Select value={payForm.method} onValueChange={v => setPayForm(f => ({ ...f, method: v }))}>
+   710→                  <SelectTrigger><SelectValue /></SelectTrigger>
+   711→                  <SelectContent>
+   712→                    <SelectItem value="cash">Cash</SelectItem>
+   713→                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+   714→                    <SelectItem value="cheque">Cheque</SelectItem>
+   715→                    <SelectItem value="online">Online</SelectItem>
+   716→                  </SelectContent>
+   717→                </Select>
+   718→              </div>
+   719→            </div>
+   720→            <div className="space-y-2">
+   721→              <Label>Reference Number</Label>
+   722→              <Input value={payForm.reference} onChange={e => setPayForm(f => ({ ...f, reference: e.target.value }))} placeholder="Payment reference" />
+   723→            </div>
+   724→            <div className="grid grid-cols-2 gap-3">
+   725→              <div className="space-y-2">
+   726→                <Label>Bank Reference</Label>
+   727→                <Input value={payForm.bankReference} onChange={e => setPayForm(f => ({ ...f, bankReference: e.target.value }))} placeholder="Bank ref" />
+   728→              </div>
+   729→              <div className="space-y-2">
+   730→                <Label>Cheque Number</Label>
+   731→                <Input value={payForm.chequeNumber} onChange={e => setPayForm(f => ({ ...f, chequeNumber: e.target.value }))} placeholder="Cheque #" />
+   732→              </div>
+   733→            </div>
+   734→          </div>
+   735→          <DialogFooter>
+   736→            <Button variant="outline" onClick={() => setPaymentDialog(false)}>Cancel</Button>
+   737→            <Button onClick={() => recordPayMutation.mutate(payForm)} disabled={recordPayMutation.isPending || payForm.amount <= 0}>Record Payment</Button>
+   738→          </DialogFooter>
+   739→        </DialogContent>
+   740→      </Dialog>
+   741→
+   742→      {/* ─── Release Retention Dialog ─── */}
+   743→      <Dialog open={retentionDialog} onOpenChange={setRetentionDialog}>
+   744→        <DialogContent>
+   745→          <DialogHeader><DialogTitle>Release Retention</DialogTitle><DialogDescription>Release retention amount for this invoice.</DialogDescription></DialogHeader>
+   746→          <div className="space-y-3">
+   747→            <div className="space-y-2">
+   748→              <Label>Amount to Release</Label>
+   749→              <Input type="number" min={0} step={0.01} value={retForm.amount} onChange={e => setRetForm(f => ({ ...f, amount: Number(e.target.value) }))} />
+   750→              <p className="text-xs text-muted-foreground">Max: {formatCurrency(retAmt)}</p>
+   751→            </div>
+   752→            <div className="space-y-2">
+   753→              <Label>Reference</Label>
+   754→              <Input value={retForm.reference} onChange={e => setRetForm(f => ({ ...f, reference: e.target.value }))} placeholder="Release reference" />
+   755→            </div>
+   756→          </div>
+   757→          <DialogFooter>
+   758→            <Button variant="outline" onClick={() => setRetentionDialog(false)}>Cancel</Button>
+   759→            <Button onClick={() => releaseRetMutation.mutate(retForm)} disabled={releaseRetMutation.isPending || retForm.amount <= 0}>Release</Button>
+   760→          </DialogFooter>
+   761→        </DialogContent>
+   762→      </Dialog>
+   763→
+   764→      {/* ─── Delete Dialog ─── */}
+   765→      <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+   766→        <AlertDialogContent>
+   767→          <AlertDialogHeader>
+   768→            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+   769→            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+   770→          </AlertDialogHeader>
+   771→          <AlertDialogFooter>
+   772→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   773→            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>Delete</AlertDialogAction>
+   774→          </AlertDialogFooter>
+   775→        </AlertDialogContent>
+   776→      </AlertDialog>
+   777→    </div>
+   778→  )
+   779→}

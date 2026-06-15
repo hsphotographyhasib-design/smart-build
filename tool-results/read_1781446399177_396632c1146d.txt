@@ -1,0 +1,889 @@
+   601→    feature: 'suppliers',
+   602→    actions: { GET: 'view', POST: 'create' },
+   603→  },
+   604→  '/api/suppliers/[id]': {
+   605→    module: 'procurement',
+   606→    feature: 'suppliers',
+   607→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   608→  },
+   609→
+   610→  // ── Inventory ──
+   611→  '/api/materials': {
+   612→    module: 'inventory',
+   613→    feature: 'inventory',
+   614→    actions: { GET: 'view', POST: 'create' },
+   615→  },
+   616→  '/api/materials/[id]': {
+   617→    module: 'inventory',
+   618→    feature: 'inventory',
+   619→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   620→  },
+   621→  '/api/materials/[id]/adjust-stock': {
+   622→    module: 'inventory',
+   623→    feature: 'inventory',
+   624→    actions: { POST: 'edit' },
+   625→  },
+   626→  '/api/products': {
+   627→    module: 'sales',
+   628→    feature: 'product_catalog',
+   629→    actions: { GET: 'view', POST: 'create' },
+   630→  },
+   631→  '/api/products/[id]': {
+   632→    module: 'sales',
+   633→    feature: 'product_catalog',
+   634→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   635→  },
+   636→  '/api/product-categories': {
+   637→    module: 'sales',
+   638→    feature: 'product_catalog',
+   639→    actions: { GET: 'view', POST: 'create' },
+   640→  },
+   641→
+   642→  // ── HR ──
+   643→  '/api/employees': {
+   644→    module: 'hr',
+   645→    feature: 'employees',
+   646→    actions: { GET: 'view', POST: 'create' },
+   647→  },
+   648→  '/api/employees/[id]': {
+   649→    module: 'hr',
+   650→    feature: 'employees',
+   651→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   652→  },
+   653→  '/api/labour-groups': {
+   654→    module: 'hr',
+   655→    feature: 'labour_groups',
+   656→    actions: { GET: 'view', POST: 'create' },
+   657→  },
+   658→  '/api/labour-groups/[id]': {
+   659→    module: 'hr',
+   660→    feature: 'labour_groups',
+   661→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   662→  },
+   663→  '/api/labour-groups/[id]/members': {
+   664→    module: 'hr',
+   665→    feature: 'labour_groups',
+   666→    actions: { GET: 'view', POST: 'create' },
+   667→  },
+   668→  '/api/attendance': {
+   669→    module: 'hr',
+   670→    feature: 'attendance',
+   671→    actions: { GET: 'view', POST: 'create' },
+   672→  },
+   673→  '/api/payroll': {
+   674→    module: 'hr',
+   675→    feature: 'payroll',
+   676→    actions: { GET: 'view', POST: 'create' },
+   677→  },
+   678→  '/api/payroll/generate': {
+   679→    module: 'hr',
+   680→    feature: 'payroll',
+   681→    actions: { POST: 'create' },
+   682→  },
+   683→  '/api/payroll/[id]/pay': {
+   684→    module: 'hr',
+   685→    feature: 'payroll',
+   686→    actions: { POST: 'approve' },
+   687→  },
+   688→  '/api/leave-requests': {
+   689→    module: 'hr',
+   690→    feature: 'leave_management',
+   691→    actions: { GET: 'view', POST: 'create' },
+   692→  },
+   693→  '/api/leave-requests/[id]/approve': {
+   694→    module: 'hr',
+   695→    feature: 'leave_management',
+   696→    actions: { POST: 'approve' },
+   697→  },
+   698→  '/api/leave-requests/[id]/reject': {
+   699→    module: 'hr',
+   700→    feature: 'leave_management',
+   701→    actions: { POST: 'edit' },
+   702→  },
+   703→  '/api/labour/[id]': {
+   704→    module: 'hr',
+   705→    feature: 'employees',
+   706→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   707→  },
+   708→  '/api/loans': {
+   709→    module: 'hr',
+   710→    feature: 'loans',
+   711→    actions: { GET: 'view', POST: 'create' },
+   712→  },
+   713→
+   714→  // ── Sales / Customers ──
+   715→  '/api/customers': {
+   716→    module: 'sales',
+   717→    feature: 'customers',
+   718→    actions: { GET: 'view', POST: 'create' },
+   719→  },
+   720→  '/api/customers/[id]': {
+   721→    module: 'sales',
+   722→    feature: 'customers',
+   723→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   724→  },
+   725→  '/api/sales-invoices': {
+   726→    module: 'sales',
+   727→    feature: 'customer_invoices',
+   728→    actions: { GET: 'view', POST: 'create' },
+   729→  },
+   730→  '/api/sales-invoices/[id]': {
+   731→    module: 'sales',
+   732→    feature: 'customer_invoices',
+   733→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   734→  },
+   735→  '/api/subcontractors': {
+   736→    module: 'assets',
+   737→    feature: 'subcontractors',
+   738→    actions: { GET: 'view', POST: 'create' },
+   739→  },
+   740→  '/api/subcontractors/[id]': {
+   741→    module: 'assets',
+   742→    feature: 'subcontractors',
+   743→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   744→  },
+   745→
+   746→  // ── Assets ──
+   747→  '/api/assets': {
+   748→    module: 'assets',
+   749→    feature: 'assets',
+   750→    actions: { GET: 'view', POST: 'create' },
+   751→  },
+   752→  '/api/assets/[id]': {
+   753→    module: 'assets',
+   754→    feature: 'assets',
+   755→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   756→  },
+   757→  '/api/work-orders': {
+   758→    module: 'assets',
+   759→    feature: 'work_orders',
+   760→    actions: { GET: 'view', POST: 'create' },
+   761→  },
+   762→  '/api/work-orders/[id]': {
+   763→    module: 'assets',
+   764→    feature: 'work_orders',
+   765→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   766→  },
+   767→
+   768→  // ── Scheduling ──
+   769→  '/api/schedules': {
+   770→    module: 'scheduling',
+   771→    feature: 'schedules',
+   772→    actions: { GET: 'view', POST: 'create' },
+   773→  },
+   774→  '/api/schedules/[id]': {
+   775→    module: 'scheduling',
+   776→    feature: 'schedules',
+   777→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   778→  },
+   779→  '/api/schedules/dashboard': {
+   780→    module: 'scheduling',
+   781→    feature: 'schedules',
+   782→    actions: { GET: 'view' },
+   783→  },
+   784→  '/api/schedules/[id]/activities': {
+   785→    module: 'scheduling',
+   786→    feature: 'schedules',
+   787→    actions: { GET: 'view', POST: 'create' },
+   788→  },
+   789→  '/api/schedules/[id]/milestones': {
+   790→    module: 'scheduling',
+   791→    feature: 'schedule_milestones',
+   792→    actions: { GET: 'view', POST: 'create' },
+   793→  },
+   794→  '/api/schedules/[id]/dependencies': {
+   795→    module: 'scheduling',
+   796→    feature: 'dependencies',
+   797→    actions: { GET: 'view', POST: 'create' },
+   798→  },
+   799→  '/api/schedules/[id]/critical-path': {
+   800→    module: 'scheduling',
+   801→    feature: 'critical_path',
+   802→    actions: { GET: 'view' },
+   803→  },
+   804→  '/api/schedules/[id]/baseline': {
+   805→    module: 'scheduling',
+   806→    feature: 'baselines',
+   807→    actions: { GET: 'view', POST: 'create' },
+   808→  },
+   809→  '/api/schedules/[id]/snapshot': {
+   810→    module: 'scheduling',
+   811→    feature: 'schedules',
+   812→    actions: { POST: 'create' },
+   813→  },
+   814→  '/api/schedules/[id]/lookahead': {
+   815→    module: 'scheduling',
+   816→    feature: 'lookahead_planning',
+   817→    actions: { GET: 'view', PUT: 'edit' },
+   818→  },
+   819→  '/api/schedules/[id]/calendars': {
+   820→    module: 'scheduling',
+   821→    feature: 'schedule_milestones',
+   822→    actions: { GET: 'view' },
+   823→  },
+   824→  '/api/schedules/[id]/delays': {
+   825→    module: 'scheduling',
+   826→    feature: 'progress_tracking',
+   827→    actions: { GET: 'view', POST: 'create' },
+   828→  },
+   829→  '/api/schedules/[id]/archive': {
+   830→    module: 'scheduling',
+   831→    feature: 'schedules',
+   832→    actions: { POST: 'edit' },
+   833→  },
+   834→  '/api/schedules/[id]/publish': {
+   835→    module: 'scheduling',
+   836→    feature: 'schedules',
+   837→    actions: { POST: 'edit' },
+   838→  },
+   839→  '/api/schedules/reports': {
+   840→    module: 'scheduling',
+   841→    feature: 'schedule_reports',
+   842→    actions: { GET: 'view' },
+   843→  },
+   844→  '/api/schedules/activities/[id]': {
+   845→    module: 'scheduling',
+   846→    feature: 'schedules',
+   847→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   848→  },
+   849→  '/api/schedules/milestones/[id]': {
+   850→    module: 'scheduling',
+   851→    feature: 'schedule_milestones',
+   852→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   853→  },
+   854→  '/api/schedules/dependencies/[id]': {
+   855→    module: 'scheduling',
+   856→    feature: 'dependencies',
+   857→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   858→  },
+   859→  '/api/schedules/delays/[id]': {
+   860→    module: 'scheduling',
+   861→    feature: 'progress_tracking',
+   862→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   863→  },
+   864→  '/api/scheduling': {
+   865→    module: 'scheduling',
+   866→    feature: 'schedules',
+   867→    actions: { GET: 'view', POST: 'create' },
+   868→  },
+   869→
+   870→  // ── Resources ──
+   871→  '/api/resources/dashboard': {
+   872→    module: 'resources',
+   873→    feature: 'resource_dashboard',
+   874→    actions: { GET: 'view' },
+   875→  },
+   876→  '/api/resources/crews': {
+   877→    module: 'resources',
+   878→    feature: 'crew_management',
+   879→    actions: { GET: 'view', POST: 'create' },
+   880→  },
+   881→  '/api/resources/crews/[id]': {
+   882→    module: 'resources',
+   883→    feature: 'crew_management',
+   884→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   885→  },
+   886→  '/api/resources/assignments': {
+   887→    module: 'resources',
+   888→    feature: 'resource_scheduling',
+   889→    actions: { GET: 'view', POST: 'create' },
+   890→  },
+   891→  '/api/resources/assignments/[id]': {
+   892→    module: 'resources',
+   893→    feature: 'resource_scheduling',
+   894→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   895→  },
+   896→  '/api/resources/requests': {
+   897→    module: 'resources',
+   898→    feature: 'requests',
+   899→    actions: { GET: 'view', POST: 'create' },
+   900→  },
+   901→  '/api/resources/requests/[id]': {
+   902→    module: 'resources',
+   903→    feature: 'requests',
+   904→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   905→  },
+   906→  '/api/resources/requests/[id]/approve': {
+   907→    module: 'resources',
+   908→    feature: 'requests',
+   909→    actions: { POST: 'approve' },
+   910→  },
+   911→  '/api/resources/requests/[id]/reject': {
+   912→    module: 'resources',
+   913→    feature: 'requests',
+   914→    actions: { POST: 'edit' },
+   915→  },
+   916→  '/api/resources/skills': {
+   917→    module: 'resources',
+   918→    feature: 'labour',
+   919→    actions: { GET: 'view', POST: 'create' },
+   920→  },
+   921→  '/api/resources/skills/[id]': {
+   922→    module: 'resources',
+   923→    feature: 'labour',
+   924→    actions: { PUT: 'edit', DELETE: 'delete' },
+   925→  },
+   926→  '/api/resources/worker-skills': {
+   927→    module: 'resources',
+   928→    feature: 'labour',
+   929→    actions: { GET: 'view', POST: 'create' },
+   930→  },
+   931→  '/api/resources/productivity': {
+   932→    module: 'resources',
+   933→    feature: 'productivity',
+   934→    actions: { GET: 'view', POST: 'create' },
+   935→  },
+   936→  '/api/resources/productivity/[id]': {
+   937→    module: 'resources',
+   938→    feature: 'productivity',
+   939→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   940→  },
+   941→  '/api/resources/forecasting': {
+   942→    module: 'resources',
+   943→    feature: 'forecasting',
+   944→    actions: { GET: 'view' },
+   945→  },
+   946→
+   947→  // ── Maintenance ──
+   948→  '/api/maintenance/dashboard': {
+   949→    module: 'maintenance',
+   950→    feature: 'service_requests',
+   951→    actions: { GET: 'view' },
+   952→  },
+   953→  '/api/maintenance/tickets': {
+   954→    module: 'maintenance',
+   955→    feature: 'service_requests',
+   956→    actions: { GET: 'view', POST: 'create' },
+   957→  },
+   958→  '/api/maintenance/tickets/[id]': {
+   959→    module: 'maintenance',
+   960→    feature: 'service_requests',
+   961→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+   962→  },
+   963→  '/api/maintenance/tickets/[id]/assign': {
+   964→    module: 'maintenance',
+   965→    feature: 'service_requests',
+   966→    actions: { POST: 'assign' },
+   967→  },
+   968→  '/api/maintenance/tickets/[id]/accept': {
+   969→    module: 'maintenance',
+   970→    feature: 'service_requests',
+   971→    actions: { POST: 'edit' },
+   972→  },
+   973→  '/api/maintenance/tickets/[id]/review': {
+   974→    module: 'maintenance',
+   975→    feature: 'service_requests',
+   976→    actions: { POST: 'edit' },
+   977→  },
+   978→  '/api/maintenance/tickets/[id]/close': {
+   979→    module: 'maintenance',
+   980→    feature: 'service_requests',
+   981→    actions: { POST: 'edit' },
+   982→  },
+   983→  '/api/maintenance/tickets/[id]/verify': {
+   984→    module: 'maintenance',
+   985→    feature: 'service_requests',
+   986→    actions: { POST: 'edit' },
+   987→  },
+   988→  '/api/maintenance/tickets/[id]/reject-assignment': {
+   989→    module: 'maintenance',
+   990→    feature: 'service_requests',
+   991→    actions: { POST: 'edit' },
+   992→  },
+   993→  '/api/maintenance/tickets/[id]/timeline': {
+   994→    module: 'maintenance',
+   995→    feature: 'service_requests',
+   996→    actions: { GET: 'view' },
+   997→  },
+   998→  '/api/maintenance/work-orders': {
+   999→    module: 'maintenance',
+  1000→    feature: 'work_orders',
+  1001→    actions: { GET: 'view', POST: 'create' },
+  1002→  },
+  1003→  '/api/maintenance/work-orders/[id]': {
+  1004→    module: 'maintenance',
+  1005→    feature: 'work_orders',
+  1006→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1007→  },
+  1008→  '/api/maintenance/work-orders/[id]/start': {
+  1009→    module: 'maintenance',
+  1010→    feature: 'work_orders',
+  1011→    actions: { POST: 'edit' },
+  1012→  },
+  1013→  '/api/maintenance/work-orders/[id]/pause': {
+  1014→    module: 'maintenance',
+  1015→    feature: 'work_orders',
+  1016→    actions: { POST: 'edit' },
+  1017→  },
+  1018→  '/api/maintenance/work-orders/[id]/complete': {
+  1019→    module: 'maintenance',
+  1020→    feature: 'work_orders',
+  1021→    actions: { POST: 'edit' },
+  1022→  },
+  1023→  '/api/maintenance/work-orders/[id]/request-materials': {
+  1024→    module: 'maintenance',
+  1025→    feature: 'material_requests',
+  1026→    actions: { POST: 'create' },
+  1027→  },
+  1028→  '/api/maintenance/dispatch': {
+  1029→    module: 'maintenance',
+  1030→    feature: 'dispatch_center',
+  1031→    actions: { GET: 'view', POST: 'create' },
+  1032→  },
+  1033→  '/api/maintenance/technicians': {
+  1034→    module: 'maintenance',
+  1035→    feature: 'technicians',
+  1036→    actions: { GET: 'view', POST: 'create' },
+  1037→  },
+  1038→  '/api/maintenance/technicians/[id]': {
+  1039→    module: 'maintenance',
+  1040→    feature: 'technicians',
+  1041→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1042→  },
+  1043→  '/api/maintenance/sites': {
+  1044→    module: 'maintenance',
+  1045→    feature: 'maintenance_sites',
+  1046→    actions: { GET: 'view', POST: 'create' },
+  1047→  },
+  1048→  '/api/maintenance/sites/[id]': {
+  1049→    module: 'maintenance',
+  1050→    feature: 'maintenance_sites',
+  1051→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1052→  },
+  1053→  '/api/maintenance/sla': {
+  1054→    module: 'maintenance',
+  1055→    feature: 'sla_management',
+  1056→    actions: { GET: 'view', POST: 'create' },
+  1057→  },
+  1058→  '/api/maintenance/sla/[id]': {
+  1059→    module: 'maintenance',
+  1060→    feature: 'sla_management',
+  1061→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1062→  },
+  1063→  '/api/maintenance/pm-schedules': {
+  1064→    module: 'maintenance',
+  1065→    feature: 'preventive_maintenance',
+  1066→    actions: { GET: 'view', POST: 'create' },
+  1067→  },
+  1068→  '/api/maintenance/pm-schedules/[id]': {
+  1069→    module: 'maintenance',
+  1070→    feature: 'preventive_maintenance',
+  1071→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1072→  },
+  1073→  '/api/maintenance/amc': {
+  1074→    module: 'maintenance',
+  1075→    feature: 'amc_contracts',
+  1076→    actions: { GET: 'view', POST: 'create' },
+  1077→  },
+  1078→  '/api/maintenance/amc/[id]': {
+  1079→    module: 'maintenance',
+  1080→    feature: 'amc_contracts',
+  1081→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1082→  },
+  1083→  '/api/maintenance/materials': {
+  1084→    module: 'maintenance',
+  1085→    feature: 'material_requests',
+  1086→    actions: { GET: 'view', POST: 'create' },
+  1087→  },
+  1088→  '/api/maintenance/materials/[id]': {
+  1089→    module: 'maintenance',
+  1090→    feature: 'material_requests',
+  1091→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1092→  },
+  1093→  '/api/maintenance/invoices': {
+  1094→    module: 'maintenance',
+  1095→    feature: 'maintenance_invoices',
+  1096→    actions: { GET: 'view', POST: 'create' },
+  1097→  },
+  1098→  '/api/maintenance/invoices/[id]': {
+  1099→    module: 'maintenance',
+  1100→    feature: 'maintenance_invoices',
+  1101→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1102→  },
+  1103→  '/api/maintenance/invoices/[id]/review': {
+  1104→    module: 'maintenance',
+  1105→    feature: 'maintenance_invoices',
+  1106→    actions: { POST: 'approve' },
+  1107→  },
+  1108→  '/api/maintenance/invoices/[id]/record-payment': {
+  1109→    module: 'maintenance',
+  1110→    feature: 'maintenance_invoices',
+  1111→    actions: { POST: 'approve' },
+  1112→  },
+  1113→  '/api/maintenance/reports': {
+  1114→    module: 'maintenance',
+  1115→    feature: 'maintenance_reports',
+  1116→    actions: { GET: 'view' },
+  1117→  },
+  1118→
+  1119→  // ── Tender ──
+  1120→  '/api/tender/dashboard': {
+  1121→    module: 'tender',
+  1122→    feature: 'tender_packages',
+  1123→    actions: { GET: 'view' },
+  1124→  },
+  1125→  '/api/tender/packages': {
+  1126→    module: 'tender',
+  1127→    feature: 'tender_packages',
+  1128→    actions: { GET: 'view', POST: 'create' },
+  1129→  },
+  1130→  '/api/tender/packages/[id]': {
+  1131→    module: 'tender',
+  1132→    feature: 'tender_packages',
+  1133→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1134→  },
+  1135→  '/api/tender/packages/[id]/items': {
+  1136→    module: 'tender',
+  1137→    feature: 'tender_packages',
+  1138→    actions: { GET: 'view', POST: 'create' },
+  1139→  },
+  1140→  '/api/tender/packages/[id]/publish': {
+  1141→    module: 'tender',
+  1142→    feature: 'tender_packages',
+  1143→    actions: { POST: 'edit' },
+  1144→  },
+  1145→  '/api/tender/vendors': {
+  1146→    module: 'tender',
+  1147→    feature: 'vendor_management',
+  1148→    actions: { GET: 'view', POST: 'create' },
+  1149→  },
+  1150→  '/api/tender/vendors/[id]': {
+  1151→    module: 'tender',
+  1152→    feature: 'vendor_management',
+  1153→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1154→  },
+  1155→  '/api/tender/bids': {
+  1156→    module: 'tender',
+  1157→    feature: 'bid_submissions',
+  1158→    actions: { GET: 'view', POST: 'create' },
+  1159→  },
+  1160→  '/api/tender/bids/[id]': {
+  1161→    module: 'tender',
+  1162→    feature: 'bid_submissions',
+  1163→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1164→  },
+  1165→  '/api/tender/bids/[id]/submit': {
+  1166→    module: 'tender',
+  1167→    feature: 'bid_submissions',
+  1168→    actions: { POST: 'create' },
+  1169→  },
+  1170→  '/api/tender/bids/[id]/prices': {
+  1171→    module: 'tender',
+  1172→    feature: 'bid_submissions',
+  1173→    actions: { GET: 'view', PUT: 'edit' },
+  1174→  },
+  1175→  '/api/tender/questions': {
+  1176→    module: 'tender',
+  1177→    feature: 'bid_submissions',
+  1178→    actions: { GET: 'view', POST: 'create' },
+  1179→  },
+  1180→  '/api/tender/questions/[id]/answer': {
+  1181→    module: 'tender',
+  1182→    feature: 'bid_submissions',
+  1183→    actions: { POST: 'edit' },
+  1184→  },
+  1185→  '/api/tender/invitations': {
+  1186→    module: 'tender',
+  1187→    feature: 'bid_invitations',
+  1188→    actions: { GET: 'view', POST: 'create' },
+  1189→  },
+  1190→  '/api/tender/invitations/[id]/respond': {
+  1191→    module: 'tender',
+  1192→    feature: 'bid_invitations',
+  1193→    actions: { POST: 'edit' },
+  1194→  },
+  1195→  '/api/tender/documents': {
+  1196→    module: 'tender',
+  1197→    feature: 'tender_packages',
+  1198→    actions: { GET: 'view', POST: 'create' },
+  1199→  },
+  1200→  '/api/tender/categories': {
+  1201→    module: 'tender',
+  1202→    feature: 'tender_packages',
+  1203→    actions: { GET: 'view', POST: 'create' },
+  1204→  },
+  1205→  '/api/tender/addenda': {
+  1206→    module: 'tender',
+  1207→    feature: 'tender_packages',
+  1208→    actions: { GET: 'view', POST: 'create' },
+  1209→  },
+  1210→  '/api/tender/evaluation/[packageId]/criteria': {
+  1211→    module: 'tender',
+  1212→    feature: 'commercial_evaluation',
+  1213→    actions: { GET: 'view', POST: 'create' },
+  1214→  },
+  1215→  '/api/tender/evaluation/[packageId]/evaluate': {
+  1216→    module: 'tender',
+  1217→    feature: 'commercial_evaluation',
+  1218→    actions: { POST: 'create' },
+  1219→  },
+  1220→  '/api/tender/evaluation/[packageId]/scores': {
+  1221→    module: 'tender',
+  1222→    feature: 'commercial_evaluation',
+  1223→    actions: { GET: 'view' },
+  1224→  },
+  1225→  '/api/tender/award/[packageId]/recommend': {
+  1226→    module: 'tender',
+  1227→    feature: 'award_management',
+  1228→    actions: { POST: 'create' },
+  1229→  },
+  1230→  '/api/tender/award/[packageId]/approve': {
+  1231→    module: 'tender',
+  1232→    feature: 'award_management',
+  1233→    actions: { POST: 'approve' },
+  1234→  },
+  1235→  '/api/tender/reports': {
+  1236→    module: 'tender',
+  1237→    feature: 'tender_reports',
+  1238→    actions: { GET: 'view' },
+  1239→  },
+  1240→
+  1241→  // ── Collaboration ──
+  1242→  '/api/collaboration/dashboard': {
+  1243→    module: 'collaboration',
+  1244→    feature: 'collaboration_hub',
+  1245→    actions: { GET: 'view' },
+  1246→  },
+  1247→  '/api/collaboration/discussions': {
+  1248→    module: 'collaboration',
+  1249→    feature: 'discussions',
+  1250→    actions: { GET: 'view', POST: 'create' },
+  1251→  },
+  1252→  '/api/collaboration/discussions/[id]': {
+  1253→    module: 'collaboration',
+  1254→    feature: 'discussions',
+  1255→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1256→  },
+  1257→  '/api/collaboration/discussions/[id]/comments': {
+  1258→    module: 'collaboration',
+  1259→    feature: 'discussions',
+  1260→    actions: { GET: 'view', POST: 'create' },
+  1261→  },
+  1262→  '/api/collaboration/submittals': {
+  1263→    module: 'collaboration',
+  1264→    feature: 'submittals',
+  1265→    actions: { GET: 'view', POST: 'create' },
+  1266→  },
+  1267→  '/api/collaboration/submittals/[id]': {
+  1268→    module: 'collaboration',
+  1269→    feature: 'submittals',
+  1270→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1271→  },
+  1272→  '/api/collaboration/announcements': {
+  1273→    module: 'collaboration',
+  1274→    feature: 'announcements',
+  1275→    actions: { GET: 'view', POST: 'create' },
+  1276→  },
+  1277→  '/api/collaboration/announcements/[id]': {
+  1278→    module: 'collaboration',
+  1279→    feature: 'announcements',
+  1280→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1281→  },
+  1282→
+  1283→  // ── Client Portal ──
+  1284→  '/api/client-portal/dashboard': {
+  1285→    module: 'client_portal',
+  1286→    feature: 'client_dashboard',
+  1287→    actions: { GET: 'view' },
+  1288→  },
+  1289→  '/api/client-portal/projects': {
+  1290→    module: 'client_portal',
+  1291→    feature: 'project_progress',
+  1292→    actions: { GET: 'view' },
+  1293→  },
+  1294→  '/api/client-portal/projects/[id]/progress': {
+  1295→    module: 'client_portal',
+  1296→    feature: 'project_progress',
+  1297→    actions: { GET: 'view' },
+  1298→  },
+  1299→  '/api/client-portal/projects/[id]/documents': {
+  1300→    module: 'client_portal',
+  1301→    feature: 'client_documents',
+  1302→    actions: { GET: 'view', POST: 'create' },
+  1303→  },
+  1304→  '/api/client-portal/projects/[id]/invoices': {
+  1305→    module: 'client_portal',
+  1306→    feature: 'client_invoices',
+  1307→    actions: { GET: 'view' },
+  1308→  },
+  1309→  '/api/client-portal/complaints': {
+  1310→    module: 'client_portal',
+  1311→    feature: 'client_complaints',
+  1312→    actions: { GET: 'view', POST: 'create' },
+  1313→  },
+  1314→  '/api/client-portal/complaints/[id]': {
+  1315→    module: 'client_portal',
+  1316→    feature: 'client_complaints',
+  1317→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1318→  },
+  1319→
+  1320→  // ── Reports & Analytics ──
+  1321→  '/api/reports': {
+  1322→    module: 'reports',
+  1323→    feature: 'reports',
+  1324→    actions: { GET: 'view' },
+  1325→  },
+  1326→  '/api/analytics/dashboard': {
+  1327→    module: 'reports',
+  1328→    feature: 'project_analytics',
+  1329→    actions: { GET: 'view' },
+  1330→  },
+  1331→  '/api/analytics/reports': {
+  1332→    module: 'reports',
+  1333→    feature: 'advanced_reports',
+  1334→    actions: { GET: 'view' },
+  1335→  },
+  1336→  '/api/analytics/project/[id]': {
+  1337→    module: 'reports',
+  1338→    feature: 'project_analytics',
+  1339→    actions: { GET: 'view' },
+  1340→  },
+  1341→
+  1342→  // ── AI ──
+  1343→  '/api/ai/insights': {
+  1344→    module: 'reports',
+  1345→    feature: 'ai_insights',
+  1346→    actions: { GET: 'view', POST: 'create' },
+  1347→  },
+  1348→  '/api/ai/insights/[id]': {
+  1349→    module: 'reports',
+  1350→    feature: 'ai_insights',
+  1351→    actions: { GET: 'view', PUT: 'edit', DELETE: 'delete' },
+  1352→  },
+  1353→  '/api/ai/forecast': {
+  1354→    module: 'reports',
+  1355→    feature: 'ai_forecasting',
+  1356→    actions: { GET: 'view' },
+  1357→  },
+  1358→
+  1359→  // ── Settings / Admin ──
+  1360→  '/api/auth/users': {
+  1361→    module: 'settings',
+  1362→    feature: 'users',
+  1363→    actions: { GET: 'view', POST: 'create' },
+  1364→  },
+  1365→  '/api/audit-log': {
+  1366→    module: 'settings',
+  1367→    feature: 'audit_log',
+  1368→    actions: { GET: 'view' },
+  1369→  },
+  1370→  '/api/menus': {
+  1371→    module: 'settings',
+  1372→    feature: 'settings',
+  1373→    actions: { GET: 'view' },
+  1374→  },
+  1375→  '/api/sessions/active': {
+  1376→    module: 'settings',
+  1377→    feature: 'login_activity',
+  1378→    actions: { GET: 'view' },
+  1379→  },
+  1380→  '/api/sessions/self': {
+  1381→    module: 'settings',
+  1382→    feature: 'settings',
+  1383→    actions: { GET: 'view' },
+  1384→  },
+  1385→  '/api/regional/settings': {
+  1386→    module: 'settings',
+  1387→    feature: 'settings',
+  1388→    actions: { GET: 'view', PUT: 'edit' },
+  1389→  },
+  1390→  '/api/regional/countries': {
+  1391→    module: 'settings',
+  1392→    feature: 'settings',
+  1393→    actions: { GET: 'view' },
+  1394→  },
+  1395→  '/api/regional/currencies': {
+  1396→    module: 'settings',
+  1397→    feature: 'settings',
+  1398→    actions: { GET: 'view' },
+  1399→  },
+  1400→  '/api/regional/exchange-rates': {
+  1401→    module: 'settings',
+  1402→    feature: 'settings',
+  1403→    actions: { GET: 'view' },
+  1404→  },
+  1405→  '/api/regional/tax-rules': {
+  1406→    module: 'settings',
+  1407→    feature: 'settings',
+  1408→    actions: { GET: 'view' },
+  1409→  },
+  1410→}
+  1411→
+  1412→// ──────────────────────────────────────────────
+  1413→// Role hierarchy
+  1414→// ──────────────────────────────────────────────
+  1415→
+  1416→/**
+  1417→ * Role hierarchy levels — lower number = higher authority.
+  1418→ * Matches the `level` column in the Role table.
+  1419→ */
+  1420→const ROLE_LEVELS: Record<string, number> = {
+  1421→  super_admin: 0,
+  1422→  admin: 1,
+  1423→  project_manager: 2,
+  1424→  finance_manager: 2,
+  1425→  hr_manager: 2,
+  1426→  maintenance_manager: 2,
+  1427→  planning_engineer: 3,
+  1428→  tender_manager: 3,
+  1429→  procurement_manager: 3,
+  1430→  store_manager: 3,
+  1431→  auditor: 3,
+  1432→  supervisor: 4,
+  1433→  customer_service: 4,
+  1434→  technician: 5,
+  1435→  employee: 6,
+  1436→  client: 7,
+  1437→  vendor: 7,
+  1438→}
+  1439→
+  1440→/**
+  1441→ * Get the hierarchy level for a role code.
+  1442→ * Returns 99 (lowest possible) for unknown roles.
+  1443→ */
+  1444→export function getRoleLevel(roleCode: string): number {
+  1445→  return ROLE_LEVELS[roleCode] ?? 99
+  1446→}
+  1447→
+  1448→/**
+  1449→ * Check if the given role code is the super_admin role.
+  1450→ */
+  1451→export function isSuperAdmin(roleCode: string): boolean {
+  1452→  return roleCode === 'super_admin'
+  1453→}
+  1454→
+  1455→/**
+  1456→ * Check if a role has authority over another role.
+  1457→ * A role can manage another role if its level is <= the other role's level.
+  1458→ */
+  1459→export function hasAuthorityOver(actorRole: string, targetRole: string): boolean {
+  1460→  if (isSuperAdmin(actorRole)) return true
+  1461→  if (isSuperAdmin(targetRole)) return false
+  1462→  return getRoleLevel(actorRole) <= getRoleLevel(targetRole)
+  1463→}
+  1464→
+  1465→// ──────────────────────────────────────────────
+  1466→// Route matching utility
+  1467→// ──────────────────────────────────────────────
+  1468→
+  1469→/**
+  1470→ * Match a concrete API pathname (e.g. "/api/projects/clxyz123/tasks")
+  1471→ * against the pattern-based API_PERMISSION_MAP and return the permission
+  1472→ * info if found, or null otherwise.
+  1473→ */
+  1474→export function matchApiPermission(
+  1475→  pathname: string,
+  1476→  method: string
+  1477→): { module: string; feature: string; action: string } | null {
+  1478→  for (const [pattern, perm] of Object.entries(API_PERMISSION_MAP)) {
+  1479→    // Convert the pattern into a regex: replace [id], [projectId], etc. with [^/]+
+  1480→    const regexStr = '^' + pattern.replace(/\[([^\]]+)\]/g, '[^/]+') + '$'
+  1481→    const regex = new RegExp(regexStr)
+  1482→    if (regex.test(pathname)) {
+  1483→      const action = perm.actions[method] ?? perm.actions['GET']
+  1484→      if (!action) continue
+  1485→      return { module: perm.module, feature: perm.feature, action }
+  1486→    }
+  1487→  }
+  1488→  return null
+  1489→}

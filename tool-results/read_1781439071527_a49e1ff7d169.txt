@@ -1,0 +1,690 @@
+     1→'use client'
+     2→
+     3→import { useState, useMemo } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { useAppStore, api, queryKeys } from '@/lib/store'
+     6→import { Card, CardContent } from '@/components/ui/card'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Input } from '@/components/ui/input'
+    10→import { Label } from '@/components/ui/label'
+    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Skeleton } from '@/components/ui/skeleton'
+    14→import { Separator } from '@/components/ui/separator'
+    15→import {
+    16→  Dialog,
+    17→  DialogContent,
+    18→  DialogHeader,
+    19→  DialogTitle,
+    20→  DialogFooter,
+    21→} from '@/components/ui/dialog'
+    22→import {
+    23→  AlertDialog,
+    24→  AlertDialogAction,
+    25→  AlertDialogCancel,
+    26→  AlertDialogContent,
+    27→  AlertDialogDescription,
+    28→  AlertDialogFooter,
+    29→  AlertDialogHeader,
+    30→  AlertDialogTitle,
+    31→} from '@/components/ui/alert-dialog'
+    32→import {
+    33→  Table,
+    34→  TableBody,
+    35→  TableCell,
+    36→  TableHead,
+    37→  TableHeader,
+    38→  TableRow,
+    39→} from '@/components/ui/table'
+    40→import { toast } from 'sonner'
+    41→import {
+    42→  Plus,
+    43→  Search,
+    44→  FileText,
+    45→  CheckCircle,
+    46→  XCircle,
+    47→  Trash2,
+    48→  ShoppingCart,
+    49→  Eye,
+    50→  CalendarDays,
+    51→  Package,
+    52→} from 'lucide-react'
+    53→import { format, parseISO } from 'date-fns'
+    54→import { cn } from '@/lib/utils'
+    55→import { useFormat } from '@/hooks/use-format'
+    56→
+    57→// ──────────────────────────────────────────
+    58→// Types
+    59→// ──────────────────────────────────────────
+    60→
+    61→interface PRItem {
+    62→  id?: string
+    63→  materialId?: string
+    64→  description: string
+    65→  quantity: number
+    66→  unit: string
+    67→  estimatedPrice?: number
+    68→}
+    69→
+    70→interface PurchaseRequest {
+    71→  id: string
+    72→  requestNo: string
+    73→  projectId: string
+    74→  projectName: string
+    75→  projectCode: string
+    76→  status: string
+    77→  requiredBy: string | null
+    78→  notes: string | null
+    79→  createdById: string
+    80→  createdByName: string
+    81→  approvedById: string | null
+    82→  approvedByName: string | null
+    83→  items: PRItem[]
+    84→  purchaseOrder: { id: string; orderNo: string; status: string } | null
+    85→  createdAt: string
+    86→  updatedAt: string
+    87→}
+    88→
+    89→interface Project {
+    90→  id: string
+    91→  name: string
+    92→  code: string
+    93→}
+    94→
+    95→// ──────────────────────────────────────────
+    96→// Helpers
+    97→// ──────────────────────────────────────────
+    98→
+    99→const statusConfig: Record<string, { label: string; className: string }> = {
+   100→  draft: { label: 'Draft', className: 'bg-secondary text-secondary-foreground hover:bg-secondary/80' },
+   101→  submitted: { label: 'Submitted', className: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800' },
+   102→  review: { label: 'Under Review', className: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' },
+   103→  approved: { label: 'Approved', className: 'bg-emerald-600 text-white hover:bg-emerald-700 border-0' },
+   104→  rejected: { label: 'Rejected', className: 'bg-red-600 text-white hover:bg-red-700 border-0' },
+   105→  ordered: { label: 'Ordered', className: 'bg-teal-600 text-white hover:bg-teal-700 border-0' },
+   106→}
+   107→
+   108→function formatDate(dateStr: string | null) {
+   109→  if (!dateStr) return '—'
+   110→  return format(parseISO(dateStr), 'dd MMM yyyy')
+   111→}
+   112→
+   113→// ──────────────────────────────────────────
+   114→// Skeleton
+   115→// ──────────────────────────────────────────
+   116→
+   117→function TableSkeleton() {
+   118→  return (
+   119→    <div className="space-y-3 p-4">
+   120→      {Array.from({ length: 6 }).map((_, i) => (
+   121→        <div key={i} className="flex items-center gap-4">
+   122→          <Skeleton className="h-4 w-28" />
+   123→          <Skeleton className="h-4 w-24" />
+   124→          <Skeleton className="h-4 w-24" />
+   125→          <Skeleton className="h-5 w-20 rounded-full" />
+   126→          <Skeleton className="h-4 w-16 ml-auto" />
+   127→        </div>
+   128→      ))}
+   129→    </div>
+   130→  )
+   131→}
+   132→
+   133→// ──────────────────────────────────────────
+   134→// Create PR Dialog
+   135→// ──────────────────────────────────────────
+   136→
+   137→function CreatePRDialog() {
+   138→  const [open, setOpen] = useState(false)
+   139→  const [form, setForm] = useState({
+   140→    projectId: '',
+   141→    requiredBy: '',
+   142→    notes: '',
+   143→    status: 'draft',
+   144→  })
+   145→  const [items, setItems] = useState<PRItem[]>([
+   146→    { description: '', quantity: 1, unit: 'nos', estimatedPrice: 0 },
+   147→  ])
+   148→  const queryClient = useQueryClient()
+   149→  const user = useAppStore((s) => s.user)
+   150→
+   151→  const { data: projects } = useQuery({
+   152→    queryKey: [...queryKeys.projects],
+   153→    queryFn: () => api.get('/api/projects').then((r) => r.data as Project[]),
+   154→  })
+   155→
+   156→  const createMutation = useMutation({
+   157→    mutationFn: (body: Record<string, unknown>) => api.post('/api/purchase-requests', body),
+   158→    onSuccess: () => {
+   159→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseRequests })
+   160→      toast.success('Purchase request created!')
+   161→      setOpen(false)
+   162→      resetForm()
+   163→    },
+   164→    onError: (err: Error) => toast.error(err.message || 'Failed to create'),
+   165→  })
+   166→
+   167→  const resetForm = () => {
+   168→    setForm({ projectId: '', requiredBy: '', notes: '', status: 'draft' })
+   169→    setItems([{ description: '', quantity: 1, unit: 'nos', estimatedPrice: 0 }])
+   170→  }
+   171→
+   172→  const addItem = () => {
+   173→    setItems([...items, { description: '', quantity: 1, unit: 'nos', estimatedPrice: 0 }])
+   174→  }
+   175→
+   176→  const removeItem = (index: number) => {
+   177→    if (items.length <= 1) return
+   178→    setItems(items.filter((_, i) => i !== index))
+   179→  }
+   180→
+   181→  const updateItem = (index: number, field: keyof PRItem, value: string | number) => {
+   182→    const updated = [...items]
+   183→    updated[index] = { ...updated[index], [field]: value }
+   184→    setItems(updated)
+   185→  }
+   186→
+   187→  const handleSubmit = (e: React.FormEvent) => {
+   188→    e.preventDefault()
+   189→    if (!form.projectId) { toast.error('Please select a project'); return }
+   190→    if (items.some((it) => !it.description.trim())) { toast.error('All items need a description'); return }
+   191→
+   192→    createMutation.mutate({
+   193→      projectId: form.projectId,
+   194→      requiredBy: form.requiredBy || null,
+   195→      notes: form.notes || null,
+   196→      status: form.status,
+   197→      items: items.map((it) => ({
+   198→        description: it.description,
+   199→        quantity: it.quantity,
+   200→        unit: it.unit,
+   201→        estimatedPrice: it.estimatedPrice || null,
+   202→      })),
+   203→    })
+   204→  }
+   205→
+   206→  const totalEstimate = items.reduce((sum, it) => sum + (it.estimatedPrice || 0) * it.quantity, 0)
+   207→
+   208→  return (
+   209→    <Dialog open={open} onOpenChange={setOpen}>
+   210→      <Button
+   211→        className="bg-amber-600 hover:bg-amber-700 text-white"
+   212→        onClick={() => setOpen(true)}
+   213→      >
+   214→        <Plus className="h-4 w-4 mr-2" />
+   215→        New PR
+   216→      </Button>
+   217→      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   218→        <DialogHeader>
+   219→          <DialogTitle>Create Purchase Request</DialogTitle>
+   220→        </DialogHeader>
+   221→        <form onSubmit={handleSubmit} className="space-y-4">
+   222→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   223→            <div className="space-y-2">
+   224→              <Label>Project *</Label>
+   225→              <Select value={form.projectId} onValueChange={(v) => setForm({ ...form, projectId: v })}>
+   226→                <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+   227→                <SelectContent>
+   228→                  {projects?.map((p) => (
+   229→                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.code})</SelectItem>
+   230→                  ))}
+   231→                </SelectContent>
+   232→              </Select>
+   233→            </div>
+   234→            <div className="space-y-2">
+   235→              <Label>Required By</Label>
+   236→              <Input
+   237→                type="date"
+   238→                value={form.requiredBy}
+   239→                onChange={(e) => setForm({ ...form, requiredBy: e.target.value })}
+   240→              />
+   241→            </div>
+   242→          </div>
+   243→
+   244→          <div className="space-y-2">
+   245→            <Label>Status</Label>
+   246→            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+   247→              <SelectTrigger><SelectValue /></SelectTrigger>
+   248→              <SelectContent>
+   249→                <SelectItem value="draft">Draft</SelectItem>
+   250→                <SelectItem value="submitted">Submit for Approval</SelectItem>
+   251→              </SelectContent>
+   252→            </Select>
+   253→          </div>
+   254→
+   255→          <div className="space-y-2">
+   256→            <Label>Notes</Label>
+   257→            <Textarea
+   258→              value={form.notes}
+   259→              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+   260→              rows={2}
+   261→              placeholder="Any additional notes..."
+   262→            />
+   263→          </div>
+   264→
+   265→          <Separator />
+   266→
+   267→          {/* Items */}
+   268→          <div className="space-y-3">
+   269→            <div className="flex items-center justify-between">
+   270→              <Label className="text-base font-semibold">Items</Label>
+   271→              <Button type="button" variant="outline" size="sm" onClick={addItem}>
+   272→                <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
+   273→              </Button>
+   274→            </div>
+   275→
+   276→            {items.map((item, idx) => (
+   277→              <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-muted/30 p-3 rounded-lg">
+   278→                <div className="col-span-12 sm:col-span-4 space-y-1">
+   279→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Description *</Label>}
+   280→                  <Input
+   281→                    placeholder="Material description"
+   282→                    value={item.description}
+   283→                    onChange={(e) => updateItem(idx, 'description', e.target.value)}
+   284→                    required
+   285→                  />
+   286→                </div>
+   287→                <div className="col-span-4 sm:col-span-2 space-y-1">
+   288→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Qty</Label>}
+   289→                  <Input
+   290→                    type="number"
+   291→                    min="1"
+   292→                    value={item.quantity}
+   293→                    onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
+   294→                  />
+   295→                </div>
+   296→                <div className="col-span-4 sm:col-span-2 space-y-1">
+   297→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Unit</Label>}
+   298→                  <Input
+   299→                    value={item.unit}
+   300→                    onChange={(e) => updateItem(idx, 'unit', e.target.value)}
+   301→                  />
+   302→                </div>
+   303→                <div className="col-span-3 sm:col-span-2 space-y-1">
+   304→                  {idx === 0 && <Label className="text-xs text-muted-foreground">Est. Price</Label>}
+   305→                  <Input
+   306→                    type="number"
+   307→                    min="0"
+   308→                    value={item.estimatedPrice || ''}
+   309→                    onChange={(e) => updateItem(idx, 'estimatedPrice', parseFloat(e.target.value) || 0)}
+   310→                  />
+   311→                </div>
+   312→                <div className="col-span-1 flex justify-center">
+   313→                  <Button
+   314→                    type="button"
+   315→                    variant="ghost"
+   316→                    size="sm"
+   317→                    className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+   318→                    onClick={() => removeItem(idx)}
+   319→                    disabled={items.length <= 1}
+   320→                  >
+   321→                    <Trash2 className="h-3.5 w-3.5" />
+   322→                  </Button>
+   323→                </div>
+   324→              </div>
+   325→            ))}
+   326→
+   327→            <div className="flex justify-end text-sm font-semibold">
+   328→              Total Estimate: {formatCurrency(totalEstimate)}
+   329→            </div>
+   330→          </div>
+   331→
+   332→          <DialogFooter className="pt-4">
+   333→            <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm() }}>
+   334→              Cancel
+   335→            </Button>
+   336→            <Button
+   337→              type="submit"
+   338→              className="bg-amber-600 hover:bg-amber-700 text-white"
+   339→              disabled={createMutation.isPending}
+   340→            >
+   341→              {createMutation.isPending ? 'Creating...' : 'Create PR'}
+   342→            </Button>
+   343→          </DialogFooter>
+   344→        </form>
+   345→      </DialogContent>
+   346→    </Dialog>
+   347→  )
+   348→}
+   349→
+   350→// ──────────────────────────────────────────
+   351→// View PR Dialog
+   352→// ──────────────────────────────────────────
+   353→
+   354→function ViewPRDialog({ pr, open, onClose }: { pr: PurchaseRequest | null; open: boolean; onClose: () => void }) {
+   355→  if (!pr) return null
+   356→  const totalEstimate = pr.items.reduce((sum, it) => sum + (it.estimatedPrice || 0) * it.quantity, 0)
+   357→
+   358→  return (
+   359→    <Dialog open={open} onOpenChange={onClose}>
+   360→      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+   361→        <DialogHeader>
+   362→          <DialogTitle className="flex items-center gap-2">
+   363→            <FileText className="h-5 w-5 text-amber-600" />
+   364→            {pr.requestNo}
+   365→          </DialogTitle>
+   366→        </DialogHeader>
+   367→        <div className="space-y-4">
+   368→          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+   369→            <div>
+   370→              <span className="text-muted-foreground">Project</span>
+   371→              <p className="font-medium">{pr.projectName}</p>
+   372→            </div>
+   373→            <div>
+   374→              <span className="text-muted-foreground">Required By</span>
+   375→              <p className="font-medium">{formatDate(pr.requiredBy)}</p>
+   376→            </div>
+   377→            <div>
+   378→              <span className="text-muted-foreground">Created By</span>
+   379→              <p className="font-medium">{pr.createdByName}</p>
+   380→            </div>
+   381→            <div>
+   382→              <span className="text-muted-foreground">Status</span>
+   383→              <div className="mt-1">
+   384→                <Badge className={cn('text-xs', statusConfig[pr.status]?.className || '')}>
+   385→                  {statusConfig[pr.status]?.label || pr.status}
+   386→                </Badge>
+   387→              </div>
+   388→            </div>
+   389→          </div>
+   390→
+   391→          {pr.notes && (
+   392→            <div className="text-sm">
+   393→              <span className="text-muted-foreground">Notes</span>
+   394→              <p className="mt-1 bg-muted/30 p-3 rounded-lg">{pr.notes}</p>
+   395→            </div>
+   396→          )}
+   397→
+   398→          <Separator />
+   399→          <div className="text-sm font-semibold">Items ({pr.items.length})</div>
+   400→          <Table>
+   401→            <TableHeader>
+   402→              <TableRow>
+   403→                <TableHead className="text-xs">#</TableHead>
+   404→                <TableHead className="text-xs">Description</TableHead>
+   405→                <TableHead className="text-xs text-right">Qty</TableHead>
+   406→                <TableHead className="text-xs">Unit</TableHead>
+   407→                <TableHead className="text-xs text-right">Est. Price</TableHead>
+   408→                <TableHead className="text-xs text-right">Total</TableHead>
+   409→              </TableRow>
+   410→            </TableHeader>
+   411→            <TableBody>
+   412→              {pr.items.map((item, idx) => (
+   413→                <TableRow key={item.id || idx}>
+   414→                  <TableCell className="text-xs">{idx + 1}</TableCell>
+   415→                  <TableCell className="text-sm">{item.description}</TableCell>
+   416→                  <TableCell className="text-sm text-right">{item.quantity}</TableCell>
+   417→                  <TableCell className="text-sm">{item.unit}</TableCell>
+   418→                  <TableCell className="text-sm text-right">{formatCurrency(item.estimatedPrice || 0)}</TableCell>
+   419→                  <TableCell className="text-sm text-right font-medium">{formatCurrency((item.estimatedPrice || 0) * item.quantity)}</TableCell>
+   420→                </TableRow>
+   421→              ))}
+   422→            </TableBody>
+   423→          </Table>
+   424→          <div className="flex justify-end font-semibold">
+   425→            Total: {formatCurrency(totalEstimate)}
+   426→          </div>
+   427→
+   428→          {pr.purchaseOrder && (
+   429→            <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg text-sm">
+   430→              <span className="text-emerald-700 dark:text-emerald-300">
+   431→                Converted to PO: {pr.purchaseOrder.orderNo}
+   432→              </span>
+   433→            </div>
+   434→          )}
+   435→        </div>
+   436→      </DialogContent>
+   437→    </Dialog>
+   438→  )
+   439→}
+   440→
+   441→// ──────────────────────────────────────────
+   442→// Main Component
+   443→// ──────────────────────────────────────────
+   444→
+   445→export function PurchaseRequestsPage() {
+   446→  const { formatCurrency } = useFormat()
+   447→  const [statusFilter, setStatusFilter] = useState('all')
+   448→  const [projectFilter, setProjectFilter] = useState('all')
+   449→  const [deleteId, setDeleteId] = useState<string | null>(null)
+   450→  const [viewPR, setViewPR] = useState<PurchaseRequest | null>(null)
+   451→  const user = useAppStore((s) => s.user)
+   452→  const queryClient = useQueryClient()
+   453→
+   454→  const { data: purchaseRequests, isLoading, error } = useQuery({
+   455→    queryKey: [...queryKeys.purchaseRequests, { status: statusFilter, projectId: projectFilter }],
+   456→    queryFn: () => {
+   457→      const params = new URLSearchParams()
+   458→      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter)
+   459→      if (projectFilter && projectFilter !== 'all') params.set('projectId', projectFilter)
+   460→      const qs = params.toString()
+   461→      return api.get(`/api/purchase-requests${qs ? `?${qs}` : ''}`).then((r) => r.data as PurchaseRequest[])
+   462→    },
+   463→  })
+   464→
+   465→  const { data: projects } = useQuery({
+   466→    queryKey: [...queryKeys.projects],
+   467→    queryFn: () => api.get('/api/projects').then((r) => r.data as Project[]),
+   468→  })
+   469→
+   470→  const deleteMutation = useMutation({
+   471→    mutationFn: (id: string) => api.del(`/api/purchase-requests/${id}`),
+   472→    onSuccess: () => {
+   473→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseRequests })
+   474→      toast.success('Purchase request deleted')
+   475→      setDeleteId(null)
+   476→    },
+   477→    onError: (err: Error) => toast.error(err.message || 'Failed to delete'),
+   478→  })
+   479→
+   480→  const approveMutation = useMutation({
+   481→    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/approve`),
+   482→    onSuccess: () => {
+   483→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseRequests })
+   484→      toast.success('Purchase request approved')
+   485→    },
+   486→    onError: (err: Error) => toast.error(err.message || 'Failed to approve'),
+   487→  })
+   488→
+   489→  const rejectMutation = useMutation({
+   490→    mutationFn: (id: string) => api.post(`/api/purchase-requests/${id}/reject`),
+   491→    onSuccess: () => {
+   492→      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseRequests })
+   493→      toast.success('Purchase request rejected')
+   494→    },
+   495→    onError: (err: Error) => toast.error(err.message || 'Failed to reject'),
+   496→  })
+   497→
+   498→  const isAdmin = user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'store_manager'
+   499→
+   500→  const statusCounts = useMemo(() => {
+   501→    if (!purchaseRequests) return {}
+   502→    const counts: Record<string, number> = {}
+   503→    for (const pr of purchaseRequests) counts[pr.status] = (counts[pr.status] || 0) + 1
+   504→    return counts
+   505→  }, [purchaseRequests])
+   506→
+   507→  return (
+   508→    <div className="p-4 md:p-6 space-y-6">
+   509→      {/* Header */}
+   510→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   511→        <div>
+   512→          <h1 className="text-2xl font-bold tracking-tight">Purchase Requests</h1>
+   513→          <p className="text-sm text-muted-foreground mt-1">
+   514→            {isLoading ? 'Loading...' : purchaseRequests ? `${purchaseRequests.length} request(s)` : 'No requests'}
+   515→          </p>
+   516→        </div>
+   517→        <CreatePRDialog />
+   518→      </div>
+   519→
+   520→      {/* Filters */}
+   521→      <div className="flex flex-col sm:flex-row gap-3">
+   522→        <div className="flex items-center gap-1.5 flex-wrap">
+   523→          {['all', 'draft', 'submitted', 'review', 'approved', 'rejected', 'ordered'].map((s) => (
+   524→            <Button
+   525→              key={s}
+   526→              variant={statusFilter === s ? 'default' : 'outline'}
+   527→              size="sm"
+   528→              onClick={() => setStatusFilter(s)}
+   529→              className={cn(
+   530→                'text-xs capitalize',
+   531→                statusFilter === s && s === 'all' && 'bg-amber-600 hover:bg-amber-700 text-white',
+   532→                statusFilter === s && s !== 'all' && statusConfig[s]?.className,
+   533→              )}
+   534→            >
+   535→              {s === 'all' ? 'All' : statusConfig[s]?.label || s}
+   536→              {statusCounts[s] ? <span className="ml-1.5 text-[10px] opacity-70">({statusCounts[s]})</span> : null}
+   537→            </Button>
+   538→          ))}
+   539→        </div>
+   540→
+   541→        <div className="sm:ml-auto w-full sm:w-52">
+   542→          <Select value={projectFilter} onValueChange={(v) => setProjectFilter(v)}>
+   543→            <SelectTrigger className="h-9">
+   544→              <SelectValue placeholder="All Projects" />
+   545→            </SelectTrigger>
+   546→            <SelectContent>
+   547→              <SelectItem value="all">All Projects</SelectItem>
+   548→              {projects?.map((p) => (
+   549→                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+   550→              ))}
+   551→            </SelectContent>
+   552→          </Select>
+   553→        </div>
+   554→      </div>
+   555→
+   556→      {/* Content */}
+   557→      {isLoading ? (
+   558→        <Card><CardContent className="p-0"><TableSkeleton /></CardContent></Card>
+   559→      ) : error ? (
+   560→        <Card className="border-red-200">
+   561→          <CardContent className="p-8 text-center">
+   562→            <p className="text-red-600 text-sm">Failed to load purchase requests. Please try again.</p>
+   563→          </CardContent>
+   564→        </Card>
+   565→      ) : purchaseRequests && purchaseRequests.length === 0 ? (
+   566→        <Card>
+   567→          <CardContent className="p-12 text-center">
+   568→            <FileText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+   569→            <h3 className="font-semibold text-lg text-muted-foreground">No Purchase Requests</h3>
+   570→            <p className="text-sm text-muted-foreground mt-1">Create a new purchase request to get started.</p>
+   571→          </CardContent>
+   572→        </Card>
+   573→      ) : purchaseRequests ? (
+   574→        <Card className="overflow-hidden">
+   575→          <div className="max-h-[calc(100vh-280px)] overflow-y-auto overflow-x-auto custom-scrollbar">
+   576→            <Table>
+   577→              <TableHeader>
+   578→                <TableRow className="bg-muted/50">
+   579→                  <TableHead className="font-semibold text-xs">Request No</TableHead>
+   580→                  <TableHead className="font-semibold text-xs">Project</TableHead>
+   581→                  <TableHead className="font-semibold text-xs hidden md:table-cell">Required By</TableHead>
+   582→                  <TableHead className="font-semibold text-xs text-center">Items</TableHead>
+   583→                  <TableHead className="font-semibold text-xs">Status</TableHead>
+   584→                  <TableHead className="font-semibold text-xs hidden sm:table-cell">Created</TableHead>
+   585→                  <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
+   586→                </TableRow>
+   587→              </TableHeader>
+   588→              <TableBody>
+   589→                {purchaseRequests.map((pr) => (
+   590→                  <TableRow key={pr.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-colors">
+   591→                    <TableCell>
+   592→                      <button onClick={() => setViewPR(pr)} className="text-sm font-mono font-medium text-amber-700 hover:underline">
+   593→                        {pr.requestNo}
+   594→                      </button>
+   595→                    </TableCell>
+   596→                    <TableCell>
+   597→                      <div>
+   598→                        <p className="text-sm font-medium">{pr.projectName}</p>
+   599→                        <p className="text-xs text-muted-foreground">{pr.projectCode}</p>
+   600→                      </div>
+   601→                    </TableCell>
+   602→                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+   603→                      {formatDate(pr.requiredBy)}
+   604→                    </TableCell>
+   605→                    <TableCell className="text-center">
+   606→                      <Badge variant="secondary" className="text-xs">{pr.items.length}</Badge>
+   607→                    </TableCell>
+   608→                    <TableCell>
+   609→                      <Badge className={cn('text-xs font-medium', statusConfig[pr.status]?.className || '')}>
+   610→                        {statusConfig[pr.status]?.label || pr.status}
+   611→                      </Badge>
+   612→                    </TableCell>
+   613→                    <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+   614→                      {formatDate(pr.createdAt)}
+   615→                    </TableCell>
+   616→                    <TableCell>
+   617→                      <div className="flex items-center justify-end gap-1">
+   618→                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setViewPR(pr)}>
+   619→                          <Eye className="h-3.5 w-3.5" />
+   620→                        </Button>
+   621→                        {isAdmin && (pr.status === 'draft' || pr.status === 'submitted' || pr.status === 'review') && (
+   622→                          <>
+   623→                            <Button
+   624→                              variant="ghost"
+   625→                              size="sm"
+   626→                              className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+   627→                              onClick={() => approveMutation.mutate(pr.id)}
+   628→                              disabled={approveMutation.isPending}
+   629→                            >
+   630→                              <CheckCircle className="h-3.5 w-3.5" />
+   631→                            </Button>
+   632→                            <Button
+   633→                              variant="ghost"
+   634→                              size="sm"
+   635→                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+   636→                              onClick={() => rejectMutation.mutate(pr.id)}
+   637→                              disabled={rejectMutation.isPending}
+   638→                            >
+   639→                              <XCircle className="h-3.5 w-3.5" />
+   640→                            </Button>
+   641→                          </>
+   642→                        )}
+   643→                        {(pr.status === 'draft') && (
+   644→                          <Button
+   645→                            variant="ghost"
+   646→                            size="sm"
+   647→                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+   648→                            onClick={() => setDeleteId(pr.id)}
+   649→                          >
+   650→                            <Trash2 className="h-3.5 w-3.5" />
+   651→                          </Button>
+   652→                        )}
+   653→                      </div>
+   654→                    </TableCell>
+   655→                  </TableRow>
+   656→                ))}
+   657→              </TableBody>
+   658→            </Table>
+   659→          </div>
+   660→        </Card>
+   661→      ) : null}
+   662→
+   663→      {/* View Dialog */}
+   664→      <ViewPRDialog pr={viewPR} open={!!viewPR} onClose={() => setViewPR(null)} />
+   665→
+   666→      {/* Delete Confirmation */}
+   667→      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+   668→        <AlertDialogContent>
+   669→          <AlertDialogHeader>
+   670→            <AlertDialogTitle>Delete Purchase Request?</AlertDialogTitle>
+   671→            <AlertDialogDescription>
+   672→              This action cannot be undone. The purchase request and all its items will be permanently deleted.
+   673→            </AlertDialogDescription>
+   674→          </AlertDialogHeader>
+   675→          <AlertDialogFooter>
+   676→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   677→            <AlertDialogAction
+   678→              className="bg-red-600 hover:bg-red-700 text-white"
+   679→              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+   680→              disabled={deleteMutation.isPending}
+   681→            >
+   682→              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+   683→            </AlertDialogAction>
+   684→          </AlertDialogFooter>
+   685→        </AlertDialogContent>
+   686→      </AlertDialog>
+   687→    </div>
+   688→  )
+   689→}
+   690→
