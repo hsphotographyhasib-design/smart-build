@@ -611,3 +611,33 @@ Stage Summary:
 - Files modified: src/components/layout/app-layout.tsx (header integration), src/components/layout/mobile-header.tsx (mobile integration), src/lib/rbac.ts (search permissions), prisma/schema.prisma (SearchHistory, SearchAnalytics models, indexes)
 - Search works across 16 categories: Projects, Complaints, Work Orders, Customers, Invoices, Payments, POs, PRs, Suppliers, Inventory, Employees, Assets, Attendance, Tasks, Users, Audit Logs
 - Features: Cmd+K shortcut, voice search, recent history, quick actions, category filters, status badges, RBAC-aware
+---
+Task ID: sidebar-scroll-fix
+Agent: Main Orchestrator
+Task: Fix sidebar scrolling & make navigation smooth — enterprise ERP-grade sidebar
+
+Work Log:
+- Analyzed entire sidebar navigation system (6 layout files, store, CSS, scroll-area)
+- Found 7 critical issues: no responsive hiding, missing CSS classes, missing store state, no custom scrollbar, no auto-scroll, no keyboard nav, no sticky headers
+- Fixed globals.css: Added 8 CSS classes — sb-custom-scrollbar (thin, auto-hide), sb-body-lock (drawer scroll lock), pb-safe/pt-safe (iOS safe area), sb-nav-scroll (GPU-accelerated sidebar scroll), sb-nav-item (active animation), sb-mobile-drawer-scroll (mobile momentum scroll)
+- Fixed store.ts: Added showMobileMoreDrawer state + setShowMobileMoreDrawer action + localStorage persistence for sidebarOpen
+- Rewrote scroll-area.tsx: Added SidebarScrollArea + SidebarScrollBar components (4px width, opacity-0→hover:opacity-100 auto-hide)
+- Rewrote app-layout.tsx: 
+  - Sidebar hidden on mobile (hidden md:flex), shown via MobileHeader drawer
+  - Native scroll (sb-nav-scroll CSS class) replacing Radix ScrollArea for perf
+  - Auto-scroll to active menu item (useEffect + scrollIntoView with smooth/nearest)
+  - Keyboard navigation (ArrowUp/Down, Home, End with scroll-into-view)
+  - Sticky section headers (sticky top-0 bg-card/90 backdrop-blur-sm)
+  - Proper height: h-[100dvh] overflow-hidden on root, flex layout for independent scroll
+  - ARIA roles (navigation, tree, treeitem, aria-selected, aria-current)
+  - data-active attribute for CSS pulse animation on nav items
+- AppLayout now conditionally renders Desktop (sidebar+header) vs Mobile (header+bottom nav) based on useIsMobile()
+- Fixed global-search.tsx pre-existing lint error (toggle accessed before declaration)
+- Lint passes: 0 errors
+
+Stage Summary:
+- Key files modified: globals.css, store.ts, scroll-area.tsx, app-layout.tsx, global-search.tsx, use-global-search.ts
+- All 3 undefined CSS classes now defined (sb-custom-scrollbar, sb-body-lock, pb-safe)
+- showMobileMoreDrawer state added to store (fixes mobile-more-drawer.tsx runtime error)
+- Sidebar state persists in localStorage across refreshes
+- Enterprise-grade sidebar with smooth scrolling, keyboard nav, auto-scroll, sticky headers

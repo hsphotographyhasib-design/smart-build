@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useRef, useEffect, useCallback, useMemo, useId } from 'react'
 import {
   LayoutDashboard, FolderKanban, FileText, Receipt, Calculator,
   ShoppingCart, Package, Users, UserCheck, Clock, DollarSign,
@@ -22,6 +22,13 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { SearchTrigger } from '@/components/search/search-trigger'
 import { GlobalSearchDialog } from '@/components/search/global-search'
+import { MobileHeader } from '@/components/layout/mobile-header'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+import { useIsMobile } from '@/hooks/use-mobile'
+
+// ═══════════════════════════════════════════════════════════════════
+// Navigation Data
+// ═══════════════════════════════════════════════════════════════════
 
 interface NavItem {
   label: string
@@ -156,8 +163,13 @@ const navSections: { title: string; items: NavItem[] }[] = [
   },
 ]
 
+// ═══════════════════════════════════════════════════════════════════
+// Sidebar Nav Item Button
+// ═══════════════════════════════════════════════════════════════════
+
 function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const { currentPage, navigate } = useAppStore()
+  const ref = useRef<HTMLButtonElement>(null)
   const isActive = currentPage === item.page
 
   if (collapsed) {
@@ -166,10 +178,13 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              ref={ref}
               variant={isActive ? 'secondary' : 'ghost'}
               size="icon"
               className="w-full h-9"
               onClick={() => navigate(item.page)}
+              data-active={isActive}
+              aria-current={isActive ? 'page' : undefined}
             >
               <item.icon className="h-4 w-4" />
             </Button>
@@ -182,13 +197,17 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
 
   return (
     <Button
+      ref={ref}
       variant={isActive ? 'secondary' : 'ghost'}
       size="sm"
       className={cn(
-        'w-full justify-start gap-2 h-9 px-3 text-sm font-normal',
+        'w-full justify-start gap-2 h-9 px-3 text-sm font-normal sb-nav-item',
         isActive && 'font-medium bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:bg-amber-950/30 dark:text-amber-200'
       )}
       onClick={() => navigate(item.page)}
+      data-active={isActive}
+      data-page={item.page}
+      aria-current={isActive ? 'page' : undefined}
     >
       <item.icon className="h-4 w-4 shrink-0" />
       <span className="truncate">{item.label}</span>
@@ -201,21 +220,110 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
   )
 }
 
-export function AppSidebar() {
-  const { sidebarOpen, setSidebarOpen, user, logout } = useAppStore()
+// ═══════════════════════════════════════════════════════════════════
+// AppSidebar — Desktop only (hidden on mobile)
+// ═══════════════════════════════════════════════════════════════════
 
-  // ব্যবহারকারীর ভূমিকার ভিত্তিতে মেনু আইটেম ফিল্টার করা হচ্ছে
+export function AppSidebar() {
+  const { sidebarOpen, setSidebarOpen, user, logout, currentPage } = useAppStore()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const navInstanceId = useId()
+
+  // Filter sections by role
   const userRole = user?.role || 'labour'
   const visibleSections = filterNavForRole(navSections, userRole)
+
+  // Flatten all items for keyboard navigation
+  const flatItems = useMemo(() => {
+    return visibleSections.flatMap((section) =>
+      section.items.map((item) => ({
+        ...item,
+        sectionTitle: section.title,
+      }))
+    )
+  }, [visibleSections])
+
+  // Auto-scroll to active menu item on page change
+  useEffect(() => {
+    if (!scrollRef.current || !currentPage) return
+
+    const activeEl = scrollRef.current.querySelector(
+      `[data-page="${currentPage}"]`
+    ) as HTMLElement | null
+
+    if (activeEl) {
+      // Use smooth scrollIntoView with block: 'nearest' to avoid jumping
+      activeEl.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+  }, [currentPage, sidebarOpen])
+
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const container = scrollRef.current
+      if (!container) return
+
+      const focusable = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          'button[data-page]:not([disabled]), [role="button"][data-page]'
+        )
+      )
+
+      if (focusable.length === 0) return
+
+      const currentIdx = focusable.indexOf(document.activeElement as HTMLElement)
+
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault()
+          const next = currentIdx < focusable.length - 1 ? currentIdx + 1 : 0
+          focusable[next]?.focus()
+          focusable[next]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          break
+        }
+        case 'ArrowUp': {
+          e.preventDefault()
+          const prev = currentIdx > 0 ? currentIdx - 1 : focusable.length - 1
+          focusable[prev]?.focus()
+          focusable[prev]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          break
+        }
+        case 'Home': {
+          e.preventDefault()
+          focusable[0]?.focus()
+          focusable[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          break
+        }
+        case 'End': {
+          e.preventDefault()
+          const last = focusable[focusable.length - 1]
+          last?.focus()
+          last?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          break
+        }
+      }
+    },
+    []
+  )
 
   return (
     <aside
       className={cn(
-        'flex flex-col border-r bg-card transition-all duration-300 ease-in-out h-screen sticky top-0',
+        'hidden md:flex',
+        'flex-col border-r bg-card',
+        'transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+        'h-[100dvh] sticky top-0 z-30',
+        'overflow-hidden',
         sidebarOpen ? 'w-64' : 'w-16'
       )}
+      role="navigation"
+      aria-label="Main navigation"
     >
-      {/* লোগো */}
+      {/* Logo */}
       <div className="flex items-center h-14 px-3 border-b shrink-0">
         {sidebarOpen ? (
           <div className="flex items-center gap-2 w-full">
@@ -234,27 +342,47 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* নেভিগেশন */}
-      <ScrollArea className="flex-1 py-2">
-        <div className="space-y-1 px-2">
+      {/* Navigation — native scroll for maximum performance */}
+      <div
+        ref={scrollRef}
+        className={cn(
+          'sb-nav-scroll flex-1',
+          sidebarOpen ? 'py-2 px-2' : 'py-1 px-1'
+        )}
+        onKeyDown={handleKeyDown}
+        role="tree"
+        aria-label="Navigation menu"
+      >
+        <div className="space-y-0.5">
           {visibleSections.map((section) => (
-            <React.Fragment key={section.title}>
+            <div key={section.title} role="treeitem" aria-selected={section.items.some(i => i.page === currentPage)} aria-label={section.title}>
+              {/* Section Header — sticky on scroll */}
               {sidebarOpen && (
-                <p className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  {section.title}
-                </p>
+                <div
+                  className="sticky top-0 z-10 bg-card/90 backdrop-blur-sm px-3 py-1.5"
+                >
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {section.title}
+                  </p>
+                </div>
               )}
-              {section.items.map((item) => (
-                <NavItemButton key={item.page} item={item} collapsed={!sidebarOpen} />
-              ))}
-              {sidebarOpen && <Separator className="my-1.5" />}
-              {!sidebarOpen && <div className="h-1.5" />}
-            </React.Fragment>
+              <div className={sidebarOpen ? 'space-y-0.5' : 'flex flex-col items-center gap-0.5'}>
+                {section.items.map((item) => (
+                  <NavItemButton key={item.page} item={item} collapsed={!sidebarOpen} />
+                ))}
+              </div>
+              {sidebarOpen && (
+                <div className="h-1" aria-hidden="true">
+                  <Separator className="my-1.5 opacity-0" />
+                </div>
+              )}
+              {!sidebarOpen && <div className="h-2" aria-hidden="true" />}
+            </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
-      {/* ব্যবহারকারী */}
+      {/* User footer */}
       <div className="border-t p-2 shrink-0">
         {sidebarOpen ? (
           <div className="flex items-center gap-2 px-2 py-1.5">
@@ -285,12 +413,13 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* টগল */}
+      {/* Collapse/Expand Toggle */}
       <Button
         variant="outline"
         size="icon"
-        className="absolute -right-3 top-16 h-6 w-6 rounded-full border bg-card shadow-sm z-10"
+        className="absolute -right-3 top-16 h-6 w-6 rounded-full border bg-card shadow-sm z-40 transition-transform duration-200 hover:scale-110"
         onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
         {sidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
       </Button>
@@ -298,24 +427,29 @@ export function AppSidebar() {
   )
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// AppHeader — Desktop only (hidden on mobile)
+// ═══════════════════════════════════════════════════════════════════
+
 export function AppHeader() {
   const { breadcrumbs, navigate } = useAppStore()
 
   return (
     <>
       <GlobalSearchDialog />
-      <header className="h-14 border-b bg-card flex items-center justify-between px-4 sticky top-0 z-40">
+      <header className="hidden md:flex h-14 border-b bg-card items-center justify-between px-4 sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <nav className="flex items-center gap-1.5 text-sm">
+          <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
             {breadcrumbs.map((crumb, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <span className="text-muted-foreground">/</span>}
+                {i > 0 && <span className="text-muted-foreground" aria-hidden="true">/</span>}
                 <button
                   onClick={() => crumb.page && navigate(crumb.page, crumb.params)}
                   className={cn(
                     'hover:text-foreground transition-colors',
                     i === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
                   )}
+                  aria-current={i === breadcrumbs.length - 1 ? 'page' : undefined}
                 >
                   {crumb.label}
                 </button>
@@ -330,6 +464,7 @@ export function AppHeader() {
             size="icon"
             className="h-9 w-9"
             onClick={() => navigate('notifications')}
+            aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
           </Button>
@@ -339,16 +474,38 @@ export function AppHeader() {
   )
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// AppLayout — Responsive layout: desktop sidebar + mobile header
+// ═══════════════════════════════════════════════════════════════════
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile()
+
   return (
-    <div className="flex min-h-screen">
-      <AppSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <AppHeader />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
+    <div className="flex h-[100dvh] overflow-hidden">
+      {/* Desktop: Sidebar + Header + Content */}
+      {!isMobile && (
+        <>
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <AppHeader />
+            <main className="flex-1 overflow-y-auto overscroll-contain" id="main-content">
+              {children}
+            </main>
+          </div>
+        </>
+      )}
+
+      {/* Mobile: Header + Content + Bottom Nav */}
+      {isMobile && (
+        <>
+          <MobileHeader />
+          <main className="flex-1 overflow-y-auto overscroll-contain pb-[80px] pt-0" id="main-content-mobile">
+            {children}
+          </main>
+          <MobileBottomNav />
+        </>
+      )}
     </div>
   )
 }

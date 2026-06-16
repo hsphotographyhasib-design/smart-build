@@ -388,8 +388,7 @@ export function useGlobalSearch(): UseGlobalSearchReturn {
           })
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory])
+  }, [selectedCategory]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cleanup on unmount
   useEffect(() => {

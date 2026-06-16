@@ -80,6 +80,7 @@ interface AppState {
   pageParams: Record<string, string>
   breadcrumbs: { label: string; page?: AppPage; params?: Record<string, string> }[]
   sidebarOpen: boolean
+  showMobileMoreDrawer: boolean
   
   // থিম
   theme: 'light' | 'dark' | 'system'
@@ -92,6 +93,7 @@ interface AppState {
   // কার্য - নেভিগেশন
   navigate: (page: AppPage, params?: Record<string, string>) => void
   setSidebarOpen: (open: boolean) => void
+  setShowMobileMoreDrawer: (show: boolean) => void
   setBreadcrumbs: (items: { label: string; page?: AppPage; params?: Record<string, string> }[]) => void
   
   // কার্য - থিম
@@ -108,7 +110,8 @@ export const useAppStore = create<AppState>((set) => ({
   currentPage: 'dashboard',
   pageParams: {},
   breadcrumbs: [{ label: 'Dashboard' }],
-  sidebarOpen: true,
+  sidebarOpen: typeof window !== 'undefined' ? localStorage.getItem('sb_sidebar') !== 'false' : true,
+  showMobileMoreDrawer: false,
   
   // থিম
   theme: 'light',
@@ -203,7 +206,13 @@ export const useAppStore = create<AppState>((set) => ({
       breadcrumbs: [{ label: pageLabels[page] || page, page, params }]
     })
   },
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  setSidebarOpen: (open) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sb_sidebar', open ? 'true' : 'false')
+    }
+    set({ sidebarOpen: open })
+  },
+  setShowMobileMoreDrawer: (show) => set({ showMobileMoreDrawer: show }),
   setBreadcrumbs: (items) => set({ breadcrumbs: items }),
   
   // থিম কার্যসমূহ

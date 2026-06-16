@@ -128,7 +128,141 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR CUSTOM SCROLLBAR — thin, rounded, auto-hide on hover
+   ═══════════════════════════════════════════════════════════════ */
+.sb-custom-scrollbar [data-radix-scroll-area-viewport] {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.sb-custom-scrollbar [data-radix-scroll-area-viewport]:hover {
+  scrollbar-color: oklch(0.7 0 0 / 40%) transparent;
+}
+
+.sb-custom-scrollbar [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sb-custom-scrollbar [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sb-custom-scrollbar [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 0%);
+  border-radius: 9999px;
+  transition: background-color 0.3s ease;
+}
+
+.sb-custom-scrollbar [data-radix-scroll-area-viewport]:hover::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 40%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BODY SCROLL LOCK — prevents background scroll when drawer open
+   ═══════════════════════════════════════════════════════════════ */
+.sb-body-lock {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SAFE AREA — iOS notch / home indicator padding
+   ═══════════════════════════════════════════════════════════════ */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR SCROLL OPTIMIZATION — GPU accelerated, smooth touch
+   ═══════════════════════════════════════════════════════════════ */
+.sb-nav-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.7 0 0 / 30%) transparent;
+  scroll-behavior: smooth;
+}
+
+.sb-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sb-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.sb-nav-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 25%);
+  border-radius: 9999px;
+  transition: background-color 0.25s ease;
+}
+
+.sb-nav-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 45%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR ACTIVE ITEM INDICATOR — smooth highlight animation
+   ═══════════════════════════════════════════════════════════════ */
+.sb-nav-item {
+  position: relative;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sb-nav-item[data-active='true'] {
+  animation: sb-active-pulse 0.35s ease-out;
+}
+
+@keyframes sb-active-pulse {
+  0% { transform: scale(0.98); opacity: 0.7; }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE DRAWER SCROLL — momentum scrolling, no bounce
+   ═══════════════════════════════════════════════════════════════ */
+.sb-mobile-drawer-scroll {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.7 0 0 / 25%) transparent;
+  scroll-behavior: smooth;
+}
+
+.sb-mobile-drawer-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.sb-mobile-drawer-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sb-mobile-drawer-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 20%);
+  border-radius: 9999px;
 }

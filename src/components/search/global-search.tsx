@@ -258,6 +258,11 @@ export function GlobalSearchDialog() {
   const listRef = useRef<HTMLDivElement>(null)
 
   // ── Keyboard shortcut ──
+  function toggle() {
+    if (isOpen) close()
+    else open()
+  }
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -272,12 +277,7 @@ export function GlobalSearchDialog() {
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, close])
-
-  function toggle() {
-    if (isOpen) close()
-    else open()
-  }
+  }, [isOpen, close, toggle])
 
   // ── Auto-focus on open ──
   useEffect(() => {
