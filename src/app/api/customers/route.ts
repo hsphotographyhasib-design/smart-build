@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     const items = await db.customer.findMany({
       where,
-      include: { _count: { select: { salesInvoices: true } } },
+      include: { _count: { select: { salesInvoice: true } } },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       gstNo: c.gstNo,
       balance: c.balance,
       isActive: c.isActive,
-      invoiceCount: c._count.salesInvoices,
+      invoiceCount: c._count.salesInvoice,
       createdAt: c.createdAt.toISOString(),
       updatedAt: c.updatedAt.toISOString(),
     }))

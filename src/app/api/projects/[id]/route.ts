@@ -21,13 +21,13 @@ export async function GET(
     const project = await db.project.findUnique({
       where: { id },
       include: {
-        members: {
+        projectMember: {
           include: {
             user: { select: { id: true, name: true, email: true, phone: true, avatar: true, role: true } },
           },
         },
-        milestones: { orderBy: { dueDate: 'asc' } },
-        tasks: { select: { id: true, status: true, priority: true } },
+        projectMilestone: { orderBy: { dueDate: 'asc' } },
+        projectTask: { select: { id: true, status: true, priority: true } },
       },
     })
 
@@ -36,12 +36,12 @@ export async function GET(
     }
 
     // কর্মক্ষমতা সূচক (KPI) গণনা করা হচ্ছে
-    const totalTasks = project.tasks.length
-    const todoTasks = project.tasks.filter((t) => t.status === 'todo').length
-    const inProgressTasks = project.tasks.filter((t) => t.status === 'in_progress').length
-    const completedTasks = project.tasks.filter((t) => t.status === 'completed').length
-    const cancelledTasks = project.tasks.filter((t) => t.status === 'cancelled').length
-    const highPriorityTasks = project.tasks.filter((t) => t.priority === 'high' || t.priority === 'critical').length
+    const totalTasks = project.projectTask.length
+    const todoTasks = project.projectTask.filter((t) => t.status === 'todo').length
+    const inProgressTasks = project.projectTask.filter((t) => t.status === 'in_progress').length
+    const completedTasks = project.projectTask.filter((t) => t.status === 'completed').length
+    const cancelledTasks = project.projectTask.filter((t) => t.status === 'cancelled').length
+    const highPriorityTasks = project.projectTask.filter((t) => t.priority === 'high' || t.priority === 'critical').length
 
     // আর্থিক কর্মক্ষমতা সূচক (KPI)
     const [invoiceAgg, paymentAgg, expenseAgg] = await Promise.all([
@@ -88,13 +88,13 @@ export async function GET(
       clientId: project.clientId,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
-      members: project.members.map((m) => ({
+      members: project.projectMember.map((m) => ({
         id: m.id,
         role: m.role,
         joinedAt: m.joinedAt.toISOString(),
         user: m.user,
       })),
-      milestones: project.milestones.map((m) => ({
+      milestones: project.projectMilestone.map((m) => ({
         id: m.id,
         name: m.name,
         description: m.description,

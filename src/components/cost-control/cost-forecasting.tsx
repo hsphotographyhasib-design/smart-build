@@ -390,7 +390,7 @@ export function CostForecasting() {
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                  {p.lineItems.map(li => (
+                                  {p.budgetLineItem.map(li => (
                                     <TableRow key={li.id}>
                                       <TableCell>
                                         <p className="text-xs font-mono">{li.costCode.code}</p>

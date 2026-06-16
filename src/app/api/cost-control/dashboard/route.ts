@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const budgetsWithData = await db.budget.findMany({
       include: {
         project: { select: { id: true, name: true, code: true } },
-        lineItems: {
+        budgetLineItem: {
           select: {
             originalBudget: true,
             revisedBudget: true,
@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
     })
 
     const budgetVsActual = budgetsWithData.map(b => {
-      const totalOriginal = b.lineItems.reduce((s, li) => s + li.originalBudget, 0)
-      const totalActual = b.lineItems.reduce((s, li) => s + li.actualCost, 0)
-      const totalCommitted = b.lineItems.reduce((s, li) => s + li.committedCost, 0)
+      const totalOriginal = b.budgetLineItem.reduce((s, li) => s + li.originalBudget, 0)
+      const totalActual = b.budgetLineItem.reduce((s, li) => s + li.actualCost, 0)
+      const totalCommitted = b.budgetLineItem.reduce((s, li) => s + li.committedCost, 0)
       return {
         projectId: b.project.id,
         projectName: b.project.name,

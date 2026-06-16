@@ -43,25 +43,25 @@ export async function GET(request: NextRequest) {
         updatedAt: true,
         _count: {
           select: {
-            members: true,
-            tasks: true,
-            documents: true,
-            dailyNotes: true,
-            invoices: true,
-            payments: true,
-            expenses: true,
+            projectMember: true,
+            projectTask: true,
+            projectDocument: true,
+            dailyNote: true,
+            invoice: true,
+            payment: true,
+            expense: true,
           },
         },
-        tasks: {
+        projectTask: {
           select: { status: true },
         },
       },
     })
 
     const data = projects.map((p) => {
-      const totalTasks = p.tasks.length
-      const completedTasks = p.tasks.filter((t) => t.status === 'completed').length
-      const inProgressTasks = p.tasks.filter((t) => t.status === 'in_progress').length
+      const totalTasks = p.projectTask.length
+      const completedTasks = p.projectTask.filter((t) => t.status === 'completed').length
+      const inProgressTasks = p.projectTask.filter((t) => t.status === 'in_progress').length
       return {
         id: p.id,
         name: p.name,
@@ -75,12 +75,12 @@ export async function GET(request: NextRequest) {
         description: p.description,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
-        memberCount: p._count.members,
+        memberCount: p._count.projectMember,
         totalTasks,
         completedTasks,
         inProgressTasks,
-        documentCount: p._count.documents,
-        dailyNoteCount: p._count.dailyNotes,
+        documentCount: p._count.projectDocument,
+        dailyNoteCount: p._count.dailyNote,
       }
     })
 

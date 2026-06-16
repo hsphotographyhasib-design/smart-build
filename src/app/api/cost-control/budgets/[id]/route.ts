@@ -16,15 +16,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         project: { select: { id: true, name: true, code: true, status: true } },
         createdBy: { select: { id: true, name: true } },
         approvedBy: { select: { id: true, name: true } },
-        lineItems: {
+        budgetLineItem: {
           include: { costCode: { include: { parent: { include: { parent: true } } } } },
           orderBy: { createdAt: 'asc' },
         },
-        changeOrders: {
-          include: { lineItemUpdates: true },
+        budgetChangeOrder: {
+          include: { budgetLineItemUpdate: true },
           orderBy: { createdAt: 'desc' },
         },
-        snapshots: { orderBy: { createdAt: 'desc' } },
+        budgetSnapshot: { orderBy: { createdAt: 'desc' } },
       },
     })
 

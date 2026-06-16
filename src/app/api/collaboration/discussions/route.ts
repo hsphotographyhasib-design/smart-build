@@ -23,14 +23,14 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         project: { select: { id: true, name: true, code: true } },
-        _count: { select: { comments: true } },
+        _count: { select: { discussionComment: true } },
       },
       orderBy: { updatedAt: 'desc' },
     })
 
     const data = discussions.map((d) => ({
       ...JSON.parse(JSON.stringify(d)),
-      commentCount: d._count.comments,
+      commentCount: d._count.discussionComment,
     }))
 
     return NextResponse.json({ success: true, data })
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       },
       include: {
         project: { select: { id: true, name: true, code: true } },
-        _count: { select: { comments: true } },
+        _count: { select: { discussionComment: true } },
       },
     })
 

@@ -15,7 +15,7 @@ export async function GET(
     const material = await db.material.findUnique({
       where: { id },
       include: {
-        _count: { select: { stockMovements: true } },
+        _count: { select: { stockMovement: true } },
       },
     })
 
@@ -40,7 +40,7 @@ export async function GET(
         minStock: material.minStock,
         unitPrice: material.unitPrice,
         stockStatus,
-        movementCount: material._count.stockMovements,
+        movementCount: material._count.stockMovement,
         createdAt: material.createdAt.toISOString(),
         updatedAt: material.updatedAt.toISOString(),
       },
@@ -114,7 +114,7 @@ export async function DELETE(
 
     const existing = await db.material.findUnique({
       where: { id },
-      include: { _count: { select: { stockMovements: true } } },
+      include: { _count: { select: { stockMovement: true } } },
     })
 
     if (!existing) {

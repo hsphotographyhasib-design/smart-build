@@ -16,7 +16,7 @@ export async function GET(
       include: {
         subContractor: true,
         project: true,
-        milestones: true,
+        milestonePayment: true,
       },
     })
     if (!item) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })

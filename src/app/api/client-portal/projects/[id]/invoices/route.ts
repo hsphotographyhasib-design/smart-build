@@ -35,8 +35,8 @@ export async function GET(
       },
       orderBy: { issueDate: 'desc' },
       include: {
-        items: true,
-        payments: { orderBy: { createdAt: 'desc' } },
+        invoiceItem: true,
+        payment: { orderBy: { createdAt: 'desc' } },
       },
     })
 

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         project: { select: { id: true, name: true, code: true, status: true } },
         createdBy: { select: { id: true, name: true } },
         approvedBy: { select: { id: true, name: true } },
-        _count: { select: { lineItems: true, changeOrders: true, snapshots: true } },
+        _count: { select: { budgetLineItem: true, budgetChangeOrder: true, budgetSnapshot: true } },
       },
       orderBy: { updatedAt: 'desc' },
     })
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         revisedValue: totalOriginal,
         retentionPercent,
         createdById: user.id,
-        lineItems: {
+        budgetLineItem: {
           create: lineItems.map((li: any) => ({
             costCodeId: li.costCodeId,
             originalBudget: Number(li.originalBudget) || 0,
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       include: {
         project: { select: { id: true, name: true, code: true } },
         createdBy: { select: { id: true, name: true } },
-        lineItems: { include: { costCode: true } },
+        budgetLineItem: { include: { costCode: true } },
       },
     })
 

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         progress: true,
         startDate: true,
         endDate: true,
-        tasks: {
+        projectTask: {
           where: taskWhere,
           orderBy: [{ order: 'asc' }, { startDate: 'asc' }],
           select: {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       progress: p.progress,
       startDate: p.startDate?.toISOString() ?? null,
       endDate: p.endDate?.toISOString() ?? null,
-      tasks: p.tasks.map((t) => ({
+      tasks: p.projectTask.map((t) => ({
         id: t.id,
         title: t.title,
         status: t.status,

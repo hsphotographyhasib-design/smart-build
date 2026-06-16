@@ -19,8 +19,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         costCode: { select: { id: true, code: true, name: true } },
         submittedBy: { select: { id: true, name: true, email: true } },
         approvedBy: { select: { id: true, name: true, email: true } },
-        items: true,
-        payments: { orderBy: { date: 'desc' } },
+        invoiceItem: true,
+        payment: { orderBy: { date: 'desc' } },
         workflowInstance: {
           include: {
             workflow: {
@@ -168,7 +168,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(periodEndDate !== undefined ? { periodEndDate: periodEndDate ? new Date(periodEndDate) : null } : {}),
       },
       include: {
-        items: true,
+        invoiceItem: true,
         project: { select: { id: true, name: true, code: true } },
         vendor: { select: { id: true, name: true } },
       },

@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
         where: { status: 'approved' },
         include: {
           project: { select: { id: true, name: true, status: true, budget: true } },
-          lineItems: { select: { originalBudget: true, actualCost: true, committedCost: true, costCode: { select: { name: true } } } },
+          budgetLineItem: { select: { originalBudget: true, actualCost: true, committedCost: true, costCode: { select: { name: true } } } },
         },
       })
 
@@ -177,9 +177,9 @@ export async function GET(request: NextRequest) {
 
       // বাজেট স্বাস্থ্য
       const budgetHealth = budgets.map(b => {
-        const totalBudget = b.lineItems.reduce((s, li) => s + li.originalBudget, 0) || b.originalValue
-        const totalActual = b.lineItems.reduce((s, li) => s + li.actualCost, 0)
-        const totalCommitted = b.lineItems.reduce((s, li) => s + li.committedCost, 0)
+        const totalBudget = b.budgetLineItem.reduce((s, li) => s + li.originalBudget, 0) || b.originalValue
+        const totalActual = b.budgetLineItem.reduce((s, li) => s + li.actualCost, 0)
+        const totalCommitted = b.budgetLineItem.reduce((s, li) => s + li.committedCost, 0)
         const burnRate = totalBudget > 0 ? totalActual / totalBudget : 0
         return {
           projectId: b.project.id,

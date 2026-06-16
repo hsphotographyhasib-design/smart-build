@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            tasks: true,
-            documents: true,
-            dailyNotes: true,
-            invoices: true,
-            clientComplaints: true,
-            milestones: true,
+            projectTask: true,
+            projectDocument: true,
+            dailyNote: true,
+            invoice: true,
+            clientComplaint: true,
+            projectMilestone: true,
           },
         },
       },

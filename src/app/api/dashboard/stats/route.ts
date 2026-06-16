@@ -201,17 +201,17 @@ export async function GET(request: NextRequest) {
         startDate: true,
         endDate: true,
         _count: {
-          select: { tasks: { where: { status: 'completed' } } },
+          select: { projectTask: { where: { status: 'completed' } } },
         },
-        tasks: {
+        projectTask: {
           select: { status: true },
         },
       },
     })
 
     const projectProgressData = projectProgress.map((p) => {
-      const totalTasks = p.tasks.length
-      const completedTasks = p.tasks.filter((t) => t.status === 'completed').length
+      const totalTasks = p.projectTask.length
+      const completedTasks = p.projectTask.filter((t) => t.status === 'completed').length
       return {
         id: p.id,
         name: p.name,

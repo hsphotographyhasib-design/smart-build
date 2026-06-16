@@ -21,8 +21,8 @@
     21→  createdById      String?
     22→  createdAt        DateTime  @default(now())
     23→  expiresAt        DateTime?
-    24→  Project          Project?  @relation(fields: [projectId], references: [id])
-    25→  User             User?     @relation("AIInsight_createdByIdToUser", fields: [createdById], references: [id])
+    24→  project          Project?  @relation(fields: [projectId], references: [id])
+    25→  user             User?     @relation("AIInsight_createdByIdToUser", fields: [createdById], references: [id])
     26→
     27→  @@index([severity])
     28→  @@index([status])
@@ -39,7 +39,7 @@
     39→  status    String   @default("pending")
     40→  createdAt DateTime @default(now())
     41→  updatedAt DateTime
-    42→  Labour    Labour   @relation(fields: [labourId], references: [id], onDelete: Cascade)
+    42→  labour    Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
     43→
     44→  @@index([status])
     45→  @@index([labourId])
@@ -57,8 +57,8 @@
     57→  expiresAt   DateTime?
     58→  createdAt   DateTime  @default(now())
     59→  updatedAt   DateTime
-    60→  Project     Project?  @relation(fields: [projectId], references: [id])
-    61→  User        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
+    60→  project     Project?  @relation(fields: [projectId], references: [id])
+    61→  user        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
     62→
     63→  @@index([targetScope])
     64→  @@index([createdAt])
@@ -80,8 +80,8 @@
     80→  qrCode           String?
     81→  createdAt        DateTime           @default(now())
     82→  updatedAt        DateTime
-    83→  AssetIssue       AssetIssue[]
-    84→  AssetMaintenance AssetMaintenance[]
+    83→  assetIssue       AssetIssue[]
+    84→  assetMaintenance AssetMaintenance[]
     85→
     86→  @@index([status])
     87→  @@index([type])
@@ -98,8 +98,8 @@
     98→  notes      String?
     99→  createdAt  DateTime  @default(now())
    100→  updatedAt  DateTime
-   101→  User       User      @relation(fields: [issuedById], references: [id])
-   102→  Asset      Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+   101→  user       User @relation(fields: [issuedById], references: [id])
+   102→  asset      Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
    103→
    104→  @@index([status])
    105→  @@index([assetId])
@@ -118,7 +118,7 @@
    118→  completedDate DateTime?
    119→  createdAt     DateTime  @default(now())
    120→  updatedAt     DateTime
-   121→  Asset         Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+   121→  asset         Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
    122→
    123→  @@index([status])
    124→  @@index([assetId])
@@ -135,7 +135,7 @@
    135→  verifiedBy  String?
    136→  createdAt   DateTime @default(now())
    137→  updatedAt   DateTime
-   138→  Labour      Labour   @relation(fields: [labourId], references: [id], onDelete: Cascade)
+   138→  labour      Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
    139→
    140→  @@unique([projectId, labourId, date])
    141→  @@index([date])
@@ -153,7 +153,7 @@
    153→  newValues String?
    154→  ipAddress String?
    155→  createdAt DateTime @default(now())
-   156→  User      User?    @relation(fields: [userId], references: [id])
+   156→  user      User?    @relation(fields: [userId], references: [id])
    157→
    158→  @@index([createdAt])
    159→  @@index([userId])
@@ -167,8 +167,8 @@
    167→  total     Float     @default(0)
    168→  createdAt DateTime  @default(now())
    169→  updatedAt DateTime
-   170→  Project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   171→  BOQItem   BOQItem[]
+   170→  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   171→  boqItem   BOQItem[]
    172→
    173→  @@index([projectId])
    174→}
@@ -182,7 +182,7 @@
    182→  quantity    Float
    183→  unitRate    Float
    184→  amount      Float
-   185→  BOQ         BOQ    @relation(fields: [boqId], references: [id], onDelete: Cascade)
+   185→  boq         BOQ @relation(fields: [boqId], references: [id], onDelete: Cascade)
    186→
    187→  @@index([boqId])
    188→}
@@ -204,10 +204,10 @@
    204→  updatedAt                      DateTime
    205→  User_Budget_approvedByIdToUser User?               @relation("Budget_approvedByIdToUser", fields: [approvedById], references: [id])
    206→  User_Budget_createdByIdToUser  User                @relation("Budget_createdByIdToUser", fields: [createdById], references: [id])
-   207→  Project                        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   208→  BudgetChangeOrder              BudgetChangeOrder[]
-   209→  BudgetLineItem                 BudgetLineItem[]
-   210→  BudgetSnapshot                 BudgetSnapshot[]
+   207→  project                        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   208→  budgetChangeOrder              BudgetChangeOrder[]
+   209→  budgetLineItem                 BudgetLineItem[]
+   210→  budgetSnapshot                 BudgetSnapshot[]
    211→
    212→  @@index([status])
    213→  @@index([projectId])
@@ -232,8 +232,8 @@
    232→  appliedAt            DateTime?
    233→  createdAt            DateTime               @default(now())
    234→  updatedAt            DateTime
-   235→  Budget               Budget                 @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-   236→  BudgetLineItemUpdate BudgetLineItemUpdate[]
+   235→  budget               Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+   236→  budgetLineItemUpdate BudgetLineItemUpdate[]
    237→
    238→  @@index([status])
    239→  @@index([budgetId])
@@ -255,8 +255,8 @@
    255→  notes                 String?
    256→  createdAt             DateTime @default(now())
    257→  updatedAt             DateTime
-   258→  CostCode              CostCode @relation(fields: [costCodeId], references: [id])
-   259→  Budget                Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+   258→  costCode              CostCode @relation(fields: [costCodeId], references: [id])
+   259→  budget                Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
    260→
    261→  @@index([costCodeId])
    262→  @@index([budgetId])
@@ -269,7 +269,7 @@
    269→  previousAmount      Float             @default(0)
    270→  newAmount           Float             @default(0)
    271→  changeAmount        Float             @default(0)
-   272→  BudgetChangeOrder   BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
+   272→  budgetChangeOrder   BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
    273→
    274→  @@index([budgetLineItemId])
    275→  @@index([budgetChangeOrderId])
@@ -289,8 +289,8 @@
    289→  snapshotData   String
    290→  createdById    String
    291→  createdAt      DateTime @default(now())
-   292→  User           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
-   293→  Budget         Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+   292→  user           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
+   293→  budget         Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
    294→
    295→  @@index([createdAt])
    296→  @@index([snapshotType])
@@ -313,8 +313,8 @@
    313→  approvedById            String?
    314→  createdAt               DateTime      @default(now())
    315→  updatedAt               DateTime
-   316→  Project                 Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   317→  ChangeOrder             ChangeOrder[]
+   316→  project                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   317→  changeOrder             ChangeOrder[]
    318→
    319→  @@index([status])
    320→  @@index([projectId])
@@ -336,8 +336,8 @@
    336→  approvedById   String?
    337→  createdAt      DateTime     @default(now())
    338→  updatedAt      DateTime
-   339→  ChangeEvent    ChangeEvent? @relation(fields: [changeEventId], references: [id])
-   340→  Project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   339→  changeEvent    ChangeEvent? @relation(fields: [changeEventId], references: [id])
+   340→  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    341→
    342→  @@index([status])
    343→  @@index([projectId])
@@ -359,8 +359,8 @@
    359→  createdById    String
    360→  createdAt      DateTime  @default(now())
    361→  updatedAt      DateTime
-   362→  User           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
-   363→  Project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   362→  user           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
+   363→  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    364→
    365→  @@index([severity])
    366→  @@index([category])
@@ -380,8 +380,8 @@
    380→  sortOrder      Int              @default(0)
    381→  createdAt      DateTime         @default(now())
    382→  updatedAt      DateTime
-   383→  BudgetLineItem BudgetLineItem[]
-   384→  CostCode       CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
+   383→  budgetLineItem BudgetLineItem[]
+   384→  costCode       CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
    385→  other_CostCode CostCode[]       @relation("CostCodeToCostCode")
    386→
    387→  @@index([sortOrder])
@@ -401,8 +401,8 @@
    401→  isActive       Boolean          @default(true)
    402→  createdAt      DateTime         @default(now())
    403→  updatedAt      DateTime
-   404→  SalesInvoice   SalesInvoice[]
-   405→  SalesQuotation SalesQuotation[]
+   404→  salesInvoice   SalesInvoice[]
+   405→  salesQuotation SalesQuotation[]
    406→
    407→  @@index([isActive])
    408→}
@@ -419,8 +419,8 @@
    419→  supervisorId String
    420→  createdAt    DateTime @default(now())
    421→  updatedAt    DateTime
-   422→  User         User     @relation(fields: [supervisorId], references: [id])
-   423→  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   422→  user         User @relation(fields: [supervisorId], references: [id])
+   423→  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    424→
    425→  @@index([date])
    426→  @@index([projectId])
@@ -455,8 +455,8 @@
    455→  createdById  String
    456→  createdAt    DateTime @default(now())
    457→  updatedAt    DateTime
-   458→  User         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
-   459→  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   458→  user         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
+   459→  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    460→
    461→  @@index([date])
    462→  @@index([category])
@@ -477,9 +477,9 @@
    477→  resolvedAt        DateTime?
    478→  createdAt         DateTime            @default(now())
    479→  updatedAt         DateTime
-   480→  User              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
-   481→  Project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   482→  DiscussionComment DiscussionComment[]
+   480→  user              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
+   481→  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   482→  discussionComment DiscussionComment[]
    483→
    484→  @@index([category])
    485→  @@index([status])
@@ -493,7 +493,7 @@
    493→  content      String
    494→  createdAt    DateTime   @default(now())
    495→  updatedAt    DateTime
-   496→  Discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+   496→  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
    497→
    498→  @@index([discussionId])
    499→}
@@ -512,8 +512,8 @@
    512→  isActive     Boolean        @default(true)
    513→  createdAt    DateTime       @default(now())
    514→  updatedAt    DateTime
-   515→  LeaveRequest LeaveRequest[]
-   516→  Loan         Loan[]
+   515→  leaveRequest LeaveRequest[]
+   516→  loan         Loan[]
    517→
    518→  @@index([isActive])
    519→}
@@ -531,8 +531,8 @@
    531→  status      String   @default("pending")
    532→  createdAt   DateTime @default(now())
    533→  updatedAt   DateTime
-   534→  User        User     @relation(fields: [createdById], references: [id])
-   535→  Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   534→  user        User @relation(fields: [createdById], references: [id])
+   535→  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    536→
    537→  @@index([date])
    538→  @@index([category])
@@ -571,9 +571,9 @@
    571→  notes       String?
    572→  createdAt   DateTime      @default(now())
    573→  updatedAt   DateTime
-   574→  Project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   575→  InvoiceItem InvoiceItem[]
-   576→  Payment     Payment[]
+   574→  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   575→  invoiceItem InvoiceItem[]
+   576→  payment     Payment[]
    577→
    578→  @@index([issueDate])
    579→  @@index([status])
@@ -589,7 +589,7 @@
    589→  unitPrice   Float
    590→  amount      Float
    591→  boqItemId   String?
-   592→  Invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+   592→  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
    593→
    594→  @@index([invoiceId])
    595→}
@@ -604,10 +604,10 @@
    604→  isActive       Boolean          @default(true)
    605→  createdAt      DateTime         @default(now())
    606→  updatedAt      DateTime
-   607→  AdvancePayment AdvancePayment[]
-   608→  Attendance     Attendance[]
-   609→  LabourGroup    LabourGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-   610→  Payroll        Payroll[]
+   607→  advancePayment AdvancePayment[]
+   608→  attendance     Attendance[]
+   609→  labourGroup    LabourGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+   610→  payroll        Payroll[]
    611→
    612→  @@index([isActive])
    613→  @@index([groupId])
@@ -620,7 +620,7 @@
    620→  isActive  Boolean  @default(true)
    621→  createdAt DateTime @default(now())
    622→  updatedAt DateTime
-   623→  Labour    Labour[]
+   623→  labour    Labour[]
    624→
    625→  @@index([isActive])
    626→}
@@ -640,7 +640,7 @@
    640→  updatedAt                            DateTime
    641→  User_LeaveRequest_approvedByIdToUser User?    @relation("LeaveRequest_approvedByIdToUser", fields: [approvedById], references: [id])
    642→  User_LeaveRequest_userIdToUser       User?    @relation("LeaveRequest_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
-   643→  Employee                             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+   643→  employee                             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
    644→
    645→  @@index([status])
    646→  @@index([employeeId])
@@ -657,7 +657,7 @@
    657→  status       String   @default("active")
    658→  createdAt    DateTime @default(now())
    659→  updatedAt    DateTime
-   660→  Employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+   660→  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
    661→
    662→  @@index([status])
    663→  @@index([employeeId])
@@ -675,7 +675,7 @@
    675→  unitPrice     Float           @default(0)
    676→  createdAt     DateTime        @default(now())
    677→  updatedAt     DateTime
-   678→  StockMovement StockMovement[]
+   678→  stockMovement StockMovement[]
    679→
    680→  @@index([name])
    681→}
@@ -692,7 +692,7 @@
    692→  status      String    @default("pending")
    693→  createdAt   DateTime  @default(now())
    694→  updatedAt   DateTime
-   695→  WorkOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+   695→  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
    696→
    697→  @@index([status])
    698→  @@index([workOrderId])
@@ -707,7 +707,7 @@
    707→  data      String?
    708→  isRead    Boolean  @default(false)
    709→  createdAt DateTime @default(now())
-   710→  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+   710→  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
    711→
    712→  @@index([createdAt])
    713→  @@index([isRead])
@@ -722,7 +722,7 @@
    722→  sms       Boolean  @default(false)
    723→  createdAt DateTime @default(now())
    724→  updatedAt DateTime
-   725→  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+   725→  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
    726→
    727→  @@index([userId])
    728→}
@@ -743,8 +743,8 @@
    743→  createdById  String
    744→  createdAt    DateTime  @default(now())
    745→  updatedAt    DateTime
-   746→  User         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
-   747→  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   746→  user         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
+   747→  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    748→
    749→  @@index([dueDate])
    750→  @@index([status])
@@ -766,8 +766,8 @@
    766→  notes      String?
    767→  createdAt  DateTime @default(now())
    768→  updatedAt  DateTime
-   769→  Invoice    Invoice? @relation(fields: [invoiceId], references: [id])
-   770→  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   769→  invoice    Invoice? @relation(fields: [invoiceId], references: [id])
+   770→  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    771→
    772→  @@index([date])
    773→  @@index([invoiceId])
@@ -791,7 +791,7 @@
    791→  paidDate          DateTime?
    792→  createdAt         DateTime  @default(now())
    793→  updatedAt         DateTime
-   794→  Labour            Labour    @relation(fields: [labourId], references: [id], onDelete: Cascade)
+   794→  labour            Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
    795→
    796→  @@index([periodStart])
    797→  @@index([labourId])
@@ -812,7 +812,7 @@
    812→  endDate         DateTime?
    813→  createdAt       DateTime  @default(now())
    814→  updatedAt       DateTime
-   815→  Project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   815→  project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    816→
    817→  @@index([status])
    818→  @@index([projectId])
@@ -833,7 +833,7 @@
    833→  isActive        Boolean         @default(true)
    834→  createdAt       DateTime        @default(now())
    835→  updatedAt       DateTime
-   836→  ProductCategory ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+   836→  productCategory ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
    837→
    838→  @@index([isActive])
    839→  @@index([categoryId])
@@ -845,7 +845,7 @@
    845→  isActive  Boolean   @default(true)
    846→  createdAt DateTime  @default(now())
    847→  updatedAt DateTime
-   848→  Product   Product[]
+   848→  product   Product[]
    849→
    850→  @@index([isActive])
    851→}
@@ -866,34 +866,34 @@
    866→  progress             Float                  @default(0)
    867→  createdAt            DateTime               @default(now())
    868→  updatedAt            DateTime
-   869→  AIInsight            AIInsight[]
-   870→  Announcement         Announcement[]
+   869→  aiInsight            AIInsight[]
+   870→  announcement         Announcement[]
    871→  BOQ                  BOQ?
-   872→  Budget               Budget?
-   873→  ChangeEvent          ChangeEvent[]
-   874→  ChangeOrder          ChangeOrder[]
-   875→  ClientComplaint      ClientComplaint[]
-   876→  DailyNote            DailyNote[]
-   877→  DirectCost           DirectCost[]
-   878→  Discussion           Discussion[]
-   879→  Expense              Expense[]
-   880→  Invoice              Invoice[]
-   881→  OpenItem             OpenItem[]
-   882→  Payment              Payment[]
-   883→  PrimeContract        PrimeContract?
-   884→  ProjectComment       ProjectComment[]
-   885→  ProjectCommitment    ProjectCommitment[]
-   886→  ProjectDocument      ProjectDocument[]
-   887→  ProjectMember        ProjectMember[]
-   888→  ProjectMilestone     ProjectMilestone[]
-   889→  ProjectTask          ProjectTask[]
-   890→  ProjectTeamMember    ProjectTeamMember[]
-   891→  PurchaseOrder        PurchaseOrder[]
-   892→  PurchaseRequest      PurchaseRequest[]
-   893→  RFI                  RFI[]
-   894→  StockMovement        StockMovement[]
-   895→  Submittal            Submittal[]
-   896→  WorkOrder            WorkOrder[]
+   872→  budgetData           Budget?
+   873→  changeEvent          ChangeEvent[]
+   874→  changeOrder          ChangeOrder[]
+   875→  clientComplaint      ClientComplaint[]
+   876→  dailyNote            DailyNote[]
+   877→  directCost           DirectCost[]
+   878→  discussion           Discussion[]
+   879→  expense              Expense[]
+   880→  invoice              Invoice[]
+   881→  openItem             OpenItem[]
+   882→  payment              Payment[]
+   883→  primeContract        PrimeContract?
+   884→  projectComment       ProjectComment[]
+   885→  projectCommitment    ProjectCommitment[]
+   886→  projectDocument      ProjectDocument[]
+   887→  projectMember        ProjectMember[]
+   888→  projectMilestone     ProjectMilestone[]
+   889→  projectTask          ProjectTask[]
+   890→  projectTeamMember    ProjectTeamMember[]
+   891→  purchaseOrder        PurchaseOrder[]
+   892→  purchaseRequest      PurchaseRequest[]
+   893→  rfi                  RFI[]
+   894→  stockMovement        StockMovement[]
+   895→  submittal            Submittal[]
+   896→  workOrder            WorkOrder[]
    897→  productivity_logs    productivity_logs[]
    898→  resource_assignments resource_assignments[]
    899→  resource_requests    resource_requests[]
@@ -911,7 +911,7 @@
    911→  content    String
    912→  mentions   String?
    913→  createdAt  DateTime @default(now())
-   914→  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   914→  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    915→
    916→  @@index([createdAt])
    917→  @@index([entityId])
@@ -933,7 +933,7 @@
    933→  endDate       DateTime?
    934→  createdAt     DateTime  @default(now())
    935→  updatedAt     DateTime
-   936→  Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   936→  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    937→
    938→  @@index([status])
    939→  @@index([projectId])
@@ -950,7 +950,7 @@
    950→  uploadedBy String?
    951→  createdAt  DateTime @default(now())
    952→  updatedAt  DateTime
-   953→  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   953→  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    954→
    955→  @@index([type])
    956→  @@index([projectId])
@@ -962,8 +962,8 @@
    962→  userId    String
    963→  role      String   @default("member")
    964→  joinedAt  DateTime @default(now())
-   965→  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-   966→  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   965→  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+   966→  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    967→
    968→  @@unique([projectId, userId])
    969→  @@index([userId])
@@ -979,7 +979,7 @@
    979→  status      String    @default("pending")
    980→  createdAt   DateTime  @default(now())
    981→  updatedAt   DateTime
-   982→  Project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+   982→  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
    983→
    984→  @@index([projectId])
    985→}
@@ -999,10 +999,10 @@
    999→  order             Int           @default(0)
   1000→  createdAt         DateTime      @default(now())
   1001→  updatedAt         DateTime
-  1002→  ProjectTask       ProjectTask?  @relation("ProjectTaskToProjectTask", fields: [parentTaskId], references: [id])
+  1002→  projectTask       ProjectTask?  @relation("ProjectTaskToProjectTask", fields: [parentTaskId], references: [id])
   1003→  other_ProjectTask ProjectTask[] @relation("ProjectTaskToProjectTask")
-  1004→  User              User?         @relation(fields: [assigneeId], references: [id])
-  1005→  Project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1004→  user              User?         @relation(fields: [assigneeId], references: [id])
+  1005→  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   1006→
   1007→  @@index([assigneeId])
   1008→  @@index([status])
@@ -1021,7 +1021,7 @@
   1021→  isActive  Boolean  @default(true)
   1022→  createdAt DateTime @default(now())
   1023→  updatedAt DateTime
-  1024→  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1024→  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   1025→
   1026→  @@index([projectId])
   1027→}
@@ -1041,10 +1041,10 @@
   1041→  notes             String?
   1042→  createdAt         DateTime            @default(now())
   1043→  updatedAt         DateTime
-  1044→  PurchaseRequest   PurchaseRequest?    @relation(fields: [purchaseRequestId], references: [id])
-  1045→  Supplier          Supplier            @relation(fields: [supplierId], references: [id])
-  1046→  Project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1047→  PurchaseOrderItem PurchaseOrderItem[]
+  1044→  purchaseRequest   PurchaseRequest?    @relation(fields: [purchaseRequestId], references: [id])
+  1045→  supplier          Supplier @relation(fields: [supplierId], references: [id])
+  1046→  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1047→  purchaseOrderItem PurchaseOrderItem[]
   1048→
   1049→  @@index([status])
   1050→  @@index([supplierId])
@@ -1061,7 +1061,7 @@
   1061→  unit            String
   1062→  unitPrice       Float
   1063→  amount          Float
-  1064→  PurchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  1064→  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   1065→
   1066→  @@index([purchaseOrderId])
   1067→}
@@ -1077,11 +1077,11 @@
   1077→  approvedById                            String?
   1078→  createdAt                               DateTime              @default(now())
   1079→  updatedAt                               DateTime
-  1080→  PurchaseOrder                           PurchaseOrder?
+  1080→  purchaseOrder                           PurchaseOrder?
   1081→  User_PurchaseRequest_approvedByIdToUser User?                 @relation("PurchaseRequest_approvedByIdToUser", fields: [approvedById], references: [id])
   1082→  User_PurchaseRequest_createdByIdToUser  User                  @relation("PurchaseRequest_createdByIdToUser", fields: [createdById], references: [id])
-  1083→  Project                                 Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1084→  PurchaseRequestItem                     PurchaseRequestItem[]
+  1083→  project                                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1084→  purchaseRequestItem                     PurchaseRequestItem[]
   1085→
   1086→  @@index([status])
   1087→  @@index([projectId])
@@ -1095,7 +1095,7 @@
   1095→  quantity          Float
   1096→  unit              String
   1097→  estimatedPrice    Float?
-  1098→  PurchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  1098→  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
   1099→
   1100→  @@index([purchaseRequestId])
   1101→}
@@ -1117,8 +1117,8 @@
   1117→  closedAt      DateTime?
   1118→  createdAt     DateTime     @default(now())
   1119→  updatedAt     DateTime
-  1120→  Project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1121→  RFIComment    RFIComment[]
+  1120→  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1121→  rfiComment    RFIComment[]
   1122→
   1123→  @@index([category])
   1124→  @@index([status])
@@ -1131,7 +1131,7 @@
   1131→  userId    String
   1132→  content   String
   1133→  createdAt DateTime @default(now())
-  1134→  RFI       RFI      @relation(fields: [rfiId], references: [id], onDelete: Cascade)
+  1134→  rfi       RFI @relation(fields: [rfiId], references: [id], onDelete: Cascade)
   1135→
   1136→  @@index([rfiId])
   1137→}
@@ -1152,8 +1152,8 @@
   1152→  notes       String?
   1153→  createdAt   DateTime  @default(now())
   1154→  updatedAt   DateTime
-  1155→  User        User?     @relation(fields: [userId], references: [id])
-  1156→  Customer    Customer? @relation(fields: [customerId], references: [id])
+  1155→  user        User?     @relation(fields: [userId], references: [id])
+  1156→  customer    Customer? @relation(fields: [customerId], references: [id])
   1157→
   1158→  @@index([status])
   1159→  @@index([customerId])
@@ -1163,7 +1163,7 @@
   1163→  id         String   @id @default(uuid())
   1164→  quoteNo    String   @unique
   1165→  customerId String
-  1166→  Customer   Customer @relation(fields: [customerId], references: [id])
+  1166→  customer   Customer @relation(fields: [customerId], references: [id])
   1167→  validUntil DateTime
   1168→  subtotal   Float    @default(0)
   1169→  tax        Float    @default(0)
@@ -1188,7 +1188,7 @@
   1188→  expiresAt    DateTime
   1189→  createdAt    DateTime  @default(now())
   1190→  revokedAt    DateTime?
-  1191→  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  1191→  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
   1192→
   1193→  @@index([token])
   1194→  @@index([userId])
@@ -1205,8 +1205,8 @@
   1205→  notes      String?
   1206→  date       DateTime @default(now())
   1207→  createdAt  DateTime @default(now())
-  1208→  Project    Project? @relation(fields: [projectId], references: [id])
-  1209→  Material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  1208→  project    Project? @relation(fields: [projectId], references: [id])
+  1209→  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
   1210→
   1211→  @@index([date])
   1212→  @@index([projectId])
@@ -1226,7 +1226,7 @@
   1226→  isActive  Boolean     @default(true)
   1227→  createdAt DateTime    @default(now())
   1228→  updatedAt DateTime
-  1229→  WorkOrder WorkOrder[]
+  1229→  workOrder WorkOrder[]
   1230→
   1231→  @@index([isActive])
   1232→}
@@ -1249,7 +1249,7 @@
   1249→  notes         String?
   1250→  createdAt     DateTime  @default(now())
   1251→  updatedAt     DateTime
-  1252→  Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1252→  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   1253→
   1254→  @@index([category])
   1255→  @@index([status])
@@ -1269,7 +1269,7 @@
   1269→  isActive      Boolean         @default(true)
   1270→  createdAt     DateTime        @default(now())
   1271→  updatedAt     DateTime
-  1272→  PurchaseOrder PurchaseOrder[]
+  1272→  purchaseOrder PurchaseOrder[]
   1273→
   1274→  @@index([isActive])
   1275→}
@@ -1300,193 +1300,339 @@
   1300→  totpEnabled                                        Boolean                 @default(false)
   1301→  createdAt                                          DateTime                @default(now())
   1302→  updatedAt                                          DateTime
-  1303→  AssetIssue                                         AssetIssue[]
+  1303→  assetIssue                                         AssetIssue[]
   1304→  AIInsight_AIInsight_createdByIdToUser              AIInsight[]             @relation("AIInsight_createdByIdToUser")
   1305→  Announcement_Announcement_createdByIdToUser        Announcement[]          @relation("Announcement_createdByIdToUser")
-  1306→  AuditLog                                           AuditLog[]
+  1306→  auditLog                                           AuditLog[]
   1307→  Budget_Budget_approvedByIdToUser                   Budget[]                @relation("Budget_approvedByIdToUser")
   1308→  Budget_Budget_createdByIdToUser                    Budget[]                @relation("Budget_createdByIdToUser")
   1309→  BudgetSnapshot_BudgetSnapshot_createdByIdToUser    BudgetSnapshot[]        @relation("BudgetSnapshot_createdByIdToUser")
   1310→  ClientComplaint_ClientComplaint_createdByIdToUser  ClientComplaint[]       @relation("ClientComplaint_createdByIdToUser")
-  1311→  DailyNote                                          DailyNote[]
+  1311→  dailyNote                                          DailyNote[]
   1312→  DirectCost_DirectCost_createdByIdToUser            DirectCost[]            @relation("DirectCost_createdByIdToUser")
   1313→  Discussion_Discussion_createdByIdToUser            Discussion[]            @relation("Discussion_createdByIdToUser")
-  1314→  Expense                                            Expense[]
+  1314→  expense                                            Expense[]
   1315→  LeaveRequest_LeaveRequest_approvedByIdToUser       LeaveRequest[]          @relation("LeaveRequest_approvedByIdToUser")
   1316→  LeaveRequest_LeaveRequest_userIdToUser             LeaveRequest[]          @relation("LeaveRequest_userIdToUser")
-  1317→  Notification                                       Notification[]
-  1318→  NotificationPreference                             NotificationPreference?
+  1317→  notification                                       Notification[]
+  1318→  notificationPreference                             NotificationPreference?
   1319→  OpenItem_OpenItem_createdByIdToUser                OpenItem[]              @relation("OpenItem_createdByIdToUser")
-  1320→  ProjectMember                                      ProjectMember[]
-  1321→  ProjectTask                                        ProjectTask[]
+  1320→  projectMember                                      ProjectMember[]
+  1321→  projectTask                                        ProjectTask[]
   1322→  PurchaseRequest_PurchaseRequest_approvedByIdToUser PurchaseRequest[]       @relation("PurchaseRequest_approvedByIdToUser")
   1323→  PurchaseRequest_PurchaseRequest_createdByIdToUser  PurchaseRequest[]       @relation("PurchaseRequest_createdByIdToUser")
-  1324→  SalesInvoice                                       SalesInvoice[]
-  1325→  Session                                            Session[]
-  1326→  PasswordReset                                      PasswordReset[]
-  1327→}
-  1328→
-  1329→model WorkOrder {
-  1330→  id               String             @id @default(uuid())
-  1331→  projectId        String
-  1332→  subContractorId  String
-  1333→  orderNo          String
-  1334→  description      String
-  1335→  totalAmount      Float
-  1336→  retentionPercent Float              @default(10)
-  1337→  status           String             @default("draft")
-  1338→  startDate        DateTime?
-  1339→  endDate          DateTime?
-  1340→  createdAt        DateTime           @default(now())
-  1341→  updatedAt        DateTime
-  1342→  MilestonePayment MilestonePayment[]
-  1343→  SubContractor    SubContractor      @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
-  1344→  Project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1345→
-  1346→  @@index([status])
-  1347→  @@index([subContractorId])
-  1348→  @@index([projectId])
-  1349→}
-  1350→
-  1351→model crew_members {
-  1352→  id         String   @id @default(uuid())
-  1353→  crewId     String
-  1354→  workerType String
-  1355→  workerId   String
-  1356→  workerName String
-  1357→  role       String   @default("member")
-  1358→  joinDate   DateTime @default(now())
-  1359→  isActive   Boolean  @default(true)
-  1360→  crews      crews    @relation(fields: [crewId], references: [id], onDelete: Cascade)
-  1361→
-  1362→  @@unique([crewId, workerType, workerId])
-  1363→}
-  1364→
-  1365→model crews {
-  1366→  id           String         @id @default(uuid())
-  1367→  name         String
-  1368→  type         String
-  1369→  leaderName   String?
-  1370→  leaderId     String?
-  1371→  leaderType   String?
-  1372→  description  String?
-  1373→  isActive     Boolean        @default(true)
-  1374→  createdAt    DateTime       @default(now())
-  1375→  updatedAt    DateTime
-  1376→  crew_members crew_members[]
-  1377→}
-  1378→
-  1379→model productivity_logs {
-  1380→  id           String   @id @default(uuid())
-  1381→  projectId    String
-  1382→  date         DateTime
-  1383→  resourceType String
-  1384→  resourceId   String?
-  1385→  crewId       String?
-  1386→  resourceName String?
-  1387→  task         String?
-  1388→  outputUnit   String?
-  1389→  outputQty    Float    @default(0)
-  1390→  hoursWorked  Float    @default(0)
-  1391→  cost         Float    @default(0)
-  1392→  quality      String?
-  1393→  notes        String?
-  1394→  createdById  String
-  1395→  createdAt    DateTime @default(now())
-  1396→  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1397→
-  1398→  @@index([resourceType])
-  1399→  @@index([projectId, date])
-  1400→}
-  1401→
-  1402→model resource_assignments {
-  1403→  id           String    @id @default(uuid())
-  1404→  projectId    String
-  1405→  resourceType String
-  1406→  resourceId   String
-  1407→  resourceName String
-  1408→  role         String?
-  1409→  shift        String    @default("day")
-  1410→  location     String?
-  1411→  startDate    DateTime
-  1412→  endDate      DateTime?
-  1413→  status       String    @default("active")
-  1414→  dailyCost    Float     @default(0)
-  1415→  hourlyCost   Float     @default(0)
-  1416→  notes        String?
-  1417→  createdById  String
-  1418→  createdAt    DateTime  @default(now())
-  1419→  updatedAt    DateTime
-  1420→  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1421→
-  1422→  @@index([startDate])
-  1423→  @@index([status])
-  1424→  @@index([resourceType, resourceId])
-  1425→  @@index([projectId])
-  1426→}
-  1427→
-  1428→model resource_requests {
-  1429→  id                     String    @id @default(uuid())
-  1430→  projectId              String
-  1431→  requestNo              String
-  1432→  resourceType           String
-  1433→  resourceName           String?
-  1434→  quantity               Int       @default(1)
-  1435→  trade                  String?
-  1436→  requiredSkills         String?
-  1437→  startDate              DateTime?
-  1438→  endDate                DateTime?
-  1439→  shift                  String    @default("day")
-  1440→  priority               String    @default("medium")
-  1441→  reason                 String?
-  1442→  status                 String    @default("pending")
-  1443→  requestedById          String
-  1444→  supervisorApprovedById String?
-  1445→  supervisorApprovedAt   DateTime?
-  1446→  pmApprovedById         String?
-  1447→  pmApprovedAt           DateTime?
-  1448→  notes                  String?
-  1449→  createdAt              DateTime  @default(now())
-  1450→  updatedAt              DateTime
-  1451→  Project                Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  1452→
-  1453→  @@index([status])
-  1454→  @@index([projectId])
-  1455→}
-  1456→
-  1457→model skills {
-  1458→  id            String          @id @default(uuid())
-  1459→  name          String          @unique
-  1460→  category      String?
-  1461→  description   String?
-  1462→  createdAt     DateTime        @default(now())
-  1463→  worker_skills worker_skills[]
-  1464→}
-  1465→
-  1466→model worker_skills {
-  1467→  id          String    @id @default(uuid())
-  1468→  skillId     String
-  1469→  workerType  String
-  1470→  workerId    String
-  1471→  proficiency String    @default("intermediate")
-  1472→  verifiedAt  DateTime?
-  1473→  createdAt   DateTime  @default(now())
-  1474→  skills      skills    @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  1475→
-  1476→  @@unique([skillId, workerType, workerId])
-  1477→}
-  1478→
-  1479→model PasswordReset {
-  1480→  id        String    @id @default(uuid())
-  1481→  userId    String
-  1482→  token     String    @unique
-  1483→  email     String
-  1484→  expiresAt DateTime
-  1485→  usedAt    DateTime?
-  1486→  createdAt DateTime  @default(now())
-  1487→  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  1488→
-  1489→  @@index([token])
-  1490→  @@index([userId])
-  1491→}
-  1492→
+  1324→  salesInvoice                                       SalesInvoice[]
+  1325→  session                                            Session[]
+  1326→  passwordReset                                      PasswordReset[]
+  1327→  AssignedConversations WhatsAppConversation[]       @relation("AssignedConversations")
+  1328→}
+  1329→
+  1330→model WorkOrder {
+  1331→  id               String             @id @default(uuid())
+  1332→  projectId        String
+  1333→  subContractorId  String
+  1334→  orderNo          String
+  1335→  description      String
+  1336→  totalAmount      Float
+  1337→  retentionPercent Float              @default(10)
+  1338→  status           String             @default("draft")
+  1339→  startDate        DateTime?
+  1340→  endDate          DateTime?
+  1341→  createdAt        DateTime           @default(now())
+  1342→  updatedAt        DateTime
+  1343→  milestonePayment MilestonePayment[]
+  1344→  subContractor    SubContractor @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
+  1345→  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1346→
+  1347→  @@index([status])
+  1348→  @@index([subContractorId])
+  1349→  @@index([projectId])
+  1350→}
+  1351→
+  1352→model crew_members {
+  1353→  id         String   @id @default(uuid())
+  1354→  crewId     String
+  1355→  workerType String
+  1356→  workerId   String
+  1357→  workerName String
+  1358→  role       String   @default("member")
+  1359→  joinDate   DateTime @default(now())
+  1360→  isActive   Boolean  @default(true)
+  1361→  crews      crews    @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  1362→
+  1363→  @@unique([crewId, workerType, workerId])
+  1364→}
+  1365→
+  1366→model crews {
+  1367→  id           String         @id @default(uuid())
+  1368→  name         String
+  1369→  type         String
+  1370→  leaderName   String?
+  1371→  leaderId     String?
+  1372→  leaderType   String?
+  1373→  description  String?
+  1374→  isActive     Boolean        @default(true)
+  1375→  createdAt    DateTime       @default(now())
+  1376→  updatedAt    DateTime
+  1377→  crew_members crew_members[]
+  1378→}
+  1379→
+  1380→model productivity_logs {
+  1381→  id           String   @id @default(uuid())
+  1382→  projectId    String
+  1383→  date         DateTime
+  1384→  resourceType String
+  1385→  resourceId   String?
+  1386→  crewId       String?
+  1387→  resourceName String?
+  1388→  task         String?
+  1389→  outputUnit   String?
+  1390→  outputQty    Float    @default(0)
+  1391→  hoursWorked  Float    @default(0)
+  1392→  cost         Float    @default(0)
+  1393→  quality      String?
+  1394→  notes        String?
+  1395→  createdById  String
+  1396→  createdAt    DateTime @default(now())
+  1397→  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1398→
+  1399→  @@index([resourceType])
+  1400→  @@index([projectId, date])
+  1401→}
+  1402→
+  1403→model resource_assignments {
+  1404→  id           String    @id @default(uuid())
+  1405→  projectId    String
+  1406→  resourceType String
+  1407→  resourceId   String
+  1408→  resourceName String
+  1409→  role         String?
+  1410→  shift        String    @default("day")
+  1411→  location     String?
+  1412→  startDate    DateTime
+  1413→  endDate      DateTime?
+  1414→  status       String    @default("active")
+  1415→  dailyCost    Float     @default(0)
+  1416→  hourlyCost   Float     @default(0)
+  1417→  notes        String?
+  1418→  createdById  String
+  1419→  createdAt    DateTime  @default(now())
+  1420→  updatedAt    DateTime
+  1421→  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1422→
+  1423→  @@index([startDate])
+  1424→  @@index([status])
+  1425→  @@index([resourceType, resourceId])
+  1426→  @@index([projectId])
+  1427→}
+  1428→
+  1429→model resource_requests {
+  1430→  id                     String    @id @default(uuid())
+  1431→  projectId              String
+  1432→  requestNo              String
+  1433→  resourceType           String
+  1434→  resourceName           String?
+  1435→  quantity               Int       @default(1)
+  1436→  trade                  String?
+  1437→  requiredSkills         String?
+  1438→  startDate              DateTime?
+  1439→  endDate                DateTime?
+  1440→  shift                  String    @default("day")
+  1441→  priority               String    @default("medium")
+  1442→  reason                 String?
+  1443→  status                 String    @default("pending")
+  1444→  requestedById          String
+  1445→  supervisorApprovedById String?
+  1446→  supervisorApprovedAt   DateTime?
+  1447→  pmApprovedById         String?
+  1448→  pmApprovedAt           DateTime?
+  1449→  notes                  String?
+  1450→  createdAt              DateTime  @default(now())
+  1451→  updatedAt              DateTime
+  1452→  project                Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  1453→
+  1454→  @@index([status])
+  1455→  @@index([projectId])
+  1456→}
+  1457→
+  1458→model skills {
+  1459→  id            String          @id @default(uuid())
+  1460→  name          String          @unique
+  1461→  category      String?
+  1462→  description   String?
+  1463→  createdAt     DateTime        @default(now())
+  1464→  worker_skills worker_skills[]
+  1465→}
+  1466→
+  1467→model worker_skills {
+  1468→  id          String    @id @default(uuid())
+  1469→  skillId     String
+  1470→  workerType  String
+  1471→  workerId    String
+  1472→  proficiency String    @default("intermediate")
+  1473→  verifiedAt  DateTime?
+  1474→  createdAt   DateTime  @default(now())
+  1475→  skills      skills    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  1476→
+  1477→  @@unique([skillId, workerType, workerId])
+  1478→}
+  1479→
+  1480→model PasswordReset {
+  1481→  id        String    @id @default(uuid())
+  1482→  userId    String
+  1483→  token     String    @unique
+  1484→  email     String
+  1485→  expiresAt DateTime
+  1486→  usedAt    DateTime?
+  1487→  createdAt DateTime  @default(now())
+  1488→  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  1489→
+  1490→  @@index([token])
+  1491→  @@index([userId])
+  1492→}
+  1493→
+  1494→// ============ WHATSAPP INTEGRATION MODELS ============
+  1495→
+  1496→model WhatsAppAccount {
+  1497→  id                String   @id @default(uuid())
+  1498→  phoneNumber       String   @unique
+  1499→  name              String
+  1500→  sessionId         String?  @unique  // OpenWA session ID
+  1501→  status            String   @default("disconnected")  // connected, disconnected, scanning
+  1502→  qrCode            String?             // Base64 QR code for scanning
+  1503→  lastSyncAt        DateTime?
+  1504→  isActive          Boolean  @default(true)
+  1505→  maxDailyMessages  Int      @default(1000)
+  1506→  businessName      String?
+  1507→  pushName          String?
+  1508→  createdAt         DateTime @default(now())
+  1509→  updatedAt         DateTime
+  1510→
+  1511→  conversations    WhatsAppConversation[]
+  1512→  sentMessages      WhatsAppMessage[]     @relation("SentMessages")
+  1513→  receivedMessages  WhatsAppMessage[]     @relation("ReceivedMessages")
+  1514→  templates         WhatsAppMessageTemplate[]
+  1515→}
+  1516→
+  1517→model WhatsAppContact {
+  1518→  id              String   @id @default(uuid())
+  1519→  waId            String   @unique              // WhatsApp ID (e.g., "628123456789@c.us")
+  1520→  phoneNumber     String
+  1521→  name            String?
+  1522→  pushName        String?
+  1523→  profilePicUrl   String?
+  1524→  isBusiness      Boolean  @default(false)
+  1525→  isBlocked       Boolean  @default(false)
+  1526→  tags            String?                            // JSON array of tags
+  1527→  notes           String?
+  1528→  lastSeenAt      DateTime?
+  1529→  createdAt       DateTime @default(now())
+  1530→  updatedAt       DateTime
+  1531→
+  1532→  conversations  WhatsAppConversation[]
+  1533→  messages       WhatsAppMessage[]     @relation("ContactMessages")
+  1534→}
+  1535→
+  1536→model WhatsAppConversation {
+  1537→  id              String   @id @default(uuid())
+  1538→  waChatId        String                          // WhatsApp chat ID
+  1539→  contactId       String
+  1540→  accountId       String
+  1541→  lastMessageAt   DateTime?
+  1542→  lastMessageText String?
+  1543→  lastMessageType String?
+  1544→  unreadCount     Int      @default(0)
+  1545→  status          String   @default("open")        // open, closed, pending
+  1546→  priority        String   @default("normal")       // low, normal, high, urgent
+  1547→  assignedToId    String?
+  1548→  assignedAt      DateTime?
+  1549→  isGroup         Boolean  @default(false)
+  1550→  groupName       String?
+  1551→  isArchived      Boolean  @default(false)
+  1552→  createdAt       DateTime @default(now())
+  1553→  updatedAt       DateTime
+  1554→
+  1555→  contact         WhatsAppContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  1556→  account         WhatsAppAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  1557→  assignedTo      User?            @relation("AssignedConversations", fields: [assignedToId], references: [id], onDelete: SetNull)
+  1558→  messages        WhatsAppMessage[]
+  1559→  complaintLink   ComplaintWhatsAppLink?
+  1560→
+  1561→  @@index([contactId])
+  1562→  @@index([accountId])
+  1563→  @@index([assignedToId])
+  1564→  @@index([status])
+  1565→  @@index([lastMessageAt])
+  1566→  @@index([waChatId])
+  1567→}
+  1568→
+  1569→model WhatsAppMessage {
+  1570→  id              String   @id @default(uuid())
+  1571→  waMessageId     String?
+  1572→  conversationId  String
+  1573→  contactId       String
+  1574→  sentByAccountId     String?
+  1575→  receivedByAccountId String?
+  1576→  direction       String                          // incoming, outgoing
+  1577→  messageType     String   @default("text")       // text, image, video, audio, document, location, contact, sticker, interactive, template, system, deleted
+  1578→  content         String?
+  1579→  mediaUrl        String?
+  1580→  mediaType       String?                         // image/jpeg, video/mp4, etc.
+  1581→  fileName        String?
+  1582→  fileSize        Int?
+  1583→  caption         String?
+  1584→  thumbnailUrl    String?
+  1585→  location        String?                         // JSON { lat, lng, address }
+  1586→  contactVcard    String?
+  1587→  isStarred       Boolean  @default(false)
+  1588→  isDeleted       Boolean  @default(false)
+  1589→  isRead          Boolean  @default(false)
+  1590→  readAt          DateTime?
+  1591→  repliedToId     String?
+  1592→  repliedToWaId   String?
+  1593→  senderName     String?
+  1594→  senderPhone     String?
+  1595→  waTimestamp     DateTime?
+  1596→  createdAt       DateTime @default(now())
+  1597→
+  1598→  conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  1599→  contact         WhatsAppContact  @relation("ContactMessages", fields: [contactId], references: [id])
+  1600→  sentByAccount   WhatsAppAccount?  @relation("SentMessages", fields: [sentByAccountId], references: [id])
+  1601→  receivedByAccount WhatsAppAccount? @relation("ReceivedMessages", fields: [receivedByAccountId], references: [id])
+  1602→
+  1603→  @@index([conversationId])
+  1604→  @@index([waMessageId])
+  1605→  @@index([sentByAccountId])
+  1606→  @@index([receivedByAccountId])
+  1607→  @@index([createdAt])
+  1608→}
+  1609→
+  1610→model WhatsAppMessageTemplate {
+  1611→  id              String   @id @default(uuid())
+  1612→  name            String
+  1613→  content         String                           // Template text with {{variables}}
+  1614→  category        String   @default("utility")     // utility, marketing, authentication
+  1615→  language        String   @default("en")
+  1616→  variables       String?                         // JSON array of variable names
+  1617→  waTemplateId    String?                          // Meta template ID (if approved)
+  1618→  isApproved      Boolean  @default(false)
+  1619→  isActive        Boolean  @default(true)
+  1620→  accountId       String?
+  1621→  usageCount      Int      @default(0)
+  1622→  createdAt       DateTime @default(now())
+  1623→  updatedAt       DateTime
+  1624→
+  1625→  account         WhatsAppAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  1626→}
+  1627→
+  1628→model ComplaintWhatsAppLink {
+  1629→  id              String   @id @default(uuid())
+  1630→  complaintId     String
+  1631→  conversationId  String   @unique
+  1632→  linkedAt        DateTime @default(now())
+  1633→
+  1634→  conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  1635→
+  1636→  @@unique([complaintId])
+  1637→}
+  1638→

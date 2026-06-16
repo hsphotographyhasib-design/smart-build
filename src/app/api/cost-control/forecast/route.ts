@@ -20,21 +20,21 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       include: {
         project: { select: { id: true, name: true, code: true, status: true, progress: true } },
-        lineItems: {
+        budgetLineItem: {
           include: { costCode: { select: { id: true, code: true, name: true, level: true } } },
         },
       },
     })
 
     const forecastData = budgets.map(b => {
-      const totalOriginal = b.lineItems.reduce((s, li) => s + li.originalBudget, 0)
-      const totalRevised = b.lineItems.reduce((s, li) => s + li.revisedBudget, 0)
-      const totalActual = b.lineItems.reduce((s, li) => s + li.actualCost, 0)
-      const totalCommitted = b.lineItems.reduce((s, li) => s + li.committedCost, 0)
-      const totalEAC = b.lineItems.reduce((s, li) => s + li.estimatedAtCompletion, 0)
-      const totalETC = b.lineItems.reduce((s, li) => s + li.forecastToComplete, 0)
-      const totalEarned = b.lineItems.reduce((s, li) => s + li.earnedRevenue, 0)
-      const totalBilled = b.lineItems.reduce((s, li) => s + li.billedRevenue, 0)
+      const totalOriginal = b.budgetLineItem.reduce((s, li) => s + li.originalBudget, 0)
+      const totalRevised = b.budgetLineItem.reduce((s, li) => s + li.revisedBudget, 0)
+      const totalActual = b.budgetLineItem.reduce((s, li) => s + li.actualCost, 0)
+      const totalCommitted = b.budgetLineItem.reduce((s, li) => s + li.committedCost, 0)
+      const totalEAC = b.budgetLineItem.reduce((s, li) => s + li.estimatedAtCompletion, 0)
+      const totalETC = b.budgetLineItem.reduce((s, li) => s + li.forecastToComplete, 0)
+      const totalEarned = b.budgetLineItem.reduce((s, li) => s + li.earnedRevenue, 0)
+      const totalBilled = b.budgetLineItem.reduce((s, li) => s + li.billedRevenue, 0)
 
       const budget = totalRevised || totalOriginal
       const cpi = budget > 0 && totalActual > 0 ? totalEarned / totalActual : 1
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         toCompleteIndex: Math.round(toCompleteIndex * 1000) / 1000,
 
         // Line item breakdown
-        lineItems: b.lineItems.map(li => {
+        lineItems: b.budgetLineItem.map(li => {
           const liBudget = li.revisedBudget || li.originalBudget
           const liCpi = li.actualCost > 0 && li.earnedRevenue > 0 ? li.earnedRevenue / li.actualCost : null
           const liEac = li.estimatedAtCompletion || (li.actualCost > 0 ? li.actualCost + (li.forecastToComplete || (liBudget - li.actualCost)) : liBudget)

@@ -13,11 +13,11 @@ export async function GET(
 
     const item = await db.customer.findUnique({
       where: { id },
-      include: { _count: { select: { salesInvoices: true } } },
+      include: { _count: { select: { salesInvoice: true } } },
     })
     if (!item) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
-    return NextResponse.json({ success: true, data: { ...item, invoiceCount: item._count.salesInvoices } })
+    return NextResponse.json({ success: true, data: { ...item, invoiceCount: item._count.salesInvoice } })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message || 'Failed' }, { status: 500 })
   }
@@ -75,10 +75,10 @@ export async function DELETE(
 
     const existing = await db.customer.findUnique({
       where: { id },
-      include: { _count: { select: { salesInvoices: true } } },
+      include: { _count: { select: { salesInvoice: true } } },
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    if (existing._count.salesInvoices > 0) {
+    if (existing._count.salesInvoice > 0) {
       return NextResponse.json({ success: false, error: 'Cannot delete with existing invoices' }, { status: 400 })
     }
 

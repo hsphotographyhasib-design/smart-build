@@ -132,13 +132,13 @@ export async function GET(request: NextRequest) {
         // উপকরণ প্রতিবেদন
         const materials = await db.material.findMany({
           include: {
-            stockMovements: {
+            stockMovement: {
               where: { date: { gte: startDate, lte: endDate } },
             },
           },
         })
         data = materials.map((m) => {
-          const movements = m.stockMovements
+          const movements = m.stockMovement
           const totalIn = movements.filter((s) => s.type === 'in').reduce((s, mv) => s + mv.quantity, 0)
           const totalOut = movements.filter((s) => s.type === 'out').reduce((s, mv) => s + mv.quantity, 0)
           return {
@@ -161,15 +161,15 @@ export async function GET(request: NextRequest) {
         // সরবরাহকারী প্রতিবেদন
         const suppliers = await db.supplier.findMany({
           include: {
-            _count: { select: { purchaseOrders: true } },
-            purchaseOrders: {
+            _count: { select: { purchaseOrder: true } },
+            purchaseOrder: {
               where: { orderDate: { gte: startDate, lte: endDate } },
               select: { total: true, status: true },
             },
           },
         })
         data = suppliers.map((s) => {
-          const orders = s.purchaseOrders
+          const orders = s.purchaseOrder
           const totalOrdered = orders.reduce((sum, o) => sum + o.total, 0)
           return {
             name: s.name,
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
         // সম্পদ প্রতিবেদন
         const assets = await db.asset.findMany({
           include: {
-            _count: { select: { issues: true, maintenance: true } },
+            _count: { select: { assetIssue: true, assetMaintenance: true } },
           },
         })
         const typeSummary: Record<string, { count: number; totalValue: number; available: number; issued: number; maintenance: number; disposed: number }> = {}
@@ -213,8 +213,8 @@ export async function GET(request: NextRequest) {
             currentValue: a.currentValue,
             status: a.status,
             location: a.location,
-            issueCount: (a._count as any).issues,
-            maintenanceCount: (a._count as any).maintenance,
+            issueCount: (a._count as any).assetIssue,
+            maintenanceCount: (a._count as any).assetMaintenance,
           })),
         }
         break

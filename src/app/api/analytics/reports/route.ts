@@ -197,14 +197,14 @@ async function generateCostVariance(projectId: string | null) {
     where: budgetWhere,
     include: {
       project: { select: { id: true, name: true, code: true } },
-      lineItems: {
+      budgetLineItem: {
         select: { originalBudget: true, revisedBudget: true, actualCost: true, committedCost: true, costCode: { select: { id: true, name: true, code: true, parentId: true } } },
       },
     },
   })
 
   const result = budgets.map(b => {
-    const items = b.lineItems
+    const items = b.budgetLineItem
     const totalOriginal = items.reduce((s, li) => s + li.originalBudget, 0)
     const totalRevised = items.reduce((s, li) => s + li.revisedBudget, 0)
     const totalActual = items.reduce((s, li) => s + li.actualCost, 0)
@@ -250,12 +250,12 @@ async function generateResourceUtilization(projectId: string | null) {
     where: assignmentWhere,
     include: {
       project: { select: { id: true, name: true, code: true, status: true } },
-      crew: { select: { id: true, name: true, members: { include: { labour: { select: { name: true, isActive: true } } } } } },
+      crew: { select: { id: true, name: true, crew_members: { include: { labour: { select: { name: true, isActive: true } } } } } },
     },
   })
 
   const crews = await db.crew.findMany({
-    include: { members: { include: { labour: { select: { name: true, isActive: true } } } } },
+    include: { crew_members: { include: { labour: { select: { name: true, isActive: true } } } } },
   })
 
   // প্রকল্প অনুযায়ী (সম্পদ)

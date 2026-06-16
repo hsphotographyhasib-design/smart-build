@@ -21,8 +21,8 @@ model AIInsight {
   createdById      String?
   createdAt        DateTime  @default(now())
   expiresAt        DateTime?
-  Project          Project?  @relation(fields: [projectId], references: [id])
-  User             User?     @relation("AIInsight_createdByIdToUser", fields: [createdById], references: [id])
+  project          Project?  @relation(fields: [projectId], references: [id])
+  user             User?     @relation("AIInsight_createdByIdToUser", fields: [createdById], references: [id])
 
   @@index([severity])
   @@index([status])
@@ -39,7 +39,7 @@ model AdvancePayment {
   status    String   @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime
-  Labour    Labour   @relation(fields: [labourId], references: [id], onDelete: Cascade)
+  labour    Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([labourId])
@@ -57,8 +57,8 @@ model Announcement {
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
-  Project     Project?  @relation(fields: [projectId], references: [id])
-  User        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
+  project     Project?  @relation(fields: [projectId], references: [id])
+  user        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
 
   @@index([targetScope])
   @@index([createdAt])
@@ -80,8 +80,8 @@ model Asset {
   qrCode           String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
-  AssetIssue       AssetIssue[]
-  AssetMaintenance AssetMaintenance[]
+  assetIssue       AssetIssue[]
+  assetMaintenance AssetMaintenance[]
 
   @@index([status])
   @@index([type])
@@ -98,8 +98,8 @@ model AssetIssue {
   notes      String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime
-  User       User      @relation(fields: [issuedById], references: [id])
-  Asset      Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user       User @relation(fields: [issuedById], references: [id])
+  asset      Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([assetId])
@@ -118,7 +118,7 @@ model AssetMaintenance {
   completedDate DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime
-  Asset         Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  asset         Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([assetId])
@@ -135,7 +135,7 @@ model Attendance {
   verifiedBy  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime
-  Labour      Labour   @relation(fields: [labourId], references: [id], onDelete: Cascade)
+  labour      Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, labourId, date])
   @@index([date])
@@ -153,7 +153,7 @@ model AuditLog {
   newValues String?
   ipAddress String?
   createdAt DateTime @default(now())
-  User      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([userId])
@@ -167,8 +167,8 @@ model BOQ {
   total     Float     @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime
-  Project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  BOQItem   BOQItem[]
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  boqItem   BOQItem[]
 
   @@index([projectId])
 }
@@ -182,7 +182,7 @@ model BOQItem {
   quantity    Float
   unitRate    Float
   amount      Float
-  BOQ         BOQ    @relation(fields: [boqId], references: [id], onDelete: Cascade)
+  boq         BOQ @relation(fields: [boqId], references: [id], onDelete: Cascade)
 
   @@index([boqId])
 }
@@ -204,10 +204,10 @@ model Budget {
   updatedAt                      DateTime
   User_Budget_approvedByIdToUser User?               @relation("Budget_approvedByIdToUser", fields: [approvedById], references: [id])
   User_Budget_createdByIdToUser  User                @relation("Budget_createdByIdToUser", fields: [createdById], references: [id])
-  Project                        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  BudgetChangeOrder              BudgetChangeOrder[]
-  BudgetLineItem                 BudgetLineItem[]
-  BudgetSnapshot                 BudgetSnapshot[]
+  project                        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  budgetChangeOrder              BudgetChangeOrder[]
+  budgetLineItem                 BudgetLineItem[]
+  budgetSnapshot                 BudgetSnapshot[]
 
   @@index([status])
   @@index([projectId])
@@ -232,8 +232,8 @@ model BudgetChangeOrder {
   appliedAt            DateTime?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime
-  Budget               Budget                 @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  BudgetLineItemUpdate BudgetLineItemUpdate[]
+  budget               Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetLineItemUpdate BudgetLineItemUpdate[]
 
   @@index([status])
   @@index([budgetId])
@@ -255,8 +255,8 @@ model BudgetLineItem {
   notes                 String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime
-  CostCode              CostCode @relation(fields: [costCodeId], references: [id])
-  Budget                Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  costCode              CostCode @relation(fields: [costCodeId], references: [id])
+  budget                Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@index([costCodeId])
   @@index([budgetId])
@@ -269,7 +269,7 @@ model BudgetLineItemUpdate {
   previousAmount      Float             @default(0)
   newAmount           Float             @default(0)
   changeAmount        Float             @default(0)
-  BudgetChangeOrder   BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
+  budgetChangeOrder   BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
 
   @@index([budgetLineItemId])
   @@index([budgetChangeOrderId])
@@ -289,8 +289,8 @@ model BudgetSnapshot {
   snapshotData   String
   createdById    String
   createdAt      DateTime @default(now())
-  User           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
-  Budget         Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  user           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
+  budget         Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([snapshotType])
@@ -313,8 +313,8 @@ model ChangeEvent {
   approvedById            String?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime
-  Project                 Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  ChangeOrder             ChangeOrder[]
+  project                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changeOrder             ChangeOrder[]
 
   @@index([status])
   @@index([projectId])
@@ -336,8 +336,8 @@ model ChangeOrder {
   approvedById   String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  ChangeEvent    ChangeEvent? @relation(fields: [changeEventId], references: [id])
-  Project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changeEvent    ChangeEvent? @relation(fields: [changeEventId], references: [id])
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([projectId])
@@ -359,8 +359,8 @@ model ClientComplaint {
   createdById    String
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
-  User           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
-  Project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([severity])
   @@index([category])
@@ -380,8 +380,8 @@ model CostCode {
   sortOrder      Int              @default(0)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
-  BudgetLineItem BudgetLineItem[]
-  CostCode       CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
+  budgetLineItem BudgetLineItem[]
+  costCode       CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
   other_CostCode CostCode[]       @relation("CostCodeToCostCode")
 
   @@index([sortOrder])
@@ -401,8 +401,8 @@ model Customer {
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
-  SalesInvoice   SalesInvoice[]
-  SalesQuotation SalesQuotation[]
+  salesInvoice   SalesInvoice[]
+  salesQuotation SalesQuotation[]
 
   @@index([isActive])
 }
@@ -419,8 +419,8 @@ model DailyNote {
   supervisorId String
   createdAt    DateTime @default(now())
   updatedAt    DateTime
-  User         User     @relation(fields: [supervisorId], references: [id])
-  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User @relation(fields: [supervisorId], references: [id])
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([projectId])
@@ -455,8 +455,8 @@ model DirectCost {
   createdById  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime
-  User         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
-  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([category])
@@ -477,9 +477,9 @@ model Discussion {
   resolvedAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime
-  User              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
-  Project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  DiscussionComment DiscussionComment[]
+  user              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  discussionComment DiscussionComment[]
 
   @@index([category])
   @@index([status])
@@ -493,7 +493,7 @@ model DiscussionComment {
   content      String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime
-  Discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
 
   @@index([discussionId])
 }
@@ -512,8 +512,8 @@ model Employee {
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime
-  LeaveRequest LeaveRequest[]
-  Loan         Loan[]
+  leaveRequest LeaveRequest[]
+  loan         Loan[]
 
   @@index([isActive])
 }
@@ -531,8 +531,8 @@ model Expense {
   status      String   @default("pending")
   createdAt   DateTime @default(now())
   updatedAt   DateTime
-  User        User     @relation(fields: [createdById], references: [id])
-  Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [createdById], references: [id])
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([category])
@@ -571,9 +571,9 @@ model Invoice {
   notes       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime
-  Project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  InvoiceItem InvoiceItem[]
-  Payment     Payment[]
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invoiceItem InvoiceItem[]
+  payment     Payment[]
 
   @@index([issueDate])
   @@index([status])
@@ -589,7 +589,7 @@ model InvoiceItem {
   unitPrice   Float
   amount      Float
   boqItemId   String?
-  Invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
 }
@@ -604,10 +604,10 @@ model Labour {
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
-  AdvancePayment AdvancePayment[]
-  Attendance     Attendance[]
-  LabourGroup    LabourGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  Payroll        Payroll[]
+  advancePayment AdvancePayment[]
+  attendance     Attendance[]
+  labourGroup    LabourGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payroll        Payroll[]
 
   @@index([isActive])
   @@index([groupId])
@@ -620,7 +620,7 @@ model LabourGroup {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime
-  Labour    Labour[]
+  labour    Labour[]
 
   @@index([isActive])
 }
@@ -640,7 +640,7 @@ model LeaveRequest {
   updatedAt                            DateTime
   User_LeaveRequest_approvedByIdToUser User?    @relation("LeaveRequest_approvedByIdToUser", fields: [approvedById], references: [id])
   User_LeaveRequest_userIdToUser       User?    @relation("LeaveRequest_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
-  Employee                             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee                             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([employeeId])
@@ -657,7 +657,7 @@ model Loan {
   status       String   @default("active")
   createdAt    DateTime @default(now())
   updatedAt    DateTime
-  Employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([employeeId])
@@ -675,7 +675,7 @@ model Material {
   unitPrice     Float           @default(0)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime
-  StockMovement StockMovement[]
+  stockMovement StockMovement[]
 
   @@index([name])
 }
@@ -692,7 +692,7 @@ model MilestonePayment {
   status      String    @default("pending")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
-  WorkOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([workOrderId])
@@ -707,7 +707,7 @@ model Notification {
   data      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([isRead])
@@ -722,7 +722,7 @@ model NotificationPreference {
   sms       Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -743,8 +743,8 @@ model OpenItem {
   createdById  String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
-  User         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
-  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([dueDate])
   @@index([status])
@@ -766,8 +766,8 @@ model Payment {
   notes      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime
-  Invoice    Invoice? @relation(fields: [invoiceId], references: [id])
-  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invoice    Invoice? @relation(fields: [invoiceId], references: [id])
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([invoiceId])
@@ -791,7 +791,7 @@ model Payroll {
   paidDate          DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime
-  Labour            Labour    @relation(fields: [labourId], references: [id], onDelete: Cascade)
+  labour            Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@index([periodStart])
   @@index([labourId])
@@ -812,7 +812,7 @@ model PrimeContract {
   endDate         DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime
-  Project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([projectId])
@@ -833,7 +833,7 @@ model Product {
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime
-  ProductCategory ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  productCategory ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([isActive])
   @@index([categoryId])
@@ -845,7 +845,7 @@ model ProductCategory {
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime
-  Product   Product[]
+  product   Product[]
 
   @@index([isActive])
 }
@@ -866,34 +866,34 @@ model Project {
   progress             Float                  @default(0)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime
-  AIInsight            AIInsight[]
-  Announcement         Announcement[]
+  aiInsight            AIInsight[]
+  announcement         Announcement[]
   BOQ                  BOQ?
-  Budget               Budget?
-  ChangeEvent          ChangeEvent[]
-  ChangeOrder          ChangeOrder[]
-  ClientComplaint      ClientComplaint[]
-  DailyNote            DailyNote[]
-  DirectCost           DirectCost[]
-  Discussion           Discussion[]
-  Expense              Expense[]
-  Invoice              Invoice[]
-  OpenItem             OpenItem[]
-  Payment              Payment[]
-  PrimeContract        PrimeContract?
-  ProjectComment       ProjectComment[]
-  ProjectCommitment    ProjectCommitment[]
-  ProjectDocument      ProjectDocument[]
-  ProjectMember        ProjectMember[]
-  ProjectMilestone     ProjectMilestone[]
-  ProjectTask          ProjectTask[]
-  ProjectTeamMember    ProjectTeamMember[]
-  PurchaseOrder        PurchaseOrder[]
-  PurchaseRequest      PurchaseRequest[]
-  RFI                  RFI[]
-  StockMovement        StockMovement[]
-  Submittal            Submittal[]
-  WorkOrder            WorkOrder[]
+  budgetData           Budget?
+  changeEvent          ChangeEvent[]
+  changeOrder          ChangeOrder[]
+  clientComplaint      ClientComplaint[]
+  dailyNote            DailyNote[]
+  directCost           DirectCost[]
+  discussion           Discussion[]
+  expense              Expense[]
+  invoice              Invoice[]
+  openItem             OpenItem[]
+  payment              Payment[]
+  primeContract        PrimeContract?
+  projectComment       ProjectComment[]
+  projectCommitment    ProjectCommitment[]
+  projectDocument      ProjectDocument[]
+  projectMember        ProjectMember[]
+  projectMilestone     ProjectMilestone[]
+  projectTask          ProjectTask[]
+  projectTeamMember    ProjectTeamMember[]
+  purchaseOrder        PurchaseOrder[]
+  purchaseRequest      PurchaseRequest[]
+  rfi                  RFI[]
+  stockMovement        StockMovement[]
+  submittal            Submittal[]
+  workOrder            WorkOrder[]
   productivity_logs    productivity_logs[]
   resource_assignments resource_assignments[]
   resource_requests    resource_requests[]
@@ -911,7 +911,7 @@ model ProjectComment {
   content    String
   mentions   String?
   createdAt  DateTime @default(now())
-  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([entityId])
@@ -933,7 +933,7 @@ model ProjectCommitment {
   endDate       DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime
-  Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([projectId])
@@ -950,7 +950,7 @@ model ProjectDocument {
   uploadedBy String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime
-  Project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([type])
   @@index([projectId])
@@ -962,8 +962,8 @@ model ProjectMember {
   userId    String
   role      String   @default("member")
   joinedAt  DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
   @@index([userId])
@@ -979,7 +979,7 @@ model ProjectMilestone {
   status      String    @default("pending")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
-  Project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
 }
@@ -999,10 +999,10 @@ model ProjectTask {
   order             Int           @default(0)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime
-  ProjectTask       ProjectTask?  @relation("ProjectTaskToProjectTask", fields: [parentTaskId], references: [id])
+  projectTask       ProjectTask?  @relation("ProjectTaskToProjectTask", fields: [parentTaskId], references: [id])
   other_ProjectTask ProjectTask[] @relation("ProjectTaskToProjectTask")
-  User              User?         @relation(fields: [assigneeId], references: [id])
-  Project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user              User?         @relation(fields: [assigneeId], references: [id])
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([assigneeId])
   @@index([status])
@@ -1021,7 +1021,7 @@ model ProjectTeamMember {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime
-  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
 }
@@ -1041,10 +1041,10 @@ model PurchaseOrder {
   notes             String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime
-  PurchaseRequest   PurchaseRequest?    @relation(fields: [purchaseRequestId], references: [id])
-  Supplier          Supplier            @relation(fields: [supplierId], references: [id])
-  Project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  PurchaseOrderItem PurchaseOrderItem[]
+  purchaseRequest   PurchaseRequest?    @relation(fields: [purchaseRequestId], references: [id])
+  supplier          Supplier @relation(fields: [supplierId], references: [id])
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  purchaseOrderItem PurchaseOrderItem[]
 
   @@index([status])
   @@index([supplierId])
@@ -1061,7 +1061,7 @@ model PurchaseOrderItem {
   unit            String
   unitPrice       Float
   amount          Float
-  PurchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
 
   @@index([purchaseOrderId])
 }
@@ -1077,11 +1077,11 @@ model PurchaseRequest {
   approvedById                            String?
   createdAt                               DateTime              @default(now())
   updatedAt                               DateTime
-  PurchaseOrder                           PurchaseOrder?
+  purchaseOrder                           PurchaseOrder?
   User_PurchaseRequest_approvedByIdToUser User?                 @relation("PurchaseRequest_approvedByIdToUser", fields: [approvedById], references: [id])
   User_PurchaseRequest_createdByIdToUser  User                  @relation("PurchaseRequest_createdByIdToUser", fields: [createdById], references: [id])
-  Project                                 Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  PurchaseRequestItem                     PurchaseRequestItem[]
+  project                                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  purchaseRequestItem                     PurchaseRequestItem[]
 
   @@index([status])
   @@index([projectId])
@@ -1095,7 +1095,7 @@ model PurchaseRequestItem {
   quantity          Float
   unit              String
   estimatedPrice    Float?
-  PurchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
 
   @@index([purchaseRequestId])
 }
@@ -1117,8 +1117,8 @@ model RFI {
   closedAt      DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime
-  Project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  RFIComment    RFIComment[]
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  rfiComment    RFIComment[]
 
   @@index([category])
   @@index([status])
@@ -1131,7 +1131,7 @@ model RFIComment {
   userId    String
   content   String
   createdAt DateTime @default(now())
-  RFI       RFI      @relation(fields: [rfiId], references: [id], onDelete: Cascade)
+  rfi       RFI @relation(fields: [rfiId], references: [id], onDelete: Cascade)
 
   @@index([rfiId])
 }
@@ -1152,8 +1152,8 @@ model SalesInvoice {
   notes       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
-  User        User?     @relation(fields: [userId], references: [id])
-  Customer    Customer? @relation(fields: [customerId], references: [id])
+  user        User?     @relation(fields: [userId], references: [id])
+  customer    Customer? @relation(fields: [customerId], references: [id])
 
   @@index([status])
   @@index([customerId])
@@ -1163,7 +1163,7 @@ model SalesQuotation {
   id         String   @id @default(uuid())
   quoteNo    String   @unique
   customerId String
-  Customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
   validUntil DateTime
   subtotal   Float    @default(0)
   tax        Float    @default(0)
@@ -1188,7 +1188,7 @@ model Session {
   expiresAt    DateTime
   createdAt    DateTime  @default(now())
   revokedAt    DateTime?
-  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
@@ -1205,8 +1205,8 @@ model StockMovement {
   notes      String?
   date       DateTime @default(now())
   createdAt  DateTime @default(now())
-  Project    Project? @relation(fields: [projectId], references: [id])
-  Material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  project    Project? @relation(fields: [projectId], references: [id])
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([projectId])
@@ -1226,7 +1226,7 @@ model SubContractor {
   isActive  Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime
-  WorkOrder WorkOrder[]
+  workOrder WorkOrder[]
 
   @@index([isActive])
 }
@@ -1249,7 +1249,7 @@ model Submittal {
   notes         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime
-  Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([category])
   @@index([status])
@@ -1269,7 +1269,7 @@ model Supplier {
   isActive      Boolean         @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime
-  PurchaseOrder PurchaseOrder[]
+  purchaseOrder PurchaseOrder[]
 
   @@index([isActive])
 }
@@ -1300,30 +1300,30 @@ model User {
   totpEnabled                                        Boolean                 @default(false)
   createdAt                                          DateTime                @default(now())
   updatedAt                                          DateTime
-  AssetIssue                                         AssetIssue[]
+  assetIssue                                         AssetIssue[]
   AIInsight_AIInsight_createdByIdToUser              AIInsight[]             @relation("AIInsight_createdByIdToUser")
   Announcement_Announcement_createdByIdToUser        Announcement[]          @relation("Announcement_createdByIdToUser")
-  AuditLog                                           AuditLog[]
+  auditLog                                           AuditLog[]
   Budget_Budget_approvedByIdToUser                   Budget[]                @relation("Budget_approvedByIdToUser")
   Budget_Budget_createdByIdToUser                    Budget[]                @relation("Budget_createdByIdToUser")
   BudgetSnapshot_BudgetSnapshot_createdByIdToUser    BudgetSnapshot[]        @relation("BudgetSnapshot_createdByIdToUser")
   ClientComplaint_ClientComplaint_createdByIdToUser  ClientComplaint[]       @relation("ClientComplaint_createdByIdToUser")
-  DailyNote                                          DailyNote[]
+  dailyNote                                          DailyNote[]
   DirectCost_DirectCost_createdByIdToUser            DirectCost[]            @relation("DirectCost_createdByIdToUser")
   Discussion_Discussion_createdByIdToUser            Discussion[]            @relation("Discussion_createdByIdToUser")
-  Expense                                            Expense[]
+  expense                                            Expense[]
   LeaveRequest_LeaveRequest_approvedByIdToUser       LeaveRequest[]          @relation("LeaveRequest_approvedByIdToUser")
   LeaveRequest_LeaveRequest_userIdToUser             LeaveRequest[]          @relation("LeaveRequest_userIdToUser")
-  Notification                                       Notification[]
-  NotificationPreference                             NotificationPreference?
+  notification                                       Notification[]
+  notificationPreference                             NotificationPreference?
   OpenItem_OpenItem_createdByIdToUser                OpenItem[]              @relation("OpenItem_createdByIdToUser")
-  ProjectMember                                      ProjectMember[]
-  ProjectTask                                        ProjectTask[]
+  projectMember                                      ProjectMember[]
+  projectTask                                        ProjectTask[]
   PurchaseRequest_PurchaseRequest_approvedByIdToUser PurchaseRequest[]       @relation("PurchaseRequest_approvedByIdToUser")
   PurchaseRequest_PurchaseRequest_createdByIdToUser  PurchaseRequest[]       @relation("PurchaseRequest_createdByIdToUser")
-  SalesInvoice                                       SalesInvoice[]
-  Session                                            Session[]
-  PasswordReset                                      PasswordReset[]
+  salesInvoice                                       SalesInvoice[]
+  session                                            Session[]
+  passwordReset                                      PasswordReset[]
   AssignedConversations WhatsAppConversation[]       @relation("AssignedConversations")
 }
 
@@ -1340,9 +1340,9 @@ model WorkOrder {
   endDate          DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
-  MilestonePayment MilestonePayment[]
-  SubContractor    SubContractor      @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
-  Project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestonePayment MilestonePayment[]
+  subContractor    SubContractor @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
+  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([subContractorId])
@@ -1394,7 +1394,7 @@ model productivity_logs {
   notes        String?
   createdById  String
   createdAt    DateTime @default(now())
-  Project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([resourceType])
   @@index([projectId, date])
@@ -1418,7 +1418,7 @@ model resource_assignments {
   createdById  String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
-  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([startDate])
   @@index([status])
@@ -1449,7 +1449,7 @@ model resource_requests {
   notes                  String?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime
-  Project                Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project                Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([projectId])
@@ -1485,7 +1485,7 @@ model PasswordReset {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
-  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])

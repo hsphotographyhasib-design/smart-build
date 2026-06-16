@@ -12,9 +12,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const invoice = await db.invoice.findUnique({
       where: { id },
       include: {
-        items: true,
+        invoiceItem: true,
         project: { select: { id: true, name: true, code: true } },
-        payments: { select: { id: true, paymentNo: true, amount: true, status: true, date: true } },
+        payment: { select: { id: true, paymentNo: true, amount: true, status: true, date: true } },
       },
     })
 
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         notes: notes !== undefined ? notes : existing.notes,
         status: status || existing.status,
       },
-      include: { items: true, project: { select: { id: true, name: true, code: true } } },
+      include: { invoiceItem: true, project: { select: { id: true, name: true, code: true } } },
     })
 
     await createAuditLog({

@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
           updatedAt: true,
           _count: {
             select: {
-              sessions: { where: { revokedAt: null, expiresAt: { gt: new Date() } } },
+              session: { where: { revokedAt: null, expiresAt: { gt: new Date() } }},
             },
           },
         },
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       data: {
         users: users.map((u) => ({
           ...u,
-          activeSessions: u._count.sessions,
+          activeSessions: u._count.session,
         })),
         pagination: {
           page,

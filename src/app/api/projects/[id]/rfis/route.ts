@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const rfis = await db.rFI.findMany({
       where,
       include: {
-        comments: { orderBy: { createdAt: 'asc' }, take: 50 },
+        rfiComment: { orderBy: { createdAt: 'asc' }, take: 50 },
       },
       orderBy: { createdAt: 'desc' },
     })

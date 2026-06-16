@@ -14,17 +14,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const project = await db.project.findUnique({
       where: { id },
       include: {
-        tasks: { select: { id: true, title: true, status: true, priority: true, startDate: true, endDate: true, progress: true } },
-        milestones: { select: { id: true, name: true, status: true, dueDate: true } },
-        invoices: { select: { id: true, invoiceNo: true, total: true, paidAmount: true, status: true, type: true, issueDate: true } },
-        payments: { select: { id: true, amount: true, status: true, date: true } },
-        expenses: { select: { id: true, amount: true, category: true, date: true, description: true } },
-        purchaseOrders: { select: { id: true, orderNo: true, total: true, status: true, supplierId: true } },
-        resourceAssignments: { select: { id: true, status: true, startDate: true, endDate: true, crewId: true } },
-        productivityLogs: { select: { id: true, date: true, outputQuantity: true, unit: true, notes: true } },
-        dailyNotes: { select: { id: true, date: true, labourCount: true, workDone: true, issues: true } },
-        projectBudget: {
-          include: { lineItems: { select: { id: true, originalBudget: true, revisedBudget: true, actualCost: true, committedCost: true, costCode: { select: { name: true } } } } },
+        projectTask: { select: { id: true, title: true, status: true, priority: true, startDate: true, endDate: true, progress: true } },
+        projectMilestone: { select: { id: true, name: true, status: true, dueDate: true } },
+        invoice: { select: { id: true, invoiceNo: true, total: true, paidAmount: true, status: true, type: true, issueDate: true } },
+        payment: { select: { id: true, amount: true, status: true, date: true } },
+        expense: { select: { id: true, amount: true, category: true, date: true, description: true } },
+        purchaseOrder: { select: { id: true, orderNo: true, total: true, status: true, supplierId: true } },
+        resource_assignments: { select: { id: true, status: true, startDate: true, endDate: true, crewId: true } },
+        productivity_logs: { select: { id: true, date: true, outputQuantity: true, unit: true, notes: true } },
+        dailyNote: { select: { id: true, date: true, labourCount: true, workDone: true, issues: true } },
+        budgetData: {
+          include: { budgetLineItem: { select: { id: true, originalBudget: true, revisedBudget: true, actualCost: true, committedCost: true, costCode: { select: { name: true } } } } },
         },
       },
     })
@@ -36,8 +36,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const now = new Date()
 
     // ===== বাজেট বনাম প্রকৃত =====
-    const budget = project.projectBudget
-    const lineItems = budget?.lineItems || []
+    const budget = project.budgetData
+    const lineItems = budget?.budgetLineItem || []
     const totalBudget = lineItems.reduce((s, li) => s + li.originalBudget, 0) || project.budget
     const totalRevised = lineItems.reduce((s, li) => s + li.revisedBudget, 0) || 0
     const totalActual = lineItems.reduce((s, li) => s + li.actualCost, 0)
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // ===== বিভাগ অনুযায়ী খরচ বিশ্লেষণ =====
     const costByCategory: Record<string, number> = {}
-    for (const exp of project.expenses) {
+    for (const exp of project.expense) {
       const cat = exp.category || 'Uncategorized'
       costByCategory[cat] = (costByCategory[cat] || 0) + exp.amount
     }
@@ -75,12 +75,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     })).sort((a, b) => b.budget - a.budget)
 
     // ===== সময়সূচি কর্মক্ষমতা =====
-    const completedTasks = project.tasks.filter(t => t.status === 'completed')
-    const overdueTasks = project.tasks.filter(t =>
+    const completedTasks = project.projectTask.filter(t => t.status === 'completed')
+    const overdueTasks = project.projectTask.filter(t =>
       t.status !== 'completed' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < now
     )
-    const inProgressTasks = project.tasks.filter(t => t.status === 'in_progress')
-    const overdueMilestones = project.milestones.filter(m =>
+    const inProgressTasks = project.projectTask.filter(t => t.status === 'in_progress')
+    const overdueMilestones = project.projectMilestone.filter(m =>
       m.status !== 'completed' && m.dueDate && new Date(m.dueDate) < now
     )
 
@@ -90,12 +90,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const onTimeRate = totalDone > 0 ? Math.round((onTimeDone / totalDone) * 100) : 100
 
     const timelinePerformance = {
-      totalTasks: project.tasks.length,
+      totalTasks: project.projectTask.length,
       completedTasks: completedTasks.length,
       inProgressTasks: inProgressTasks.length,
       overdueTasks: overdueTasks.length,
-      totalMilestones: project.milestones.length,
-      completedMilestones: project.milestones.filter(m => m.status === 'completed').length,
+      totalMilestones: project.projectMilestone.length,
+      completedMilestones: project.projectMilestone.filter(m => m.status === 'completed').length,
       overdueMilestones: overdueMilestones.length,
       onTimeCompletionRate: onTimeRate,
       daysSinceStart: project.startDate ? Math.floor((now.getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24)) : 0,
@@ -103,24 +103,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // ===== সম্পদ ব্যবহার =====
-    const activeAssignments = project.resourceAssignments.filter(ra => ra.status === 'active')
+    const activeAssignments = project.resource_assignments.filter(ra => ra.status === 'active')
     const resourceUtilization = {
-      totalAssignments: project.resourceAssignments.length,
+      totalAssignments: project.resource_assignments.length,
       activeAssignments: activeAssignments.length,
-      utilizationRate: project.resourceAssignments.length > 0
-        ? Math.round((activeAssignments.length / project.resourceAssignments.length) * 100)
+      utilizationRate: project.resource_assignments.length > 0
+        ? Math.round((activeAssignments.length / project.resource_assignments.length) * 100)
         : 0,
-      avgDailyLabour: project.dailyNotes.length > 0
-        ? Math.round(project.dailyNotes.reduce((s, dn) => s + dn.labourCount, 0) / project.dailyNotes.length)
+      avgDailyLabour: project.dailyNote.length > 0
+        ? Math.round(project.dailyNote.reduce((s, dn) => s + dn.labourCount, 0) / project.dailyNote.length)
         : 0,
     }
 
     // ===== আর্থিক স্বাস্থ্য =====
-    const salesInvoices = project.invoices.filter(i => i.type === 'sales')
+    const salesInvoices = project.invoice.filter(i => i.type === 'sales')
     const totalInvoiced = salesInvoices.reduce((s, i) => s + i.total, 0)
     const totalCollected = salesInvoices.reduce((s, i) => s + i.paidAmount, 0)
-    const totalProjectExpenses = project.expenses.reduce((s, e) => s + e.amount, 0)
-    const purchaseOrderTotal = project.purchaseOrders.reduce((s, po) => s + po.total, 0)
+    const totalProjectExpenses = project.expense.reduce((s, e) => s + e.amount, 0)
+    const purchaseOrderTotal = project.purchaseOrder.reduce((s, po) => s + po.total, 0)
 
     const grossProfit = totalInvoiced - totalProjectExpenses
     const margin = totalInvoiced > 0 ? Math.round((grossProfit / totalInvoiced) * 100) : 0

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const suppliers = await db.supplier.findMany({
       where,
       include: {
-        _count: { select: { purchaseOrders: true } },
+        _count: { select: { purchaseOrder: true } },
       },
       orderBy: { name: 'asc' },
     })
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       gstNo: s.gstNo,
       balance: s.balance,
       isActive: s.isActive,
-      orderCount: s._count.purchaseOrders,
+      orderCount: s._count.purchaseOrder,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString(),
     }))

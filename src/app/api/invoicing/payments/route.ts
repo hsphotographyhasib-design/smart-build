@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         include: {
           project: { select: { id: true, name: true, code: true } },
           vendor: { select: { id: true, name: true } },
-          payments: { orderBy: { date: 'desc' } },
+          payment: { orderBy: { date: 'desc' } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,

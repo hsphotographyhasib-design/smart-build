@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const items = await db.subContractor.findMany({
       where,
-      include: { _count: { select: { workOrders: true } } },
+      include: { _count: { select: { workOrder: true } } },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       gstNo: s.gstNo,
       balance: s.balance,
       isActive: s.isActive,
-      orderCount: s._count.workOrders,
+      orderCount: s._count.workOrder,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString(),
     }))

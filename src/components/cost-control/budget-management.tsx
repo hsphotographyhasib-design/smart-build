@@ -187,7 +187,7 @@ export function BudgetManagement() {
     },
   })
 
-  const lineItems: LineItem[] = budgetDetail?.lineItems || []
+  const lineItems: LineItem[] = budgetDetail?.budgetLineItem || []
 
   return (
     <div className="p-6 space-y-6">
@@ -268,7 +268,7 @@ export function BudgetManagement() {
                           {b.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{b._count.lineItems}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{b._count.budgetLineItem}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{format(new Date(b.createdAt), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

@@ -15,7 +15,7 @@ export async function GET(
     const supplier = await db.supplier.findUnique({
       where: { id },
       include: {
-        _count: { select: { purchaseOrders: true } },
+        _count: { select: { purchaseOrder: true } },
       },
     })
 
@@ -36,7 +36,7 @@ export async function GET(
         gstNo: supplier.gstNo,
         balance: supplier.balance,
         isActive: supplier.isActive,
-        orderCount: supplier._count.purchaseOrders,
+        orderCount: supplier._count.purchaseOrder,
         createdAt: supplier.createdAt.toISOString(),
         updatedAt: supplier.updatedAt.toISOString(),
       },
@@ -112,14 +112,14 @@ export async function DELETE(
 
     const existing = await db.supplier.findUnique({
       where: { id },
-      include: { _count: { select: { purchaseOrders: true } } },
+      include: { _count: { select: { purchaseOrder: true } } },
     })
 
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Supplier not found' }, { status: 404 })
     }
 
-    if (existing._count.purchaseOrders > 0) {
+    if (existing._count.purchaseOrder > 0) {
       return NextResponse.json({ success: false, error: 'Cannot delete supplier with existing purchase orders' }, { status: 400 })
     }
 

@@ -558,3 +558,29 @@ Stage Summary:
 - All frontend components now point to correct API routes
 - Socket events match between hook and mini-service
 
+
+---
+Task ID: session-restore
+Agent: Main Orchestrator
+Task: Session restore, fix critical login bug, verify OpenWA integration
+
+Work Log:
+- Restored sandbox environment (npm install, Prisma generate, all services)
+- Started Next.js dev server, WhatsApp realtime (port 3006), Maintenance notify (port 3005)
+- Diagnosed critical login flow bug: /api/auth/me returns 401 after successful login
+- Root cause: Prisma Session model had PascalCase relation field `User User @relation(...)` but code used `include: { user: true }`. The Prisma client respects capital U field name, so `user` (lowercase) was "Unknown field".
+- Fixed ALL PascalCase relation fields in Prisma schema: 80 fields in first pass (sub-agent), 67 more in second pass (sub-agent). Total ~147 field name corrections.
+- Fixed ~120 code references across 25 files that used old PascalCase field names
+- Fixed dashboard stats route: `tasks` → `projectTask`, `_count.tasks` → `_count.projectTask`
+- Browser-verified: Login → Dashboard flow works end-to-end
+- Verified all core API endpoints: login (200), auth/me (200), dashboard stats (200), projects (200)
+- Confirmed WhatsApp API routes exist (15 routes) and OpenWA client is configured
+- Cleaned up debug endpoint and temporary files
+
+Stage Summary:
+- CRITICAL BUG FIXED: Login flow was completely broken due to Prisma PascalCase relation fields causing verifyAuth() to silently fail and clear the session
+- 147 Prisma relation fields renamed from PascalCase to camelCase
+- 120 code references updated across 25 files
+- Login, auth/me, dashboard stats, projects — all working
+- WhatsApp backend integration (OpenWA) is code-complete; no frontend page yet
+- Dev server requires detached node spawn (spawn-dev.mjs pattern) to survive in sandbox

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       where: { id },
       include: {
         project: { select: { id: true, name: true, code: true } },
-        comments: { orderBy: { createdAt: 'asc' } },
+        discussionComment: { orderBy: { createdAt: 'asc' } },
       },
     })
 

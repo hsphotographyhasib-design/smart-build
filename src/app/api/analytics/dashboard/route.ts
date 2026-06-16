@@ -66,14 +66,14 @@ export async function GET(request: NextRequest) {
     // গড় প্রকল্প মার্জিন
     const projectsWithBudgets = await db.project.findMany({
       where: { status: { in: ['active', 'completed'] } },
-      select: { id: true, budget: true, invoices: { select: { total: true, type: true } }, expenses: { select: { amount: true } } },
+      select: { id: true, budget: true, invoice: { select: { total: true, type: true } }, expense: { select: { amount: true } } },
     })
 
     let totalMargin = 0
     let marginCount = 0
     for (const p of projectsWithBudgets) {
-      const revenue = p.invoices.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0)
-      const costs = p.expenses.reduce((s, e) => s + e.amount, 0)
+      const revenue = p.invoice.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0)
+      const costs = p.expense.reduce((s, e) => s + e.amount, 0)
       if (revenue > 0) {
         totalMargin += ((revenue - costs) / revenue) * 100
         marginCount++
@@ -127,8 +127,8 @@ export async function GET(request: NextRequest) {
       where: { status: { in: ['active', 'completed'] } },
       select: {
         id: true, name: true, code: true, status: true, budget: true, progress: true,
-        invoices: { select: { total: true, type: true, paidAmount: true } },
-        expenses: { select: { amount: true } },
+        invoice: { select: { total: true, type: true, paidAmount: true } },
+        expense: { select: { amount: true } },
       },
       take: 10,
     })
@@ -139,10 +139,10 @@ export async function GET(request: NextRequest) {
         name: p.name,
         code: p.code,
         status: p.status,
-        revenue: p.invoices.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0),
-        collected: p.invoices.filter(i => i.type === 'sales').reduce((s, i) => s + i.paidAmount, 0),
-        expenses: p.expenses.reduce((s, e) => s + e.amount, 0),
-        profit: p.invoices.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0) - p.expenses.reduce((s, e) => s + e.amount, 0),
+        revenue: p.invoice.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0),
+        collected: p.invoice.filter(i => i.type === 'sales').reduce((s, i) => s + i.paidAmount, 0),
+        expenses: p.expense.reduce((s, e) => s + e.amount, 0),
+        profit: p.invoice.filter(i => i.type === 'sales').reduce((s, i) => s + i.total, 0) - p.expense.reduce((s, e) => s + e.amount, 0),
         budget: p.budget,
         progress: p.progress,
       }))
@@ -161,13 +161,13 @@ export async function GET(request: NextRequest) {
       where: { status: 'approved' },
       include: {
         project: { select: { id: true, name: true, status: true } },
-        lineItems: { select: { originalBudget: true, actualCost: true } },
+        budgetLineItem: { select: { originalBudget: true, actualCost: true } },
       },
     })
 
     const budgetHealth = budgets.map(b => {
-      const totalBudget = b.lineItems.reduce((s, li) => s + li.originalBudget, 0) || b.originalValue
-      const totalActual = b.lineItems.reduce((s, li) => s + li.actualCost, 0)
+      const totalBudget = b.budgetLineItem.reduce((s, li) => s + li.originalBudget, 0) || b.originalValue
+      const totalActual = b.budgetLineItem.reduce((s, li) => s + li.actualCost, 0)
       return {
         projectName: b.project.name,
         projectId: b.project.id,

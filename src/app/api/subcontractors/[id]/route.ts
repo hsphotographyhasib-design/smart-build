@@ -13,11 +13,11 @@ export async function GET(
 
     const item = await db.subContractor.findUnique({
       where: { id },
-      include: { _count: { select: { workOrders: true } } },
+      include: { _count: { select: { workOrder: true } } },
     })
     if (!item) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
 
-    return NextResponse.json({ success: true, data: { ...item, orderCount: item._count.workOrders } })
+    return NextResponse.json({ success: true, data: { ...item, orderCount: item._count.workOrder } })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message || 'Failed' }, { status: 500 })
   }
@@ -82,10 +82,10 @@ export async function DELETE(
 
     const existing = await db.subContractor.findUnique({
       where: { id },
-      include: { _count: { select: { workOrders: true } } },
+      include: { _count: { select: { workOrder: true } } },
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
-    if (existing._count.workOrders > 0) {
+    if (existing._count.workOrder > 0) {
       return NextResponse.json({ success: false, error: 'Cannot delete with existing work orders' }, { status: 400 })
     }
 

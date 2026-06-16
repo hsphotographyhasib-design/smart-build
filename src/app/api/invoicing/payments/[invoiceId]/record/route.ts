@@ -80,7 +80,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       include: {
         project: { select: { id: true, name: true, code: true } },
         vendor: { select: { id: true, name: true } },
-        payments: { orderBy: { date: 'desc' } },
+        payment: { orderBy: { date: 'desc' } },
       },
     })
 
