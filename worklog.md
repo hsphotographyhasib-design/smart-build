@@ -584,3 +584,30 @@ Stage Summary:
 - Login, auth/me, dashboard stats, projects — all working
 - WhatsApp backend integration (OpenWA) is code-complete; no frontend page yet
 - Dev server requires detached node spawn (spawn-dev.mjs pattern) to survive in sandbox
+
+---
+Task ID: global-search
+Agent: Main Orchestrator
+Task: Build Enterprise Global Search System
+
+Work Log:
+- Explored existing layout: AppHeader (desktop), MobileHeader (mobile), no existing search
+- Backend: Created search API route (GET /api/search) with 16 module categories searched in parallel
+- Backend: Added SearchHistory and SearchAnalytics Prisma models
+- Backend: Added database indexes on Project.name, WorkOrder.orderNo, User.name, Asset.name, Supplier.name
+- Backend: Added RBAC permissions for /api/search routes (all authenticated users)
+- Backend: Implemented RBAC filtering (clients see own records, labour sees assigned tasks, finance-only invoice/payment)
+- Frontend: Created useGlobalSearch hook with Zustand store, 300ms debounce, 5min in-memory cache, localStorage history
+- Frontend: Created useVoiceSearch hook (Web Speech API)
+- Frontend: Created GlobalSearchDialog component (Command palette style)
+- Frontend: Created SearchTrigger component (desktop: search bar with ⌘K, mobile: icon button)
+- Integrated SearchTrigger + GlobalSearchDialog into both desktop AppHeader and MobileHeader
+- Fixed API response format to match frontend types (categories array with label/icon)
+- Fixed RBAC middleware blocking search requests (added to ROUTE_PERMISSIONS)
+- Browser verified: search returns live results across Projects, Customers, Payments, Purchase Orders, etc.
+
+Stage Summary:
+- Files created: src/app/api/search/route.ts, src/app/api/search/history/route.ts, src/app/api/search/history/[query]/route.ts, src/components/search/global-search.tsx, src/components/search/search-trigger.tsx, src/hooks/use-global-search.ts, src/hooks/use-voice-search.ts
+- Files modified: src/components/layout/app-layout.tsx (header integration), src/components/layout/mobile-header.tsx (mobile integration), src/lib/rbac.ts (search permissions), prisma/schema.prisma (SearchHistory, SearchAnalytics models, indexes)
+- Search works across 16 categories: Projects, Complaints, Work Orders, Customers, Invoices, Payments, POs, PRs, Suppliers, Inventory, Employees, Assets, Attendance, Tasks, Users, Audit Logs
+- Features: Cmd+K shortcut, voice search, recent history, quick actions, category filters, status badges, RBAC-aware

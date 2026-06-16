@@ -20,6 +20,8 @@ import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { SearchTrigger } from '@/components/search/search-trigger'
+import { GlobalSearchDialog } from '@/components/search/global-search'
 
 interface NavItem {
   label: string
@@ -300,36 +302,40 @@ export function AppHeader() {
   const { breadcrumbs, navigate } = useAppStore()
 
   return (
-    <header className="h-14 border-b bg-card flex items-center justify-between px-4 sticky top-0 z-40">
-      <div className="flex items-center gap-2">
-        <nav className="flex items-center gap-1.5 text-sm">
-          {breadcrumbs.map((crumb, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <span className="text-muted-foreground">/</span>}
-              <button
-                onClick={() => crumb.page && navigate(crumb.page, crumb.params)}
-                className={cn(
-                  'hover:text-foreground transition-colors',
-                  i === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
-                )}
-              >
-                {crumb.label}
-              </button>
-            </React.Fragment>
-          ))}
-        </nav>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9"
-          onClick={() => navigate('notifications')}
-        >
-          <Bell className="h-4 w-4" />
-        </Button>
-      </div>
-    </header>
+    <>
+      <GlobalSearchDialog />
+      <header className="h-14 border-b bg-card flex items-center justify-between px-4 sticky top-0 z-40">
+        <div className="flex items-center gap-2">
+          <nav className="flex items-center gap-1.5 text-sm">
+            {breadcrumbs.map((crumb, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="text-muted-foreground">/</span>}
+                <button
+                  onClick={() => crumb.page && navigate(crumb.page, crumb.params)}
+                  className={cn(
+                    'hover:text-foreground transition-colors',
+                    i === breadcrumbs.length - 1 ? 'font-medium text-foreground' : 'text-muted-foreground'
+                  )}
+                >
+                  {crumb.label}
+                </button>
+              </React.Fragment>
+            ))}
+          </nav>
+        </div>
+        <div className="flex items-center gap-2">
+          <SearchTrigger />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => navigate('notifications')}
+          >
+            <Bell className="h-4 w-4" />
+          </Button>
+        </div>
+      </header>
+    </>
   )
 }
 

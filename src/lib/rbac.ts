@@ -259,6 +259,11 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { pattern: '/api/dashboard/notifications', methods: { GET: ['*'] } },
   { pattern: '/api/dashboard/notifications/mark-all-read', methods: { POST: ['*'] } },
 
+  // ============ SEARCH ============
+  { pattern: '/api/search', methods: { GET: ['*'] }, description: 'Global search' },
+  { pattern: '/api/search/history', methods: { GET: ['*'], DELETE: ['*'] }, description: 'Search history' },
+  { pattern: '/api/search/history/', methods: { POST: ['*'] }, description: 'Add search history' },
+
   // ============ PROJECTS ============
   { pattern: '/api/projects', methods: {
     GET: ['super_admin', 'admin', 'supervisor', 'hr_manager', 'accountant', 'store_manager', 'auditor', 'client'],

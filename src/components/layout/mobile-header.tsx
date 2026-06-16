@@ -25,6 +25,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SessionTimerBadge } from '@/components/layout/session-timer-badge'
 import { useMenuData, IconByName, findActiveInfo } from '@/hooks/use-menu-data'
+import { SearchTrigger } from '@/components/search/search-trigger'
+import { GlobalSearchDialog } from '@/components/search/global-search'
 
 // ─────────────────────────────────────────────────────────────────────
 // অ্যানিমেশন
@@ -147,6 +149,7 @@ export function MobileHeader() {
 
   return (
     <>
+      <GlobalSearchDialog />
       {/* মোবাইল হেডার বার */}
       <header className="md:hidden sticky top-0 z-50 h-14 bg-card border-b flex items-center justify-between px-3">
         <Button variant="ghost" size="icon" className="h-11 w-11 -ml-1" onClick={() => setSheetOpen(true)} aria-label="Open navigation menu">
@@ -159,6 +162,7 @@ export function MobileHeader() {
           <span className="font-bold text-xs tracking-wider text-foreground">SMARTBUILD</span>
         </div>
         <div className="flex items-center gap-1">
+          <SearchTrigger />
           <SessionTimerBadge />
           <Button variant="ghost" size="icon" className="h-11 w-11 relative -mr-1" onClick={() => navigate('notifications')} aria-label="Notifications">
             <Bell className="h-5 w-5" />

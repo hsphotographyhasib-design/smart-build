@@ -83,6 +83,7 @@ model Asset {
   assetIssue       AssetIssue[]
   assetMaintenance AssetMaintenance[]
 
+  @@index([name])
   @@index([status])
   @@index([type])
 }
@@ -898,6 +899,7 @@ model Project {
   resource_assignments resource_assignments[]
   resource_requests    resource_requests[]
 
+  @@index([name])
   @@index([clientId])
   @@index([status])
 }
@@ -1271,6 +1273,7 @@ model Supplier {
   updatedAt     DateTime
   purchaseOrder PurchaseOrder[]
 
+  @@index([name])
   @@index([isActive])
 }
 
@@ -1325,6 +1328,10 @@ model User {
   session                                            Session[]
   passwordReset                                      PasswordReset[]
   AssignedConversations WhatsAppConversation[]       @relation("AssignedConversations")
+  searchHistory                                       SearchHistory[]
+  searchAnalytics                                     SearchAnalytics[]
+
+  @@index([name])
 }
 
 model WorkOrder {
@@ -1344,6 +1351,7 @@ model WorkOrder {
   subContractor    SubContractor @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
   project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([orderNo])
   @@index([status])
   @@index([subContractorId])
   @@index([projectId])
@@ -1634,4 +1642,33 @@ model ComplaintWhatsAppLink {
   conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@unique([complaintId])
+}
+
+model SearchHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  query       String
+  category    String?
+  resultCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([query])
+}
+
+model SearchAnalytics {
+  id            String   @id @default(uuid())
+  userId        String?
+  query         String
+  resultsFound  Int      @default(0)
+  category      String?
+  clickedResult String?
+  createdAt     DateTime @default(now())
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([query])
+  @@index([createdAt])
+  @@index([userId])
 }
