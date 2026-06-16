@@ -66,6 +66,9 @@ const iconMap: Record<string, React.ComponentType<React.ComponentProps<'svg'>>> 
   GitCompare: Icons.GitCompare,
   Clipboard: Icons.Clipboard, AlertTriangle: Icons.AlertTriangle, Calendar: Icons.Calendar,
   Building2: Icons.Building2, CalendarClock: Icons.CalendarClock, Gavel: Icons.Gavel,
+  Smartphone: Icons.Smartphone, QrCode: Icons.QrCode, Bot: Icons.Bot,
+  HeadphonesIcon: Icons.Headphones, ZapIcon: Icons.Zap,
+  Thermometer: Icons.Thermometer, Droplets: Icons.Droplets, Plug: Icons.Plug,
 }
 
 function getIcon(name: string): React.ComponentType<React.ComponentProps<'svg'>> {

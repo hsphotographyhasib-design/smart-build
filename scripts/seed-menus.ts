@@ -69,16 +69,16 @@ const menuData: GroupDef[] = [
     { label: 'Dashboard', page: 'maintenance-dashboard', icon: 'Shield', sortOrder: 0 },
     { label: 'Service Requests', page: 'maintenance-service-requests', icon: 'Clipboard', sortOrder: 1 },
     { label: 'Complaints', page: 'maintenance-complaints', icon: 'AlertTriangle', sortOrder: 2 },
-    { label: 'WhatsApp Complaints', page: 'maintenance-whatsapp', icon: 'MessageCircle', sortOrder: 3 },
-    { label: 'Work Orders', page: 'maintenance-work-orders', icon: 'Wrench', sortOrder: 4 },
-    { label: 'Preventive Maintenance', page: 'maintenance-pm', icon: 'Calendar', sortOrder: 5 },
-    { label: 'AMC Contracts', page: 'maintenance-amc', icon: 'FileCheck', sortOrder: 6 },
-    { label: 'Dispatch Center', page: 'maintenance-dispatch', icon: 'MapPin', sortOrder: 7 },
-    { label: 'Technicians', page: 'maintenance-technician-portal', icon: 'Users', sortOrder: 8 },
-    { label: 'Service Reports', page: 'maintenance-service-reports', icon: 'ClipboardCheck', sortOrder: 9 },
-    { label: 'Maintenance Reports', page: 'maintenance-reports', icon: 'FileBarChart', sortOrder: 10 },
-    { label: 'Sites', page: 'maintenance-sites', icon: 'Building2', sortOrder: 11 },
-    { label: 'SLA Management', page: 'maintenance-sla', icon: 'ShieldCheck', sortOrder: 12 },
+    { label: 'Work Orders', page: 'maintenance-work-orders-maintenance', icon: 'Wrench', sortOrder: 3 },
+    { label: 'Preventive Maintenance', page: 'maintenance-pm-schedules', icon: 'Calendar', sortOrder: 4 },
+    { label: 'AMC Contracts', page: 'maintenance-amc', icon: 'FileCheck', sortOrder: 5 },
+    { label: 'Dispatch Center', page: 'maintenance-dispatch', icon: 'MapPin', sortOrder: 6 },
+    { label: 'Technicians', page: 'maintenance-technicians', icon: 'Users', sortOrder: 7 },
+    { label: 'Material Requests', page: 'maintenance-materials', icon: 'Package', sortOrder: 8 },
+    { label: 'Maintenance Sites', page: 'maintenance-sites', icon: 'Building2', sortOrder: 9 },
+    { label: 'SLA Management', page: 'maintenance-sla', icon: 'ShieldCheck', sortOrder: 10 },
+    { label: 'Service Reports', page: 'maintenance-reports', icon: 'ClipboardCheck', sortOrder: 11 },
+    { label: 'Maintenance Invoices', page: 'maintenance-invoices-maintenance', icon: 'Receipt', sortOrder: 12 },
   ]},
   { code: 'procurement', label: 'Procurement', icon: 'ShoppingCart', sortOrder: 6, items: [
     { label: 'Purchase Requests', page: 'purchase-requests', icon: 'ShoppingCart', sortOrder: 0 },
@@ -156,6 +156,13 @@ const menuData: GroupDef[] = [
     { label: 'Audit Log', page: 'audit-log', icon: 'ShieldCheck', sortOrder: 2 },
     { label: 'Notifications', page: 'notifications', icon: 'Bell', sortOrder: 3 },
   ]},
+  { code: 'whatsapp', label: 'WhatsApp', icon: 'MessageCircle', sortOrder: 14, items: [
+    { label: 'Complaints Dashboard', page: 'whatsapp-complaints', icon: 'Smartphone', sortOrder: 0 },
+    { label: 'Inbox', page: 'whatsapp-inbox', icon: 'MessageCircle', sortOrder: 1 },
+    { label: 'Dispatch', page: 'whatsapp-dispatch', icon: 'MapPin', sortOrder: 2 },
+    { label: 'Technician Portal', page: 'whatsapp-technician', icon: 'Users', sortOrder: 3 },
+    { label: 'Admin Settings', page: 'whatsapp-admin', icon: 'Settings', sortOrder: 4 },
+  ]},
   { code: 'settings', label: 'Settings', icon: 'Settings', sortOrder: 15, items: [
     { label: 'Users', page: 'users', icon: 'UserCog', sortOrder: 0 },
     { label: 'Roles & Permissions', page: 'roles-permissions', icon: 'ShieldCheck', sortOrder: 1 },
@@ -167,21 +174,21 @@ const menuData: GroupDef[] = [
 const rolePermissions: Record<string, string[]> = {
   admin: [],
   project_manager: ['dashboard','project-management','tender-management','scheduling-gantt','resource-management','procurement','finance','hr-payroll','collaboration','client-portal','reports'],
-  supervisor: ['dashboard','project-management','scheduling-gantt','resource-management','maintenance-management','procurement','inventory','finance','hr-payroll','asset-management','collaboration','reports'],
+  supervisor: ['dashboard','project-management','scheduling-gantt','resource-management','maintenance-management','procurement','inventory','finance','hr-payroll','asset-management','collaboration','reports','whatsapp'],
   accountant: ['dashboard','finance','reports'],
   site_engineer: ['dashboard','project-management','scheduling-gantt','procurement','hr-payroll','resource-management','maintenance-management','inventory'],
   qs: ['dashboard','project-management','scheduling-gantt','procurement','inventory','resource-management','finance'],
   hr_manager: ['dashboard','hr-payroll','reports','settings'],
   store_manager: ['dashboard','procurement','inventory','resource-management','reports'],
   client: ['dashboard','client-portal','reports'],
-  technician: ['dashboard','maintenance-management','hr-payroll'],
-  dispatcher: ['dashboard','maintenance-management'],
+  technician: ['dashboard','maintenance-management','whatsapp','hr-payroll'],
+  dispatcher: ['dashboard','maintenance-management','whatsapp'],
   labour: ['dashboard','hr-payroll'],
 }
 
 async function seed() {
   console.log('Seeding menu configuration...')
-  await prisma.roleMenuPermission.deleteMany()
+  await prisma.roleAccess.deleteMany()
   await prisma.menuItem.deleteMany()
   await prisma.menuGroup.deleteMany()
   console.log('Cleared existing menu data')
@@ -211,8 +218,8 @@ async function seed() {
     const allGroups = await prisma.menuGroup.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } })
     const groups = codes.length === 0 ? allGroups : allGroups.filter(g => codes.includes(g.code))
     for (const g of groups) {
-      await prisma.roleMenuPermission.upsert({
-        where: { roleId_groupId: { roleId: role, groupId: g.id } },
+      await prisma.roleAccess.upsert({
+        where: { groupId_roleId: { groupId: g.id, roleId: role } },
         create: { roleId: role, groupId: g.id, canView: true },
         update: { canView: true },
       })

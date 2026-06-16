@@ -222,13 +222,39 @@ async function processIncomingMessage(
   const account = await db.whatsAppAccount.findUnique({ where: { id: accountId } })
   if (!account || account.status !== 'connected' || !account.sessionId) return
 
-  // Handle STATUS command
-  if (textContent && textContent.trim().toUpperCase().startsWith('STATUS')) {
-    await handleStatusQuery(conversation.id, contact, account.sessionId)
-    return
+  // ── Bot command routing (before AI classification) ────────────
+  if (textContent) {
+    const trimmed = textContent.trim().toUpperCase()
+    const isBotCommand =
+      trimmed.startsWith('STATUS') ||
+      trimmed.startsWith('MY REQUESTS') ||
+      trimmed === 'MYREQUESTS' ||
+      trimmed === 'HELP' ||
+      trimmed === 'HELP ' ||
+      trimmed === 'AMC' ||
+      trimmed === 'AMC ' ||
+      trimmed === 'SCHEDULE' ||
+      trimmed === 'SCHEDULE '
+
+    if (isBotCommand) {
+      try {
+        const { processBotCommand } = await import('@/app/api/whatsapp/bot-commands/route')
+        await processBotCommand({
+          sessionId: account.sessionId,
+          conversationId: conversation.id,
+          contactId: contact.id,
+          contactWaId: contact.waId,
+          contactPhone: senderPhone,
+          message: textContent,
+        })
+      } catch (err) {
+        console.error('Bot command processing failed:', err instanceof Error ? err.message : err)
+      }
+      return // Bot handled it, skip AI classification
+    }
   }
 
-  // AI classification
+  // ── AI classification ─────────────────────────────────────────
   if (textContent && textContent.length > 5) {
     try {
       const sdk = await import('z-ai-web-dev-sdk')
@@ -244,6 +270,8 @@ async function processIncomingMessage(
         ],
       })
       const category = classification?.content?.trim().toLowerCase() || 'general_inquiry'
+
+      // Update contact tags
       const existingTags: string[] = contact.tags ? JSON.parse(contact.tags) : []
       if (!existingTags.includes(category)) {
         existingTags.push(category)
@@ -252,11 +280,237 @@ async function processIncomingMessage(
           data: { tags: JSON.stringify(existingTags), updatedAt: new Date() },
         })
       }
+
+      // ── Auto-ticket creation for complaints and emergencies ───
+      if (category === 'complaint' || category === 'emergency') {
+        try {
+          await autoCreateTicket({
+            sessionId: account.sessionId,
+            accountId: account.id,
+            conversationId: conversation.id,
+            contactId: contact.id,
+            contactWaId: contact.waId,
+            contactPhone: senderPhone,
+            contactName: pushName || contact.name,
+            messageText: textContent,
+            messageType: category === 'emergency' ? 'emergency' : 'complaint',
+            messageId: message.id,
+          })
+        } catch (err) {
+          console.error('Auto-ticket creation failed:', err instanceof Error ? err.message : err)
+        }
+      }
     } catch {
       // AI classification failed silently
     }
   }
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Auto-ticket creation using LLM extraction
+// ─────────────────────────────────────────────────────────────────
+
+interface AutoTicketParams {
+  sessionId: string
+  accountId: string
+  conversationId: string
+  contactId: string
+  contactWaId: string
+  contactPhone: string
+  contactName: string | null
+  messageText: string
+  messageType: 'complaint' | 'emergency'
+  messageId: string
+}
+
+async function autoCreateTicket(params: AutoTicketParams): Promise<void> {
+  const {
+    sessionId, accountId, conversationId, contactId,
+    contactWaId, contactPhone, contactName, messageText,
+    messageType,
+  } = params
+
+  // Use LLM to extract structured fields from the complaint message
+  let extracted: {
+    subject: string
+    description: string
+    category: string
+    priority: string
+    location: string
+  }
+
+  try {
+    const sdk = await import('z-ai-web-dev-sdk')
+    const ZAI = (sdk as Record<string, unknown>).ZAI as { new (): { chat: (opts: { messages: Array<{ role: string; content: string }> }) => Promise<{ content?: string }> } }
+    const ai = new ZAI()
+
+    const extractionResult = await ai.chat({
+      messages: [
+        {
+          role: 'system',
+          content: `Extract maintenance complaint details from this message. Return JSON with:
+- subject: brief subject line (max 100 chars)
+- description: full description of the issue
+- category: one of (air_conditioning, electrical, plumbing, fire_protection, mechanical, civil, cleaning, security, it, general_maintenance)
+- priority: one of (emergency, high, medium, low)
+- location: location mentioned or empty string
+
+Reply with ONLY valid JSON, no markdown, no explanation.`,
+        },
+        { role: 'user', content: messageText },
+      ],
+    })
+
+    const rawContent = extractionResult?.content?.trim() || ''
+    // Strip markdown code fences if present
+    const jsonStr = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+    extracted = JSON.parse(jsonStr) as typeof extracted
+  } catch {
+    // Fallback: use the message text directly as subject and description
+    extracted = {
+      subject: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
+      description: messageText,
+      category: 'general_maintenance',
+      priority: messageType === 'emergency' ? 'emergency' : 'medium',
+      location: '',
+    }
+  }
+
+  // Validate extracted fields
+  const validCategories = [
+    'air_conditioning', 'electrical', 'plumbing', 'fire_protection',
+    'mechanical', 'civil', 'cleaning', 'security', 'it', 'general_maintenance',
+  ]
+  if (!validCategories.includes(extracted.category)) {
+    extracted.category = 'general_maintenance'
+  }
+
+  const validPriorities = ['emergency', 'high', 'medium', 'low']
+  if (!validPriorities.includes(extracted.priority)) {
+    extracted.priority = messageType === 'emergency' ? 'emergency' : 'medium'
+  }
+
+  // Generate ticket number: CMP-{year}-{6-digit padded count}
+  const year = new Date().getFullYear()
+  const ticketCount = await db.maintenanceTicket.count()
+  const ticketNo = `CMP-${year}-${String(ticketCount + 1).padStart(6, '0')}`
+
+  // Find a system user to set as createdById
+  const systemUser = await db.user.findFirst({
+    where: { role: 'admin' },
+    select: { id: true },
+  })
+
+  const createdById = systemUser?.id || '00000000-0000-0000-0000-000000000000'
+
+  // Create the maintenance ticket
+  const ticket = await db.maintenanceTicket.create({
+    data: {
+      ticketNo,
+      type: messageType,
+      category: extracted.category,
+      priority: extracted.priority,
+      subject: extracted.subject,
+      description: extracted.description,
+      status: 'new',
+      source: 'whatsapp',
+      location: extracted.location || undefined,
+      contactPerson: contactName || undefined,
+      contactPhone,
+      whatsappConversationId: conversationId,
+      whatsappContactId: contactId,
+      createdById,
+      updatedAt: new Date(),
+    },
+  })
+
+  // Create initial timeline entry
+  await db.maintenanceTimeline.create({
+    data: {
+      ticketId: ticket.id,
+      action: 'new',
+      description: `Ticket created via WhatsApp. Original message: ${messageText.length > 200 ? messageText.substring(0, 197) + '...' : messageText}`,
+      performedById: systemUser?.id || null,
+      metadata: JSON.stringify({
+        source: 'whatsapp',
+        contactPhone,
+        contactWaId,
+        autoGenerated: true,
+      }),
+    },
+  })
+
+  // Format category for display
+  const categoryDisplay = extracted.category.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+
+  // Send ticket confirmation to customer
+  const replyText = [
+    `✅ *Complaint Registered*`,
+    `Ticket: ${ticket.ticketNo}`,
+    `Status: New`,
+    `Category: ${categoryDisplay}`,
+    `Priority: ${extracted.priority.charAt(0).toUpperCase() + extracted.priority.slice(1)}`,
+    ``,
+    `_Our team will review and assign a technician shortly._`,
+  ].join('\n')
+
+  try {
+    await sendTextMessage(sessionId, contactWaId, replyText)
+  } catch {
+    // Send failed — non-blocking
+  }
+
+  // Save confirmation as outgoing message
+  try {
+    await db.whatsAppMessage.create({
+      data: {
+        conversationId,
+        contactId,
+        direction: 'outgoing',
+        messageType: 'text',
+        content: replyText,
+        senderName: 'Bot',
+      },
+    })
+  } catch {
+    // DB save failed — non-blocking
+  }
+
+  // Save bot log entry
+  try {
+    await db.whatsAppBotLog.create({
+      data: {
+        sessionId,
+        conversationId,
+        contactId,
+        command: 'AUTO_TICKET',
+        inputMessage: messageText,
+        responseMessage: replyText,
+      },
+    })
+  } catch {
+    // DB save failed — non-blocking
+  }
+
+  // Emit realtime event for new ticket
+  await emitEvent('maintenance', 'ticket_created', {
+    ticketId: ticket.id,
+    ticketNo: ticket.ticketNo,
+    conversationId,
+    contactId,
+    source: 'whatsapp',
+  })
+
+  // Also emit to the conversation room
+  await emitEvent(`conversation:${conversationId}`, 'ticket_created', {
+    ticketId: ticket.id,
+    ticketNo: ticket.ticketNo,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Helper functions
+// ─────────────────────────────────────────────────────────────────
 
 function getNestedString(obj: Record<string, unknown>, ...keys: string[]): string | null {
   let current: unknown = obj
@@ -414,38 +668,4 @@ function extractMediaInfo(
   }
 
   return { location: null, vcard: null }
-}
-
-async function handleStatusQuery(
-  conversationId: string,
-  contact: { id: string; waId: string; phoneNumber: string; name: string | null },
-  sessionId: string
-) {
-  const link = await db.complaintWhatsAppLink.findFirst({
-    where: { conversationId },
-  })
-
-  let reply: string
-  if (link) {
-    reply = `📋 *Complaint Status Update*\n\n🔖 Complaint ID: ${link.complaintId}\n📊 Linked to your conversation\n\n_Thank you for your patience. We are working on your request._`
-  } else {
-    reply = `🔍 No active complaint found for your number.\n\nTo report a new issue, please describe your problem and our team will assist you.`
-  }
-
-  try {
-    await sendTextMessage(sessionId, contact.waId, reply)
-  } catch {
-    // Send failed silently
-  }
-
-  await db.whatsAppMessage.create({
-    data: {
-      conversationId,
-      contactId: contact.id,
-      direction: 'outgoing',
-      messageType: 'text',
-      content: reply,
-      senderName: 'Bot',
-    },
-  })
 }

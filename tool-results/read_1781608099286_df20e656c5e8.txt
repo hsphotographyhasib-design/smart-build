@@ -1,0 +1,1536 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useMemo, useEffect, useCallback } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { api, useAppStore } from '@/lib/store'
+     6→import { useMaintenanceSocket } from '@/hooks/use-maintenance-socket'
+     7→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Button } from '@/components/ui/button'
+    10→import { Skeleton } from '@/components/ui/skeleton'
+    11→import { Input } from '@/components/ui/input'
+    12→import { Label } from '@/components/ui/label'
+    13→import { Textarea } from '@/components/ui/textarea'
+    14→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    15→import { Progress } from '@/components/ui/progress'
+    16→import { Separator } from '@/components/ui/separator'
+    17→import { ScrollArea } from '@/components/ui/scroll-area'
+    18→import {
+    19→  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+    20→} from '@/components/ui/select'
+    21→import {
+    22→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    23→} from '@/components/ui/table'
+    24→import {
+    25→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger,
+    26→} from '@/components/ui/dialog'
+    27→import {
+    28→  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+    29→} from '@/components/ui/alert-dialog'
+    30→import { useToast } from '@/hooks/use-toast'
+    31→import { cn } from '@/lib/utils'
+    32→import {
+    33→  CheckCircle2, Clock, Star, AlertTriangle, Play, Pause, Package,
+    34→  Plus, ArrowDownUp, ChevronDown, ChevronUp, Wrench, Calendar,
+    35→  MapPin, Timer, Award, TrendingUp, BarChart3, Zap, Phone,
+    36→  FileText, ShoppingCart, CircleCheck, CircleX, CircleAlert,
+    37→  Briefcase, Users, ThumbsUp, ListChecks, ClipboardCheck,
+    38→  LogIn, LogOut, Circle, PackageOpen, PackageCheck, Hourglass,
+    39→  Truck, ArrowRight, RotateCcw, DollarSign, Ban, ShieldCheck,
+    40→} from 'lucide-react'
+    41→
+    42→// ─── প্রকারভেদ ───
+    43→interface TechTicket {
+    44→  id: string
+    45→  ticketNo: string
+    46→  subject: string
+    47→  priority: string
+    48→  status: string
+    49→  type: string
+    50→  createdAt: string
+    51→  slaDeadline: string
+    52→  startedAt?: string
+    53→  completedAt?: string
+    54→  customer: { id: string; name: string } | null
+    55→  site: { id: string; name: string; address: string } | null
+    56→  workOrder?: { id: string; woNo: string }
+    57→  workOrderId?: string
+    58→  isOverdue: boolean
+    59→  description?: string
+    60→  completionNotes?: string
+    61→  totalCost?: number
+    62→  customerRating?: number
+    63→}
+    64→
+    65→interface ScheduleItem {
+    66→  ticketNo: string
+    67→  subject: string
+    68→  customerName: string
+    69→  siteName: string
+    70→  siteAddress: string
+    71→  scheduledTime: string
+    72→  status: string
+    73→  ticketId: string
+    74→  priority: string
+    75→}
+    76→
+    77→interface MaterialRequest {
+    78→  id: string
+    79→  mrNo: string
+    80→  ticketNo: string
+    81→  status: string
+    82→  createdAt: string
+    83→  items: Array<{
+    84→    id: string
+    85→    name: string
+    86→    quantity: number
+    87→    unit: string
+    88→    requestedQty: number
+    89→  }>
+    90→  ticket?: { ticketNo: string; subject: string }
+    91→}
+    92→
+    93→interface PerformanceData {
+    94→  totalJobs: number
+    95→  completedJobs: number
+    96→  completionRate: number
+    97→  avgResponseTime: number
+    98→  avgResolutionTime: number
+    99→  customerRating: number
+   100→  totalRatings: number
+   101→  monthlyTrend: Array<{
+   102→    month: string
+   103→    completed: number
+   104→    avgRating: number
+   105→    avgResponse: number
+   106→  }>
+   107→  skills: string[]
+   108→  certifications: string[]
+   109→}
+   110→
+   111→// ─── কনফিগারেশন ───
+   112→const priorityConfig: Record<string, { label: string; color: string; dotColor: string }> = {
+   113→  emergency: { label: 'Emergency', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', dotColor: 'bg-red-500' },
+   114→  high: { label: 'High', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', dotColor: 'bg-orange-500' },
+   115→  medium: { label: 'Medium', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', dotColor: 'bg-amber-500' },
+   116→  low: { label: 'Low', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', dotColor: 'bg-green-500' },
+   117→}
+   118→
+   119→const ticketStatusConfig: Record<string, { label: string; color: string; step: number }> = {
+   120→  assigned: { label: 'Assigned', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300', step: 0 },
+   121→  accepted: { label: 'Accepted', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 1 },
+   122→  in_progress: { label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', step: 2 },
+   123→  on_hold: { label: 'On Hold', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', step: 2 },
+   124→  pending_parts: { label: 'Pending Parts', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300', step: 3 },
+   125→  pending_customer: { label: 'Pending Customer', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', step: 4 },
+   126→  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', step: 3 },
+   127→  verified: { label: 'Verified', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300', step: 4 },
+   128→  closed: { label: 'Closed', color: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400', step: 5 },
+   129→}
+   130→
+   131→const materialStatusConfig: Record<string, { label: string; color: string; icon: any }> = {
+   132→  requested: { label: 'Requested', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300', icon: Hourglass },
+   133→  supervisor_approved: { label: 'Supervisor Approved', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300', icon: CircleCheck },
+   134→  store_approved: { label: 'Store Approved', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300', icon: PackageCheck },
+   135→  issued: { label: 'Issued', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300', icon: Truck },
+   136→  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', icon: CircleX },
+   137→}
+   138→
+   139→function formatTimeAgo(dateStr: string): string {
+   140→  const diff = Date.now() - new Date(dateStr).getTime()
+   141→  const mins = Math.floor(diff / 60000)
+   142→  if (mins < 60) return `${mins}m ago`
+   143→  const hrs = Math.floor(mins / 60)
+   144→  if (hrs < 24) return `${hrs}h ago`
+   145→  return `${Math.floor(hrs / 24)}d ago`
+   146→}
+   147→
+   148→function formatDuration(minutes: number): string {
+   149→  if (minutes < 60) return `${minutes}m`
+   150→  const hrs = Math.floor(minutes / 60)
+   151→  const m = minutes % 60
+   152→  return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`
+   153→}
+   154→
+   155→// ─── প্রধান উপাদান ───
+   156→export function TechnicianPortal() {
+   157→  const { toast } = useToast()
+   158→  const queryClient = useQueryClient()
+   159→  const user = useAppStore((s) => s.user)
+   160→  const [activeTab, setActiveTab] = useState('my-jobs')
+   161→  const [expandedJob, setExpandedJob] = useState<string | null>(null)
+   162→  const [expandedCompleted, setExpandedCompleted] = useState<string | null>(null)
+   163→  const [materialDialogOpen, setMaterialDialogOpen] = useState(false)
+   164→  const [selectedJobForMaterial, setSelectedJobForMaterial] = useState<TechTicket | null>(null)
+   165→
+   166→  // নিশ্চিতকরণ ডায়ালগ
+   167→  const [confirmAction, setConfirmAction] = useState<{ type: string; ticket: TechTicket } | null>(null)
+   168→
+   169→  // বিরতি ডায়ালগ
+   170→  const [pauseDialogOpen, setPauseDialogOpen] = useState(false)
+   171→  const [pauseNote, setPauseNote] = useState('')
+   172→  const [pauseTicket, setPauseTicket] = useState<TechTicket | null>(null)
+   173→
+   174→  // কাজ সম্পন্ন ডায়ালগ
+   175→  const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
+   176→  const [completeTicket, setCompleteTicket] = useState<TechTicket | null>(null)
+   177→  const [completionNotes, setCompletionNotes] = useState('')
+   178→  const [labourHours, setLabourHours] = useState<number>(0)
+   179→  const [serviceNotes, setServiceNotes] = useState('')
+   180→  const [usedMaterials, setUsedMaterials] = useState<Array<{ name: string; quantity: number; unit: string; cost: number }>>([])
+   181→
+   182→  // ওয়ার্ক অর্ডার উপাদান অনুরোধ ডায়ালগ
+   183→  const [woMaterialDialogOpen, setWoMaterialDialogOpen] = useState(false)
+   184→  const [woMaterialTicket, setWoMaterialTicket] = useState<TechTicket | null>(null)
+   185→  const [woMaterialItems, setWoMaterialItems] = useState<Array<{ name: string; quantity: number; unit: string; estimatedCost: number }>>([])
+   186→  const [woMaterialNote, setWoMaterialNote] = useState('')
+   187→
+   188→  // আমার টিকেট আনা (বরাদ্দকৃত/চলমান + অপেক্ষমান অবস্থা)
+   189→  const { data: myJobsData, isLoading: myJobsLoading } = useQuery({
+   190→    queryKey: ['tech-my-jobs'],
+   191→    queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress,on_hold,pending_parts,pending_customer').then(r => r.data || []),
+   192→    refetchInterval: 30000,
+   193→  })
+   194→
+   195→  // সম্পন্ন টিকেট আনা
+   196→  const { data: completedData, isLoading: completedLoading } = useQuery({
+   197→    queryKey: ['tech-completed-jobs'],
+   198→    queryFn: () => api.get<TechTicket[]>('/api/maintenance/tickets?status=completed,verified,closed').then(r => r.data || []),
+   199→  })
+   200→
+   201→  // আজকের সময়সূচি আনা (আজকের বরাদ্দকৃত টিকেট ব্যবহার করা হবে)
+   202→  const { data: scheduleData, isLoading: scheduleLoading } = useQuery({
+   203→    queryKey: ['tech-schedule-today'],
+   204→    queryFn: () => api.get<ScheduleItem[]>('/api/maintenance/tickets?status=assigned,accepted,in_progress&limit=20').then(r => r.data || []),
+   205→  })
+   206→
+   207→  // উপাদান অনুরোধ আনা
+   208→  const { data: materialsData, isLoading: materialsLoading } = useQuery({
+   209→    queryKey: ['tech-materials'],
+   210→    queryFn: () => api.get<MaterialRequest[]>('/api/maintenance/materials').then(r => r.data || []),
+   211→  })
+   212→
+   213→  // কর্মক্ষমতা তথ্য আনা
+   214→  const { data: perfData, isLoading: perfLoading } = useQuery({
+   215→    queryKey: ['tech-performance'],
+   216→    queryFn: () => api.get<PerformanceData>('/api/maintenance/reports?type=technician_performance').then(r => r.data!),
+   217→  })
+   218→
+   219→  const myJobs = myJobsData || []
+   220→  const completedJobs = completedData || []
+   221→  const scheduleItems = scheduleData || []
+   222→  const materialRequests = materialsData || []
+   223→  const performance = perfData as PerformanceData | undefined
+   224→
+   225→  // ─── সকেট ইন্টিগ্রেশন ───
+   226→  const refetchMyJobs = useCallback(() => {
+   227→    queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   228→  }, [queryClient])
+   229→
+   230→  const refetchCompleted = useCallback(() => {
+   231→    queryClient.invalidateQueries({ queryKey: ['tech-completed-jobs'] })
+   232→  }, [queryClient])
+   233→
+   234→  const refetchMaterials = useCallback(() => {
+   235→    queryClient.invalidateQueries({ queryKey: ['tech-materials'] })
+   236→  }, [queryClient])
+   237→
+   238→  const { joinRoom } = useMaintenanceSocket({
+   239→    onTicketAssigned: () => { refetchMyJobs(); toast({ title: 'New Job Assigned', description: 'You have been assigned a new job.' }) },
+   240→    onTicketStatusChanged: () => { refetchMyJobs(); refetchCompleted() },
+   241→    onWorkOrderCreated: () => { refetchMyJobs(); toast({ title: 'Work Order Created', description: 'A new work order has been created for your job.' }) },
+   242→    onMaterialRequestCreated: () => { refetchMaterials(); toast({ title: 'Material Request', description: 'A new material request has been submitted.' }) },
+   243→    onMaterialStatusChanged: () => { refetchMaterials() },
+   244→  })
+   245→
+   246→  useEffect(() => {
+   247→    if (user?.technicianProfileId) {
+   248→      joinRoom('technician-' + user.technicianProfileId)
+   249→    }
+   250→  }, [user?.technicianProfileId, joinRoom])
+   251→
+   252→  // ─── মিউটেশনসমূহ ───
+   253→  const acceptMutation = useMutation({
+   254→    mutationFn: (ticketId: string) => api.post(`/api/maintenance/tickets/${ticketId}/accept`, {}),
+   255→    onSuccess: () => {
+   256→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   257→      toast({ title: 'Job Accepted', description: 'You have accepted the job. Work order created.' })
+   258→      setConfirmAction(null)
+   259→    },
+   260→    onError: (err: any) => toast({ title: 'Accept Failed', description: err.error || 'Failed to accept job', variant: 'destructive' }),
+   261→  })
+   262→
+   263→  const rejectMutation = useMutation({
+   264→    mutationFn: ({ ticketId, reason }: { ticketId: string; reason: string }) => api.post(`/api/maintenance/tickets/${ticketId}/reject-assignment`, { reason }),
+   265→    onSuccess: () => {
+   266→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   267→      toast({ title: 'Job Rejected', description: 'You have rejected the assignment.' })
+   268→      setConfirmAction(null)
+   269→    },
+   270→    onError: (err: any) => toast({ title: 'Reject Failed', description: err.error || 'Failed to reject job', variant: 'destructive' }),
+   271→  })
+   272→
+   273→  const startWorkMutation = useMutation({
+   274→    mutationFn: (woId: string) => api.post(`/api/maintenance/work-orders/${woId}/start`, {}),
+   275→    onSuccess: () => {
+   276→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   277→      queryClient.invalidateQueries({ queryKey: ['tech-schedule-today'] })
+   278→      toast({ title: 'Work Started', description: 'Work has been started.' })
+   279→    },
+   280→    onError: (err: any) => toast({ title: 'Start Failed', description: err.error || 'Failed to start work', variant: 'destructive' }),
+   281→  })
+   282→
+   283→  const pauseMutation = useMutation({
+   284→    mutationFn: ({ woId, note }: { woId: string; note: string }) => api.post(`/api/maintenance/work-orders/${woId}/pause`, { note }),
+   285→    onSuccess: () => {
+   286→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   287→      setPauseDialogOpen(false)
+   288→      setPauseNote('')
+   289→      setPauseTicket(null)
+   290→      toast({ title: 'Work Paused', description: 'Work has been paused.' })
+   291→    },
+   292→    onError: (err: any) => toast({ title: 'Pause Failed', description: err.error || 'Failed to pause work', variant: 'destructive' }),
+   293→  })
+   294→
+   295→  const completeMutation = useMutation({
+   296→    mutationFn: ({ woId, body }: { woId: string; body: { completionNotes: string; labourHours: number; usedMaterials?: Array<{ name: string; quantity: number; unit: string; cost: number }>; serviceNotes?: string } }) =>
+   297→      api.post(`/api/maintenance/work-orders/${woId}/complete`, body),
+   298→    onSuccess: () => {
+   299→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   300→      queryClient.invalidateQueries({ queryKey: ['tech-completed-jobs'] })
+   301→      setCompleteDialogOpen(false)
+   302→      setCompleteTicket(null)
+   303→      setCompletionNotes('')
+   304→      setLabourHours(0)
+   305→      setServiceNotes('')
+   306→      setUsedMaterials([])
+   307→      toast({ title: 'Work Completed', description: 'Work has been marked as complete. Invoice generated.' })
+   308→    },
+   309→    onError: (err: any) => toast({ title: 'Complete Failed', description: err.error || 'Failed to complete work', variant: 'destructive' }),
+   310→  })
+   311→
+   312→  const requestWOMaterialsMutation = useMutation({
+   313→    mutationFn: ({ woId, body }: { woId: string; body: { items: Array<{ name: string; quantity: number; unit: string; estimatedCost?: number }>; note?: string } }) =>
+   314→      api.post(`/api/maintenance/work-orders/${woId}/request-materials`, body),
+   315→    onSuccess: () => {
+   316→      queryClient.invalidateQueries({ queryKey: ['tech-my-jobs'] })
+   317→      queryClient.invalidateQueries({ queryKey: ['tech-materials'] })
+   318→      setWoMaterialDialogOpen(false)
+   319→      setWoMaterialTicket(null)
+   320→      setWoMaterialItems([{ name: '', quantity: 1, unit: 'pcs', estimatedCost: 0 }])
+   321→      setWoMaterialNote('')
+   322→      toast({ title: 'Materials Requested', description: 'Material request submitted for approval.' })
+   323→    },
+   324→    onError: (err: any) => toast({ title: 'Request Failed', description: err.error || 'Failed to request materials', variant: 'destructive' }),
+   325→  })
+   326→
+   327→  // উপাদান অনুরোধ তৈরি মিউটেশন (উত্তরাধিকার)
+   328→  const createMaterialMutation = useMutation({
+   329→    mutationFn: (body: any) => api.post('/api/maintenance/materials', body),
+   330→    onSuccess: () => {
+   331→      queryClient.invalidateQueries({ queryKey: ['tech-materials'] })
+   332→      setMaterialDialogOpen(false)
+   333→      toast({ title: 'Request Submitted', description: 'Material request has been created.' })
+   334→    },
+   335→    onError: (err: any) => {
+   336→      toast({ title: 'Request Failed', description: err.error || 'Failed to create material request', variant: 'destructive' })
+   337→    },
+   338→  })
+   339→
+   340→  // ─── হ্যান্ডলারসমূহ ───
+   341→  const handleJobAction = (ticket: TechTicket, action: string) => {
+   342→    switch (action) {
+   343→      case 'accept':
+   344→        setConfirmAction({ type: 'accept', ticket })
+   345→        break
+   346→      case 'reject':
+   347→        setConfirmAction({ type: 'reject', ticket })
+   348→        break
+   349→      case 'start': {
+   350→        const woId = ticket.workOrderId || ticket.workOrder?.id
+   351→        if (woId) startWorkMutation.mutate(woId)
+   352→        break
+   353→      }
+   354→      case 'pause':
+   355→        setPauseTicket(ticket)
+   356→        setPauseDialogOpen(true)
+   357→        break
+   358→      case 'complete':
+   359→        setCompleteTicket(ticket)
+   360→        setCompleteDialogOpen(true)
+   361→        break
+   362→      case 'request_materials':
+   363→        setWoMaterialTicket(ticket)
+   364→        setWoMaterialItems([{ name: '', quantity: 1, unit: 'pcs', estimatedCost: 0 }])
+   365→        setWoMaterialNote('')
+   366→        setWoMaterialDialogOpen(true)
+   367→        break
+   368→      default:
+   369→        break
+   370→    }
+   371→  }
+   372→
+   373→  const handleRequestMaterials = (ticket: TechTicket) => {
+   374→    setSelectedJobForMaterial(ticket)
+   375→    setMaterialDialogOpen(true)
+   376→  }
+   377→
+   378→  const isUpdating = acceptMutation.isPending || rejectMutation.isPending || startWorkMutation.isPending || pauseMutation.isPending || completeMutation.isPending || requestWOMaterialsMutation.isPending
+   379→
+   380→  const myJobsGrouped = useMemo(() => {
+   381→    const urgent = myJobs.filter(t => t.priority === 'emergency')
+   382→    const high = myJobs.filter(t => t.priority === 'high')
+   383→    const others = myJobs.filter(t => t.priority !== 'emergency' && t.priority !== 'high')
+   384→    return { urgent, high, others }
+   385→  }, [myJobs])
+   386→
+   387→  return (
+   388→    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+   389→      {/* হেডার */}
+   390→      <div>
+   391→        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+   392→          <Wrench className="h-6 w-6 text-rose-600" />
+   393→          Technician Portal
+   394→        </h1>
+   395→        <p className="text-muted-foreground text-sm mt-1">Manage your assignments, schedule, and materials</p>
+   396→      </div>
+   397→
+   398→      {/* ট্যাবসমূহ */}
+   399→      <Tabs value={activeTab} onValueChange={setActiveTab}>
+   400→        <TabsList className="grid w-full grid-cols-5">
+   401→          <TabsTrigger value="my-jobs" className="gap-1.5 text-xs sm:text-sm">
+   402→            <Briefcase className="h-3.5 w-3.5" /> My Jobs
+   403→            {myJobs.length > 0 && (
+   404→              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1 text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300">
+   405→                {myJobs.length}
+   406→              </Badge>
+   407→            )}
+   408→          </TabsTrigger>
+   409→          <TabsTrigger value="schedule" className="gap-1.5 text-xs sm:text-sm">
+   410→            <Calendar className="h-3.5 w-3.5" /> Today
+   411→          </TabsTrigger>
+   412→          <TabsTrigger value="completed" className="gap-1.5 text-xs sm:text-sm">
+   413→            <CheckCircle2 className="h-3.5 w-3.5" /> Completed
+   414→          </TabsTrigger>
+   415→          <TabsTrigger value="materials" className="gap-1.5 text-xs sm:text-sm">
+   416→            <Package className="h-3.5 w-3.5" /> Materials
+   417→          </TabsTrigger>
+   418→          <TabsTrigger value="performance" className="gap-1.5 text-xs sm:text-sm">
+   419→            <BarChart3 className="h-3.5 w-3.5" /> Performance
+   420→          </TabsTrigger>
+   421→        </TabsList>
+   422→
+   423→        {/* ট্যাব ১: আমার কাজ */}
+   424→        <TabsContent value="my-jobs" className="mt-4 space-y-4">
+   425→          {myJobsLoading ? (
+   426→            <div className="space-y-3">
+   427→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 rounded-xl" />)}
+   428→            </div>
+   429→          ) : myJobs.length === 0 ? (
+   430→            <Card>
+   431→              <CardContent className="flex flex-col items-center justify-center py-16">
+   432→                <ClipboardCheck className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   433→                <p className="text-sm text-muted-foreground">No active jobs</p>
+   434→                <p className="text-xs text-muted-foreground mt-1">You have no assignments at the moment</p>
+   435→              </CardContent>
+   436→            </Card>
+   437→          ) : (
+   438→            <>
+   439→              {/* জরুরি কাজ */}
+   440→              {myJobsGrouped.urgent.length > 0 && (
+   441→                <div className="space-y-3">
+   442→                  <div className="flex items-center gap-2">
+   443→                    <AlertTriangle className="h-4 w-4 text-red-500" />
+   444→                    <h3 className="text-sm font-semibold text-red-600">Emergency Jobs</h3>
+   445→                  </div>
+   446→                  {myJobsGrouped.urgent.map(ticket => (
+   447→                    <JobCard
+   448→                      key={ticket.id}
+   449→                      ticket={ticket}
+   450→                      expanded={expandedJob === ticket.id}
+   451→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   452→                      onAction={handleJobAction}
+   453→                      onMaterial={handleRequestMaterials}
+   454→                      updating={isUpdating}
+   455→                    />
+   456→                  ))}
+   457→                </div>
+   458→              )}
+   459→
+   460→              {/* উচ্চ অগ্রাধিকার */}
+   461→              {myJobsGrouped.high.length > 0 && (
+   462→                <div className="space-y-3">
+   463→                  <div className="flex items-center gap-2">
+   464→                    <Zap className="h-4 w-4 text-orange-500" />
+   465→                    <h3 className="text-sm font-semibold text-orange-600">High Priority</h3>
+   466→                  </div>
+   467→                  {myJobsGrouped.high.map(ticket => (
+   468→                    <JobCard
+   469→                      key={ticket.id}
+   470→                      ticket={ticket}
+   471→                      expanded={expandedJob === ticket.id}
+   472→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   473→                      onAction={handleJobAction}
+   474→                      onMaterial={handleRequestMaterials}
+   475→                      updating={isUpdating}
+   476→                    />
+   477→                  ))}
+   478→                </div>
+   479→              )}
+   480→
+   481→              {/* অন্যান্য কাজ */}
+   482→              {myJobsGrouped.others.length > 0 && (
+   483→                <div className="space-y-3">
+   484→                  <div className="flex items-center gap-2">
+   485→                    <ListChecks className="h-4 w-4 text-slate-500" />
+   486→                    <h3 className="text-sm font-semibold">Other Jobs</h3>
+   487→                  </div>
+   488→                  {myJobsGrouped.others.map(ticket => (
+   489→                    <JobCard
+   490→                      key={ticket.id}
+   491→                      ticket={ticket}
+   492→                      expanded={expandedJob === ticket.id}
+   493→                      onToggle={() => setExpandedJob(prev => prev === ticket.id ? null : ticket.id)}
+   494→                      onAction={handleJobAction}
+   495→                      onMaterial={handleRequestMaterials}
+   496→                      updating={isUpdating}
+   497→                    />
+   498→                  ))}
+   499→                </div>
+   500→              )}
+   501→            </>
+   502→          )}
+   503→        </TabsContent>
+   504→
+   505→        {/* ট্যাব ২: আজকের সময়সূচি */}
+   506→        <TabsContent value="schedule" className="mt-4">
+   507→          <Card>
+   508→            <CardHeader className="pb-3">
+   509→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+   510→                <Calendar className="h-4 w-4 text-rose-600" />
+   511→                Today&apos;s Schedule
+   512→              </CardTitle>
+   513→              <CardDescription className="text-xs">{new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
+   514→            </CardHeader>
+   515→            <CardContent>
+   516→              {scheduleLoading ? (
+   517→                <div className="space-y-3">
+   518→                  {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 rounded-lg" />)}
+   519→                </div>
+   520→              ) : scheduleItems.length === 0 ? (
+   521→                <div className="flex flex-col items-center justify-center py-12">
+   522→                  <Calendar className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   523→                  <p className="text-sm text-muted-foreground">No schedule for today</p>
+   524→                  <p className="text-xs text-muted-foreground mt-1">Check your assigned jobs for upcoming work</p>
+   525→                </div>
+   526→              ) : (
+   527→                <div className="space-y-2">
+   528→                  {scheduleItems.map((item, idx) => {
+   529→                    const pri = priorityConfig[item.priority] || priorityConfig.medium
+   530→                    const stat = ticketStatusConfig[item.status] || ticketStatusConfig.assigned
+   531→                    return (
+   532→                      <div
+   533→                        key={idx}
+   534→                        className={cn(
+   535→                          'flex items-center gap-4 p-3 rounded-lg border transition-colors',
+   536→                          item.status === 'in_progress' ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900 dark:bg-rose-950/20' : 'border-border hover:bg-muted/50'
+   537→                        )}
+   538→                      >
+   539→                        <div className="flex flex-col items-center min-w-[60px]">
+   540→                          <span className="text-xs font-mono text-muted-foreground">
+   541→                            {item.scheduledTime ? new Date(item.scheduledTime).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }) : '—'}
+   542→                          </span>
+   543→                        </div>
+   544→                        <Separator orientation="vertical" className="h-10" />
+   545→                        <div className="flex-1 min-w-0">
+   546→                          <div className="flex items-center gap-2 mb-1">
+   547→                            <span className="text-xs font-mono font-medium">{item.ticketNo}</span>
+   548→                            <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', pri.color)}>
+   549→                              {pri.label}
+   550→                            </Badge>
+   551→                            <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', stat.color)}>
+   552→                              {stat.label}
+   553→                            </Badge>
+   554→                          </div>
+   555→                          <p className="text-sm font-medium truncate">{item.subject}</p>
+   556→                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+   557→                            <span className="flex items-center gap-1">
+   558→                              <Users className="h-3 w-3" /> {item.customerName}
+   559→                            </span>
+   560→                            <span className="flex items-center gap-1">
+   561→                              <MapPin className="h-3 w-3" /> {item.siteName}
+   562→                            </span>
+   563→                          </div>
+   564→                        </div>
+   565→                        <div className="flex gap-1.5">
+   566→                          {item.status === 'assigned' || item.status === 'accepted' ? (
+   567→                            <Button size="sm" className="h-8 gap-1 text-xs bg-rose-600 hover:bg-rose-700" onClick={() => {
+   568→                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as TechTicket, 'start')
+   569→                            }}>
+   570→                              <LogIn className="h-3 w-3" /> Check In
+   571→                            </Button>
+   572→                          ) : item.status === 'in_progress' ? (
+   573→                            <Button size="sm" variant="outline" className="h-8 gap-1 text-xs" onClick={() => {
+   574→                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as TechTicket, 'complete')
+   575→                            }}>
+   576→                              <LogOut className="h-3 w-3" /> Check Out
+   577→                            </Button>
+   578→                          ) : null}
+   579→                        </div>
+   580→                      </div>
+   581→                    )
+   582→                  })}
+   583→                </div>
+   584→              )}
+   585→            </CardContent>
+   586→          </Card>
+   587→        </TabsContent>
+   588→
+   589→        {/* ট্যাব ৩: সম্পন্ন কাজ */}
+   590→        <TabsContent value="completed" className="mt-4">
+   591→          <Card>
+   592→            <CardContent className="p-0">
+   593→              {completedLoading ? (
+   594→                <div className="p-6 space-y-3">
+   595→                  {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   596→                </div>
+   597→              ) : completedJobs.length === 0 ? (
+   598→                <div className="flex flex-col items-center justify-center py-16">
+   599→                  <CheckCircle2 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   600→                  <p className="text-sm text-muted-foreground">No completed jobs yet</p>
+   601→                </div>
+   602→              ) : (
+   603→                <div className="max-h-96 overflow-y-auto overflow-x-auto">
+   604→                  <Table>
+   605→                    <TableHeader>
+   606→                      <TableRow>
+   607→                        <TableHead className="w-8"></TableHead>
+   608→                        <TableHead className="text-xs">Ticket#</TableHead>
+   609→                        <TableHead className="text-xs">Subject</TableHead>
+   610→                        <TableHead className="text-xs">Customer</TableHead>
+   611→                        <TableHead className="text-xs">Completed</TableHead>
+   612→                        <TableHead className="text-xs">Rating</TableHead>
+   613→                        <TableHead className="text-xs">Time Spent</TableHead>
+   614→                      </TableRow>
+   615→                    </TableHeader>
+   616→                    <TableBody>
+   617→                      {completedJobs.map((ticket) => {
+   618→                        const isExpanded = expandedCompleted === ticket.id
+   619→                        const timeSpent = ticket.startedAt && ticket.completedAt
+   620→                          ? Math.round((new Date(ticket.completedAt).getTime() - new Date(ticket.startedAt).getTime()) / 60000)
+   621→                          : 0
+   622→                        return (
+   623→                          <React.Fragment key={ticket.id}>
+   624→                            <TableRow
+   625→                              className="cursor-pointer hover:bg-muted/40"
+   626→                              onClick={() => setExpandedCompleted(prev => prev === ticket.id ? null : ticket.id)}
+   627→                            >
+   628→                              <TableCell className="py-3">
+   629→                                {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+   630→                              </TableCell>
+   631→                              <TableCell className="text-xs font-mono">{ticket.ticketNo}</TableCell>
+   632→                              <TableCell className="text-xs font-medium">{ticket.subject}</TableCell>
+   633→                              <TableCell className="text-xs text-muted-foreground">{ticket.customer?.name || '—'}</TableCell>
+   634→                              <TableCell className="text-xs text-muted-foreground">
+   635→                                {ticket.completedAt ? new Date(ticket.completedAt).toLocaleDateString() : '—'}
+   636→                              </TableCell>
+   637→                              <TableCell>
+   638→                                <div className="flex items-center gap-1">
+   639→                                  <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+   640→                                  <span className="text-xs">—</span>
+   641→                                </div>
+   642→                              </TableCell>
+   643→                              <TableCell className="text-xs text-muted-foreground">
+   644→                                {timeSpent > 0 ? formatDuration(timeSpent) : '—'}
+   645→                              </TableCell>
+   646→                            </TableRow>
+   647→                            {isExpanded && (
+   648→                              <TableRow>
+   649→                                <TableCell colSpan={7} className="bg-muted/20 px-6 py-4">
+   650→                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   651→                                    <div>
+   652→                                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Details</h4>
+   653→                                      <div className="space-y-1.5 text-sm">
+   654→                                        <div className="flex justify-between">
+   655→                                          <span className="text-muted-foreground">Type:</span>
+   656→                                          <span className="font-medium">{ticket.type}</span>
+   657→                                        </div>
+   658→                                        <div className="flex justify-between">
+   659→                                          <span className="text-muted-foreground">Site:</span>
+   660→                                          <span className="font-medium">{ticket.site?.name || '—'}</span>
+   661→                                        </div>
+   662→                                        <div className="flex justify-between">
+   663→                                          <span className="text-muted-foreground">Status:</span>
+   664→                                          <Badge variant="secondary" className={cn('text-[10px]', ticketStatusConfig[ticket.status]?.color)}>
+   665→                                            {ticketStatusConfig[ticket.status]?.label}
+   666→                                          </Badge>
+   667→                                        </div>
+   668→                                        {ticket.workOrder && (
+   669→                                          <div className="flex justify-between">
+   670→                                            <span className="text-muted-foreground">Work Order:</span>
+   671→                                            <span className="font-mono text-xs font-medium">{ticket.workOrder.woNo}</span>
+   672→                                          </div>
+   673→                                        )}
+   674→                                      </div>
+   675→                                    </div>
+   676→                                    <div>
+   677→                                      <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Timeline</h4>
+   678→                                      <div className="space-y-1.5 text-sm">
+   679→                                        <div className="flex justify-between">
+   680→                                          <span className="text-muted-foreground">Created:</span>
+   681→                                          <span className="text-xs">{new Date(ticket.createdAt).toLocaleString()}</span>
+   682→                                        </div>
+   683→                                        <div className="flex justify-between">
+   684→                                          <span className="text-muted-foreground">Started:</span>
+   685→                                          <span className="text-xs">{ticket.startedAt ? new Date(ticket.startedAt).toLocaleString() : '—'}</span>
+   686→                                        </div>
+   687→                                        <div className="flex justify-between">
+   688→                                          <span className="text-muted-foreground">Completed:</span>
+   689→                                          <span className="text-xs">{ticket.completedAt ? new Date(ticket.completedAt).toLocaleString() : '—'}</span>
+   690→                                        </div>
+   691→                                        <div className="flex justify-between">
+   692→                                          <span className="text-muted-foreground">Duration:</span>
+   693→                                          <span className="text-xs font-medium">{timeSpent > 0 ? formatDuration(timeSpent) : '—'}</span>
+   694→                                        </div>
+   695→                                      </div>
+   696→                                    </div>
+   697→                                  </div>
+   698→                                </TableCell>
+   699→                              </TableRow>
+   700→                            )}
+   701→                          </React.Fragment>
+   702→                        )
+   703→                      })}
+   704→                    </TableBody>
+   705→                  </Table>
+   706→                </div>
+   707→              )}
+   708→            </CardContent>
+   709→          </Card>
+   710→        </TabsContent>
+   711→
+   712→        {/* ট্যাব ৪: উপাদান অনুরোধ */}
+   713→        <TabsContent value="materials" className="mt-4 space-y-4">
+   714→          <div className="flex justify-end">
+   715→            <Dialog open={materialDialogOpen} onOpenChange={(open) => { setMaterialDialogOpen(open); if (!open) setSelectedJobForMaterial(null) }}>
+   716→              <DialogTrigger asChild>
+   717→                <Button size="sm" className="gap-1.5 bg-rose-600 hover:bg-rose-700">
+   718→                  <Plus className="h-3.5 w-3.5" /> New Request
+   719→                </Button>
+   720→              </DialogTrigger>
+   721→              <DialogContent className="sm:max-w-lg">
+   722→                <DialogHeader>
+   723→                  <DialogTitle>New Material Request</DialogTitle>
+   724→                  <p className="text-sm text-muted-foreground">
+   725→                    {selectedJobForMaterial ? `For ${selectedJobForMaterial.ticketNo}: ${selectedJobForMaterial.subject}` : 'Select a job first'}
+   726→                  </p>
+   727→                </DialogHeader>
+   728→                <MaterialRequestForm
+   729→                  ticketId={selectedJobForMaterial?.id || ''}
+   730→                  ticketNo={selectedJobForMaterial?.ticketNo || ''}
+   731→                  onSubmit={(data) => createMaterialMutation.mutate(data)}
+   732→                  loading={createMaterialMutation.isPending}
+   733→                />
+   734→              </DialogContent>
+   735→            </Dialog>
+   736→          </div>
+   737→
+   738→          {materialsLoading ? (
+   739→            <div className="space-y-3">
+   740→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
+   741→            </div>
+   742→          ) : materialRequests.length === 0 ? (
+   743→            <Card>
+   744→              <CardContent className="flex flex-col items-center justify-center py-16">
+   745→                <ShoppingCart className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   746→                <p className="text-sm text-muted-foreground">No material requests</p>
+   747→                <Button size="sm" variant="outline" className="mt-3 gap-1.5" onClick={() => {
+   748→                  if (myJobs.length > 0) {
+   749→                    setSelectedJobForMaterial(myJobs[0])
+   750→                    setMaterialDialogOpen(true)
+   751→                  } else {
+   752→                    toast({ title: 'No Jobs', description: 'You need an active job to request materials', variant: 'destructive' })
+   753→                  }
+   754→                }}>
+   755→                  <Plus className="h-3.5 w-3.5" /> Create Request
+   756→                </Button>
+   757→              </CardContent>
+   758→            </Card>
+   759→          ) : (
+   760→            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   761→              {materialRequests.map((mr) => {
+   762→                const status = materialStatusConfig[mr.status] || materialStatusConfig.requested
+   763→                const StatusIcon = status.icon
+   764→                return (
+   765→                  <Card key={mr.id}>
+   766→                    <CardContent className="p-4">
+   767→                      <div className="flex items-start justify-between mb-3">
+   768→                        <div>
+   769→                          <p className="font-mono text-xs font-medium">{mr.mrNo}</p>
+   770→                          <p className="text-xs text-muted-foreground mt-0.5">
+   771→                            {mr.ticket?.ticketNo || mr.ticketNo} — {mr.ticket?.subject || 'Material request'}
+   772→                          </p>
+   773→                        </div>
+   774→                        <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', status.color)}>
+   775→                          <StatusIcon className="h-3 w-3" />
+   776→                          {status.label}
+   777→                        </Badge>
+   778→                      </div>
+   779→                      {mr.items.length > 0 && (
+   780→                        <div className="space-y-1.5">
+   781→                          {mr.items.map((item, idx) => (
+   782→                            <div key={idx} className="flex items-center justify-between text-xs p-2 rounded bg-muted/50">
+   783→                              <span className="font-medium">{item.name}</span>
+   784→                              <span className="text-muted-foreground">
+   785→                                {item.requestedQty} {item.unit}
+   786→                              </span>
+   787→                            </div>
+   788→                          ))}
+   789→                        </div>
+   790→                      )}
+   791→                      <p className="text-[10px] text-muted-foreground mt-2">
+   792→                        Requested {formatTimeAgo(mr.createdAt)}
+   793→                      </p>
+   794→                    </CardContent>
+   795→                  </Card>
+   796→                )
+   797→              })}
+   798→            </div>
+   799→          )}
+   800→        </TabsContent>
+   801→
+   802→        {/* ট্যাব ৫: কর্মক্ষমতা */}
+   803→        <TabsContent value="performance" className="mt-4 space-y-4">
+   804→          {perfLoading ? (
+   805→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   806→              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+   807→            </div>
+   808→          ) : performance ? (
+   809→            <>
+   810→              {/* পরিসংখ্যান কার্ড */}
+   811→              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   812→                <Card>
+   813→                  <CardContent className="p-4">
+   814→                    <div className="flex items-start justify-between">
+   815→                      <div className="space-y-1">
+   816→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Jobs</p>
+   817→                        <p className="text-2xl font-bold">{performance.totalJobs}</p>
+   818→                        <p className="text-xs text-muted-foreground">{performance.completedJobs} completed</p>
+   819→                      </div>
+   820→                      <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30">
+   821→                        <Briefcase className="h-5 w-5 text-rose-600" />
+   822→                      </div>
+   823→                    </div>
+   824→                  </CardContent>
+   825→                </Card>
+   826→                <Card>
+   827→                  <CardContent className="p-4">
+   828→                    <div className="flex items-start justify-between">
+   829→                      <div className="space-y-1">
+   830→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Completion Rate</p>
+   831→                        <p className="text-2xl font-bold">{performance.completionRate.toFixed(1)}%</p>
+   832→                        <Progress value={performance.completionRate} className="mt-1 h-1.5 [&>div]:bg-rose-600" />
+   833→                      </div>
+   834→                      <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+   835→                        <TrendingUp className="h-5 w-5 text-emerald-600" />
+   836→                      </div>
+   837→                    </div>
+   838→                  </CardContent>
+   839→                </Card>
+   840→                <Card>
+   841→                  <CardContent className="p-4">
+   842→                    <div className="flex items-start justify-between">
+   843→                      <div className="space-y-1">
+   844→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Response</p>
+   845→                        <p className="text-2xl font-bold">{formatDuration(performance.avgResponseTime)}</p>
+   846→                        <p className="text-xs text-muted-foreground">time to accept</p>
+   847→                      </div>
+   848→                      <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+   849→                        <Timer className="h-5 w-5 text-amber-600" />
+   850→                      </div>
+   851→                    </div>
+   852→                  </CardContent>
+   853→                </Card>
+   854→                <Card>
+   855→                  <CardContent className="p-4">
+   856→                    <div className="flex items-start justify-between">
+   857→                      <div className="space-y-1">
+   858→                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Customer Rating</p>
+   859→                        <div className="flex items-center gap-1">
+   860→                          <p className="text-2xl font-bold">{performance.customerRating.toFixed(1)}</p>
+   861→                          <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+   862→                        </div>
+   863→                        <p className="text-xs text-muted-foreground">{performance.totalRatings} ratings</p>
+   864→                      </div>
+   865→                      <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+   866→                        <ThumbsUp className="h-5 w-5 text-amber-600" />
+   867→                      </div>
+   868→                    </div>
+   869→                  </CardContent>
+   870→                </Card>
+   871→              </div>
+   872→
+   873→              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   874→                {/* মাসিক ট্রেন্ড */}
+   875→                <Card>
+   876→                  <CardHeader className="pb-2">
+   877→                    <CardTitle className="text-sm font-semibold">Monthly Trend</CardTitle>
+   878→                    <CardDescription className="text-xs">Last 6 months performance</CardDescription>
+   879→                  </CardHeader>
+   880→                  <CardContent>
+   881→                    {performance.monthlyTrend.length > 0 ? (
+   882→                      <div className="space-y-2">
+   883→                        {performance.monthlyTrend.map((m, i) => (
+   884→                          <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+   885→                            <span className="text-xs font-mono text-muted-foreground w-16">{m.month}</span>
+   886→                            <div className="flex-1">
+   887→                              <div className="flex items-center gap-2">
+   888→                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+   889→                                  <div
+   890→                                    className="h-full rounded-full bg-rose-500 transition-all"
+   891→                                    style={{ width: `${Math.min(100, (m.completed / Math.max(1, performance.totalJobs)) * 100)}%` }}
+   892→                                  />
+   893→                                </div>
+   894→                              </div>
+   895→                            </div>
+   896→                            <div className="flex items-center gap-3 text-xs min-w-[140px] justify-end">
+   897→                              <span className="text-muted-foreground">{m.completed} jobs</span>
+   898→                              <span className="flex items-center gap-0.5">
+   899→                                <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+   900→                                {m.avgRating.toFixed(1)}
+   901→                              </span>
+   902→                              <span className="text-muted-foreground">{formatDuration(m.avgResponse)}</span>
+   903→                            </div>
+   904→                          </div>
+   905→                        ))}
+   906→                      </div>
+   907→                    ) : (
+   908→                      <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
+   909→                        No trend data available
+   910→                      </div>
+   911→                    )}
+   912→                  </CardContent>
+   913→                </Card>
+   914→
+   915→                {/* দক্ষতা ও সার্টিফিকেশন */}
+   916→                <Card>
+   917→                  <CardHeader className="pb-2">
+   918→                    <CardTitle className="text-sm font-semibold">Skills & Certifications</CardTitle>
+   919→                    <CardDescription className="text-xs">Your qualifications and specializations</CardDescription>
+   920→                  </CardHeader>
+   921→                  <CardContent className="space-y-4">
+   922→                    {performance.skills && performance.skills.length > 0 && (
+   923→                      <div>
+   924→                        <p className="text-xs font-medium text-muted-foreground mb-2">Specializations</p>
+   925→                        <div className="flex flex-wrap gap-2">
+   926→                          {performance.skills.map((skill, i) => (
+   927→                            <Badge key={i} variant="secondary" className="gap-1 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+   928→                              <Wrench className="h-3 w-3" /> {skill}
+   929→                            </Badge>
+   930→                          ))}
+   931→                        </div>
+   932→                      </div>
+   933→                    )}
+   934→                    {performance.certifications && performance.certifications.length > 0 && (
+   935→                      <div>
+   936→                        <p className="text-xs font-medium text-muted-foreground mb-2">Certifications</p>
+   937→                        <div className="flex flex-wrap gap-2">
+   938→                          {performance.certifications.map((cert, i) => (
+   939→                            <Badge key={i} variant="secondary" className="gap-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+   940→                              <Award className="h-3 w-3" /> {cert}
+   941→                            </Badge>
+   942→                          ))}
+   943→                        </div>
+   944→                      </div>
+   945→                    )}
+   946→                    {(!performance.skills?.length && !performance.certifications?.length) && (
+   947→                      <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">
+   948→                        No skills data available
+   949→                      </div>
+   950→                    )}
+   951→                    <Separator />
+   952→                    <div className="grid grid-cols-2 gap-4 text-sm">
+   953→                      <div className="flex justify-between">
+   954→                        <span className="text-muted-foreground">Avg Resolution:</span>
+   955→                        <span className="font-medium">{formatDuration(performance.avgResolutionTime)}</span>
+   956→                      </div>
+   957→                      <div className="flex justify-between">
+   958→                        <span className="text-muted-foreground">Total Ratings:</span>
+   959→                        <span className="font-medium">{performance.totalRatings}</span>
+   960→                      </div>
+   961→                    </div>
+   962→                  </CardContent>
+   963→                </Card>
+   964→              </div>
+   965→            </>
+   966→          ) : (
+   967→            <Card>
+   968→              <CardContent className="flex flex-col items-center justify-center py-16">
+   969→                <BarChart3 className="h-10 w-10 text-muted-foreground/30 mb-2" />
+   970→                <p className="text-sm text-muted-foreground">Performance data unavailable</p>
+   971→              </CardContent>
+   972→            </Card>
+   973→          )}
+   974→        </TabsContent>
+   975→      </Tabs>
+   976→
+   977→      {/* ─── নিশ্চিতকরণ ডায়ালগ (গ্রহণ / প্রত্যাখ্যান) ─── */}
+   978→      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
+   979→        <AlertDialogContent>
+   980→          <AlertDialogHeader>
+   981→            <AlertDialogTitle>
+   982→              {confirmAction?.type === 'accept' ? 'Accept Job' : 'Reject Job'}
+   983→            </AlertDialogTitle>
+   984→            <AlertDialogDescription>
+   985→              {confirmAction?.type === 'accept'
+   986→                ? `Are you sure you want to accept ${confirmAction?.ticket.ticketNo}? A work order will be created.`
+   987→                : `Are you sure you want to reject ${confirmAction?.ticket.ticketNo}? The assignment will be removed.`}
+   988→            </AlertDialogDescription>
+   989→          </AlertDialogHeader>
+   990→          <AlertDialogFooter>
+   991→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   992→            <AlertDialogAction
+   993→              className={confirmAction?.type === 'accept' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
+   994→              onClick={() => {
+   995→                if (!confirmAction) return
+   996→                if (confirmAction.type === 'accept') {
+   997→                  acceptMutation.mutate(confirmAction.ticket.id)
+   998→                } else {
+   999→                  rejectMutation.mutate({ ticketId: confirmAction.ticket.id, reason: 'Technician rejected assignment' })
+  1000→                }
+  1001→              }}
+  1002→              disabled={acceptMutation.isPending || rejectMutation.isPending}
+  1003→            >
+  1004→              {confirmAction?.type === 'accept' ? 'Accept Job' : 'Reject'}
+  1005→            </AlertDialogAction>
+  1006→          </AlertDialogFooter>
+  1007→        </AlertDialogContent>
+  1008→      </AlertDialog>
+  1009→
+  1010→      {/* ─── বিরতি ডায়ালগ ─── */}
+  1011→      <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+  1012→        <DialogContent className="sm:max-w-md">
+  1013→          <DialogHeader>
+  1014→            <DialogTitle>Pause Work</DialogTitle>
+  1015→            <DialogDescription>Provide a reason for pausing work on {pauseTicket?.ticketNo}</DialogDescription>
+  1016→          </DialogHeader>
+  1017→          <div className="space-y-4">
+  1018→            <div className="space-y-2">
+  1019→              <Label>Reason *</Label>
+  1020→              <Textarea
+  1021→                placeholder="Why are you pausing this work?"
+  1022→                value={pauseNote}
+  1023→                onChange={(e) => setPauseNote(e.target.value)}
+  1024→                rows={3}
+  1025→              />
+  1026→            </div>
+  1027→            <DialogFooter>
+  1028→              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+  1029→              <Button
+  1030→                className="bg-amber-600 hover:bg-amber-700"
+  1031→                disabled={!pauseNote.trim() || pauseMutation.isPending}
+  1032→                onClick={() => {
+  1033→                  if (pauseTicket?.workOrderId || pauseTicket?.workOrder?.id) {
+  1034→                    pauseMutation.mutate({ woId: pauseTicket.workOrderId || pauseTicket.workOrder!.id, note: pauseNote })
+  1035→                  }
+  1036→                }}
+  1037→              >
+  1038→                {pauseMutation.isPending ? 'Pausing...' : 'Pause Work'}
+  1039→              </Button>
+  1040→            </DialogFooter>
+  1041→          </div>
+  1042→        </DialogContent>
+  1043→      </Dialog>
+  1044→
+  1045→      {/* ─── কাজ সম্পন্ন ডায়ালগ ─── */}
+  1046→      <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
+  1047→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+  1048→          <DialogHeader>
+  1049→            <DialogTitle>Complete Work</DialogTitle>
+  1050→            <DialogDescription>Submit completion details for {completeTicket?.ticketNo}</DialogDescription>
+  1051→          </DialogHeader>
+  1052→          <div className="space-y-4">
+  1053→            <div className="space-y-2">
+  1054→              <Label>Completion Notes *</Label>
+  1055→              <Textarea
+  1056→                placeholder="Describe what was done..."
+  1057→                value={completionNotes}
+  1058→                onChange={(e) => setCompletionNotes(e.target.value)}
+  1059→                rows={3}
+  1060→              />
+  1061→            </div>
+  1062→            <div className="space-y-2">
+  1063→              <Label>Labour Hours *</Label>
+  1064→              <Input
+  1065→                type="number"
+  1066→                min={0}
+  1067→                step={0.25}
+  1068→                placeholder="e.g. 2.5"
+  1069→                value={labourHours || ''}
+  1070→                onChange={(e) => setLabourHours(Number(e.target.value))}
+  1071→              />
+  1072→            </div>
+  1073→            <div className="space-y-2">
+  1074→              <div className="flex items-center justify-between">
+  1075→                <Label>Used Materials</Label>
+  1076→                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setUsedMaterials([...usedMaterials, { name: '', quantity: 1, unit: 'pcs', cost: 0 }])}>
+  1077→                  <Plus className="h-3 w-3" /> Add
+  1078→                </Button>
+  1079→              </div>
+  1080→              <ScrollArea className="max-h-36">
+  1081→                <div className="space-y-2">
+  1082→                  {usedMaterials.map((m, idx) => (
+  1083→                    <div key={idx} className="flex items-center gap-2">
+  1084→                      <Input placeholder="Name" value={m.name} onChange={(e) => {
+  1085→                        const updated = [...usedMaterials]
+  1086→                        updated[idx] = { ...updated[idx], name: e.target.value }
+  1087→                        setUsedMaterials(updated)
+  1088→                      }} className="flex-1 h-8 text-xs" />
+  1089→                      <Input type="number" min={0} value={m.quantity} onChange={(e) => {
+  1090→                        const updated = [...usedMaterials]
+  1091→                        updated[idx] = { ...updated[idx], quantity: Number(e.target.value) }
+  1092→                        setUsedMaterials(updated)
+  1093→                      }} className="w-16 h-8 text-xs" />
+  1094→                      <Select value={m.unit} onValueChange={(v) => {
+  1095→                        const updated = [...usedMaterials]
+  1096→                        updated[idx] = { ...updated[idx], unit: v }
+  1097→                        setUsedMaterials(updated)
+  1098→                      }}>
+  1099→                        <SelectTrigger className="w-16 h-8 text-xs"><SelectValue /></SelectTrigger>
+  1100→                        <SelectContent>
+  1101→                          <SelectItem value="pcs">pcs</SelectItem>
+  1102→                          <SelectItem value="kg">kg</SelectItem>
+  1103→                          <SelectItem value="m">m</SelectItem>
+  1104→                          <SelectItem value="l">l</SelectItem>
+  1105→                          <SelectItem value="set">set</SelectItem>
+  1106→                        </SelectContent>
+  1107→                      </Select>
+  1108→                      <Input type="number" min={0} step={0.01} placeholder="Cost" value={m.cost || ''} onChange={(e) => {
+  1109→                        const updated = [...usedMaterials]
+  1110→                        updated[idx] = { ...updated[idx], cost: Number(e.target.value) }
+  1111→                        setUsedMaterials(updated)
+  1112→                      }} className="w-20 h-8 text-xs" />
+  1113→                      {usedMaterials.length > 1 && (
+  1114→                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => setUsedMaterials(usedMaterials.filter((_, i) => i !== idx))}>
+  1115→                          <CircleX className="h-3.5 w-3.5" />
+  1116→                        </Button>
+  1117→                      )}
+  1118→                    </div>
+  1119→                  ))}
+  1120→                </div>
+  1121→              </ScrollArea>
+  1122→            </div>
+  1123→            <div className="space-y-2">
+  1124→              <Label>Service Notes (optional)</Label>
+  1125→              <Textarea
+  1126→                placeholder="Additional service notes..."
+  1127→                value={serviceNotes}
+  1128→                onChange={(e) => setServiceNotes(e.target.value)}
+  1129→                rows={2}
+  1130→              />
+  1131→            </div>
+  1132→            <DialogFooter>
+  1133→              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+  1134→              <Button
+  1135→                className="bg-emerald-600 hover:bg-emerald-700"
+  1136→                disabled={!completionNotes.trim() || labourHours <= 0 || completeMutation.isPending}
+  1137→                onClick={() => {
+  1138→                  if (!completeTicket) return
+  1139→                  const woId = completeTicket.workOrderId || completeTicket.workOrder?.id
+  1140→                  if (woId) {
+  1141→                    completeMutation.mutate({
+  1142→                      woId,
+  1143→                      body: {
+  1144→                        completionNotes,
+  1145→                        labourHours,
+  1146→                        usedMaterials: usedMaterials.filter(m => m.name.trim()),
+  1147→                        serviceNotes: serviceNotes.trim() || undefined,
+  1148→                      },
+  1149→                    })
+  1150→                  }
+  1151→                }}
+  1152→              >
+  1153→                {completeMutation.isPending ? 'Completing...' : 'Complete Work'}
+  1154→              </Button>
+  1155→            </DialogFooter>
+  1156→          </div>
+  1157→        </DialogContent>
+  1158→      </Dialog>
+  1159→
+  1160→      {/* ─── ওয়ার্ক অর্ডার উপাদান অনুরোধ ডায়ালগ ─── */}
+  1161→      <Dialog open={woMaterialDialogOpen} onOpenChange={setWoMaterialDialogOpen}>
+  1162→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+  1163→          <DialogHeader>
+  1164→            <DialogTitle>Request Materials</DialogTitle>
+  1165→            <DialogDescription>Request materials for {woMaterialTicket?.ticketNo}: {woMaterialTicket?.subject}</DialogDescription>
+  1166→          </DialogHeader>
+  1167→          <div className="space-y-4">
+  1168→            <div className="space-y-2">
+  1169→              <div className="flex items-center justify-between">
+  1170→                <Label>Items</Label>
+  1171→                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setWoMaterialItems([...woMaterialItems, { name: '', quantity: 1, unit: 'pcs', estimatedCost: 0 }])}>
+  1172→                  <Plus className="h-3 w-3" /> Add Item
+  1173→                </Button>
+  1174→              </div>
+  1175→              <ScrollArea className="max-h-48">
+  1176→                <div className="space-y-2">
+  1177→                  {woMaterialItems.map((item, idx) => (
+  1178→                    <div key={idx} className="flex items-center gap-2">
+  1179→                      <Input placeholder="Item name" value={item.name} onChange={(e) => {
+  1180→                        const updated = [...woMaterialItems]
+  1181→                        updated[idx] = { ...updated[idx], name: e.target.value }
+  1182→                        setWoMaterialItems(updated)
+  1183→                      }} className="flex-1 h-8 text-xs" />
+  1184→                      <Input type="number" min={1} value={item.quantity} onChange={(e) => {
+  1185→                        const updated = [...woMaterialItems]
+  1186→                        updated[idx] = { ...updated[idx], quantity: Number(e.target.value) }
+  1187→                        setWoMaterialItems(updated)
+  1188→                      }} className="w-16 h-8 text-xs" />
+  1189→                      <Select value={item.unit} onValueChange={(v) => {
+  1190→                        const updated = [...woMaterialItems]
+  1191→                        updated[idx] = { ...updated[idx], unit: v }
+  1192→                        setWoMaterialItems(updated)
+  1193→                      }}>
+  1194→                        <SelectTrigger className="w-20 h-8 text-xs"><SelectValue /></SelectTrigger>
+  1195→                        <SelectContent>
+  1196→                          <SelectItem value="pcs">pcs</SelectItem>
+  1197→                          <SelectItem value="kg">kg</SelectItem>
+  1198→                          <SelectItem value="m">m</SelectItem>
+  1199→                          <SelectItem value="l">l</SelectItem>
+  1200→                          <SelectItem value="box">box</SelectItem>
+  1201→                          <SelectItem value="set">set</SelectItem>
+  1202→                        </SelectContent>
+  1203→                      </Select>
+  1204→                      <Input type="number" min={0} step={0.01} placeholder="Est. cost" value={item.estimatedCost || ''} onChange={(e) => {
+  1205→                        const updated = [...woMaterialItems]
+  1206→                        updated[idx] = { ...updated[idx], estimatedCost: Number(e.target.value) }
+  1207→                        setWoMaterialItems(updated)
+  1208→                      }} className="w-24 h-8 text-xs" />
+  1209→                      {woMaterialItems.length > 1 && (
+  1210→                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => setWoMaterialItems(woMaterialItems.filter((_, i) => i !== idx))}>
+  1211→                          <CircleX className="h-3.5 w-3.5" />
+  1212→                        </Button>
+  1213→                      )}
+  1214→                    </div>
+  1215→                  ))}
+  1216→                </div>
+  1217→              </ScrollArea>
+  1218→            </div>
+  1219→            <div className="space-y-2">
+  1220→              <Label>Note (optional)</Label>
+  1221→              <Textarea placeholder="Additional notes..." value={woMaterialNote} onChange={(e) => setWoMaterialNote(e.target.value)} rows={2} />
+  1222→            </div>
+  1223→            <DialogFooter>
+  1224→              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+  1225→              <Button
+  1226→                className="bg-rose-600 hover:bg-rose-700"
+  1227→                disabled={!woMaterialTicket || woMaterialItems.every(it => !it.name.trim()) || requestWOMaterialsMutation.isPending}
+  1228→                onClick={() => {
+  1229→                  if (!woMaterialTicket) return
+  1230→                  const woId = woMaterialTicket.workOrderId || woMaterialTicket.workOrder?.id
+  1231→                  if (woId) {
+  1232→                    requestWOMaterialsMutation.mutate({
+  1233→                      woId,
+  1234→                      body: {
+  1235→                        items: woMaterialItems.filter(it => it.name.trim()).map(it => ({ ...it, estimatedCost: it.estimatedCost || undefined })),
+  1236→                        note: woMaterialNote.trim() || undefined,
+  1237→                      },
+  1238→                    })
+  1239→                  }
+  1240→                }}
+  1241→              >
+  1242→                {requestWOMaterialsMutation.isPending ? 'Submitting...' : 'Submit Request'}
+  1243→              </Button>
+  1244→            </DialogFooter>
+  1245→          </div>
+  1246→        </DialogContent>
+  1247→      </Dialog>
+  1248→    </div>
+  1249→  )
+  1250→}
+  1251→
+  1252→// ─── কাজের কার্ড সাব-উপাদান ───
+  1253→function JobCard({
+  1254→  ticket,
+  1255→  expanded,
+  1256→  onToggle,
+  1257→  onAction,
+  1258→  onMaterial,
+  1259→  updating,
+  1260→}: {
+  1261→  ticket: TechTicket
+  1262→  expanded: boolean
+  1263→  onToggle: () => void
+  1264→  onAction: (ticket: TechTicket, action: string) => void
+  1265→  onMaterial: (ticket: TechTicket) => void
+  1266→  updating: boolean
+  1267→}) {
+  1268→  const pri = priorityConfig[ticket.priority] || priorityConfig.medium
+  1269→  const stat = ticketStatusConfig[ticket.status] || ticketStatusConfig.assigned
+  1270→
+  1271→  return (
+  1272→    <Card className={cn('overflow-hidden transition-colors', ticket.isOverdue && 'border-orange-300 dark:border-orange-800')}>
+  1273→      <CardContent className="p-4">
+  1274→        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+  1275→          <div className="flex-1 min-w-0">
+  1276→            <div className="flex items-center gap-2 flex-wrap mb-1">
+  1277→              <span className="text-xs font-mono font-medium">{ticket.ticketNo}</span>
+  1278→              <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', pri.color)}>
+  1279→                <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
+  1280→                {pri.label}
+  1281→              </Badge>
+  1282→              <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', stat.color)}>
+  1283→                {stat.label}
+  1284→              </Badge>
+  1285→              {ticket.isOverdue && (
+  1286→                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 gap-0.5">
+  1287→                  <AlertTriangle className="h-3 w-3" /> OVERDUE
+  1288→                </Badge>
+  1289→              )}
+  1290→            </div>
+  1291→            <p className="font-semibold text-sm mb-1">{ticket.subject}</p>
+  1292→            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+  1293→              <span className="flex items-center gap-1">
+  1294→                <Users className="h-3 w-3" /> {ticket.customer?.name || 'Unknown'}
+  1295→              </span>
+  1296→              <span className="flex items-center gap-1">
+  1297→                <MapPin className="h-3 w-3" /> {ticket.site?.name || 'Unknown'}
+  1298→              </span>
+  1299→              <span className="flex items-center gap-1">
+  1300→                <Clock className="h-3 w-3" /> SLA: {ticket.slaDeadline ? new Date(ticket.slaDeadline).toLocaleString() : '—'}
+  1301→              </span>
+  1302→              <span>{formatTimeAgo(ticket.createdAt)}</span>
+  1303→            </div>
+  1304→          </div>
+  1305→
+  1306→          <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+  1307→            {/* ─── স্ট্যাটাস: বরাদ্দকৃত ─── */}
+  1308→            {ticket.status === 'assigned' && (
+  1309→              <>
+  1310→                <Button size="sm" className="h-7 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'accept') }}>
+  1311→                  <CheckCircle2 className="h-3 w-3" /> Accept Job
+  1312→                </Button>
+  1313→                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'reject') }}>
+  1314→                  <Ban className="h-3 w-3" /> Reject
+  1315→                </Button>
+  1316→              </>
+  1317→            )}
+  1318→
+  1319→            {/* ─── স্ট্যাটাস: গৃহীত ─── */}
+  1320→            {ticket.status === 'accepted' && (
+  1321→              <Button size="sm" className="h-7 gap-1 text-xs bg-rose-600 hover:bg-rose-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'start') }}>
+  1322→                <Play className="h-3 w-3" /> Start Work
+  1323→              </Button>
+  1324→            )}
+  1325→
+  1326→            {/* ─── স্ট্যাটাস: চলমান ─── */}
+  1327→            {ticket.status === 'in_progress' && (
+  1328→              <>
+  1329→                <Button size="sm" className="h-7 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'complete') }}>
+  1330→                  <ClipboardCheck className="h-3 w-3" /> Complete Work
+  1331→                </Button>
+  1332→                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'request_materials') }}>
+  1333→                  <Package className="h-3 w-3" /> Request Materials
+  1334→                </Button>
+  1335→                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/30 dark:border-amber-800" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'pause') }}>
+  1336→                  <Pause className="h-3 w-3" /> Pause
+  1337→                </Button>
+  1338→              </>
+  1339→            )}
+  1340→
+  1341→            {/* ─── স্ট্যাটাস: যন্ত্রাংশের অপেক্ষমান ─── */}
+  1342→            {ticket.status === 'pending_parts' && (
+  1343→              <Button size="sm" className="h-7 gap-1 text-xs bg-rose-600 hover:bg-rose-700" disabled={updating} onClick={(e) => { e.stopPropagation(); onAction(ticket, 'start') }}>
+  1344→                <RotateCcw className="h-3 w-3" /> Resume
+  1345→              </Button>
+  1346→            )}
+  1347→
+  1348→            {/* ─── স্ট্যাটাস: গ্রাহকের অপেক্ষমান ─── */}
+  1349→            {ticket.status === 'pending_customer' && (
+  1350→              <div className="flex items-center gap-1.5 text-xs text-cyan-600 dark:text-cyan-400">
+  1351→                <Hourglass className="h-3.5 w-3.5" />
+  1352→                <span>Waiting for Customer Approval</span>
+  1353→              </div>
+  1354→            )}
+  1355→
+  1356→            {/* ─── স্ট্যাটাস: সম্পন্ন ─── */}
+  1357→            {ticket.status === 'completed' && (
+  1358→              <div className="space-y-1.5 sm:items-end">
+  1359→                {ticket.completionNotes && (
+  1360→                  <p className="text-xs text-muted-foreground max-w-[200px] truncate">{ticket.completionNotes}</p>
+  1361→                )}
+  1362→                {ticket.totalCost != null && ticket.totalCost > 0 && (
+  1363→                  <div className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+  1364→                    <DollarSign className="h-3 w-3" /> {ticket.totalCost.toLocaleString()}
+  1365→                  </div>
+  1366→                )}
+  1367→                {ticket.customerRating != null && ticket.customerRating > 0 && (
+  1368→                  <div className="flex items-center gap-1 text-xs">
+  1369→                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+  1370→                    <span className="font-medium">{ticket.customerRating.toFixed(1)}</span>
+  1371→                  </div>
+  1372→                )}
+  1373→              </div>
+  1374→            )}
+  1375→          </div>
+  1376→        </div>
+  1377→
+  1378→        {expanded && (
+  1379→          <>
+  1380→            <Separator className="my-3" />
+  1381→            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+  1382→              <div>
+  1383→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Details</h4>
+  1384→                <div className="space-y-1">
+  1385→                  <div className="flex justify-between">
+  1386→                    <span className="text-muted-foreground">Type:</span>
+  1387→                    <span className="font-medium capitalize">{ticket.type}</span>
+  1388→                  </div>
+  1389→                  <div className="flex justify-between">
+  1390→                    <span className="text-muted-foreground">Work Order:</span>
+  1391→                    <span className="font-mono text-xs font-medium">{ticket.workOrder?.woNo || '—'}</span>
+  1392→                  </div>
+  1393→                </div>
+  1394→              </div>
+  1395→              <div>
+  1396→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Location</h4>
+  1397→                <p className="text-xs">{ticket.site?.address || ticket.site?.name || 'Not specified'}</p>
+  1398→              </div>
+  1399→              <div>
+  1400→                <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Timeline</h4>
+  1401→                <div className="space-y-1 text-xs">
+  1402→                  <div className="flex justify-between">
+  1403→                    <span className="text-muted-foreground">Created:</span>
+  1404→                    <span>{new Date(ticket.createdAt).toLocaleString()}</span>
+  1405→                  </div>
+  1406→                  {ticket.slaDeadline && (
+  1407→                    <div className="flex justify-between">
+  1408→                      <span className="text-muted-foreground">SLA:</span>
+  1409→                      <span className={ticket.isOverdue ? 'text-red-600 font-medium' : ''}>
+  1410→                        {new Date(ticket.slaDeadline).toLocaleString()}
+  1411→                      </span>
+  1412→                    </div>
+  1413→                  )}
+  1414→                </div>
+  1415→              </div>
+  1416→            </div>
+  1417→          </>
+  1418→        )}
+  1419→
+  1420→        <button
+  1421→          className="w-full mt-2 text-[10px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors"
+  1422→          onClick={onToggle}
+  1423→        >
+  1424→          {expanded ? 'Show Less' : 'Show More'}
+  1425→          {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+  1426→        </button>
+  1427→      </CardContent>
+  1428→    </Card>
+  1429→  )
+  1430→}
+  1431→
+  1432→// ─── উপাদান অনুরোধ ফর্ম ───
+  1433→function MaterialRequestForm({
+  1434→  ticketId,
+  1435→  ticketNo,
+  1436→  onSubmit,
+  1437→  loading,
+  1438→}: {
+  1439→  ticketId: string
+  1440→  ticketNo: string
+  1441→  onSubmit: (data: any) => void
+  1442→  loading: boolean
+  1443→}) {
+  1444→  const [items, setItems] = useState([
+  1445→    { name: '', quantity: 1, unit: 'pcs' },
+  1446→  ])
+  1447→
+  1448→  const addItem = () => {
+  1449→    setItems([...items, { name: '', quantity: 1, unit: 'pcs' }])
+  1450→  }
+  1451→
+  1452→  const removeItem = (idx: number) => {
+  1453→    if (items.length > 1) setItems(items.filter((_, i) => i !== idx))
+  1454→  }
+  1455→
+  1456→  const updateItem = (idx: number, field: string, value: any) => {
+  1457→    setItems(items.map((item, i) => i === idx ? { ...item, [field]: value } : item))
+  1458→  }
+  1459→
+  1460→  const handleSubmit = (e: React.FormEvent) => {
+  1461→    e.preventDefault()
+  1462→    if (!ticketId) return
+  1463→    const validItems = items.filter(it => it.name.trim())
+  1464→    if (validItems.length === 0) return
+  1465→    onSubmit({
+  1466→      ticketId,
+  1467→      ticketNo,
+  1468→      items: validItems.map(it => ({ name: it.name, quantity: Number(it.quantity), unit: it.unit, requestedQty: Number(it.quantity) })),
+  1469→    })
+  1470→    setItems([{ name: '', quantity: 1, unit: 'pcs' }])
+  1471→  }
+  1472→
+  1473→  return (
+  1474→    <form onSubmit={handleSubmit} className="space-y-4">
+  1475→      <div className="space-y-3">
+  1476→        <div className="flex items-center justify-between">
+  1477→          <Label>Items</Label>
+  1478→          <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={addItem}>
+  1479→            <Plus className="h-3 w-3" /> Add Item
+  1480→          </Button>
+  1481→        </div>
+  1482→        <ScrollArea className="max-h-48">
+  1483→          <div className="space-y-2">
+  1484→            {items.map((item, idx) => (
+  1485→              <div key={idx} className="flex items-center gap-2">
+  1486→                <Input
+  1487→                  placeholder="Item name"
+  1488→                  value={item.name}
+  1489→                  onChange={(e) => updateItem(idx, 'name', e.target.value)}
+  1490→                  className="flex-1 h-8 text-xs"
+  1491→                />
+  1492→                <Input
+  1493→                  type="number"
+  1494→                  min="1"
+  1495→                  value={item.quantity}
+  1496→                  onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+  1497→                  className="w-16 h-8 text-xs"
+  1498→                />
+  1499→                <Select value={item.unit} onValueChange={(v) => updateItem(idx, 'unit', v)}>
+  1500→                  <SelectTrigger className="w-20 h-8 text-xs">
+  1501→                    <SelectValue />
+  1502→                  </SelectTrigger>
+  1503→                  <SelectContent>
+  1504→                    <SelectItem value="pcs">pcs</SelectItem>
+  1505→                    <SelectItem value="kg">kg</SelectItem>
+  1506→                    <SelectItem value="m">m</SelectItem>
+  1507→                    <SelectItem value="l">l</SelectItem>
+  1508→                    <SelectItem value="box">box</SelectItem>
+  1509→                    <SelectItem value="set">set</SelectItem>
+  1510→                  </SelectContent>
+  1511→                </Select>
+  1512→                {items.length > 1 && (
+  1513→                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeItem(idx)}>
+  1514→                    <CircleX className="h-3.5 w-3.5" />
+  1515→                  </Button>
+  1516→                )}
+  1517→              </div>
+  1518→            ))}
+  1519→          </div>
+  1520→        </ScrollArea>
+  1521→      </div>
+  1522→      <DialogFooter>
+  1523→        <DialogClose asChild>
+  1524→          <Button type="button" variant="outline">Cancel</Button>
+  1525→        </DialogClose>
+  1526→        <Button
+  1527→          type="submit"
+  1528→          className="bg-rose-600 hover:bg-rose-700"
+  1529→          disabled={loading || !ticketId || items.every(it => !it.name.trim())}
+  1530→        >
+  1531→          {loading ? 'Submitting...' : 'Submit Request'}
+  1532→        </Button>
+  1533→      </DialogFooter>
+  1534→    </form>
+  1535→  )
+  1536→}

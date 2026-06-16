@@ -66,6 +66,25 @@ import { ProjectAnalytics } from '@/components/ai/project-analytics'
 import { AdvancedReports } from '@/components/ai/advanced-reports'
 import { FeatureUpdatesPage } from '@/components/settings/feature-updates-page'
 import { LandingPage } from '@/components/landing/landing-page'
+import { MaintenanceDashboard } from '@/components/maintenance/maintenance-dashboard'
+import { ServiceRequests } from '@/components/maintenance/service-requests'
+import { MaintenanceComplaints } from '@/components/maintenance/maintenance-complaints'
+import { DispatchCenter } from '@/components/maintenance/dispatch-center'
+import { TechnicianPortal } from '@/components/maintenance/technician-portal'
+import { WorkOrders } from '@/components/maintenance/work-orders'
+import { SLAManagement } from '@/components/maintenance/sla-management'
+import { PMSchedules } from '@/components/maintenance/pm-schedules'
+import { AMCContracts } from '@/components/maintenance/amc-contracts'
+import { MaintenanceSites } from '@/components/maintenance/maintenance-sites'
+import { MaterialRequests } from '@/components/maintenance/material-requests'
+import { MaintenanceReports } from '@/components/maintenance/maintenance-reports'
+import { MaintenanceInvoices } from '@/components/maintenance/maintenance-invoices'
+import { TicketDetail } from '@/components/maintenance/ticket-detail'
+import { WhatsAppComplaintsDashboard } from '@/components/maintenance/whatsapp-complaints-dashboard'
+import WhatsAppComplaint from '@/components/maintenance/whatsapp-complaint'
+import { WhatsAppDispatchPage } from '@/components/maintenance/whatsapp-dispatch'
+import { WhatsAppTechnicianPage } from '@/components/maintenance/whatsapp-technician'
+import { WhatsAppAdminPage } from '@/components/maintenance/whatsapp-admin'
 import { Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -153,6 +172,27 @@ function PageContent() {
     case 'project-analytics': return <ProjectAnalytics />
     case 'advanced-reports': return <AdvancedReports />
     case 'feature-updates': return <FeatureUpdatesPage />
+    // Maintenance Module
+    case 'maintenance-dashboard': return <MaintenanceDashboard />
+    case 'maintenance-service-requests': return <ServiceRequests />
+    case 'maintenance-complaints': return <MaintenanceComplaints />
+    case 'maintenance-dispatch': return <DispatchCenter />
+    case 'maintenance-technicians': return <TechnicianPortal />
+    case 'maintenance-work-orders-maintenance': return <WorkOrders />
+    case 'maintenance-sla': return <SLAManagement />
+    case 'maintenance-pm-schedules': return <PMSchedules />
+    case 'maintenance-amc': return <AMCContracts />
+    case 'maintenance-sites': return <MaintenanceSites />
+    case 'maintenance-materials': return <MaterialRequests />
+    case 'maintenance-reports': return <MaintenanceReports />
+    case 'maintenance-invoices-maintenance': return <MaintenanceInvoices />
+    case 'maintenance-ticket-detail': return <TicketDetail ticketId={pageParams.id} />
+    // WhatsApp Module
+    case 'whatsapp-complaints': return <WhatsAppComplaintsDashboard />
+    case 'whatsapp-inbox': return <WhatsAppComplaint />
+    case 'whatsapp-dispatch': return <WhatsAppDispatchPage />
+    case 'whatsapp-technician': return <WhatsAppTechnicianPage />
+    case 'whatsapp-admin': return <WhatsAppAdminPage />
     default: return <DashboardPage />
   }
 }

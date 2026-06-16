@@ -82,6 +82,7 @@ model Asset {
   updatedAt        DateTime
   assetIssue       AssetIssue[]
   assetMaintenance AssetMaintenance[]
+  maintenanceTickets MaintenanceTicket[]
 
   @@index([name])
   @@index([status])
@@ -404,6 +405,8 @@ model Customer {
   updatedAt      DateTime
   salesInvoice   SalesInvoice[]
   salesQuotation SalesQuotation[]
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceWorkOrders MaintenanceWorkOrder[]
 
   @@index([isActive])
 }
@@ -515,6 +518,7 @@ model Employee {
   updatedAt    DateTime
   leaveRequest LeaveRequest[]
   loan         Loan[]
+  technicianProfiles TechnicianProfile[]
 
   @@index([isActive])
 }
@@ -898,6 +902,7 @@ model Project {
   productivity_logs    productivity_logs[]
   resource_assignments resource_assignments[]
   resource_requests    resource_requests[]
+  maintenanceTickets   MaintenanceTicket[]
 
   @@index([name])
   @@index([clientId])
@@ -1330,6 +1335,12 @@ model User {
   AssignedConversations WhatsAppConversation[]       @relation("AssignedConversations")
   searchHistory                                       SearchHistory[]
   searchAnalytics                                     SearchAnalytics[]
+  MaintenanceTickets                                   MaintenanceTicket[]  @relation("MaintenanceTickets")
+  MaintenanceTimelineUser                             MaintenanceTimeline[] @relation("MaintenanceTimelineUser")
+  WorkOrdersCreatedBy                                  MaintenanceWorkOrder[] @relation("WorkOrdersCreatedBy")
+  MaterialRequests                                     MaterialRequest[]    @relation("MaterialRequests")
+  MaterialApprovedBy                                   MaterialRequest[]    @relation("MaterialApprovedBy")
+  technicianProfile                                   TechnicianProfile?
 
   @@index([name])
 }
@@ -1520,6 +1531,7 @@ model WhatsAppAccount {
   sentMessages      WhatsAppMessage[]     @relation("SentMessages")
   receivedMessages  WhatsAppMessage[]     @relation("ReceivedMessages")
   templates         WhatsAppMessageTemplate[]
+  departments       WhatsAppDepartment[]
 }
 
 model WhatsAppContact {
@@ -1539,6 +1551,7 @@ model WhatsAppContact {
 
   conversations  WhatsAppConversation[]
   messages       WhatsAppMessage[]     @relation("ContactMessages")
+  ticket          MaintenanceTicket? @relation("TicketContact")
 }
 
 model WhatsAppConversation {
@@ -1565,6 +1578,7 @@ model WhatsAppConversation {
   assignedTo      User?            @relation("AssignedConversations", fields: [assignedToId], references: [id], onDelete: SetNull)
   messages        WhatsAppMessage[]
   complaintLink   ComplaintWhatsAppLink?
+  ticket          MaintenanceTicket? @relation("TicketConversation")
 
   @@index([contactId])
   @@index([accountId])
@@ -1628,7 +1642,7 @@ model WhatsAppMessageTemplate {
   accountId       String?
   usageCount      Int      @default(0)
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
 
   account         WhatsAppAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
@@ -1721,4 +1735,285 @@ model RoleAccess {
   @@unique([groupId, roleId])
   @@index([roleId])
   @@index([groupId])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAINTENANCE MODULE
+// ═══════════════════════════════════════════════════════════════════
+
+model MaintenanceTicket {
+  id                      String    @id @default(uuid())
+  ticketNo                String    @unique
+  type                    String    @default("complaint")     // complaint, work_request, emergency, inspection, quotation, preventive_maintenance
+  category                String    @default("general_maintenance")  // air_conditioning, electrical, plumbing, fire_protection, mechanical, civil, cleaning, security, it, general_maintenance, other
+  priority                String    @default("medium")       // emergency, high, medium, low, preventive
+  subject                 String
+  description             String
+  status                  String    @default("new")          // new, under_review, assigned, accepted, in_progress, pending_parts, pending_customer, completed, customer_verification, closed
+  source                  String    @default("manual")       // manual, whatsapp, email, portal, phone
+  customerId              String?
+  siteId                  String?
+  building                String?
+  floor                   String?
+  room                    String?
+  equipmentId             String?
+  projectId               String?
+  contactPerson           String?
+  contactPhone            String?
+  location                String?
+  preferredVisitDate      DateTime?
+  preferredVisitTime      String?
+  photos                  String?                              // JSON array
+  videos                  String?                              // JSON array
+  documents               String?                              // JSON array
+  assignedTechnicianId    String?
+  assignedAt              DateTime?
+  acceptedAt              DateTime?
+  startedAt               DateTime?
+  completedAt             DateTime?
+  closedAt                DateTime?
+  responseDeadline        DateTime?
+  resolutionDeadline      DateTime?
+  slaBreached             Boolean   @default(false)
+  actualResponseMinutes  Float?                               // minutes from creation to first response
+  cancelledReason         String?
+  whatsappConversationId  String?  @unique
+  whatsappContactId       String?  @unique
+  createdById             String
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime
+
+  customer                Customer? @relation(fields: [customerId], references: [id])
+  site                    MaintenanceSite? @relation(fields: [siteId], references: [id])
+  equipment               Asset? @relation(fields: [equipmentId], references: [id])
+  project                 Project? @relation(fields: [projectId], references: [id])
+  assignedTechnician      TechnicianProfile?  @relation(fields: [assignedTechnicianId], references: [id])
+  createdBy               User                @relation("MaintenanceTickets", fields: [createdById], references: [id])
+  timeline                MaintenanceTimeline[]
+  workOrders              MaintenanceWorkOrder[]
+  materialRequests        MaterialRequest[]
+  whatsappConversation    WhatsAppConversation? @relation("TicketConversation", fields: [whatsappConversationId], references: [id])
+  whatsappContact         WhatsAppContact?    @relation("TicketContact", fields: [whatsappContactId], references: [id])
+
+  @@index([ticketNo])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([type])
+  @@index([source])
+  @@index([customerId])
+  @@index([siteId])
+  @@index([assignedTechnicianId])
+  @@index([createdById])
+  @@index([createdAt])
+  @@index([whatsappConversationId])
+  @@index([whatsappContactId])
+}
+
+model MaintenanceTimeline {
+  id             String   @id @default(uuid())
+  ticketId       String
+  action         String                                       // new, under_review, assigned, accepted, in_progress, pending_parts, pending_customer, completed, customer_verification, closed, comment, status_change, escalation, sla_breach
+  description    String
+  performedById  String?
+  metadata       String?                                       // JSON for extra context
+  createdAt      DateTime @default(now())
+
+  ticket         MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy    User?             @relation("MaintenanceTimelineUser", fields: [performedById], references: [id])
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model TechnicianProfile {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  employeeId          String?
+  specialties         String?                                 // JSON array of category strings
+  availabilityStatus  String    @default("available")        // available, busy, offline, on_leave
+  rating              Float     @default(0)
+  totalJobsCompleted  Int       @default(0)
+  totalJobsActive     Int       @default(0)
+  currentLocation     String?                                 // JSON { lat, lng, address }
+  maxJobsPerDay       Int       @default(5)
+  phone               String?
+  emergencyContact    String?
+  bio                 String?
+  certifications      String?                                 // JSON array
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime
+
+  user                User                   @relation(fields: [userId], references: [id])
+  employee            Employee?              @relation(fields: [employeeId], references: [id])
+  tickets             MaintenanceTicket[]
+  workOrders          MaintenanceWorkOrder[]
+
+  @@index([userId])
+  @@index([availabilityStatus])
+  @@index([rating])
+}
+
+model MaintenanceWorkOrder {
+  id                    String    @id @default(uuid())
+  workOrderNo           String    @unique
+  ticketId              String    @unique
+  customerId            String?
+  assignedTechnicianId  String?
+  assignedTeamId        String?
+  startDate             DateTime?
+  targetCompletionDate  DateTime?
+  actualStartDate       DateTime?
+  actualCompletionDate  DateTime?
+  status                String    @default("pending")         // pending, in_progress, paused, completed, cancelled
+  serviceNotes          String?
+  completionNotes       String?
+  partsUsed             String?                                 // JSON array of parts
+  labourHours           Float?
+  costEstimate          Float?
+  actualCost            Float?
+  customerSignature     String?                                 // base64 signature
+  createdById           String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime
+
+  ticket                MaintenanceTicket  @relation(fields: [ticketId], references: [id])
+  customer              Customer? @relation(fields: [customerId], references: [id])
+  assignedTechnician    TechnicianProfile? @relation(fields: [assignedTechnicianId], references: [id])
+  createdBy             User                @relation("WorkOrdersCreatedBy", fields: [createdById], references: [id])
+  materialRequests      MaterialRequest[]
+
+  @@index([workOrderNo])
+  @@index([ticketId])
+  @@index([status])
+  @@index([assignedTechnicianId])
+  @@index([customerId])
+  @@index([createdById])
+}
+
+model MaintenanceSite {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  address     String?
+  city        String?
+  district    String?
+  phone       String?
+  email       String?
+  managerName String?
+  managerPhone String?
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tickets     MaintenanceTicket[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model SLATemplate {
+  id                    String   @id @default(uuid())
+  priority              String   @unique                        // emergency, high, medium, low
+  label                 String
+  responseTimeMinutes   Int      @default(240)                  // minutes to first response
+  resolutionTimeMinutes Int      @default(1440)                 // minutes to resolution
+  escalationAfterMinutes Int    @default(120)                  // minutes before escalation
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([priority])
+}
+
+model MaterialRequest {
+  id              String    @id @default(uuid())
+  requestNo       String    @unique
+  ticketId        String?
+  workOrderId     String?
+  siteId          String?
+  requestedById   String
+  items           String                                  // JSON array of {name, quantity, unit, specification}
+  status          String    @default("pending")          // pending, approved, ordered, delivered, cancelled
+  urgencyLevel    String    @default("normal")            // normal, urgent, emergency
+  notes           String?
+  approvedById    String?
+  approvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+
+  ticket          MaintenanceTicket?   @relation(fields: [ticketId], references: [id])
+  workOrder       MaintenanceWorkOrder? @relation(fields: [workOrderId], references: [id])
+  requestedBy     User                 @relation("MaterialRequests", fields: [requestedById], references: [id])
+  approvedBy      User?                @relation("MaterialApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([requestNo])
+  @@index([ticketId])
+  @@index([workOrderId])
+  @@index([status])
+  @@index([requestedById])
+}
+
+model AMCContract {
+  id              String    @id @default(uuid())
+  contractNo      String    @unique
+  customerId      String
+  siteId          String?
+  startDate       DateTime
+  endDate         DateTime
+  status          String    @default("active")              // active, expired, cancelled
+  contractValue   Float
+  coveredServices String                                   // JSON array of service categories
+  visitFrequency  String    @default("monthly")             // weekly, biweekly, monthly, quarterly
+  totalVisits     Int       @default(12)
+  usedVisits      Int       @default(0)
+  responseSla     String    @default("medium")              // emergency, high, medium, low
+  priorityLevel   String    @default("high")               // emergency, high, medium, low
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([contractNo])
+  @@index([customerId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// WHATSAPP EXTENDED MODELS
+// ═══════════════════════════════════════════════════════════════════
+
+model WhatsAppBotLog {
+  id              String    @id @default(uuid())
+  sessionId       String
+  conversationId  String?
+  contactId       String?
+  command         String                                     // STATUS, MY_REQUESTS, HELP, etc.
+  inputMessage    String?
+  responseMessage String?
+  processingTimeMs Int?
+  createdAt       DateTime  @default(now())
+
+  @@index([sessionId])
+  @@index([conversationId])
+  @@index([contactId])
+  @@index([command])
+  @@index([createdAt])
+}
+
+model WhatsAppDepartment {
+  id          String    @id @default(uuid())
+  name        String
+  accountId   String
+  department  String                                    // maintenance, projects, sales, support
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  account     WhatsAppAccount @relation(fields: [accountId], references: [id])
+
+  @@index([department])
+  @@index([isActive])
 }

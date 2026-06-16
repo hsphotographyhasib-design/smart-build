@@ -68,6 +68,27 @@ export type AppPage =
   | 'advanced-reports'
   | 'feature-updates'
   | 'landing'
+  // Maintenance Module
+  | 'maintenance-dashboard'
+  | 'maintenance-service-requests'
+  | 'maintenance-complaints'
+  | 'maintenance-dispatch'
+  | 'maintenance-technicians'
+  | 'maintenance-work-orders-maintenance'
+  | 'maintenance-sla'
+  | 'maintenance-pm-schedules'
+  | 'maintenance-amc'
+  | 'maintenance-sites'
+  | 'maintenance-materials'
+  | 'maintenance-reports'
+  | 'maintenance-invoices-maintenance'
+  | 'maintenance-ticket-detail'
+  // WhatsApp Module
+  | 'whatsapp-complaints'
+  | 'whatsapp-inbox'
+  | 'whatsapp-dispatch'
+  | 'whatsapp-technician'
+  | 'whatsapp-admin'
 
 interface AppState {
   // প্রমাণীকরণ
@@ -199,6 +220,25 @@ export const useAppStore = create<AppState>((set) => ({
       'advanced-reports': 'Advanced Reports',
       'feature-updates': 'Feature Management',
       'landing': 'Welcome',
+      'maintenance-dashboard': 'Maintenance',
+      'maintenance-service-requests': 'Service Requests',
+      'maintenance-complaints': 'Complaints',
+      'maintenance-dispatch': 'Dispatch Center',
+      'maintenance-technicians': 'Technicians',
+      'maintenance-work-orders-maintenance': 'Work Orders',
+      'maintenance-sla': 'SLA Management',
+      'maintenance-pm-schedules': 'PM Schedules',
+      'maintenance-amc': 'AMC Contracts',
+      'maintenance-sites': 'Maintenance Sites',
+      'maintenance-materials': 'Material Requests',
+      'maintenance-reports': 'Maintenance Reports',
+      'maintenance-invoices-maintenance': 'Maintenance Invoices',
+      'maintenance-ticket-detail': 'Ticket Details',
+      'whatsapp-complaints': 'WhatsApp Complaints',
+      'whatsapp-inbox': 'WhatsApp Inbox',
+      'whatsapp-dispatch': 'WhatsApp Dispatch',
+      'whatsapp-technician': 'WhatsApp Technician',
+      'whatsapp-admin': 'WhatsApp Admin',
     }
     set({ 
       currentPage: page, 
