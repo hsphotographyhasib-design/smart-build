@@ -491,7 +491,7 @@ export function ScheduleDetailPage({ scheduleId }: ScheduleDetailPageProps) {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3 pt-2 border-t">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t">
                   <MiniStat label="On Track" value={activities.filter(a => a.status === 'in_progress' && !a.isOnCriticalPath).length} color="text-emerald-600" />
                   <MiniStat label="Delayed" value={activities.filter(a => a.status === 'delayed').length} color="text-red-600" />
                   <MiniStat label="Critical" value={activities.filter(a => a.isOnCriticalPath).length} color="text-amber-600" />

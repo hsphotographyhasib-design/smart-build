@@ -419,7 +419,7 @@ function SessionDetailDialog({
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Location &amp; Network
               </h4>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                   <p className="text-xs text-muted-foreground">IP Address</p>
                   <p className="text-sm font-mono font-medium">
@@ -660,7 +660,7 @@ export function LoginActivityPage() {
                 setPage(1)
               }}
             >
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -679,7 +679,7 @@ export function LoginActivityPage() {
                 setPage(1)
               }}
             >
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="All Time" />
               </SelectTrigger>
               <SelectContent>

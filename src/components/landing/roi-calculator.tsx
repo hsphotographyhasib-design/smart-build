@@ -165,7 +165,7 @@ export function ROICalculator() {
                 </div>
 
                 {/* 3 stat cards */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center">
                     <p className="text-2xl font-bold text-white">
                       <AnimatedNumber value={timeSaved} suffix="hrs" />

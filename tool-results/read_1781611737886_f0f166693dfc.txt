@@ -1,0 +1,1420 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useMemo, useRef } from 'react'
+     4→import { api } from '@/lib/store'
+     5→import { cn } from '@/lib/utils'
+     6→import { toast } from 'sonner'
+     7→import { Card, CardContent } from '@/components/ui/card'
+     8→import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+     9→import { Button } from '@/components/ui/button'
+    10→import { Badge } from '@/components/ui/badge'
+    11→import { Input } from '@/components/ui/input'
+    12→import { Label } from '@/components/ui/label'
+    13→import { Textarea } from '@/components/ui/textarea'
+    14→import { Checkbox } from '@/components/ui/checkbox'
+    15→import { Skeleton } from '@/components/ui/skeleton'
+    16→import { Separator } from '@/components/ui/separator'
+    17→import {
+    18→  Table,
+    19→  TableBody,
+    20→  TableCell,
+    21→  TableHead,
+    22→  TableHeader,
+    23→  TableRow,
+    24→} from '@/components/ui/table'
+    25→import {
+    26→  Dialog,
+    27→  DialogContent,
+    28→  DialogHeader,
+    29→  DialogTitle,
+    30→  DialogDescription,
+    31→  DialogFooter,
+    32→} from '@/components/ui/dialog'
+    33→import {
+    34→  AlertDialog,
+    35→  AlertDialogContent,
+    36→  AlertDialogHeader,
+    37→  AlertDialogTitle,
+    38→  AlertDialogDescription,
+    39→  AlertDialogFooter,
+    40→  AlertDialogCancel,
+    41→  AlertDialogAction,
+    42→} from '@/components/ui/alert-dialog'
+    43→import {
+    44→  Select,
+    45→  SelectContent,
+    46→  SelectItem,
+    47→  SelectTrigger,
+    48→  SelectValue,
+    49→} from '@/components/ui/select'
+    50→import {
+    51→  Shield,
+    52→  Users,
+    53→  Plus,
+    54→  Edit2,
+    55→  Trash2,
+    56→  Copy,
+    57→  Lock,
+    58→  Unlock,
+    59→  ChevronRight,
+    60→  Search,
+    61→  Save,
+    62→  Loader2,
+    63→  Eye,
+    64→  Printer,
+    65→  Download,
+    66→  CheckCircle2,
+    67→  History,
+    68→  AlertTriangle,
+    69→  ChevronDown,
+    70→} from 'lucide-react'
+    71→
+    72→// ──────────────────────────────────────────
+    73→// প্রকারভেদ
+    74→// ──────────────────────────────────────────
+    75→
+    76→interface Role {
+    77→  id: string
+    78→  name: string
+    79→  code: string
+    80→  description: string | null
+    81→  level: number
+    82→  isSystem: boolean
+    83→  userCount: number
+    84→  permissionCount: number
+    85→}
+    86→
+    87→interface PermissionAction {
+    88→  key: string
+    89→  label: string
+    90→}
+    91→
+    92→interface FeaturePermission {
+    93→  feature: string
+    94→  actions: Record<string, boolean>
+    95→}
+    96→
+    97→interface ModulePermissions {
+    98→  module: string
+    99→  label: string
+   100→  features: FeaturePermission[]
+   101→}
+   102→
+   103→interface PermissionMatrix {
+   104→  [moduleKey: string]: ModulePermissions
+   105→}
+   106→
+   107→interface AuditLogEntry {
+   108→  id: string
+   109→  timestamp: string
+   110→  userId: string
+   111→  userName: string
+   112→  action: string
+   113→  entityType: string
+   114→  entityId: string
+   115→  entityName: string
+   116→  details: string
+   117→}
+   118→
+   119→// ──────────────────────────────────────────
+   120→// ধ্রুবকসমূহ
+   121→// ──────────────────────────────────────────
+   122→
+   123→const ACTION_COLUMNS: PermissionAction[] = [
+   124→  { key: 'view', label: 'View' },
+   125→  { key: 'create', label: 'Create' },
+   126→  { key: 'edit', label: 'Edit' },
+   127→  { key: 'delete', label: 'Delete' },
+   128→  { key: 'approve', label: 'Approve' },
+   129→  { key: 'export', label: 'Export' },
+   130→  { key: 'print', label: 'Print' },
+   131→]
+   132→
+   133→const ACTION_ICONS: Record<string, React.ReactNode> = {
+   134→  view: <Eye className="size-3.5" />,
+   135→  create: <Plus className="size-3.5" />,
+   136→  edit: <Edit2 className="size-3.5" />,
+   137→  delete: <Trash2 className="size-3.5" />,
+   138→  approve: <CheckCircle2 className="size-3.5" />,
+   139→  export: <Download className="size-3.5" />,
+   140→  print: <Printer className="size-3.5" />,
+   141→}
+   142→
+   143→// ──────────────────────────────────────────
+   144→// সহায়ক: সংরক্ষণের জন্য অনুমতি ম্যাট্রিক্সকে কী-মানে রূপান্তর
+   145→// ──────────────────────────────────────────
+   146→
+   147→function flattenPermissions(matrix: PermissionMatrix): Record<string, boolean> {
+   148→  const flat: Record<string, boolean> = {}
+   149→  for (const [, mod] of Object.entries(matrix)) {
+   150→    for (const feat of mod.features) {
+   151→      for (const [action, allowed] of Object.entries(feat.actions)) {
+   152→        const key = `${mod.module}.${feat.feature}.${action}`
+   153→        flat[key] = allowed
+   154→      }
+   155→    }
+   156→  }
+   157→  return flat
+   158→}
+   159→
+   160→// ──────────────────────────────────────────
+   161→// প্রধান উপাদান
+   162→// ──────────────────────────────────────────
+   163→
+   164→export function RolesPermissionsPage() {
+   165→  const [activeTab, setActiveTab] = useState('roles')
+   166→
+   167→  // ── ভূমিকা তালিকা অবস্থা ──
+   168→  const [roles, setRoles] = useState<Role[]>([])
+   169→  const [rolesLoading, setRolesLoading] = useState(true)
+   170→
+   171→  // ── ডায়ালগ অবস্থা ──
+   172→  const [createOpen, setCreateOpen] = useState(false)
+   173→  const [editOpen, setEditOpen] = useState(false)
+   174→  const [cloneOpen, setCloneOpen] = useState(false)
+   175→  const [deleteOpen, setDeleteOpen] = useState(false)
+   176→  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+   177→  const [formLoading, setFormLoading] = useState(false)
+   178→
+   179→  // ── ফর্ম অবস্থা ──
+   180→  const [formName, setFormName] = useState('')
+   181→  const [formCode, setFormCode] = useState('')
+   182→  const [formDescription, setFormDescription] = useState('')
+   183→
+   184→  // ── অনুমতি ম্যাট্রিক্স অবস্থা ──
+   185→  const [matrixRoleId, setMatrixRoleId] = useState<string>('')
+   186→  const [permissionMatrix, setPermissionMatrix] = useState<PermissionMatrix>({})
+   187→  const [originalPermissions, setOriginalPermissions] = useState<Record<string, boolean>>({})
+   188→  const [matrixLoading, setMatrixLoading] = useState(false)
+   189→  const [matrixSaving, setMatrixSaving] = useState(false)
+   190→  const [moduleSearch, setModuleSearch] = useState('')
+   191→
+   192→  // ── অডিট লগ অবস্থা ──
+   193→  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([])
+   194→  const [auditLoading, setAuditLoading] = useState(false)
+   195→  const [auditPage, setAuditPage] = useState(1)
+   196→  const [auditTotalPages, setAuditTotalPages] = useState(1)
+   197→
+   198→  // নকল প্রাথমিক আনা প্রতিরোধে রেফারেন্স
+   199→  const rolesFetched = useRef(false)
+   200→
+   201→  // ──────────────────────────────────────────
+   202→  // তথ্য আনার ফাংশন (ইফেক্ট থেকে কল করা হয় না)
+   203→  // ──────────────────────────────────────────
+   204→
+   205→  const loadRoles = async () => {
+   206→    setRolesLoading(true)
+   207→    const r = await api.get<Role[]>('/api/roles')
+   208→    if (r.success && r.data) {
+   209→      setRoles(r.data.sort((a, b) => a.level - b.level))
+   210→    } else {
+   211→      toast.error('Failed to load roles')
+   212→    }
+   213→    setRolesLoading(false)
+   214→  }
+   215→
+   216→  const loadPermissionMatrix = async (roleId: string) => {
+   217→    if (!roleId) {
+   218→      setPermissionMatrix({})
+   219→      setOriginalPermissions({})
+   220→      return
+   221→    }
+   222→    setMatrixLoading(true)
+   223→    const r = await api.get<PermissionMatrix>(`/api/roles/${roleId}/permissions`)
+   224→    if (r.success && r.data) {
+   225→      setPermissionMatrix(r.data)
+   226→      setOriginalPermissions(flattenPermissions(r.data))
+   227→    } else {
+   228→      toast.error('Failed to load permissions')
+   229→      setPermissionMatrix({})
+   230→      setOriginalPermissions({})
+   231→    }
+   232→    setMatrixLoading(false)
+   233→  }
+   234→
+   235→  const loadAuditLog = async (page: number) => {
+   236→    setAuditLoading(true)
+   237→    const r = await api.get<{ data: AuditLogEntry[]; total: number; pages: number }>(
+   238→      `/api/permissions/audit-log?page=${page}&limit=20`
+   239→    )
+   240→    if (r.success && r.data) {
+   241→      setAuditLogs(r.data.data || [])
+   242→      setAuditTotalPages(r.data.pages || 1)
+   243→    } else {
+   244→      toast.error('Failed to load audit log')
+   245→      setAuditLogs([])
+   246→    }
+   247→    setAuditLoading(false)
+   248→  }
+   249→
+   250→  // ──────────────────────────────────────────
+   251→  // প্রাথমিক ভূমিকা লোড (কলব্যাক-শুধু প্যাটার্ন ব্যবহার করে)
+   252→  // ──────────────────────────────────────────
+   253→
+   254→  useEffect(() => {
+   255→    if (rolesFetched.current) return
+   256→    rolesFetched.current = true
+   257→    let cancelled = false
+   258→    api.get<Role[]>('/api/roles').then((r) => {
+   259→      if (cancelled) return
+   260→      if (r.success && r.data) {
+   261→        setRoles(r.data.sort((a, b) => a.level - b.level))
+   262→      } else {
+   263→        toast.error('Failed to load roles')
+   264→      }
+   265→    }).finally(() => {
+   266→      if (!cancelled) setRolesLoading(false)
+   267→    })
+   268→    return () => { cancelled = true }
+   269→  }, [])
+   270→
+   271→  // ──────────────────────────────────────────
+   272→  // ট্যাব পরিবর্তন পরিচালনা — তথ্য লোডিং ট্রিগার
+   273→  // ──────────────────────────────────────────
+   274→
+   275→  const handleTabChange = (tab: string) => {
+   276→    setActiveTab(tab)
+   277→    if (tab === 'permissions' && matrixRoleId) {
+   278→      loadPermissionMatrix(matrixRoleId)
+   279→    }
+   280→    if (tab === 'audit') {
+   281→      setAuditPage(1)
+   282→      loadAuditLog(1)
+   283→    }
+   284→  }
+   285→
+   286→  // ভূমিকা নির্বাচক পরিবর্তন পরিচালনা
+   287→  const handleMatrixRoleChange = (roleId: string) => {
+   288→    setMatrixRoleId(roleId)
+   289→    setModuleSearch('')
+   290→    if (roleId) loadPermissionMatrix(roleId)
+   291→  }
+   292→
+   293→  // ──────────────────────────────────────────
+   294→  // গণনাকৃত: পরিবর্তিত অনুমতি গণনা
+   295→  // ──────────────────────────────────────────
+   296→
+   297→  const modifiedCount = useMemo(() => {
+   298→    const current = flattenPermissions(permissionMatrix)
+   299→    let count = 0
+   300→    for (const key of Object.keys({ ...current, ...originalPermissions })) {
+   301→      if (current[key] !== originalPermissions[key]) count++
+   302→    }
+   303→    return count
+   304→  }, [permissionMatrix, originalPermissions])
+   305→
+   306→  // ──────────────────────────────────────────
+   307→  // গণনাকৃত: ফিল্টারকৃত মডিউল
+   308→  // ──────────────────────────────────────────
+   309→
+   310→  const filteredModules = useMemo(() => {
+   311→    const entries = Object.entries(permissionMatrix)
+   312→    if (!moduleSearch.trim()) return entries
+   313→    const q = moduleSearch.toLowerCase()
+   314→    return entries.filter(
+   315→      ([, mod]) =>
+   316→        mod.module.toLowerCase().includes(q) ||
+   317→        mod.label.toLowerCase().includes(q) ||
+   318→        mod.features.some(
+   319→          (f) =>
+   320→            f.feature.toLowerCase().includes(q)
+   321→        )
+   322→    )
+   323→  }, [permissionMatrix, moduleSearch])
+   324→
+   325→  // ──────────────────────────────────────────
+   326→  // ভূমিকা CRUD হ্যান্ডলার
+   327→  // ──────────────────────────────────────────
+   328→
+   329→  const openCreate = () => {
+   330→    setFormName('')
+   331→    setFormCode('')
+   332→    setFormDescription('')
+   333→    setCreateOpen(true)
+   334→  }
+   335→
+   336→  const handleCreate = async () => {
+   337→    if (!formName.trim() || !formCode.trim()) {
+   338→      toast.error('Name and code are required')
+   339→      return
+   340→    }
+   341→    setFormLoading(true)
+   342→    const r = await api.post('/api/roles', {
+   343→      name: formName.trim(),
+   344→      code: formCode.trim(),
+   345→      description: formDescription.trim() || null,
+   346→    })
+   347→    setFormLoading(false)
+   348→    if (r.success) {
+   349→      toast.success('Role created successfully')
+   350→      setCreateOpen(false)
+   351→      loadRoles()
+   352→    } else {
+   353→      toast.error(r.error || 'Failed to create role')
+   354→    }
+   355→  }
+   356→
+   357→  const openEdit = (role: Role) => {
+   358→    setSelectedRole(role)
+   359→    setFormName(role.name)
+   360→    setFormDescription(role.description || '')
+   361→    setEditOpen(true)
+   362→  }
+   363→
+   364→  const handleEdit = async () => {
+   365→    if (!selectedRole || !formName.trim()) {
+   366→      toast.error('Role name is required')
+   367→      return
+   368→    }
+   369→    setFormLoading(true)
+   370→    const r = await api.put(`/api/roles/${selectedRole.id}`, {
+   371→      name: formName.trim(),
+   372→      description: formDescription.trim() || null,
+   373→    })
+   374→    setFormLoading(false)
+   375→    if (r.success) {
+   376→      toast.success('Role updated successfully')
+   377→      setEditOpen(false)
+   378→      loadRoles()
+   379→    } else {
+   380→      toast.error(r.error || 'Failed to update role')
+   381→    }
+   382→  }
+   383→
+   384→  const openClone = (role: Role) => {
+   385→    setSelectedRole(role)
+   386→    setFormName(`${role.name} (Copy)`)
+   387→    setFormCode(`${role.code}_copy`)
+   388→    setCloneOpen(true)
+   389→  }
+   390→
+   391→  const handleClone = async () => {
+   392→    if (!selectedRole || !formName.trim() || !formCode.trim()) {
+   393→      toast.error('Name and code are required')
+   394→      return
+   395→    }
+   396→    setFormLoading(true)
+   397→    const r = await api.post(`/api/roles/${selectedRole.id}/clone`, {
+   398→      name: formName.trim(),
+   399→      code: formCode.trim(),
+   400→    })
+   401→    setFormLoading(false)
+   402→    if (r.success) {
+   403→      toast.success('Role cloned successfully')
+   404→      setCloneOpen(false)
+   405→      loadRoles()
+   406→    } else {
+   407→      toast.error(r.error || 'Failed to clone role')
+   408→    }
+   409→  }
+   410→
+   411→  const openDelete = (role: Role) => {
+   412→    if (role.isSystem) {
+   413→      toast.error('System roles cannot be deleted')
+   414→      return
+   415→    }
+   416→    setSelectedRole(role)
+   417→    setDeleteOpen(true)
+   418→  }
+   419→
+   420→  const handleDelete = async () => {
+   421→    if (!selectedRole) return
+   422→    setFormLoading(true)
+   423→    const r = await api.del(`/api/roles/${selectedRole.id}`)
+   424→    setFormLoading(false)
+   425→    if (r.success) {
+   426→      toast.success('Role deleted successfully')
+   427→      setDeleteOpen(false)
+   428→      if (matrixRoleId === selectedRole.id) {
+   429→        setMatrixRoleId('')
+   430→        setPermissionMatrix({})
+   431→      }
+   432→      loadRoles()
+   433→    } else {
+   434→      toast.error(r.error || 'Failed to delete role')
+   435→    }
+   436→  }
+   437→
+   438→  // ──────────────────────────────────────────
+   439→  // অনুমতি ম্যাট্রিক্স হ্যান্ডলার
+   440→  // ──────────────────────────────────────────
+   441→
+   442→  const togglePermission = (
+   443→    moduleKey: string,
+   444→    featureKey: string,
+   445→    actionKey: string,
+   446→    checked: boolean
+   447→  ) => {
+   448→    setPermissionMatrix((prev) => {
+   449→      const updated = { ...prev }
+   450→      const mod = { ...updated[moduleKey] }
+   451→      mod.features = mod.features.map((f) => {
+   452→        if (f.feature === featureKey) {
+   453→          return { ...f, actions: { ...f.actions, [actionKey]: checked } }
+   454→        }
+   455→        return f
+   456→      })
+   457→      updated[moduleKey] = mod
+   458→      return updated
+   459→    })
+   460→  }
+   461→
+   462→  const toggleAllModule = (moduleKey: string, checked: boolean) => {
+   463→    setPermissionMatrix((prev) => {
+   464→      const updated = { ...prev }
+   465→      const mod = { ...updated[moduleKey] }
+   466→      mod.features = mod.features.map((f) => {
+   467→        const newActions: Record<string, boolean> = {}
+   468→        for (const a of ACTION_COLUMNS) {
+   469→          newActions[a.key] = checked
+   470→        }
+   471→        return { ...f, actions: newActions }
+   472→      })
+   473→      updated[moduleKey] = mod
+   474→      return updated
+   475→    })
+   476→  }
+   477→
+   478→  const toggleAllFeature = (moduleKey: string, featureKey: string, checked: boolean) => {
+   479→    setPermissionMatrix((prev) => {
+   480→      const updated = { ...prev }
+   481→      const mod = { ...updated[moduleKey] }
+   482→      mod.features = mod.features.map((f) => {
+   483→        if (f.feature === featureKey) {
+   484→          const newActions: Record<string, boolean> = {}
+   485→          for (const a of ACTION_COLUMNS) {
+   486→            newActions[a.key] = checked
+   487→          }
+   488→          return { ...f, actions: newActions }
+   489→        }
+   490→        return f
+   491→      })
+   492→      updated[moduleKey] = mod
+   493→      return updated
+   494→    })
+   495→  }
+   496→
+   497→  const handleSavePermissions = async () => {
+   498→    if (!matrixRoleId) return
+   499→    setMatrixSaving(true)
+   500→    const flat = flattenPermissions(permissionMatrix)
+   501→    const r = await api.put(`/api/roles/${matrixRoleId}/permissions`, flat)
+   502→    setMatrixSaving(false)
+   503→    if (r.success) {
+   504→      toast.success('Permissions saved successfully')
+   505→      setOriginalPermissions(flat)
+   506→    } else {
+   507→      toast.error(r.error || 'Failed to save permissions')
+   508→    }
+   509→  }
+   510→
+   511→  // ──────────────────────────────────────────
+   512→  // ট্যাব ১: ভূমিকা তালিকা
+   513→  // ──────────────────────────────────────────
+   514→
+   515→  const renderRolesList = () => {
+   516→    if (rolesLoading) {
+   517→      return (
+   518→        <div className="space-y-4">
+   519→          {Array.from({ length: 5 }).map((_, i) => (
+   520→            <Skeleton key={i} className="h-14 w-full rounded-lg" />
+   521→          ))}
+   522→        </div>
+   523→      )
+   524→    }
+   525→
+   526→    return (
+   527→      <>
+   528→        {/* ডেস্কটপ টেবিল */}
+   529→        <div className="hidden md:block">
+   530→          <Card>
+   531→            <CardContent className="p-0">
+   532→              <Table>
+   533→                <TableHeader>
+   534→                  <TableRow>
+   535→                    <TableHead>Role Name</TableHead>
+   536→                    <TableHead>Code</TableHead>
+   537→                    <TableHead>Level</TableHead>
+   538→                    <TableHead>System</TableHead>
+   539→                    <TableHead className="text-center">Users</TableHead>
+   540→                    <TableHead className="text-center">Permissions</TableHead>
+   541→                    <TableHead className="text-right">Actions</TableHead>
+   542→                  </TableRow>
+   543→                </TableHeader>
+   544→                <TableBody>
+   545→                  {roles.length === 0 ? (
+   546→                    <TableRow>
+   547→                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+   548→                        <Shield className="size-10 mx-auto mb-2 opacity-30" />
+   549→                        No roles found. Create your first role to get started.
+   550→                      </TableCell>
+   551→                    </TableRow>
+   552→                  ) : (
+   553→                    roles.map((role) => (
+   554→                      <TableRow key={role.id}>
+   555→                        <TableCell className="font-medium">{role.name}</TableCell>
+   556→                        <TableCell>
+   557→                          <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+   558→                            {role.code}
+   559→                          </code>
+   560→                        </TableCell>
+   561→                        <TableCell>
+   562→                          <div className="flex items-center gap-1.5">
+   563→                            <div
+   564→                              className={cn(
+   565→                                'size-2 rounded-full',
+   566→                                role.level === 0
+   567→                                  ? 'bg-amber-500'
+   568→                                  : role.level <= 2
+   569→                                  ? 'bg-emerald-500'
+   570→                                  : role.level <= 4
+   571→                                  ? 'bg-orange-400'
+   572→                                  : 'bg-neutral-400'
+   573→                              )}
+   574→                            />
+   575→                            <span className="text-sm text-muted-foreground">L{role.level}</span>
+   576→                          </div>
+   577→                        </TableCell>
+   578→                        <TableCell>
+   579→                          {role.isSystem ? (
+   580→                            <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+   581→                              <Lock className="size-3 mr-1" />
+   582→                              System
+   583→                            </Badge>
+   584→                          ) : (
+   585→                            <Badge variant="outline" className="text-emerald-600 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800">
+   586→                              <Unlock className="size-3 mr-1" />
+   587→                              Custom
+   588→                            </Badge>
+   589→                          )}
+   590→                        </TableCell>
+   591→                        <TableCell className="text-center">
+   592→                          <span className="text-sm font-medium">{role.userCount || 0}</span>
+   593→                        </TableCell>
+   594→                        <TableCell className="text-center">
+   595→                          <span className="text-sm font-medium">{role.permissionCount || 0}</span>
+   596→                        </TableCell>
+   597→                        <TableCell className="text-right">
+   598→                          <div className="flex items-center justify-end gap-1">
+   599→                            <Button
+   600→                              variant="ghost"
+   601→                              size="icon"
+   602→                              className="size-8"
+   603→                              onClick={() => openEdit(role)}
+   604→                              title="Edit role"
+   605→                            >
+   606→                              <Edit2 className="size-4" />
+   607→                            </Button>
+   608→                            <Button
+   609→                              variant="ghost"
+   610→                              size="icon"
+   611→                              className="size-8"
+   612→                              onClick={() => openClone(role)}
+   613→                              title="Clone role"
+   614→                            >
+   615→                              <Copy className="size-4" />
+   616→                            </Button>
+   617→                            <Button
+   618→                              variant="ghost"
+   619→                              size="icon"
+   620→                              className="size-8 text-destructive hover:text-destructive"
+   621→                              onClick={() => openDelete(role)}
+   622→                              disabled={role.isSystem}
+   623→                              title={role.isSystem ? 'System role cannot be deleted' : 'Delete role'}
+   624→                            >
+   625→                              <Trash2 className="size-4" />
+   626→                            </Button>
+   627→                          </div>
+   628→                        </TableCell>
+   629→                      </TableRow>
+   630→                    ))
+   631→                  )}
+   632→                </TableBody>
+   633→              </Table>
+   634→            </CardContent>
+   635→          </Card>
+   636→        </div>
+   637→
+   638→        {/* মোবাইল কার্ড */}
+   639→        <div className="md:hidden space-y-3">
+   640→          {roles.length === 0 ? (
+   641→            <Card>
+   642→              <CardContent className="py-12 text-center text-muted-foreground">
+   643→                <Shield className="size-10 mx-auto mb-2 opacity-30" />
+   644→                No roles found.
+   645→              </CardContent>
+   646→            </Card>
+   647→          ) : (
+   648→            roles.map((role) => (
+   649→              <Card key={role.id}>
+   650→                <CardContent className="p-4">
+   651→                  <div className="flex items-start justify-between mb-2">
+   652→                    <div>
+   653→                      <p className="font-medium">{role.name}</p>
+   654→                      <code className="text-xs font-mono text-muted-foreground">{role.code}</code>
+   655→                    </div>
+   656→                    <div className="flex items-center gap-1.5">
+   657→                      <div
+   658→                        className={cn(
+   659→                          'size-2 rounded-full',
+   660→                          role.level === 0
+   661→                            ? 'bg-amber-500'
+   662→                            : role.level <= 2
+   663→                            ? 'bg-emerald-500'
+   664→                            : 'bg-orange-400'
+   665→                        )}
+   666→                      />
+   667→                      <span className="text-xs text-muted-foreground">L{role.level}</span>
+   668→                    </div>
+   669→                  </div>
+   670→                  <div className="flex items-center gap-2 mb-3">
+   671→                    {role.isSystem ? (
+   672→                      <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 text-xs">
+   673→                        <Lock className="size-3 mr-1" />
+   674→                        System
+   675→                      </Badge>
+   676→                    ) : (
+   677→                      <Badge variant="outline" className="text-emerald-600 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800 text-xs">
+   678→                        <Unlock className="size-3 mr-1" />
+   679→                        Custom
+   680→                      </Badge>
+   681→                    )}
+   682→                    <span className="text-xs text-muted-foreground">
+   683→                      {role.userCount || 0} users · {role.permissionCount || 0} perms
+   684→                    </span>
+   685→                  </div>
+   686→                  <div className="flex items-center gap-1 border-t pt-3">
+   687→                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => openEdit(role)}>
+   688→                      <Edit2 className="size-3.5" /> Edit
+   689→                    </Button>
+   690→                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => openClone(role)}>
+   691→                      <Copy className="size-3.5" /> Clone
+   692→                    </Button>
+   693→                    <Button
+   694→                      variant="ghost"
+   695→                      size="sm"
+   696→                      className="h-8 text-xs gap-1 text-destructive hover:text-destructive ml-auto"
+   697→                      onClick={() => openDelete(role)}
+   698→                      disabled={role.isSystem}
+   699→                    >
+   700→                      <Trash2 className="size-3.5" /> Delete
+   701→                    </Button>
+   702→                  </div>
+   703→                </CardContent>
+   704→              </Card>
+   705→            ))
+   706→          )}
+   707→        </div>
+   708→      </>
+   709→    )
+   710→  }
+   711→
+   712→  // ──────────────────────────────────────────
+   713→  // ট্যাব ২: অনুমতি ম্যাট্রিক্স
+   714→  // ──────────────────────────────────────────
+   715→
+   716→  const renderPermissionMatrix = () => {
+   717→    if (!matrixRoleId) {
+   718→      return (
+   719→        <Card className="border-dashed">
+   720→          <CardContent className="py-16 text-center">
+   721→            <Shield className="size-12 mx-auto mb-3 text-muted-foreground/40" />
+   722→            <p className="text-muted-foreground font-medium">Select a role to manage permissions</p>
+   723→            <p className="text-sm text-muted-foreground/70 mt-1">
+   724→              Choose a role from the dropdown above to view and edit its permission matrix.
+   725→            </p>
+   726→          </CardContent>
+   727→        </Card>
+   728→      )
+   729→    }
+   730→
+   731→    if (matrixLoading) {
+   732→      return (
+   733→        <Card>
+   734→          <CardContent className="p-6 space-y-4">
+   735→            <div className="flex justify-between">
+   736→              <Skeleton className="h-6 w-40" />
+   737→              <Skeleton className="h-6 w-24" />
+   738→            </div>
+   739→            {Array.from({ length: 4 }).map((_, i) => (
+   740→              <div key={i} className="space-y-2">
+   741→                <Skeleton className="h-8 w-full" />
+   742→                <Skeleton className="h-10 w-full" />
+   743→                <Skeleton className="h-10 w-full" />
+   744→              </div>
+   745→            ))}
+   746→          </CardContent>
+   747→        </Card>
+   748→      )
+   749→    }
+   750→
+   751→    return (
+   752→      <Card>
+   753→        <CardContent className="p-0">
+   754→          {/* টুলবার */}
+   755→          <div className="flex items-center justify-between gap-3 p-4 border-b">
+   756→            <div className="relative flex-1 max-w-xs">
+   757→              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+   758→              <Input
+   759→                placeholder="Filter modules..."
+   760→                value={moduleSearch}
+   761→                onChange={(e) => setModuleSearch(e.target.value)}
+   762→                className="pl-8 h-9"
+   763→              />
+   764→            </div>
+   765→            <div className="flex items-center gap-3">
+   766→              {modifiedCount > 0 && (
+   767→                <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-400">
+   768→                  <AlertTriangle className="size-3 mr-1" />
+   769→                  {modifiedCount} unsaved change{modifiedCount !== 1 ? 's' : ''}
+   770→                </Badge>
+   771→              )}
+   772→              <Button
+   773→                size="sm"
+   774→                onClick={handleSavePermissions}
+   775→                disabled={matrixSaving || modifiedCount === 0}
+   776→              >
+   777→                {matrixSaving ? (
+   778→                  <Loader2 className="size-4 mr-1.5 animate-spin" />
+   779→                ) : (
+   780→                  <Save className="size-4 mr-1.5" />
+   781→                )}
+   782→                Save Changes
+   783→              </Button>
+   784→            </div>
+   785→          </div>
+   786→
+   787→          {/* ম্যাট্রিক্স হেডার */}
+   788→          <div className="hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-2.5 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
+   789→            <div>Module / Feature</div>
+   790→            {ACTION_COLUMNS.map((a) => (
+   791→              <div key={a.key} className="flex items-center justify-center gap-1">
+   792→                {ACTION_ICONS[a.key]}
+   793→                <span className="hidden xl:inline">{a.label}</span>
+   794→              </div>
+   795→            ))}
+   796→          </div>
+   797→
+   798→          {/* ম্যাট্রিক্স বডি */}
+   799→          <div className="max-h-[calc(100vh-18rem)] overflow-y-auto">
+   800→            {filteredModules.length === 0 ? (
+   801→              <div className="py-12 text-center text-muted-foreground">
+   802→                <Search className="size-8 mx-auto mb-2 opacity-30" />
+   803→                <p className="text-sm">No modules match your search.</p>
+   804→              </div>
+   805→            ) : (
+   806→              filteredModules.map(([moduleKey, mod], modIdx) => (
+   807→                <div key={moduleKey} className={cn(modIdx > 0 && 'border-t')}>
+   808→                  {/* মডিউল হেডার — ডেস্কটপ */}
+   809→                  <div
+   810→                    className={cn(
+   811→                      'hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-2 bg-muted/30 sticky top-0 z-10',
+   812→                      'font-semibold text-sm text-foreground'
+   813→                    )}
+   814→                  >
+   815→                    <div className="flex items-center gap-2">
+   816→                      <ChevronRight className="size-4 text-muted-foreground" />
+   817→                      {mod.label}
+   818→                    </div>
+   819→                    {ACTION_COLUMNS.map((a) => {
+   820→                      const allChecked = mod.features.every(
+   821→                        (f) => f.actions[a.key] === true
+   822→                      )
+   823→                      const someChecked = mod.features.some(
+   824→                        (f) => f.actions[a.key] === true
+   825→                      )
+   826→                      return (
+   827→                        <div key={a.key} className="flex items-center justify-center">
+   828→                          <Checkbox
+   829→                            checked={allChecked ? true : someChecked ? 'indeterminate' : false}
+   830→                            onCheckedChange={(checked) =>
+   831→                              toggleAllModule(moduleKey, !!checked)
+   832→                            }
+   833→                            className="size-4"
+   834→                          />
+   835→                        </div>
+   836→                      )
+   837→                    })}
+   838→                  </div>
+   839→
+   840→                  {/* মডিউল হেডার — মোবাইল */}
+   841→                  <div className="lg:hidden px-4 py-2.5 bg-muted/30 sticky top-0 z-10 border-b">
+   842→                    <div className="flex items-center justify-between">
+   843→                      <div className="flex items-center gap-2 font-semibold text-sm">
+   844→                        <ChevronDown className="size-4 text-muted-foreground" />
+   845→                        {mod.label}
+   846→                      </div>
+   847→                      <span className="text-xs text-muted-foreground">
+   848→                        {mod.features.length} feature{mod.features.length !== 1 ? 's' : ''}
+   849→                      </span>
+   850→                    </div>
+   851→                  </div>
+   852→
+   853→                  {/* বৈশিষ্ট্য সারিসমূহ */}
+   854→                  {mod.features.map((feat) => {
+   855→                    const rowKey = `${moduleKey}.${feat.feature}`
+   856→                    const currentFlat = flattenPermissions(permissionMatrix)
+   857→                    const hasChanges = ACTION_COLUMNS.some(
+   858→                      (a) => currentFlat[`${rowKey}.${a.key}`] !== originalPermissions[`${rowKey}.${a.key}`]
+   859→                    )
+   860→
+   861→                    return (
+   862→                      <div
+   863→                        key={feat.feature}
+   864→                        className={cn(
+   865→                          'group',
+   866→                          hasChanges && 'bg-amber-50/50 dark:bg-amber-950/20'
+   867→                        )}
+   868→                      >
+   869→                        {/* ডেস্কটপ সারি */}
+   870→                        <div className="hidden lg:grid lg:grid-cols-[minmax(240px,2fr)_repeat(7,minmax(80px,1fr))] gap-0 px-4 py-1.5 items-center hover:bg-muted/20 transition-colors border-b border-border/50 last:border-b-0">
+   871→                          <div className="flex items-center gap-2 pl-6">
+   872→                            <span className="text-sm truncate" title={feat.feature}>
+   873→                              {feat.feature.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+   874→                            </span>
+   875→                            {hasChanges && (
+   876→                              <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+   877→                            )}
+   878→                          </div>
+   879→                          {ACTION_COLUMNS.map((a) => {
+   880→                            const actionKey = `${rowKey}.${a.key}`
+   881→                            const isModified = currentFlat[actionKey] !== originalPermissions[actionKey]
+   882→                            return (
+   883→                              <div key={a.key} className="flex items-center justify-center">
+   884→                                <Checkbox
+   885→                                  checked={feat.actions[a.key] || false}
+   886→                                  onCheckedChange={(checked) =>
+   887→                                    togglePermission(moduleKey, feat.feature, a.key, !!checked)
+   888→                                  }
+   889→                                  className={cn(
+   890→                                    'size-4',
+   891→                                    isModified && 'border-amber-500 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600'
+   892→                                  )}
+   893→                                />
+   894→                              </div>
+   895→                            )
+   896→                          })}
+   897→                        </div>
+   898→
+   899→                        {/* মোবাইল সারি */}
+   900→                        <div className="lg:hidden px-4 py-3 border-b border-border/50">
+   901→                          <div className="flex items-center justify-between mb-2">
+   902→                            <span className="text-sm font-medium truncate">
+   903→                              {feat.feature.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+   904→                            </span>
+   905→                            <Checkbox
+   906→                              checked={feat.actions['view'] && feat.actions['create'] && feat.actions['edit'] && feat.actions['delete'] && feat.actions['approve'] && feat.actions['export'] && feat.actions['print']}
+   907→                              onCheckedChange={(checked) =>
+   908→                                toggleAllFeature(moduleKey, feat.feature, !!checked)
+   909→                              }
+   910→                              className="size-4"
+   911→                            />
+   912→                          </div>
+   913→                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+   914→                            {ACTION_COLUMNS.map((a) => {
+   915→                              const actionKey = `${rowKey}.${a.key}`
+   916→                              const isModified = currentFlat[actionKey] !== originalPermissions[actionKey]
+   917→                              return (
+   918→                                <label
+   919→                                  key={a.key}
+   920→                                  className={cn(
+   921→                                    'flex items-center gap-1.5 text-xs cursor-pointer px-1.5 py-1 rounded',
+   922→                                    'hover:bg-muted/50 transition-colors',
+   923→                                    feat.actions[a.key] && 'text-foreground font-medium',
+   924→                                    !feat.actions[a.key] && 'text-muted-foreground'
+   925→                                  )}
+   926→                                >
+   927→                                  <Checkbox
+   928→                                    checked={feat.actions[a.key] || false}
+   929→                                    onCheckedChange={(checked) =>
+   930→                                      togglePermission(moduleKey, feat.feature, a.key, !!checked)
+   931→                                    }
+   932→                                    className={cn(
+   933→                                      'size-3.5',
+   934→                                      isModified && 'border-amber-500 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600'
+   935→                                    )}
+   936→                                  />
+   937→                                  <span className="truncate">{a.label}</span>
+   938→                                </label>
+   939→                              )
+   940→                            })}
+   941→                          </div>
+   942→                        </div>
+   943→                      </div>
+   944→                    )
+   945→                  })}
+   946→                </div>
+   947→              ))
+   948→            )}
+   949→          </div>
+   950→        </CardContent>
+   951→      </Card>
+   952→    )
+   953→  }
+   954→
+   955→  // ──────────────────────────────────────────
+   956→  // ট্যাব ৩: অডিট লগ
+   957→  // ──────────────────────────────────────────
+   958→
+   959→  const renderAuditLog = () => {
+   960→    if (auditLoading) {
+   961→      return (
+   962→        <Card>
+   963→          <CardContent className="p-6 space-y-3">
+   964→            {Array.from({ length: 5 }).map((_, i) => (
+   965→              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+   966→            ))}
+   967→          </CardContent>
+   968→        </Card>
+   969→      )
+   970→    }
+   971→
+   972→    const actionColors: Record<string, string> = {
+   973→      grant: 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950',
+   974→      revoke: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950',
+   975→      update: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950',
+   976→      create: 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950',
+   977→      delete: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950',
+   978→    }
+   979→
+   980→    return (
+   981→      <>
+   982→        {/* ডেস্কটপ টেবিল */}
+   983→        <div className="hidden md:block">
+   984→          <Card>
+   985→            <CardContent className="p-0">
+   986→              <Table>
+   987→                <TableHeader>
+   988→                  <TableRow>
+   989→                    <TableHead>Date</TableHead>
+   990→                    <TableHead>User</TableHead>
+   991→                    <TableHead>Action</TableHead>
+   992→                    <TableHead>Entity</TableHead>
+   993→                    <TableHead>Details</TableHead>
+   994→                  </TableRow>
+   995→                </TableHeader>
+   996→                <TableBody>
+   997→                  {auditLogs.length === 0 ? (
+   998→                    <TableRow>
+   999→                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+  1000→                        <History className="size-10 mx-auto mb-2 opacity-30" />
+  1001→                        No audit log entries found.
+  1002→                      </TableCell>
+  1003→                    </TableRow>
+  1004→                  ) : (
+  1005→                    auditLogs.map((entry) => (
+  1006→                      <TableRow key={entry.id}>
+  1007→                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+  1008→                          {new Date(entry.timestamp).toLocaleString()}
+  1009→                        </TableCell>
+  1010→                        <TableCell className="text-sm font-medium">{entry.userName}</TableCell>
+  1011→                        <TableCell>
+  1012→                          <span
+  1013→                            className={cn(
+  1014→                              'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
+  1015→                              actionColors[entry.action.toLowerCase()] || 'bg-muted text-muted-foreground'
+  1016→                            )}
+  1017→                          >
+  1018→                            {entry.action}
+  1019→                          </span>
+  1020→                        </TableCell>
+  1021→                        <TableCell className="text-sm">
+  1022→                          <span className="text-muted-foreground">{entry.entityType}</span>
+  1023→                          {entry.entityName && (
+  1024→                            <span className="ml-1 font-medium">· {entry.entityName}</span>
+  1025→                          )}
+  1026→                        </TableCell>
+  1027→                        <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+  1028→                          {entry.details}
+  1029→                        </TableCell>
+  1030→                      </TableRow>
+  1031→                    ))
+  1032→                  )}
+  1033→                </TableBody>
+  1034→              </Table>
+  1035→            </CardContent>
+  1036→          </Card>
+  1037→        </div>
+  1038→
+  1039→        {/* মোবাইল কার্ড */}
+  1040→        <div className="md:hidden space-y-3">
+  1041→          {auditLogs.length === 0 ? (
+  1042→            <Card>
+  1043→              <CardContent className="py-12 text-center text-muted-foreground">
+  1044→                <History className="size-10 mx-auto mb-2 opacity-30" />
+  1045→                No audit log entries found.
+  1046→              </CardContent>
+  1047→            </Card>
+  1048→          ) : (
+  1049→            auditLogs.map((entry) => (
+  1050→              <Card key={entry.id}>
+  1051→                <CardContent className="p-4">
+  1052→                  <div className="flex items-start justify-between mb-2">
+  1053→                    <span className="font-medium text-sm">{entry.userName}</span>
+  1054→                    <span
+  1055→                      className={cn(
+  1056→                        'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
+  1057→                        actionColors[entry.action.toLowerCase()] || 'bg-muted text-muted-foreground'
+  1058→                      )}
+  1059→                    >
+  1060→                      {entry.action}
+  1061→                    </span>
+  1062→                  </div>
+  1063→                  <p className="text-xs text-muted-foreground mb-1">
+  1064→                    {new Date(entry.timestamp).toLocaleString()}
+  1065→                  </p>
+  1066→                  <p className="text-sm">
+  1067→                    <span className="text-muted-foreground">{entry.entityType}</span>
+  1068→                    {entry.entityName && (
+  1069→                      <span className="ml-1 font-medium">· {entry.entityName}</span>
+  1070→                    )}
+  1071→                  </p>
+  1072→                  {entry.details && (
+  1073→                    <p className="text-xs text-muted-foreground mt-1 truncate">{entry.details}</p>
+  1074→                  )}
+  1075→                </CardContent>
+  1076→              </Card>
+  1077→            ))
+  1078→          )}
+  1079→        </div>
+  1080→
+  1081→        {/* পেজিনেশন */}
+  1082→        {auditTotalPages > 1 && (
+  1083→          <div className="flex items-center justify-center gap-2 mt-4">
+  1084→            <Button
+  1085→              variant="outline"
+  1086→              size="sm"
+  1087→              disabled={auditPage <= 1}
+  1088→              onClick={() => {
+  1089→                const p = auditPage - 1
+  1090→                setAuditPage(p)
+  1091→                loadAuditLog(p)
+  1092→              }}
+  1093→            >
+  1094→              Previous
+  1095→            </Button>
+  1096→            <span className="text-sm text-muted-foreground px-2">
+  1097→              Page {auditPage} of {auditTotalPages}
+  1098→            </span>
+  1099→            <Button
+  1100→              variant="outline"
+  1101→              size="sm"
+  1102→              disabled={auditPage >= auditTotalPages}
+  1103→              onClick={() => {
+  1104→                const p = auditPage + 1
+  1105→                setAuditPage(p)
+  1106→                loadAuditLog(p)
+  1107→              }}
+  1108→            >
+  1109→              Next
+  1110→            </Button>
+  1111→          </div>
+  1112→        )}
+  1113→      </>
+  1114→    )
+  1115→  }
+  1116→
+  1117→  // ──────────────────────────────────────────
+  1118→  // রেন্ডার
+  1119→  // ──────────────────────────────────────────
+  1120→
+  1121→  return (
+  1122→    <div className="space-y-6">
+  1123→      {/* পৃষ্ঠা হেডার */}
+  1124→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  1125→        <div>
+  1126→          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+  1127→            <Shield className="size-6 text-primary" />
+  1128→            Roles & Permissions
+  1129→          </h1>
+  1130→          <p className="text-muted-foreground text-sm mt-1">
+  1131→            Manage user roles, configure access permissions, and track changes.
+  1132→          </p>
+  1133→        </div>
+  1134→        <Button onClick={openCreate} className="gap-2 self-start">
+  1135→          <Plus className="size-4" />
+  1136→          Create Role
+  1137→        </Button>
+  1138→      </div>
+  1139→
+  1140→      <Separator />
+  1141→
+  1142→      {/* ট্যাবসমূহ */}
+  1143→      <Tabs value={activeTab} onValueChange={handleTabChange}>
+  1144→        <TabsList>
+  1145→          <TabsTrigger value="roles" className="gap-1.5">
+  1146→            <Users className="size-4" />
+  1147→            Roles
+  1148→          </TabsTrigger>
+  1149→          <TabsTrigger value="permissions" className="gap-1.5">
+  1150→            <Shield className="size-4" />
+  1151→            Permission Matrix
+  1152→          </TabsTrigger>
+  1153→          <TabsTrigger value="audit" className="gap-1.5">
+  1154→            <History className="size-4" />
+  1155→            Audit Log
+  1156→          </TabsTrigger>
+  1157→        </TabsList>
+  1158→
+  1159→        {/* ট্যাব ১: ভূমিকা তালিকা */}
+  1160→        <TabsContent value="roles">
+  1161→          {renderRolesList()}
+  1162→        </TabsContent>
+  1163→
+  1164→        {/* ট্যাব ২: অনুমতি ম্যাট্রিক্স */}
+  1165→        <TabsContent value="permissions">
+  1166→          <div className="space-y-4">
+  1167→            {/* ভূমিকা নির্বাচক */}
+  1168→            <Card>
+  1169→              <CardContent className="p-4">
+  1170→                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+  1171→                  <Label className="text-sm font-medium shrink-0">Select Role</Label>
+  1172→                  <Select
+  1173→                    value={matrixRoleId}
+  1174→                    onValueChange={handleMatrixRoleChange}
+  1175→                  >
+  1176→                    <SelectTrigger className="w-full sm:max-w-xs">
+  1177→                      <SelectValue placeholder="Choose a role..." />
+  1178→                    </SelectTrigger>
+  1179→                    <SelectContent>
+  1180→                      {roles.map((role) => (
+  1181→                        <SelectItem key={role.id} value={role.id}>
+  1182→                          <span className="flex items-center gap-2">
+  1183→                            {role.name}
+  1184→                            {role.isSystem && (
+  1185→                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+  1186→                                SYS
+  1187→                              </Badge>
+  1188→                            )}
+  1189→                          </span>
+  1190→                        </SelectItem>
+  1191→                      ))}
+  1192→                    </SelectContent>
+  1193→                  </Select>
+  1194→                  {matrixRoleId && (
+  1195→                    <Button
+  1196→                      variant="outline"
+  1197→                      size="sm"
+  1198→                      className="shrink-0"
+  1199→                      onClick={() => setActiveTab('permissions')}
+  1200→                      disabled
+  1201→                    >
+  1202→                      <Eye className="size-3.5 mr-1.5" />
+  1203→                      Viewing Matrix
+  1204→                    </Button>
+  1205→                  )}
+  1206→                </div>
+  1207→              </CardContent>
+  1208→            </Card>
+  1209→
+  1210→            {renderPermissionMatrix()}
+  1211→          </div>
+  1212→        </TabsContent>
+  1213→
+  1214→        {/* ট্যাব ৩: অডিট লগ */}
+  1215→        <TabsContent value="audit">
+  1216→          {renderAuditLog()}
+  1217→        </TabsContent>
+  1218→      </Tabs>
+  1219→
+  1220→      {/* ── ভূমিকা তৈরির ডায়ালগ ── */}
+  1221→      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+  1222→        <DialogContent>
+  1223→          <DialogHeader>
+  1224→            <DialogTitle>Create New Role</DialogTitle>
+  1225→            <DialogDescription>
+  1226→              Define a new role with a unique name and code. You can configure permissions after creation.
+  1227→            </DialogDescription>
+  1228→          </DialogHeader>
+  1229→          <div className="space-y-4 py-2">
+  1230→            <div className="space-y-2">
+  1231→              <Label htmlFor="create-name">Role Name *</Label>
+  1232→              <Input
+  1233→                id="create-name"
+  1234→                placeholder="e.g., Site Engineer"
+  1235→                value={formName}
+  1236→                onChange={(e) => setFormName(e.target.value)}
+  1237→              />
+  1238→            </div>
+  1239→            <div className="space-y-2">
+  1240→              <Label htmlFor="create-code">Role Code *</Label>
+  1241→              <Input
+  1242→                id="create-code"
+  1243→                placeholder="e.g., site_engineer"
+  1244→                value={formCode}
+  1245→                onChange={(e) => setFormCode(e.target.value)}
+  1246→                className="font-mono"
+  1247→              />
+  1248→              <p className="text-xs text-muted-foreground">
+  1249→                Unique identifier used internally. Use lowercase with underscores.
+  1250→              </p>
+  1251→            </div>
+  1252→            <div className="space-y-2">
+  1253→              <Label htmlFor="create-desc">Description</Label>
+  1254→              <Textarea
+  1255→                id="create-desc"
+  1256→                placeholder="Brief description of this role..."
+  1257→                value={formDescription}
+  1258→                onChange={(e) => setFormDescription(e.target.value)}
+  1259→                rows={3}
+  1260→              />
+  1261→            </div>
+  1262→          </div>
+  1263→          <DialogFooter>
+  1264→            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+  1265→              Cancel
+  1266→            </Button>
+  1267→            <Button onClick={handleCreate} disabled={formLoading}>
+  1268→              {formLoading && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+  1269→              Create Role
+  1270→            </Button>
+  1271→          </DialogFooter>
+  1272→        </DialogContent>
+  1273→      </Dialog>
+  1274→
+  1275→      {/* ── ভূমিকা সম্পাদনা ডায়ালগ ── */}
+  1276→      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+  1277→        <DialogContent>
+  1278→          <DialogHeader>
+  1279→            <DialogTitle>Edit Role</DialogTitle>
+  1280→            <DialogDescription>
+  1281→              Update the role name and description. The code cannot be changed.
+  1282→            </DialogDescription>
+  1283→          </DialogHeader>
+  1284→          <div className="space-y-4 py-2">
+  1285→            <div className="space-y-2">
+  1286→              <Label htmlFor="edit-name">Role Name *</Label>
+  1287→              <Input
+  1288→                id="edit-name"
+  1289→                value={formName}
+  1290→                onChange={(e) => setFormName(e.target.value)}
+  1291→              />
+  1292→            </div>
+  1293→            {selectedRole && (
+  1294→              <div className="space-y-2">
+  1295→                <Label>Role Code</Label>
+  1296→                <div className="flex items-center gap-2">
+  1297→                  <code className="rounded bg-muted px-2 py-1 text-sm font-mono text-muted-foreground">
+  1298→                    {selectedRole.code}
+  1299→                  </code>
+  1300→                  <Badge variant="secondary" className="text-xs">Read-only</Badge>
+  1301→                </div>
+  1302→              </div>
+  1303→            )}
+  1304→            <div className="space-y-2">
+  1305→              <Label htmlFor="edit-desc">Description</Label>
+  1306→              <Textarea
+  1307→                id="edit-desc"
+  1308→                value={formDescription}
+  1309→                onChange={(e) => setFormDescription(e.target.value)}
+  1310→                rows={3}
+  1311→              />
+  1312→            </div>
+  1313→          </div>
+  1314→          <DialogFooter>
+  1315→            <Button variant="outline" onClick={() => setEditOpen(false)}>
+  1316→              Cancel
+  1317→            </Button>
+  1318→            <Button onClick={handleEdit} disabled={formLoading}>
+  1319→              {formLoading && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+  1320→              Save Changes
+  1321→            </Button>
+  1322→          </DialogFooter>
+  1323→        </DialogContent>
+  1324→      </Dialog>
+  1325→
+  1326→      {/* ── ভূমিকা ক্লোন ডায়ালগ ── */}
+  1327→      <Dialog open={cloneOpen} onOpenChange={setCloneOpen}>
+  1328→        <DialogContent>
+  1329→          <DialogHeader>
+  1330→            <DialogTitle>Clone Role</DialogTitle>
+  1331→            <DialogDescription>
+  1332→              Create a copy of <span className="font-semibold">{selectedRole?.name}</span> with its permissions.
+  1333→            </DialogDescription>
+  1334→          </DialogHeader>
+  1335→          <div className="space-y-4 py-2">
+  1336→            {selectedRole && (
+  1337→              <div className="rounded-lg bg-muted/50 p-3">
+  1338→                <p className="text-xs text-muted-foreground">Source Role</p>
+  1339→                <p className="font-medium text-sm">{selectedRole.name}</p>
+  1340→                <code className="text-xs font-mono text-muted-foreground">{selectedRole.code}</code>
+  1341→                <p className="text-xs text-muted-foreground mt-1">
+  1342→                  {selectedRole.permissionCount} permissions will be copied
+  1343→                </p>
+  1344→              </div>
+  1345→            )}
+  1346→            <Separator />
+  1347→            <div className="space-y-2">
+  1348→              <Label htmlFor="clone-name">New Role Name *</Label>
+  1349→              <Input
+  1350→                id="clone-name"
+  1351→                value={formName}
+  1352→                onChange={(e) => setFormName(e.target.value)}
+  1353→              />
+  1354→            </div>
+  1355→            <div className="space-y-2">
+  1356→              <Label htmlFor="clone-code">New Role Code *</Label>
+  1357→              <Input
+  1358→                id="clone-code"
+  1359→                value={formCode}
+  1360→                onChange={(e) => setFormCode(e.target.value)}
+  1361→                className="font-mono"
+  1362→              />
+  1363→            </div>
+  1364→          </div>
+  1365→          <DialogFooter>
+  1366→            <Button variant="outline" onClick={() => setCloneOpen(false)}>
+  1367→              Cancel
+  1368→            </Button>
+  1369→            <Button onClick={handleClone} disabled={formLoading}>
+  1370→              {formLoading && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+  1371→              <Copy className="size-4 mr-1.5" />
+  1372→              Clone Role
+  1373→            </Button>
+  1374→          </DialogFooter>
+  1375→        </DialogContent>
+  1376→      </Dialog>
+  1377→
+  1378→      {/* ── ভূমিকা মুছে ফেলার নিশ্চিতকরণ ── */}
+  1379→      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+  1380→        <AlertDialogContent>
+  1381→          <AlertDialogHeader>
+  1382→            <AlertDialogTitle className="flex items-center gap-2">
+  1383→              <AlertTriangle className="size-5 text-destructive" />
+  1384→              Delete Role
+  1385→            </AlertDialogTitle>
+  1386→            <AlertDialogDescription asChild>
+  1387→              <div className="space-y-2">
+  1388→                <p>
+  1389→                  Are you sure you want to delete <span className="font-semibold">{selectedRole?.name}</span>?
+  1390→                  This action cannot be undone.
+  1391→                </p>
+  1392→                {selectedRole && (selectedRole.userCount || 0) > 0 && (
+  1393→                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+  1394→                    <p className="text-sm font-medium text-destructive">
+  1395→                      {selectedRole.userCount} user{selectedRole.userCount !== 1 ? 's' : ''} currently assigned to this role.
+  1396→                    </p>
+  1397→                    <p className="text-xs text-muted-foreground mt-1">
+  1398→                      Please reassign users before deleting.
+  1399→                    </p>
+  1400→                  </div>
+  1401→                )}
+  1402→              </div>
+  1403→            </AlertDialogDescription>
+  1404→          </AlertDialogHeader>
+  1405→          <AlertDialogFooter>
+  1406→            <AlertDialogCancel disabled={formLoading}>Cancel</AlertDialogCancel>
+  1407→            <AlertDialogAction
+  1408→              onClick={handleDelete}
+  1409→              disabled={formLoading}
+  1410→              className="bg-destructive text-white hover:bg-destructive/90"
+  1411→            >
+  1412→              {formLoading && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+  1413→              Delete Role
+  1414→            </AlertDialogAction>
+  1415→          </AlertDialogFooter>
+  1416→        </AlertDialogContent>
+  1417→      </AlertDialog>
+  1418→    </div>
+  1419→  )
+  1420→}

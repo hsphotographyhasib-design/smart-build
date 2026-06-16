@@ -1,0 +1,559 @@
+     1→'use client'
+     2→
+     3→import { useState } from 'react'
+     4→import { api } from '@/lib/store'
+     5→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    14→import {
+    15→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+    16→} from '@/components/ui/dialog'
+    17→import {
+    18→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    19→} from '@/components/ui/table'
+    20→import { Separator } from '@/components/ui/separator'
+    21→import {
+    22→  Plus, Pencil, Trash2, Eye, CheckCircle, XCircle, ArrowUpRight, ArrowDownRight,
+    23→  FileText, Search, GitCompareArrows, ClipboardList,
+    24→} from 'lucide-react'
+    25→import { cn } from '@/lib/utils'
+    26→import { format } from 'date-fns'
+    27→
+    28→// ─── সহায়ক ফাংশনসমূহ ───
+    29→function formatCurrency(val: number) {
+    30→  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+    31→  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+    32→  return `$${val.toFixed(0)}`
+    33→}
+    34→
+    35→const statusColor: Record<string, string> = {
+    36→  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    37→  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    38→  reviewed: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    39→  approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+    40→  rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    41→  applied: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    42→}
+    43→
+    44→// ─── প্রকারভেদ ───
+    45→interface ChangeOrder {
+    46→  id: string
+    47→  budgetId: string
+    48→  bcoNo: string
+    49→  title: string
+    50→  description?: string
+    51→  reason?: string
+    52→  originalBudget: number
+    53→  changeAmount: number
+    54→  newBudget: number
+    55→  status: string
+    56→  submittedById: string
+    57→  reviewedById?: string
+    58→  approvedById?: string
+    59→  reviewedAt?: string
+    60→  approvedAt?: string
+    61→  createdAt: string
+    62→  budget: { id: string; project: { id: string; name: string; code: string } }
+    63→  lineItemUpdates: Array<{
+    64→    id: string
+    65→    previousAmount: number
+    66→    newAmount: number
+    67→    changeAmount: number
+    68→    budgetLineItem: {
+    69→      id: string
+    70→      costCode: { id: string; code: string; name: string }
+    71→      originalBudget: number
+    72→      revisedBudget: number
+    73→    }
+    74→  }>
+    75→}
+    76→
+    77→interface BudgetSummary {
+    78→  id: string
+    79→  projectId: string
+    80→  project: { id: string; name: string; code: string }
+    81→  status: string
+    82→  revisedValue: number
+    83→}
+    84→
+    85→interface LineItemOption {
+    86→  id: string
+    87→  costCode: { id: string; code: string; name: string }
+    88→  originalBudget: number
+    89→  revisedBudget: number
+    90→}
+    91→
+    92→export function BudgetChangeOrders() {
+    93→  const queryClient = useQueryClient()
+    94→  const [statusFilter, setStatusFilter] = useState('all')
+    95→  const [search, setSearch] = useState('')
+    96→  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+    97→  const [selectedBudgetId, setSelectedBudgetId] = useState('')
+    98→  const [detailCO, setDetailCO] = useState<ChangeOrder | null>(null)
+    99→  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+   100→
+   101→  // সকল পরিবর্তন অর্ডার আনা (বাজেটের মাধ্যমে)
+   102→  const { data: budgets = [], isLoading } = useQuery({
+   103→    queryKey: ['budgets-for-co'],
+   104→    queryFn: () => api.get<BudgetSummary[]>('/api/cost-control/budgets').then(r => r.data || []),
+   105→  })
+   106→
+   107→  // নির্বাচিত/সকল বাজেটের জন্য CO আনা
+   108→  const { data: allChangeOrders = [], isLoading: coLoading } = useQuery({
+   109→    queryKey: ['all-change-orders', statusFilter, selectedBudgetId],
+   110→    queryFn: async () => {
+   111→      const budgetIds = selectedBudgetId ? [selectedBudgetId] : budgets.map(b => b.id)
+   112→      const results = await Promise.all(
+   113→        budgetIds.map(id =>
+   114→          api.get<ChangeOrder[]>(`/api/cost-control/budgets/${id}/change-orders?status=${statusFilter === 'all' ? '' : statusFilter}`).then(r => r.data || [])
+   115→        )
+   116→      )
+   117→      return results.flat()
+   118→    },
+   119→    enabled: budgets.length > 0 || !!selectedBudgetId,
+   120→  })
+   121→
+   122→  // তৈরির ডায়ালগের জন্য লাইন আইটেম আনা
+   123→  const { data: lineItems = [] } = useQuery({
+   124→    queryKey: ['line-items-for-co', selectedBudgetId],
+   125→    queryFn: () => api.get<LineItemOption[]>(`/api/cost-control/budgets/${selectedBudgetId}/line-items`).then(r => r.data || []),
+   126→    enabled: !!selectedBudgetId,
+   127→  })
+   128→
+   129→  // CO তৈরি মিউটেশন
+   130→  const createMutation = useMutation({
+   131→    mutationFn: (body: any) => api.post(`/api/cost-control/budgets/${selectedBudgetId}/change-orders`, body),
+   132→    onSuccess: () => {
+   133→      queryClient.invalidateQueries({ queryKey: ['all-change-orders'] })
+   134→      queryClient.invalidateQueries({ queryKey: ['budgets-for-co'] })
+   135→      setCreateDialogOpen(false)
+   136→      setSelectedBudgetId('')
+   137→    },
+   138→  })
+   139→
+   140→  // CO স্ট্যাটাস আপডেট
+   141→  const updateMutation = useMutation({
+   142→    mutationFn: ({ budgetId, coId, status }: { budgetId: string; coId: string; status: string }) =>
+   143→      api.put(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`, { status }),
+   144→    onSuccess: () => {
+   145→      queryClient.invalidateQueries({ queryKey: ['all-change-orders'] })
+   146→      setDetailCO(null)
+   147→    },
+   148→  })
+   149→
+   150→  // CO মুছে ফেলা
+   151→  const deleteMutation = useMutation({
+   152→    mutationFn: ({ budgetId, coId }: { budgetId: string; coId: string }) =>
+   153→      api.del(`/api/cost-control/budgets/${budgetId}/change-orders/${coId}`),
+   154→    onSuccess: () => {
+   155→      queryClient.invalidateQueries({ queryKey: ['all-change-orders'] })
+   156→      setDeleteConfirm(null)
+   157→    },
+   158→  })
+   159→
+   160→  const filteredCOs = search
+   161→    ? allChangeOrders.filter(co =>
+   162→        co.bcoNo.toLowerCase().includes(search.toLowerCase()) ||
+   163→        co.title.toLowerCase().includes(search.toLowerCase()) ||
+   164→        co.budget?.project?.name?.toLowerCase().includes(search.toLowerCase())
+   165→      )
+   166→    : allChangeOrders
+   167→
+   168→  const totalChangeAmount = allChangeOrders.filter(co => co.status === 'approved' || co.status === 'applied').reduce((s, co) => s + co.changeAmount, 0)
+   169→  const pendingCOs = allChangeOrders.filter(co => ['draft', 'submitted', 'reviewed'].includes(co.status)).length
+   170→
+   171→  return (
+   172→    <div className="p-6 space-y-6">
+   173→      {/* হেডার */}
+   174→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   175→        <div>
+   176→          <h1 className="text-2xl font-bold tracking-tight">Budget Change Orders</h1>
+   177→          <p className="text-muted-foreground text-sm mt-1">
+   178→            {pendingCOs} pending &middot; {formatCurrency(totalChangeAmount)} approved changes
+   179→          </p>
+   180→        </div>
+   181→        <div className="flex items-center gap-2">
+   182→          <Select value={selectedBudgetId || '_all'} onValueChange={v => setSelectedBudgetId(v === '_all' ? '' : v)}>
+   183→            <SelectTrigger className="w-48 h-9 text-sm">
+   184→              <SelectValue placeholder="All Projects" />
+   185→            </SelectTrigger>
+   186→            <SelectContent>
+   187→              <SelectItem value="_all">All Projects</SelectItem>
+   188→              {budgets.map(b => (
+   189→                <SelectItem key={b.id} value={b.id}>{b.project.code} — {b.project.name}</SelectItem>
+   190→              ))}
+   191→            </SelectContent>
+   192→          </Select>
+   193→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setCreateDialogOpen(true)} disabled={!selectedBudgetId}>
+   194→            <Plus className="h-4 w-4 mr-1" /> New Change Order
+   195→          </Button>
+   196→        </div>
+   197→      </div>
+   198→
+   199→      {/* ফিল্টারসমূহ */}
+   200→      <Card>
+   201→        <CardContent className="p-4">
+   202→          <div className="flex flex-col sm:flex-row gap-3">
+   203→            <div className="relative flex-1">
+   204→              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   205→              <Input placeholder="Search change orders..." className="pl-9 h-9 text-sm" value={search} onChange={e => setSearch(e.target.value)} />
+   206→            </div>
+   207→            <Select value={statusFilter} onValueChange={setStatusFilter}>
+   208→              <SelectTrigger className="w-40 h-9 text-sm">
+   209→                <SelectValue />
+   210→              </SelectTrigger>
+   211→              <SelectContent>
+   212→                <SelectItem value="all">All Status</SelectItem>
+   213→                <SelectItem value="draft">Draft</SelectItem>
+   214→                <SelectItem value="submitted">Submitted</SelectItem>
+   215→                <SelectItem value="reviewed">Reviewed</SelectItem>
+   216→                <SelectItem value="approved">Approved</SelectItem>
+   217→                <SelectItem value="rejected">Rejected</SelectItem>
+   218→                <SelectItem value="applied">Applied</SelectItem>
+   219→              </SelectContent>
+   220→            </Select>
+   221→          </div>
+   222→        </CardContent>
+   223→      </Card>
+   224→
+   225→      {/* টেবিল */}
+   226→      <Card>
+   227→        <CardContent className="p-0">
+   228→          {coLoading ? (
+   229→            <div className="p-6 space-y-3">
+   230→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   231→            </div>
+   232→          ) : filteredCOs.length === 0 ? (
+   233→            <div className="py-16 text-center">
+   234→              <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+   235→              <p className="text-sm text-muted-foreground">No change orders found</p>
+   236→            </div>
+   237→          ) : (
+   238→            <div className="max-h-[500px] overflow-y-auto">
+   239→              <Table>
+   240→                <TableHeader>
+   241→                  <TableRow>
+   242→                    <TableHead className="text-xs">BCO #</TableHead>
+   243→                    <TableHead className="text-xs">Title</TableHead>
+   244→                    <TableHead className="text-xs hidden md:table-cell">Project</TableHead>
+   245→                    <TableHead className="text-xs text-right hidden lg:table-cell">Original Budget</TableHead>
+   246→                    <TableHead className="text-xs text-right hidden md:table-cell">Change</TableHead>
+   247→                    <TableHead className="text-xs text-right hidden lg:table-cell">New Budget</TableHead>
+   248→                    <TableHead className="text-xs">Status</TableHead>
+   249→                    <TableHead className="text-xs hidden lg:table-cell">Date</TableHead>
+   250→                    <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
+   251→                  </TableRow>
+   252→                </TableHeader>
+   253→                <TableBody>
+   254→                  {filteredCOs.map(co => (
+   255→                    <TableRow key={co.id}>
+   256→                      <TableCell className="text-xs font-mono font-medium">{co.bcoNo}</TableCell>
+   257→                      <TableCell className="text-xs font-medium max-w-[180px] truncate">{co.title}</TableCell>
+   258→                      <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{co.budget?.project?.name}</TableCell>
+   259→                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(co.originalBudget)}</TableCell>
+   260→                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">
+   261→                        <span className={cn('flex items-center justify-end gap-1', co.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
+   262→                          {co.changeAmount >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+   263→                          {formatCurrency(Math.abs(co.changeAmount))}
+   264→                        </span>
+   265→                      </TableCell>
+   266→                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(co.newBudget)}</TableCell>
+   267→                      <TableCell>
+   268→                        <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusColor[co.status] || '')}>
+   269→                          {co.status}
+   270→                        </Badge>
+   271→                      </TableCell>
+   272→                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{format(new Date(co.createdAt), 'MMM d, yyyy')}</TableCell>
+   273→                      <TableCell className="text-right hidden md:table-cell">
+   274→                        <div className="flex items-center justify-end gap-1">
+   275→                          <Button variant="ghost" size="icon" className="h-7 w-7" title="View Details" onClick={() => setDetailCO(co)}>
+   276→                            <Eye className="h-3 w-3" />
+   277→                          </Button>
+   278→                          {co.status === 'draft' && (
+   279→                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Submit" onClick={() => updateMutation.mutate({ budgetId: co.budgetId, coId: co.id, status: 'submitted' })}>
+   280→                              <FileText className="h-3 w-3 text-blue-600" />
+   281→                            </Button>
+   282→                          )}
+   283→                          {co.status === 'submitted' && (
+   284→                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Review" onClick={() => updateMutation.mutate({ budgetId: co.budgetId, coId: co.id, status: 'reviewed' })}>
+   285→                              <GitCompareArrows className="h-3 w-3 text-amber-600" />
+   286→                            </Button>
+   287→                          )}
+   288→                          {co.status === 'reviewed' && (
+   289→                            <>
+   290→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Approve" onClick={() => updateMutation.mutate({ budgetId: co.budgetId, coId: co.id, status: 'approved' })}>
+   291→                                <CheckCircle className="h-3 w-3 text-emerald-600" />
+   292→                              </Button>
+   293→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Reject" onClick={() => updateMutation.mutate({ budgetId: co.budgetId, coId: co.id, status: 'rejected' })}>
+   294→                                <XCircle className="h-3 w-3 text-red-500" />
+   295→                              </Button>
+   296→                            </>
+   297→                          )}
+   298→                          {['draft', 'rejected'].includes(co.status) && (
+   299→                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Delete" onClick={() => setDeleteConfirm(co.id)}>
+   300→                              <Trash2 className="h-3 w-3 text-red-500" />
+   301→                            </Button>
+   302→                          )}
+   303→                        </div>
+   304→                      </TableCell>
+   305→                    </TableRow>
+   306→                  ))}
+   307→                </TableBody>
+   308→              </Table>
+   309→            </div>
+   310→          )}
+   311→        </CardContent>
+   312→      </Card>
+   313→
+   314→      {/* CO তৈরির ডায়ালগ */}
+   315→      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+   316→        <DialogContent className="sm:max-w-lg">
+   317→          <DialogHeader>
+   318→            <DialogTitle>Create Budget Change Order</DialogTitle>
+   319→            <DialogDescription>Define budget adjustments for {budgets.find(b => b.id === selectedBudgetId)?.project?.name}</DialogDescription>
+   320→          </DialogHeader>
+   321→          <CreateCOForm
+   322→            lineItems={lineItems}
+   323→            onSubmit={(body) => createMutation.mutate(body)}
+   324→            isLoading={createMutation.isPending}
+   325→          />
+   326→        </DialogContent>
+   327→      </Dialog>
+   328→
+   329→      {/* বিস্তারিত ডায়ালগ */}
+   330→      <Dialog open={!!detailCO} onOpenChange={() => setDetailCO(null)}>
+   331→        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+   332→          <DialogHeader>
+   333→            <DialogTitle className="flex items-center gap-2">
+   334→              {detailCO?.bcoNo}
+   335→              <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusColor[detailCO?.status || ''] || '')}>
+   336→                {detailCO?.status}
+   337→              </Badge>
+   338→            </DialogTitle>
+   339→            <DialogDescription>{detailCO?.title}</DialogDescription>
+   340→          </DialogHeader>
+   341→          {detailCO && (
+   342→            <div className="space-y-4">
+   343→              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+   344→                <div className="p-3 rounded-lg bg-muted/50">
+   345→                  <p className="text-xs text-muted-foreground">Original Budget</p>
+   346→                  <p className="text-lg font-bold font-mono">{formatCurrency(detailCO.originalBudget)}</p>
+   347→                </div>
+   348→                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+   349→                  <p className="text-xs text-muted-foreground">Change Amount</p>
+   350→                  <p className={cn('text-lg font-bold font-mono', detailCO.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
+   351→                    {detailCO.changeAmount >= 0 ? '+' : ''}{formatCurrency(detailCO.changeAmount)}
+   352→                  </p>
+   353→                </div>
+   354→                <div className="p-3 rounded-lg bg-muted/50">
+   355→                  <p className="text-xs text-muted-foreground">New Budget</p>
+   356→                  <p className="text-lg font-bold font-mono">{formatCurrency(detailCO.newBudget)}</p>
+   357→                </div>
+   358→              </div>
+   359→
+   360→              {detailCO.reason && (
+   361→                <div>
+   362→                  <p className="text-xs font-medium text-muted-foreground mb-1">Reason</p>
+   363→                  <p className="text-sm">{detailCO.reason}</p>
+   364→                </div>
+   365→              )}
+   366→              {detailCO.description && (
+   367→                <div>
+   368→                  <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
+   369→                  <p className="text-sm">{detailCO.description}</p>
+   370→                </div>
+   371→              )}
+   372→
+   373→              <Separator />
+   374→
+   375→              {/* পূর্বে/পরে তুলনা */}
+   376→              <div>
+   377→                <p className="text-sm font-semibold mb-2 flex items-center gap-1">
+   378→                  <GitCompareArrows className="h-4 w-4" /> Line Item Changes
+   379→                </p>
+   380→                {detailCO.lineItemUpdates.length === 0 ? (
+   381→                  <p className="text-xs text-muted-foreground">No line item updates</p>
+   382→                ) : (
+   383→                  <div className="rounded-lg border overflow-hidden">
+   384→                    <Table>
+   385→                      <TableHeader>
+   386→                        <TableRow>
+   387→                          <TableHead className="text-xs">Cost Code</TableHead>
+   388→                          <TableHead className="text-xs text-right">Previous</TableHead>
+   389→                          <TableHead className="text-xs text-right">New</TableHead>
+   390→                          <TableHead className="text-xs text-right">Change</TableHead>
+   391→                        </TableRow>
+   392→                      </TableHeader>
+   393→                      <TableBody>
+   394→                        {detailCO.lineItemUpdates.map(u => (
+   395→                          <TableRow key={u.id}>
+   396→                            <TableCell className="text-xs">
+   397→                              <p className="font-mono">{u.budgetLineItem?.costCode?.code}</p>
+   398→                              <p className="text-muted-foreground">{u.budgetLineItem?.costCode?.name}</p>
+   399→                            </TableCell>
+   400→                            <TableCell className="text-xs font-mono text-right">{formatCurrency(u.previousAmount)}</TableCell>
+   401→                            <TableCell className="text-xs font-mono text-right font-medium">{formatCurrency(u.newAmount)}</TableCell>
+   402→                            <TableCell className={cn('text-xs font-mono text-right', u.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
+   403→                              {u.changeAmount >= 0 ? '+' : ''}{formatCurrency(u.changeAmount)}
+   404→                            </TableCell>
+   405→                          </TableRow>
+   406→                        ))}
+   407→                      </TableBody>
+   408→                    </Table>
+   409→                  </div>
+   410→                )}
+   411→              </div>
+   412→            </div>
+   413→          )}
+   414→        </DialogContent>
+   415→      </Dialog>
+   416→
+   417→      {/* মুছে ফেলার নিশ্চিতকরণ */}
+   418→      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+   419→        <DialogContent className="sm:max-w-sm">
+   420→          <DialogHeader>
+   421→            <DialogTitle>Delete Change Order</DialogTitle>
+   422→            <DialogDescription>This will permanently delete this change order and reverse any pending budget changes.</DialogDescription>
+   423→          </DialogHeader>
+   424→          <DialogFooter>
+   425→            <DialogClose asChild><Button variant="outline" size="sm">Cancel</Button></DialogClose>
+   426→            <Button variant="destructive" size="sm" disabled={deleteMutation.isPending} onClick={() => {
+   427→              const co = allChangeOrders.find(c => c.id === deleteConfirm)
+   428→              if (co) deleteMutation.mutate({ budgetId: co.budgetId, coId: co.id })
+   429→            }}>
+   430→              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+   431→            </Button>
+   432→          </DialogFooter>
+   433→        </DialogContent>
+   434→      </Dialog>
+   435→    </div>
+   436→  )
+   437→}
+   438→
+   439→// ─── CO তৈরির ফর্ম ───
+   440→function CreateCOForm({ lineItems, onSubmit, isLoading }: { lineItems: LineItemOption[]; onSubmit: (data: any) => void; isLoading: boolean }) {
+   441→  const [title, setTitle] = useState('')
+   442→  const [reason, setReason] = useState('')
+   443→  const [description, setDescription] = useState('')
+   444→  const [updates, setUpdates] = useState<Array<{ budgetLineItemId: string; previousAmount: number; newAmount: number; changeAmount: number }>>([])
+   445→
+   446→  const addUpdate = (li: LineItemOption) => {
+   447→    if (updates.find(u => u.budgetLineItemId === li.id)) return
+   448→    setUpdates(prev => [...prev, {
+   449→      budgetLineItemId: li.id,
+   450→      previousAmount: li.revisedBudget,
+   451→      newAmount: li.revisedBudget,
+   452→      changeAmount: 0,
+   453→    }])
+   454→  }
+   455→
+   456→  const removeUpdate = (itemId: string) => {
+   457→    setUpdates(prev => prev.filter(u => u.budgetLineItemId !== itemId))
+   458→  }
+   459→
+   460→  const updateAmount = (itemId: string, newAmount: number) => {
+   461→    setUpdates(prev => prev.map(u => {
+   462→      if (u.budgetLineItemId !== itemId) return u
+   463→      const changeAmount = newAmount - u.previousAmount
+   464→      return { ...u, newAmount, changeAmount }
+   465→    }))
+   466→  }
+   467→
+   468→  const totalChange = updates.reduce((s, u) => s + u.changeAmount, 0)
+   469→
+   470→  const availableItems = lineItems.filter(li => !updates.find(u => u.budgetLineItemId === li.id))
+   471→
+   472→  return (
+   473→    <div className="space-y-4 py-2">
+   474→      <div className="space-y-2">
+   475→        <Label className="text-sm">Title *</Label>
+   476→        <Input placeholder="Change order title" value={title} onChange={e => setTitle(e.target.value)} />
+   477→      </div>
+   478→      <div className="space-y-2">
+   479→        <Label className="text-sm">Reason</Label>
+   480→        <Textarea placeholder="Why is this change needed?" value={reason} onChange={e => setReason(e.target.value)} className="min-h-[60px]" />
+   481→      </div>
+   482→      <div className="space-y-2">
+   483→        <Label className="text-sm">Description</Label>
+   484→        <Textarea placeholder="Detailed description..." value={description} onChange={e => setDescription(e.target.value)} className="min-h-[60px]" />
+   485→      </div>
+   486→
+   487→      <Separator />
+   488→
+   489→      {/* লাইন আইটেম আপডেট */}
+   490→      <div>
+   491→        <div className="flex items-center justify-between mb-2">
+   492→          <Label className="text-sm">Line Item Adjustments</Label>
+   493→          <span className="text-xs font-mono text-amber-600">Total Change: {totalChange >= 0 ? '+' : ''}{formatCurrency(totalChange)}</span>
+   494→        </div>
+   495→
+   496→        {updates.length > 0 && (
+   497→          <div className="space-y-2 mb-3">
+   498→            {updates.map(u => {
+   499→              const li = lineItems.find(l => l.id === u.budgetLineItemId)
+   500→              return (
+   501→                <div key={u.budgetLineItemId} className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
+   502→                  <div className="flex-1 min-w-0">
+   503→                    <p className="text-xs font-mono">{li?.costCode.code}</p>
+   504→                    <p className="text-[11px] text-muted-foreground truncate">{li?.costCode.name}</p>
+   505→                  </div>
+   506→                  <div className="flex items-center gap-2">
+   507→                    <span className="text-xs text-muted-foreground">{formatCurrency(u.previousAmount)}</span>
+   508→                    <span className="text-xs">→</span>
+   509→                    <Input type="number" className="w-24 h-7 text-xs" value={u.newAmount} onChange={e => updateAmount(u.budgetLineItemId, Number(e.target.value))} />
+   510→                    <span className={cn('text-xs font-mono w-20 text-right', u.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
+   511→                      {u.changeAmount >= 0 ? '+' : ''}{formatCurrency(u.changeAmount)}
+   512→                    </span>
+   513→                  </div>
+   514→                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => removeUpdate(u.budgetLineItemId)}>
+   515→                    <XCircle className="h-3 w-3 text-red-400" />
+   516→                  </Button>
+   517→                </div>
+   518→              )
+   519→            })}
+   520→          </div>
+   521→        )}
+   522→
+   523→        <Select onValueChange={(val) => {
+   524→          const li = lineItems.find(l => l.id === val)
+   525→          if (li) addUpdate(li)
+   526→        }}>
+   527→          <SelectTrigger className="h-9 text-sm">
+   528→            <SelectValue placeholder="Add line item adjustment..." />
+   529→          </SelectTrigger>
+   530→          <SelectContent className="max-h-60">
+   531→            {availableItems.map(li => (
+   532→              <SelectItem key={li.id} value={li.id}>
+   533→                {li.costCode.code} — {li.costCode.name} ({formatCurrency(li.revisedBudget)})
+   534→              </SelectItem>
+   535→            ))}
+   536→            {availableItems.length === 0 && <SelectItem value="_none" disabled>No line items available</SelectItem>}
+   537→          </SelectContent>
+   538→        </Select>
+   539→      </div>
+   540→
+   541→      <DialogFooter>
+   542→        <DialogClose asChild><Button variant="outline" size="sm">Cancel</Button></DialogClose>
+   543→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={!title || isLoading} onClick={() => onSubmit({
+   544→          title,
+   545→          reason,
+   546→          description,
+   547→          lineItemUpdates: updates.map(u => ({
+   548→            budgetLineItemId: u.budgetLineItemId,
+   549→            previousAmount: u.previousAmount,
+   550→            newAmount: u.newAmount,
+   551→            changeAmount: u.changeAmount,
+   552→          })),
+   553→        })}>
+   554→          {isLoading ? 'Creating...' : 'Create Change Order'}
+   555→        </Button>
+   556→      </DialogFooter>
+   557→    </div>
+   558→  )
+   559→}

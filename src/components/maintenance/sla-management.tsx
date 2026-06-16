@@ -314,7 +314,7 @@ export function SLAManagement() {
                         <TableHead>Priority</TableHead>
                         <TableHead>SLA Deadline</TableHead>
                         <TableHead>Actual Time</TableHead>
-                        <TableHead>Breach Duration</TableHead>
+                        <TableHead className="hidden lg:table-cell">Breach Duration</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -333,7 +333,7 @@ export function SLAManagement() {
                               {t.slaDeadline ? new Date(t.slaDeadline).toLocaleString() : '—'}
                             </TableCell>
                             <TableCell className="text-sm">{t.actualTime ? formatHours(t.actualTime) : '—'}</TableCell>
-                            <TableCell className="text-sm text-red-600 font-medium">
+                            <TableCell className="text-sm text-red-600 font-medium hidden lg:table-cell">
                               {t.breachDuration ? formatHours(t.breachDuration) : '—'}
                             </TableCell>
                           </TableRow>

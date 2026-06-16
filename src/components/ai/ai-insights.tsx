@@ -139,7 +139,7 @@ export function AIInsights() {
               <Plus className="h-3.5 w-3.5" /> Create Insight
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Create Manual Insight</DialogTitle>
               <DialogDescription>Add a manual AI insight or observation</DialogDescription>

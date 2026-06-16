@@ -1,0 +1,571 @@
+     1→'use client'
+     2→
+     3→import { useState } from 'react'
+     4→import { api, useAppStore, queryKeys } from '@/lib/store'
+     5→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     6→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Input } from '@/components/ui/input'
+    11→import { Label } from '@/components/ui/label'
+    12→import { Textarea } from '@/components/ui/textarea'
+    13→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    14→import {
+    15→  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+    16→} from '@/components/ui/dialog'
+    17→import {
+    18→  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    19→} from '@/components/ui/table'
+    20→import { Separator } from '@/components/ui/separator'
+    21→import { Progress } from '@/components/ui/progress'
+    22→import { ScrollArea } from '@/components/ui/scroll-area'
+    23→import {
+    24→  Plus, Pencil, Trash2, Eye, CheckCircle, XCircle, Lock, ChevronDown, ChevronRight,
+    25→  DollarSign, FileText, AlertTriangle, CalendarDays,
+    26→} from 'lucide-react'
+    27→import { cn } from '@/lib/utils'
+    28→import { format } from 'date-fns'
+    29→
+    30→// ─── সহায়ক ফাংশনসমূহ ───
+    31→function formatCurrency(val: number) {
+    32→  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`
+    33→  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`
+    34→  return `$${val.toFixed(0)}`
+    35→}
+    36→
+    37→const statusColor: Record<string, string> = {
+    38→  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    39→  approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+    40→  locked: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    41→  closed: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    42→}
+    43→
+    44→// ─── প্রকারভেদ ───
+    45→interface Budget {
+    46→  id: string
+    47→  projectId: string
+    48→  originalValue: number
+    49→  revisedValue: number
+    50→  approvedChanges: number
+    51→  pendingChanges: number
+    52→  retentionPercent: number
+    53→  status: string
+    54→  createdAt: string
+    55→  updatedAt: string
+    56→  project: { id: string; name: string; code: string; status: string }
+    57→  createdBy: { id: string; name: string }
+    58→  approvedBy?: { id: string; name: string } | null
+    59→  _count: { lineItems: number; changeOrders: number; snapshots: number }
+    60→}
+    61→
+    62→interface LineItem {
+    63→  id: string
+    64→  budgetId: string
+    65→  costCodeId: string
+    66→  originalBudget: number
+    67→  revisedBudget: number
+    68→  committedCost: number
+    69→  actualCost: number
+    70→  forecastToComplete: number
+    71→  estimatedAtCompletion: number
+    72→  percentComplete: number
+    73→  earnedRevenue: number
+    74→  billedRevenue: number
+    75→  notes?: string
+    76→  costCode: {
+    77→    id: string; code: string; name: string; level: number
+    78→    parent?: { id: string; code: string; name: string; parent?: { id: string; code: string; name: string } | null } | null
+    79→  }
+    80→}
+    81→
+    82→interface CostCode {
+    83→  id: string
+    84→  code: string
+    85→  name: string
+    86→  level: number
+    87→  unitType?: string
+    88→}
+    89→
+    90→interface Project {
+    91→  id: string
+    92→  name: string
+    93→  code: string
+    94→  status: string
+    95→}
+    96→
+    97→export function BudgetManagement() {
+    98→  const queryClient = useQueryClient()
+    99→  const { navigate } = useAppStore()
+   100→  const [statusFilter, setStatusFilter] = useState('all')
+   101→  const [expandedBudget, setExpandedBudget] = useState<string | null>(null)
+   102→  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+   103→  const [addLineItemDialog, setAddLineItemDialog] = useState<string | null>(null)
+   104→  const [editLineItem, setEditLineItem] = useState<LineItem | null>(null)
+   105→  const [selectedProject, setSelectedProject] = useState('')
+   106→
+   107→  // বাজেট আনা
+   108→  const { data: budgets = [], isLoading } = useQuery({
+   109→    queryKey: ['cost-control-budgets', statusFilter],
+   110→    queryFn: () => api.get<Budget[]>(`/api/cost-control/budgets?status=${statusFilter}`).then(r => r.data!),
+   111→  })
+   112→
+   113→  // বাজেটবিহীন প্রকল্প আনা
+   114→  const { data: projects = [] } = useQuery({
+   115→    queryKey: ['projects-no-budget'],
+   116→    queryFn: () => api.get<Project[]>('/api/projects').then(r => {
+   117→      const projectData = r.data || []
+   118→      const budgetProjectIds = budgets.map(b => b.projectId)
+   119→      return projectData.filter(p => !budgetProjectIds.includes(p.id))
+   120→    }),
+   121→  })
+   122→
+   123→  // খরচ কোড আনা (প্রান্তিক স্তর)
+   124→  const { data: costCodes = [] } = useQuery({
+   125→    queryKey: ['cost-codes-leaf'],
+   126→    queryFn: () => api.get<CostCode[]>('/api/cost-control/cost-codes?includeUsage=true').then(r => r.data || []),
+   127→  })
+   128→
+   129→  // প্রসারিত বাজেটের জন্য বিবরণ আনা
+   130→  const { data: budgetDetail } = useQuery({
+   131→    queryKey: ['budget-detail', expandedBudget],
+   132→    queryFn: () => api.get<any>(`/api/cost-control/budgets/${expandedBudget}`).then(r => r.data),
+   133→    enabled: !!expandedBudget,
+   134→  })
+   135→
+   136→  // বাজেট তৈরি মিউটেশন
+   137→  const createMutation = useMutation({
+   138→    mutationFn: (body: any) => api.post('/api/cost-control/budgets', body),
+   139→    onSuccess: () => {
+   140→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   141→      setCreateDialogOpen(false)
+   142→      setSelectedProject('')
+   143→    },
+   144→  })
+   145→
+   146→  // বাজেট স্ট্যাটাস আপডেট
+   147→  const updateStatusMutation = useMutation({
+   148→    mutationFn: ({ id, status }: { id: string; status: string }) => api.put(`/api/cost-control/budgets/${id}`, { status }),
+   149→    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] }),
+   150→  })
+   151→
+   152→  // বাজেট মুছে ফেলা
+   153→  const deleteMutation = useMutation({
+   154→    mutationFn: (id: string) => api.del(`/api/cost-control/budgets/${id}`),
+   155→    onSuccess: () => {
+   156→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   157→      setExpandedBudget(null)
+   158→    },
+   159→  })
+   160→
+   161→  // লাইন আইটেম যোগ
+   162→  const addLineItemMutation = useMutation({
+   163→    mutationFn: ({ budgetId, ...body }: any) => api.post(`/api/cost-control/budgets/${budgetId}/line-items`, body),
+   164→    onSuccess: () => {
+   165→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   166→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   167→      setAddLineItemDialog(null)
+   168→    },
+   169→  })
+   170→
+   171→  // লাইন আইটেম আপডেট
+   172→  const updateLineItemMutation = useMutation({
+   173→    mutationFn: ({ budgetId, itemId, ...body }: any) => api.put(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`, body),
+   174→    onSuccess: () => {
+   175→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   176→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   177→      setEditLineItem(null)
+   178→    },
+   179→  })
+   180→
+   181→  // লাইন আইটেম মুছে ফেলা
+   182→  const deleteLineItemMutation = useMutation({
+   183→    mutationFn: ({ budgetId, itemId }: { budgetId: string; itemId: string }) => api.del(`/api/cost-control/budgets/${budgetId}/line-items/${itemId}`),
+   184→    onSuccess: () => {
+   185→      queryClient.invalidateQueries({ queryKey: ['cost-control-budgets'] })
+   186→      queryClient.invalidateQueries({ queryKey: ['budget-detail'] })
+   187→    },
+   188→  })
+   189→
+   190→  const lineItems: LineItem[] = budgetDetail?.budgetLineItem || []
+   191→
+   192→  return (
+   193→    <div className="p-6 space-y-6">
+   194→      {/* হেডার */}
+   195→      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   196→        <div>
+   197→          <h1 className="text-2xl font-bold tracking-tight">Budget Management</h1>
+   198→          <p className="text-muted-foreground text-sm mt-1">Create and manage project budgets with detailed line items</p>
+   199→        </div>
+   200→        <div className="flex items-center gap-2">
+   201→          <Select value={statusFilter} onValueChange={setStatusFilter}>
+   202→            <SelectTrigger className="w-36 h-9 text-sm">
+   203→              <SelectValue />
+   204→            </SelectTrigger>
+   205→            <SelectContent>
+   206→              <SelectItem value="all">All Status</SelectItem>
+   207→              <SelectItem value="draft">Draft</SelectItem>
+   208→              <SelectItem value="approved">Approved</SelectItem>
+   209→              <SelectItem value="locked">Locked</SelectItem>
+   210→              <SelectItem value="closed">Closed</SelectItem>
+   211→            </SelectContent>
+   212→          </Select>
+   213→          <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setCreateDialogOpen(true)}>
+   214→            <Plus className="h-4 w-4 mr-1" /> New Budget
+   215→          </Button>
+   216→        </div>
+   217→      </div>
+   218→
+   219→      {/* বাজেট টেবিল */}
+   220→      <Card>
+   221→        <CardContent className="p-0">
+   222→          {isLoading ? (
+   223→            <div className="p-6 space-y-3">
+   224→              {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+   225→            </div>
+   226→          ) : budgets.length === 0 ? (
+   227→            <div className="py-16 text-center">
+   228→              <FileText className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+   229→              <p className="text-sm text-muted-foreground">No budgets found. Create your first budget to get started.</p>
+   230→            </div>
+   231→          ) : (
+   232→            <Table>
+   233→              <TableHeader>
+   234→                <TableRow>
+   235→                  <TableHead className="text-xs w-8"></TableHead>
+   236→                  <TableHead className="text-xs">Project</TableHead>
+   237→                  <TableHead className="text-xs text-right hidden md:table-cell">Original</TableHead>
+   238→                  <TableHead className="text-xs text-right hidden md:table-cell">Revised</TableHead>
+   239→                  <TableHead className="text-xs text-right hidden lg:table-cell">Pending CO</TableHead>
+   240→                  <TableHead className="text-xs">Status</TableHead>
+   241→                  <TableHead className="text-xs hidden lg:table-cell">Items</TableHead>
+   242→                  <TableHead className="text-xs hidden lg:table-cell">Created</TableHead>
+   243→                  <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
+   244→                </TableRow>
+   245→              </TableHeader>
+   246→              <TableBody>
+   247→                {budgets.map(b => (
+   248→                  <>
+   249→                    <TableRow key={b.id} className={cn('cursor-pointer', expandedBudget === b.id && 'bg-muted/50')}>
+   250→                      <TableCell>
+   251→                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setExpandedBudget(expandedBudget === b.id ? null : b.id)}>
+   252→                          {expandedBudget === b.id ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+   253→                        </Button>
+   254→                      </TableCell>
+   255→                      <TableCell>
+   256→                        <div>
+   257→                          <p className="text-sm font-medium">{b.project.name}</p>
+   258→                          <p className="text-xs text-muted-foreground">{b.project.code}</p>
+   259→                        </div>
+   260→                      </TableCell>
+   261→                      <TableCell className="text-right text-sm font-mono hidden md:table-cell">{formatCurrency(b.originalValue)}</TableCell>
+   262→                      <TableCell className="text-right text-sm font-mono hidden md:table-cell">{formatCurrency(b.revisedValue)}</TableCell>
+   263→                      <TableCell className="text-right text-sm font-mono text-amber-600 hidden lg:table-cell">
+   264→                        {b.pendingChanges > 0 ? formatCurrency(b.pendingChanges) : '—'}
+   265→                      </TableCell>
+   266→                      <TableCell>
+   267→                        <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusColor[b.status] || '')}>
+   268→                          {b.status}
+   269→                        </Badge>
+   270→                      </TableCell>
+   271→                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{b._count.budgetLineItem}</TableCell>
+   272→                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{format(new Date(b.createdAt), 'MMM d, yyyy')}</TableCell>
+   273→                      <TableCell className="text-right hidden md:table-cell">
+   274→                        <div className="flex items-center justify-end gap-1">
+   275→                          {b.status === 'draft' && (
+   276→                            <>
+   277→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Approve" onClick={() => updateStatusMutation.mutate({ id: b.id, status: 'approved' })}>
+   278→                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+   279→                              </Button>
+   280→                              <Button variant="ghost" size="icon" className="h-7 w-7" title="Delete" onClick={() => deleteMutation.mutate(b.id)}>
+   281→                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
+   282→                              </Button>
+   283→                            </>
+   284→                          )}
+   285→                          {b.status === 'approved' && (
+   286→                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Lock" onClick={() => updateStatusMutation.mutate({ id: b.id, status: 'locked' })}>
+   287→                              <Lock className="h-3.5 w-3.5 text-amber-600" />
+   288→                            </Button>
+   289→                          )}
+   290→                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Forecast" onClick={() => navigate('cost-forecasting', { budgetId: b.id })}>
+   291→                            <DollarSign className="h-3.5 w-3.5" />
+   292→                          </Button>
+   293→                        </div>
+   294→                      </TableCell>
+   295→                    </TableRow>
+   296→                    {/* প্রসারিত বিবরণ */}
+   297→                    {expandedBudget === b.id && (
+   298→                      <TableRow key={`${b.id}-detail`}>
+   299→                        <TableCell colSpan={9} className="bg-muted/20 p-0">
+   300→                          <div className="p-4 border-t">
+   301→                            <div className="flex items-center justify-between mb-4">
+   302→                              <h3 className="text-sm font-semibold">Line Items — {b.project.name}</h3>
+   303→                              <div className="flex items-center gap-2">
+   304→                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setAddLineItemDialog(b.id)} disabled={b.status !== 'draft'}>
+   305→                                  <Plus className="h-3 w-3 mr-1" /> Add Line Item
+   306→                                </Button>
+   307→                              </div>
+   308→                            </div>
+   309→
+   310→                            {lineItems.length === 0 ? (
+   311→                              <div className="py-8 text-center text-sm text-muted-foreground">
+   312→                                No line items. Add cost code line items to build the budget.
+   313→                              </div>
+   314→                            ) : (
+   315→                              <div className="max-h-96 overflow-y-auto rounded-lg border">
+   316→                                <Table>
+   317→                                  <TableHeader>
+   318→                                    <TableRow>
+   319→                                      <TableHead className="text-xs">Cost Code</TableHead>
+   320→                                      <TableHead className="text-xs text-right hidden md:table-cell">Original</TableHead>
+   321→                                      <TableHead className="text-xs text-right hidden md:table-cell">Revised</TableHead>
+   322→                                      <TableHead className="text-xs hidden md:table-cell">Actual</TableHead>
+   323→                                      <TableHead className="text-xs hidden lg:table-cell">Committed</TableHead>
+   324→                                      <TableHead className="text-xs hidden lg:table-cell">EAC</TableHead>
+   325→                                      <TableHead className="text-xs">Progress</TableHead>
+   326→                                      <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
+   327→                                    </TableRow>
+   328→                                  </TableHeader>
+   329→                                  <TableBody>
+   330→                                    {lineItems.map(li => {
+   331→                                      const variance = li.revisedBudget - li.actualCost
+   332→                                      return (
+   333→                                        <TableRow key={li.id}>
+   334→                                          <TableCell>
+   335→                                            <div>
+   336→                                              <p className="text-xs font-mono font-medium">{li.costCode.code}</p>
+   337→                                              <p className="text-[11px] text-muted-foreground">{li.costCode.name}</p>
+   338→                                            </div>
+   339→                                          </TableCell>
+   340→                                          <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(li.originalBudget)}</TableCell>
+   341→                                          <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(li.revisedBudget)}</TableCell>
+   342→                                          <TableCell className={cn('text-xs font-mono hidden md:table-cell', variance < 0 && 'text-red-600')}>{formatCurrency(li.actualCost)}</TableCell>
+   343→                                          <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(li.committedCost)}</TableCell>
+   344→                                          <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(li.estimatedAtCompletion)}</TableCell>
+   345→                                          <TableCell>
+   346→                                            <div className="flex items-center gap-2 w-24">
+   347→                                              <Progress value={li.percentComplete} className="h-1.5" />
+   348→                                              <span className="text-[10px] text-muted-foreground w-8 text-right">{li.percentComplete.toFixed(0)}%</span>
+   349→                                            </div>
+   350→                                          </TableCell>
+   351→                                          <TableCell className="text-right hidden md:table-cell">
+   352→                                            <div className="flex items-center justify-end gap-1">
+   353→                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditLineItem(li)}>
+   354→                                                <Pencil className="h-3 w-3" />
+   355→                                              </Button>
+   356→                                              {b.status === 'draft' && (
+   357→                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLineItemMutation.mutate({ budgetId: b.id, itemId: li.id })}>
+   358→                                                  <Trash2 className="h-3 w-3 text-red-500" />
+   359→                                                </Button>
+   360→                                              )}
+   361→                                            </div>
+   362→                                          </TableCell>
+   363→                                        </TableRow>
+   364→                                      )
+   365→                                    })}
+   366→                                    {/* মোট সারি */}
+   367→                                    <TableRow className="bg-muted/50 font-semibold">
+   368→                                      <TableCell className="text-xs">TOTAL</TableCell>
+   369→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.originalBudget, 0))}</TableCell>
+   370→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.revisedBudget, 0))}</TableCell>
+   371→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.actualCost, 0))}</TableCell>
+   372→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.committedCost, 0))}</TableCell>
+   373→                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.estimatedAtCompletion, 0))}</TableCell>
+   374→                                      <TableCell>
+   375→                                        <span className="text-[10px]">
+   376→                                          {(lineItems.reduce((s, li) => s + li.percentComplete, 0) / lineItems.length).toFixed(0)}%
+   377→                                        </span>
+   378→                                      </TableCell>
+   379→                                      <TableCell />
+   380→                                    </TableRow>
+   381→                                  </TableBody>
+   382→                                </Table>
+   383→                              </div>
+   384→                            )}
+   385→                          </div>
+   386→                        </TableCell>
+   387→                      </TableRow>
+   388→                    )}
+   389→                  </>
+   390→                ))}
+   391→              </TableBody>
+   392→            </Table>
+   393→          )}
+   394→        </CardContent>
+   395→      </Card>
+   396→
+   397→      {/* বাজেট তৈরির ডায়ালগ */}
+   398→      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+   399→        <DialogContent className="sm:max-w-md">
+   400→          <DialogHeader>
+   401→            <DialogTitle>Create New Budget</DialogTitle>
+   402→            <DialogDescription>Select a project and configure the budget</DialogDescription>
+   403→          </DialogHeader>
+   404→          <div className="space-y-4 py-2">
+   405→            <div className="space-y-2">
+   406→              <Label className="text-sm">Project *</Label>
+   407→              <Select value={selectedProject} onValueChange={setSelectedProject}>
+   408→                <SelectTrigger>
+   409→                  <SelectValue placeholder="Select project..." />
+   410→                </SelectTrigger>
+   411→                <SelectContent>
+   412→                  {projects.map(p => (
+   413→                    <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>
+   414→                  ))}
+   415→                  {projects.length === 0 && <SelectItem value="_none" disabled>No available projects</SelectItem>}
+   416→                </SelectContent>
+   417→              </Select>
+   418→            </div>
+   419→            <p className="text-xs text-muted-foreground">
+   420→              Line items can be added after creating the budget. Only projects without existing budgets are shown.
+   421→            </p>
+   422→          </div>
+   423→          <DialogFooter>
+   424→            <DialogClose asChild>
+   425→              <Button variant="outline" size="sm">Cancel</Button>
+   426→            </DialogClose>
+   427→            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={!selectedProject || createMutation.isPending} onClick={() => createMutation.mutate({ projectId: selectedProject })}>
+   428→              {createMutation.isPending ? 'Creating...' : 'Create Budget'}
+   429→            </Button>
+   430→          </DialogFooter>
+   431→        </DialogContent>
+   432→      </Dialog>
+   433→
+   434→      {/* লাইন আইটেম যোগ ডায়ালগ */}
+   435→      <Dialog open={!!addLineItemDialog} onOpenChange={() => setAddLineItemDialog(null)}>
+   436→        <DialogContent className="sm:max-w-md">
+   437→          <DialogHeader>
+   438→            <DialogTitle>Add Line Item</DialogTitle>
+   439→            <DialogDescription>Add a cost code line item to this budget</DialogDescription>
+   440→          </DialogHeader>
+   441→          <AddLineItemForm
+   442→            costCodes={costCodes}
+   443→            onSubmit={(data) => addLineItemMutation.mutate({ budgetId: addLineItemDialog!, ...data })}
+   444→            isLoading={addLineItemMutation.isPending}
+   445→          />
+   446→        </DialogContent>
+   447→      </Dialog>
+   448→
+   449→      {/* লাইন আইটেম সম্পাদনা ডায়ালগ */}
+   450→      <Dialog open={!!editLineItem} onOpenChange={() => setEditLineItem(null)}>
+   451→        <DialogContent className="sm:max-w-lg">
+   452→          <DialogHeader>
+   453→            <DialogTitle>Edit Line Item</DialogTitle>
+   454→            <DialogDescription>Update cost and progress for {editLineItem?.costCode.code}</DialogDescription>
+   455→          </DialogHeader>
+   456→          {editLineItem && (
+   457→            <EditLineItemForm
+   458→              item={editLineItem}
+   459→              onSubmit={(data) => updateLineItemMutation.mutate({ budgetId: editLineItem.budgetId, itemId: editLineItem.id, ...data })}
+   460→              isLoading={updateLineItemMutation.isPending}
+   461→            />
+   462→          )}
+   463→        </DialogContent>
+   464→      </Dialog>
+   465→    </div>
+   466→  )
+   467→}
+   468→
+   469→// ─── সাব-উপাদান ───
+   470→
+   471→function AddLineItemForm({ costCodes, onSubmit, isLoading }: { costCodes: CostCode[]; onSubmit: (data: any) => void; isLoading: boolean }) {
+   472→  const [costCodeId, setCostCodeId] = useState('')
+   473→  const [originalBudget, setOriginalBudget] = useState('')
+   474→
+   475→  return (
+   476→    <div className="space-y-4 py-2">
+   477→      <div className="space-y-2">
+   478→        <Label className="text-sm">Cost Code *</Label>
+   479→        <Select value={costCodeId} onValueChange={setCostCodeId}>
+   480→          <SelectTrigger>
+   481→            <SelectValue placeholder="Select cost code..." />
+   482→          </SelectTrigger>
+   483→          <SelectContent className="max-h-60">
+   484→            {costCodes.map(cc => (
+   485→              <SelectItem key={cc.id} value={cc.id}>{cc.code} — {cc.name}</SelectItem>
+   486→            ))}
+   487→          </SelectContent>
+   488→        </Select>
+   489→      </div>
+   490→      <div className="space-y-2">
+   491→        <Label className="text-sm">Original Budget *</Label>
+   492→        <Input type="number" placeholder="0.00" value={originalBudget} onChange={e => setOriginalBudget(e.target.value)} />
+   493→      </div>
+   494→      <DialogFooter>
+   495→        <Button variant="outline" size="sm" onClick={() => { setCostCodeId(''); setOriginalBudget('') }}>Cancel</Button>
+   496→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={!costCodeId || !originalBudget || isLoading} onClick={() => onSubmit({ costCodeId, originalBudget: Number(originalBudget) })}>
+   497→          {isLoading ? 'Adding...' : 'Add'}
+   498→        </Button>
+   499→      </DialogFooter>
+   500→    </div>
+   501→  )
+   502→}
+   503→
+   504→function EditLineItemForm({ item, onSubmit, isLoading }: { item: LineItem; onSubmit: (data: any) => void; isLoading: boolean }) {
+   505→  const [form, setForm] = useState({
+   506→    revisedBudget: String(item.revisedBudget),
+   507→    committedCost: String(item.committedCost),
+   508→    actualCost: String(item.actualCost),
+   509→    forecastToComplete: String(item.forecastToComplete),
+   510→    estimatedAtCompletion: String(item.estimatedAtCompletion),
+   511→    percentComplete: String(item.percentComplete),
+   512→    earnedRevenue: String(item.earnedRevenue),
+   513→    billedRevenue: String(item.billedRevenue),
+   514→    notes: item.notes || '',
+   515→  })
+   516→
+   517→  const update = (key: string, val: string) => setForm(prev => ({ ...prev, [key]: val }))
+   518→
+   519→  return (
+   520→    <div className="space-y-3 py-2">
+   521→      <div className="grid grid-cols-2 gap-3">
+   522→        <div className="space-y-1">
+   523→          <Label className="text-xs">Revised Budget</Label>
+   524→          <Input type="number" className="h-8 text-xs" value={form.revisedBudget} onChange={e => update('revisedBudget', e.target.value)} />
+   525→        </div>
+   526→        <div className="space-y-1">
+   527→          <Label className="text-xs">Committed Cost</Label>
+   528→          <Input type="number" className="h-8 text-xs" value={form.committedCost} onChange={e => update('committedCost', e.target.value)} />
+   529→        </div>
+   530→        <div className="space-y-1">
+   531→          <Label className="text-xs">Actual Cost</Label>
+   532→          <Input type="number" className="h-8 text-xs" value={form.actualCost} onChange={e => update('actualCost', e.target.value)} />
+   533→        </div>
+   534→        <div className="space-y-1">
+   535→          <Label className="text-xs">Forecast to Complete</Label>
+   536→          <Input type="number" className="h-8 text-xs" value={form.forecastToComplete} onChange={e => update('forecastToComplete', e.target.value)} />
+   537→        </div>
+   538→        <div className="space-y-1">
+   539→          <Label className="text-xs">EAC</Label>
+   540→          <Input type="number" className="h-8 text-xs" value={form.estimatedAtCompletion} onChange={e => update('estimatedAtCompletion', e.target.value)} />
+   541→        </div>
+   542→        <div className="space-y-1">
+   543→          <Label className="text-xs">Complete %</Label>
+   544→          <Input type="number" min="0" max="100" className="h-8 text-xs" value={form.percentComplete} onChange={e => update('percentComplete', e.target.value)} />
+   545→        </div>
+   546→        <div className="space-y-1">
+   547→          <Label className="text-xs">Earned Revenue</Label>
+   548→          <Input type="number" className="h-8 text-xs" value={form.earnedRevenue} onChange={e => update('earnedRevenue', e.target.value)} />
+   549→        </div>
+   550→        <div className="space-y-1">
+   551→          <Label className="text-xs">Billed Revenue</Label>
+   552→          <Input type="number" className="h-8 text-xs" value={form.billedRevenue} onChange={e => update('billedRevenue', e.target.value)} />
+   553→        </div>
+   554→      </div>
+   555→      <div className="space-y-1">
+   556→        <Label className="text-xs">Notes</Label>
+   557→        <Textarea className="text-xs min-h-[60px]" value={form.notes} onChange={e => update('notes', e.target.value)} />
+   558→      </div>
+   559→      <DialogFooter>
+   560→        <Button variant="outline" size="sm" onClick={() => setEditLineItem(null)}>Cancel</Button>
+   561→        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" disabled={isLoading} onClick={() => {
+   562→          const data: any = {}
+   563→          Object.entries(form).forEach(([k, v]) => { if (k === 'notes') data[k] = v; else data[k] = Number(v) })
+   564→          onSubmit(data)
+   565→        }}>
+   566→          {isLoading ? 'Saving...' : 'Save Changes'}
+   567→        </Button>
+   568→      </DialogFooter>
+   569→    </div>
+   570→  )
+   571→}

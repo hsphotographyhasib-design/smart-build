@@ -233,7 +233,7 @@ export function CostControlDashboard() {
                     <TableRow>
                       <TableHead className="text-xs">BCO #</TableHead>
                       <TableHead className="text-xs">Title</TableHead>
-                      <TableHead className="text-xs">Project</TableHead>
+                      <TableHead className="text-xs hidden md:table-cell">Project</TableHead>
                       <TableHead className="text-xs text-right">Amount</TableHead>
                       <TableHead className="text-xs">Status</TableHead>
                     </TableRow>
@@ -243,7 +243,7 @@ export function CostControlDashboard() {
                       <TableRow key={co.id}>
                         <TableCell className="text-xs font-mono">{co.bcoNo}</TableCell>
                         <TableCell className="text-xs font-medium max-w-[200px] truncate">{co.title}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{co.budget?.project?.name}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{co.budget?.project?.name}</TableCell>
                         <TableCell className="text-xs text-right">
                           <span className={cn('flex items-center justify-end gap-1', co.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
                             {co.changeAmount >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}

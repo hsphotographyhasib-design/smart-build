@@ -166,14 +166,14 @@ export function ProductCatalogPage() {
           <Input placeholder="Search by name, SKU, brand..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[180px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Category" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Category" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {categories?.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
           </SelectContent>
         </Select>
         <Select value={activeFilter} onValueChange={setActiveFilter}>
-          <SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="active">Active</SelectItem>
@@ -196,7 +196,7 @@ export function ProductCatalogPage() {
         </Card>
       ) : items ? (
         <Card className="overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">

@@ -113,7 +113,7 @@ export function AuditLogPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-xs"><Filter className="h-3 w-3" />Entity</Label>
               <Select value={entityFilter} onValueChange={(v) => { setEntityFilter(v); setPage(1) }}>
-                <SelectTrigger className="w-[180px]"><SelectValue placeholder="All entities" /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All entities" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Entities</SelectItem>
                   {ENTITY_TYPES.map((e) => (<SelectItem key={e} value={e}>{e}</SelectItem>))}
@@ -123,7 +123,7 @@ export function AuditLogPage() {
             <div className="space-y-2">
               <Label className="text-xs">Action</Label>
               <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(1) }}>
-                <SelectTrigger className="w-[150px]"><SelectValue placeholder="All actions" /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="All actions" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Actions</SelectItem>
                   {ACTIONS.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
@@ -132,11 +132,11 @@ export function AuditLogPage() {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-xs"><CalendarDays className="h-3 w-3" />From</Label>
-              <Input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setPage(1) }} className="w-[160px]" />
+              <Input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setPage(1) }} className="w-full sm:w-[160px]" />
             </div>
             <div className="space-y-2">
               <Label className="text-xs">To</Label>
-              <Input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(1) }} className="w-[160px]" />
+              <Input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(1) }} className="w-full sm:w-[160px]" />
             </div>
           </div>
         </CardContent>
@@ -156,7 +156,7 @@ export function AuditLogPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">

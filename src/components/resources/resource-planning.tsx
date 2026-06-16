@@ -506,7 +506,7 @@ export function ResourcePlanning() {
               <Input placeholder="Search assignments..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[160px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Resource Type" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[160px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Resource Type" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="labour">Labour</SelectItem>
@@ -518,7 +518,7 @@ export function ResourcePlanning() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
@@ -528,7 +528,7 @@ export function ResourcePlanning() {
               </SelectContent>
             </Select>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Project" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Project" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Projects</SelectItem>
                 {projects.filter((p) => p.status === 'active').map((p) => (
@@ -553,7 +553,7 @@ export function ResourcePlanning() {
             </Card>
           ) : (
             <Card className="overflow-hidden">
-              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+              <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">

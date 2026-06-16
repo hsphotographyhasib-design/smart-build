@@ -98,10 +98,8 @@ function getInitials(name: string) {
 // ─────────────────────────────────────────────────────────────────────
 
 export function MobileHeader() {
-  const { user, logout, navigate, currentPage } = useAppStore()
+  const { user, logout, navigate, currentPage, expandedMenuId, setExpandedMenuId, expandedSubItemId, setExpandedSubItemId } = useAppStore()
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [expandedMenuId, setExpandedMenuId] = useState('')
-  const [expandedItemId, setExpandedItemId] = useState('')
 
   const initials = getInitials(user?.name || '')
   const roleColor = getRoleColor(user?.role || '')
@@ -112,9 +110,9 @@ export function MobileHeader() {
 
   const activeInfo = useMemo(() => findActiveInfo(menuGroups, currentPage), [menuGroups, currentPage])
 
-  // কার্যকর প্রসারিত = ব্যবহারকারীর পছন্দ অথবা সক্রিয় রুট
-  const effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId
-  const effectiveExpandedItemId = activeInfo.itemId || expandedItemId
+  // Effective expanded: global store takes priority, then active route
+  const effectiveExpandedMenuId = expandedMenuId || activeInfo.groupId || ''
+  const effectiveExpandedItemId = expandedSubItemId || activeInfo.itemId || ''
 
   // মোবাইল ড্রয়ার খোলা থাকলে বডি স্ক্রল লক করা হচ্ছে
   useEffect(() => {
@@ -126,16 +124,24 @@ export function MobileHeader() {
     return () => document.body.classList.remove('sb-body-lock')
   }, [sheetOpen])
 
-  // অ্যাকর্ডিয়ন টগল: নতুন গ্রুপ খোললে পূর্ববর্তীটি বন্ধ হয়
+  // Accordion toggle: only one group open at a time
   const toggleGroup = useCallback((groupId: string) => {
-    setExpandedMenuId((prev) => prev === groupId ? '' : groupId)
-    setExpandedItemId('')
-  }, [])
+    if (expandedMenuId === groupId) {
+      setExpandedMenuId('')
+    } else {
+      setExpandedMenuId(groupId)
+    }
+    setExpandedSubItemId('')
+  }, [expandedMenuId, setExpandedMenuId, setExpandedSubItemId])
 
-  // গ্রুপের মধ্যে উপ-আইটেমের জন্য অ্যাকর্ডিয়ন টগল
+  // Sub-item accordion within a group
   const toggleItem = useCallback((itemId: string) => {
-    setExpandedItemId((prev) => prev === itemId ? '' : itemId)
-  }, [])
+    if (expandedSubItemId === itemId) {
+      setExpandedSubItemId('')
+    } else {
+      setExpandedSubItemId(itemId)
+    }
+  }, [expandedSubItemId, setExpandedSubItemId])
 
   const handleNav = useCallback((page: string) => {
     navigate(page as AppPage)

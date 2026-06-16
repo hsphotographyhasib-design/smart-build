@@ -334,7 +334,7 @@ function TasksTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Task</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -529,7 +529,7 @@ function OpenItemsTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Item</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -671,7 +671,7 @@ function RfisTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New RFI</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -736,7 +736,7 @@ function RfisTab({ projectId }: { projectId: string }) {
 
       {/* বিস্তারিত ডায়ালগ */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{selectedRfi?.rfiNo} — {selectedRfi?.title}</DialogTitle>
           </DialogHeader>
@@ -827,7 +827,7 @@ function ChangeEventsTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New Event</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -949,7 +949,7 @@ function ChangeOrdersTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> New CO</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1136,7 +1136,7 @@ function CommitmentsTab({ projectId }: { projectId: string }) {
   const totalRemaining = commitments.reduce((s: number, c: any) => s + (c.remainingCost || 0), 0)
 
   if (isLoading) {
-    return <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
+    return <div className="space-y-4"><div className="grid grid-cols-1 sm:grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
   }
   if (error) return <ErrorCard />
 
@@ -1160,7 +1160,7 @@ function CommitmentsTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1248,7 +1248,7 @@ function DirectCostsTab({ projectId }: { projectId: string }) {
     return acc
   }, {})
 
-  if (isLoading) return <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
+  if (isLoading) return <div className="space-y-4"><div className="grid grid-cols-1 sm:grid-cols-3 gap-4">{Array.from({ length: 3 }).map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-16 mb-2" /><Skeleton className="h-8 w-24" /></CardContent></Card>)}</div><TableSkeleton /></div>
   if (error) return <ErrorCard />
 
   const costStatusColors: Record<string, string> = { pending: 'bg-amber-100 text-amber-800', approved: 'bg-emerald-100 text-emerald-800', rejected: 'bg-red-100 text-red-800' }
@@ -1279,7 +1279,7 @@ function DirectCostsTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Cost</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1385,7 +1385,7 @@ function DocumentsTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Upload</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1491,7 +1491,7 @@ function DailyNotesTab({ projectId }: { projectId: string }) {
           action={<Button size="sm" variant="outline" onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Note</Button>} />
       ) : (
         <Card>
-          <ScrollArea className="max-h-[600px]">
+          <ScrollArea className="max-h-[calc(100vh-280px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1619,7 +1619,7 @@ function InsightsTab({ projectId }: { projectId: string }) {
               <span className={cn('font-medium', budgetPct > 90 ? 'text-red-600' : budgetPct > 70 ? 'text-amber-600' : 'text-emerald-600')}>{budgetPct}%</span>
             </div>
             <Progress value={Math.min(budgetPct, 100)} className={cn('h-4', budgetPct > 90 ? '[&>div]:bg-red-500' : budgetPct > 70 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500')} />
-            <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-sm">
               <div className="text-center">
                 <p className="text-muted-foreground">Spent</p>
                 <p className="font-semibold">{fmt(budgetUsed)}</p>

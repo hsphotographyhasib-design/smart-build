@@ -351,10 +351,10 @@ export function MaintenanceDashboard() {
                     <TableHead className="w-8"></TableHead>
                     <TableHead className="text-xs">Ticket #</TableHead>
                     <TableHead className="text-xs">Subject</TableHead>
-                    <TableHead className="text-xs">Category</TableHead>
-                    <TableHead className="text-xs">Priority</TableHead>
+                    <TableHead className="text-xs hidden lg:table-cell">Category</TableHead>
+                    <TableHead className="text-xs hidden md:table-cell">Priority</TableHead>
                     <TableHead className="text-xs">Status</TableHead>
-                    <TableHead className="text-xs">Created</TableHead>
+                    <TableHead className="text-xs hidden lg:table-cell">Created</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -378,12 +378,12 @@ export function MaintenanceDashboard() {
                               <p className="text-xs text-muted-foreground truncate max-w-[200px]">{ticket.description}</p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             <Badge variant="secondary" className="text-xs">
                               {CATEGORY_LABELS[ticket.category] || ticket.category}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <Badge variant="secondary" className={cn('gap-1.5 text-xs', pri.color)}>
                               <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
                               {pri.label}
@@ -394,7 +394,7 @@ export function MaintenanceDashboard() {
                               {stat.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
+                          <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                             {new Date(ticket.createdAt).toLocaleDateString()}
                           </TableCell>
                         </TableRow>

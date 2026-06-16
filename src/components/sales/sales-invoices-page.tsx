@@ -185,7 +185,7 @@ export function SalesInvoicesPage() {
           <Input placeholder="Search invoice no, customer..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
@@ -212,7 +212,7 @@ export function SalesInvoicesPage() {
         </Card>
       ) : items ? (
         <Card className="overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">

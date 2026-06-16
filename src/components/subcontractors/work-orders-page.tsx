@@ -191,7 +191,7 @@ export function WorkOrdersPage() {
           <Input placeholder="Search orders..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
@@ -203,7 +203,7 @@ export function WorkOrdersPage() {
         </Select>
         {subContractors && (
           <Select value={scFilter} onValueChange={setScFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sub-Contractor" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Sub-Contractor" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sub-Contractors</SelectItem>
               {subContractors.map((sc) => (
@@ -214,7 +214,7 @@ export function WorkOrdersPage() {
         )}
         {projects && (
           <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Project" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Project" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
               {projects.map((p) => (
@@ -239,7 +239,7 @@ export function WorkOrdersPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">

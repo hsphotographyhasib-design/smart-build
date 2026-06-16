@@ -251,14 +251,14 @@ export function ResourceProductivity() {
           <Input placeholder="Search logs..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={projectFilter} onValueChange={setProjectFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
             {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="All Types" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="labour">Labour</SelectItem>
@@ -320,7 +320,7 @@ export function ResourceProductivity() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editItem ? 'Edit Productivity Log' : 'Log Productivity'}</DialogTitle>
           </DialogHeader>

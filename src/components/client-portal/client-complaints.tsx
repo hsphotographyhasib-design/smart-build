@@ -232,12 +232,12 @@ export function ClientComplaints() {
                   <TableRow>
                     <TableHead className="w-8"></TableHead>
                     <TableHead>Subject</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Severity</TableHead>
+                    <TableHead className="hidden lg:table-cell">Project</TableHead>
+                    <TableHead className="hidden md:table-cell">Category</TableHead>
+                    <TableHead className="hidden md:table-cell">Severity</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="w-16"></TableHead>
+                    <TableHead className="hidden lg:table-cell">Date</TableHead>
+                    <TableHead className="w-16 hidden md:table-cell"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -260,13 +260,13 @@ export function ClientComplaints() {
                               <p className="text-xs text-muted-foreground truncate max-w-xs">{complaint.description}</p>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{complaint.project?.name || '—'}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{complaint.project?.name || '—'}</TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <Badge variant="secondary" className="text-xs">
                               {categoryLabels[complaint.category] || complaint.category}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <Badge variant="secondary" className={`gap-1.5 text-xs ${sev.color}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${sev.dotColor}`} />
                               {sev.label}
@@ -277,10 +277,10 @@ export function ClientComplaints() {
                               {stat.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
+                          <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                             {new Date(complaint.createdAt).toLocaleDateString()}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             {complaint.status === 'open' && (
                               <Button
                                 size="icon"

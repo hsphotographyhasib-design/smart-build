@@ -531,7 +531,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
 
           {/* ভেন্ডর আমন্ত্রণ ডায়ালগ */}
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Invite Vendor</DialogTitle>
                 <DialogDescription>Select a vendor to invite for this tender.</DialogDescription>
@@ -830,7 +830,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
 
           {/* প্রশ্ন যোগ ডায়ালগ */}
           <Dialog open={qaOpen} onOpenChange={setQaOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Ask a Question</DialogTitle>
                 <DialogDescription>Your question will be visible to all invited vendors.</DialogDescription>
@@ -907,7 +907,7 @@ export function TenderDetailPage({ packageId }: TenderDetailPageProps) {
 
           {/* সংযোজনী তৈরির ডায়ালগ */}
           <Dialog open={addendaOpen} onOpenChange={setAddendaOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create Addendum</DialogTitle>
                 <DialogDescription>Issue an addendum to update tender specifications.</DialogDescription>

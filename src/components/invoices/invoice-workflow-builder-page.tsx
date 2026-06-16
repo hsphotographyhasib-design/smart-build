@@ -326,7 +326,7 @@ export function InvoiceWorkflowBuilderPage() {
 
       {/* ─── ওয়ার্কফ্লো সম্পাদক ডায়ালগ ─── */}
       <Dialog open={editorOpen} onOpenChange={open => { if (!open) closeEditor() }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingWorkflow ? 'Edit Workflow' : 'Create Workflow'}</DialogTitle>
             <DialogDescription>Design the approval flow with sequential steps.</DialogDescription>
@@ -478,7 +478,7 @@ export function InvoiceWorkflowBuilderPage() {
 
                           {/* শর্ত ক্ষেত্র */}
                           {isConditionLike && (
-                            <div className="grid grid-cols-3 gap-3 p-2 rounded-md bg-muted/30 border">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-2 rounded-md bg-muted/30 border">
                               <div className="space-y-1">
                                 <Label className="text-[10px]">Field</Label>
                                 <Input className="h-7 text-xs" value={step.conditionField || ''} onChange={e => updateStep(idx, 'conditionField', e.target.value)} placeholder="e.g. amount" />

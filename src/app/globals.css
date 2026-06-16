@@ -127,15 +127,40 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    /* Prevent horizontal overflow globally */
+    overflow-x: hidden;
   }
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent horizontal overflow on body */
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+  /* Force all images and media to be responsive */
+  img, video, svg {
+    max-width: 100%;
+    height: auto;
+  }
+  /* Responsive typography — fluid headings */
+  h1 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+  h2 { font-size: clamp(1.25rem, 2.5vw, 1.875rem); }
+  h3 { font-size: clamp(1.125rem, 2vw, 1.5rem); }
+  /* Ensure inputs are touch-friendly on mobile */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      min-height: 44px;
+      font-size: 16px !important; /* Prevent iOS zoom on focus */
+    }
+    button, [role="button"] {
+      min-height: 44px;
+    }
   }
 }
 

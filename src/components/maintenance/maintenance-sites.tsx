@@ -891,7 +891,7 @@ function SiteDetailsPanel({ site, amcContracts }: { site: any; amcContracts: any
           )}
 
           {/* সারসংক্ষেপ পরিসংখ্যান */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-3 text-center">
               <p className="text-xs text-muted-foreground">Open</p>
               <p className="text-lg font-bold text-rose-600">

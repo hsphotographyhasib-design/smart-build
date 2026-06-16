@@ -176,7 +176,7 @@ export function AssetsPage() {
           <Input placeholder="Search assets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Type" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="tool">Tool</SelectItem>
@@ -185,7 +185,7 @@ export function AssetsPage() {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="available">Available</SelectItem>
@@ -210,7 +210,7 @@ export function AssetsPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">

@@ -278,7 +278,7 @@ export function ResourceRequests() {
               </Card>
             ) : (
               <Card className="overflow-hidden">
-                <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">

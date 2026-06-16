@@ -447,7 +447,7 @@ export function ScheduleGanttChart({
         {/* ─── প্রধান বিষয়বস্তু ─── */}
         <div className="flex">
           {/* ─── বাম প্যানেল (কার্যকলাপ টেবিল) ─── */}
-          <div ref={leftPanelRef} className="w-[420px] min-w-[420px] border-r flex flex-col bg-card">
+          <div ref={leftPanelRef} className="w-full md:w-[420px] md:min-w-[420px] border-r flex-col bg-card hidden md:flex">
             {/* বাম হেডার */}
             <div className="flex items-center border-b text-xs font-medium text-muted-foreground bg-muted/50" style={{ height: HEADER_HEIGHT }}>
               <div className="w-8 flex-shrink-0" />

@@ -234,13 +234,13 @@ export function BudgetManagement() {
                 <TableRow>
                   <TableHead className="text-xs w-8"></TableHead>
                   <TableHead className="text-xs">Project</TableHead>
-                  <TableHead className="text-xs text-right">Original</TableHead>
-                  <TableHead className="text-xs text-right">Revised</TableHead>
-                  <TableHead className="text-xs text-right">Pending CO</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Original</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Revised</TableHead>
+                  <TableHead className="text-xs text-right hidden lg:table-cell">Pending CO</TableHead>
                   <TableHead className="text-xs">Status</TableHead>
-                  <TableHead className="text-xs">Items</TableHead>
-                  <TableHead className="text-xs">Created</TableHead>
-                  <TableHead className="text-xs text-right">Actions</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">Items</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">Created</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,9 +258,9 @@ export function BudgetManagement() {
                           <p className="text-xs text-muted-foreground">{b.project.code}</p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-sm font-mono">{formatCurrency(b.originalValue)}</TableCell>
-                      <TableCell className="text-right text-sm font-mono">{formatCurrency(b.revisedValue)}</TableCell>
-                      <TableCell className="text-right text-sm font-mono text-amber-600">
+                      <TableCell className="text-right text-sm font-mono hidden md:table-cell">{formatCurrency(b.originalValue)}</TableCell>
+                      <TableCell className="text-right text-sm font-mono hidden md:table-cell">{formatCurrency(b.revisedValue)}</TableCell>
+                      <TableCell className="text-right text-sm font-mono text-amber-600 hidden lg:table-cell">
                         {b.pendingChanges > 0 ? formatCurrency(b.pendingChanges) : '—'}
                       </TableCell>
                       <TableCell>
@@ -268,9 +268,9 @@ export function BudgetManagement() {
                           {b.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{b._count.budgetLineItem}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(b.createdAt), 'MMM d, yyyy')}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{b._count.budgetLineItem}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{format(new Date(b.createdAt), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="text-right hidden md:table-cell">
                         <div className="flex items-center justify-end gap-1">
                           {b.status === 'draft' && (
                             <>
@@ -317,13 +317,13 @@ export function BudgetManagement() {
                                   <TableHeader>
                                     <TableRow>
                                       <TableHead className="text-xs">Cost Code</TableHead>
-                                      <TableHead className="text-xs">Original</TableHead>
-                                      <TableHead className="text-xs">Revised</TableHead>
-                                      <TableHead className="text-xs">Actual</TableHead>
-                                      <TableHead className="text-xs">Committed</TableHead>
-                                      <TableHead className="text-xs">EAC</TableHead>
+                                      <TableHead className="text-xs text-right hidden md:table-cell">Original</TableHead>
+                                      <TableHead className="text-xs text-right hidden md:table-cell">Revised</TableHead>
+                                      <TableHead className="text-xs hidden md:table-cell">Actual</TableHead>
+                                      <TableHead className="text-xs hidden lg:table-cell">Committed</TableHead>
+                                      <TableHead className="text-xs hidden lg:table-cell">EAC</TableHead>
                                       <TableHead className="text-xs">Progress</TableHead>
-                                      <TableHead className="text-xs text-right">Actions</TableHead>
+                                      <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
@@ -337,18 +337,18 @@ export function BudgetManagement() {
                                               <p className="text-[11px] text-muted-foreground">{li.costCode.name}</p>
                                             </div>
                                           </TableCell>
-                                          <TableCell className="text-xs font-mono">{formatCurrency(li.originalBudget)}</TableCell>
-                                          <TableCell className="text-xs font-mono">{formatCurrency(li.revisedBudget)}</TableCell>
-                                          <TableCell className={cn('text-xs font-mono', variance < 0 && 'text-red-600')}>{formatCurrency(li.actualCost)}</TableCell>
-                                          <TableCell className="text-xs font-mono">{formatCurrency(li.committedCost)}</TableCell>
-                                          <TableCell className="text-xs font-mono">{formatCurrency(li.estimatedAtCompletion)}</TableCell>
+                                          <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(li.originalBudget)}</TableCell>
+                                          <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(li.revisedBudget)}</TableCell>
+                                          <TableCell className={cn('text-xs font-mono hidden md:table-cell', variance < 0 && 'text-red-600')}>{formatCurrency(li.actualCost)}</TableCell>
+                                          <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(li.committedCost)}</TableCell>
+                                          <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(li.estimatedAtCompletion)}</TableCell>
                                           <TableCell>
                                             <div className="flex items-center gap-2 w-24">
                                               <Progress value={li.percentComplete} className="h-1.5" />
                                               <span className="text-[10px] text-muted-foreground w-8 text-right">{li.percentComplete.toFixed(0)}%</span>
                                             </div>
                                           </TableCell>
-                                          <TableCell className="text-right">
+                                          <TableCell className="text-right hidden md:table-cell">
                                             <div className="flex items-center justify-end gap-1">
                                               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditLineItem(li)}>
                                                 <Pencil className="h-3 w-3" />
@@ -366,17 +366,17 @@ export function BudgetManagement() {
                                     {/* মোট সারি */}
                                     <TableRow className="bg-muted/50 font-semibold">
                                       <TableCell className="text-xs">TOTAL</TableCell>
-                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.originalBudget, 0))}</TableCell>
-                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.revisedBudget, 0))}</TableCell>
-                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.actualCost, 0))}</TableCell>
-                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.committedCost, 0))}</TableCell>
-                                      <TableCell className="text-xs font-mono">{formatCurrency(lineItems.reduce((s, li) => s + li.estimatedAtCompletion, 0))}</TableCell>
+                                      <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(lineItems.reduce((s, li) => s + li.originalBudget, 0))}</TableCell>
+                                      <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(lineItems.reduce((s, li) => s + li.revisedBudget, 0))}</TableCell>
+                                      <TableCell className="text-xs font-mono hidden md:table-cell">{formatCurrency(lineItems.reduce((s, li) => s + li.actualCost, 0))}</TableCell>
+                                      <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(lineItems.reduce((s, li) => s + li.committedCost, 0))}</TableCell>
+                                      <TableCell className="text-xs font-mono hidden lg:table-cell">{formatCurrency(lineItems.reduce((s, li) => s + li.estimatedAtCompletion, 0))}</TableCell>
                                       <TableCell>
                                         <span className="text-[10px]">
                                           {(lineItems.reduce((s, li) => s + li.percentComplete, 0) / lineItems.length).toFixed(0)}%
                                         </span>
                                       </TableCell>
-                                      <TableCell />
+                                      <TableCell className="hidden md:table-cell" />
                                     </TableRow>
                                   </TableBody>
                                 </Table>
@@ -396,7 +396,7 @@ export function BudgetManagement() {
 
       {/* বাজেট তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Budget</DialogTitle>
             <DialogDescription>Select a project and configure the budget</DialogDescription>
@@ -433,7 +433,7 @@ export function BudgetManagement() {
 
       {/* লাইন আইটেম যোগ ডায়ালগ */}
       <Dialog open={!!addLineItemDialog} onOpenChange={() => setAddLineItemDialog(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Line Item</DialogTitle>
             <DialogDescription>Add a cost code line item to this budget</DialogDescription>
@@ -448,7 +448,7 @@ export function BudgetManagement() {
 
       {/* লাইন আইটেম সম্পাদনা ডায়ালগ */}
       <Dialog open={!!editLineItem} onOpenChange={() => setEditLineItem(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Line Item</DialogTitle>
             <DialogDescription>Update cost and progress for {editLineItem?.costCode.code}</DialogDescription>

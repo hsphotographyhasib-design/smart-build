@@ -411,14 +411,14 @@ export function WorkOrders() {
                   <TableRow>
                     <TableHead className="w-8"></TableHead>
                     <TableHead className="text-xs">WO#</TableHead>
-                    <TableHead className="text-xs">Ticket#</TableHead>
-                    <TableHead className="text-xs">Customer</TableHead>
-                    <TableHead className="text-xs">Technician</TableHead>
+                    <TableHead className="text-xs hidden lg:table-cell">Ticket#</TableHead>
+                    <TableHead className="text-xs hidden md:table-cell">Customer</TableHead>
+                    <TableHead className="text-xs hidden md:table-cell">Technician</TableHead>
                     <TableHead className="text-xs">Status</TableHead>
-                    <TableHead className="text-xs">Start Date</TableHead>
-                    <TableHead className="text-xs">Target Date</TableHead>
-                    <TableHead className="text-xs text-right">Cost</TableHead>
-                    <TableHead className="text-xs w-24">Actions</TableHead>
+                    <TableHead className="text-xs hidden md:table-cell">Start Date</TableHead>
+                    <TableHead className="text-xs hidden lg:table-cell">Target Date</TableHead>
+                    <TableHead className="text-xs text-right hidden lg:table-cell">Cost</TableHead>
+                    <TableHead className="text-xs w-24 hidden md:table-cell">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -436,25 +436,25 @@ export function WorkOrders() {
                             {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                           </TableCell>
                           <TableCell className="text-xs font-mono font-medium text-rose-600">{wo.woNo}</TableCell>
-                          <TableCell className="text-xs font-mono">{wo.ticket?.ticketNo || '—'}</TableCell>
-                          <TableCell className="text-xs">{wo.ticket?.customer?.name || '—'}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{wo.technician?.employee?.name || '—'}</TableCell>
+                          <TableCell className="text-xs font-mono hidden lg:table-cell">{wo.ticket?.ticketNo || '—'}</TableCell>
+                          <TableCell className="text-xs hidden md:table-cell">{wo.ticket?.customer?.name || '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{wo.technician?.employee?.name || '—'}</TableCell>
                           <TableCell>
                             <Badge variant="secondary" className={cn('gap-1 text-[10px] px-1.5 py-0', stat.color)}>
                               <stat.icon className="h-3 w-3" />
                               {stat.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
+                          <TableCell className="text-xs text-muted-foreground hidden md:table-cell">
                             {wo.startDate ? new Date(wo.startDate).toLocaleDateString() : '—'}
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
+                          <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                             {wo.targetDate ? new Date(wo.targetDate).toLocaleDateString() : '—'}
                           </TableCell>
-                          <TableCell className="text-xs text-right font-medium">
+                          <TableCell className="text-xs text-right font-medium hidden lg:table-cell">
                             {formatCurrency(wo.totalCost || 0)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openDetail(wo) }}>
                                 <Eye className="h-3.5 w-3.5" />
@@ -929,7 +929,7 @@ function CreateWOForm({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-2">
           <Label>Labor Cost</Label>
           <Input

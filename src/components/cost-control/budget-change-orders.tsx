@@ -241,13 +241,13 @@ export function BudgetChangeOrders() {
                   <TableRow>
                     <TableHead className="text-xs">BCO #</TableHead>
                     <TableHead className="text-xs">Title</TableHead>
-                    <TableHead className="text-xs">Project</TableHead>
-                    <TableHead className="text-xs text-right">Original Budget</TableHead>
-                    <TableHead className="text-xs text-right">Change</TableHead>
-                    <TableHead className="text-xs text-right">New Budget</TableHead>
+                    <TableHead className="text-xs hidden md:table-cell">Project</TableHead>
+                    <TableHead className="text-xs text-right hidden lg:table-cell">Original Budget</TableHead>
+                    <TableHead className="text-xs text-right hidden md:table-cell">Change</TableHead>
+                    <TableHead className="text-xs text-right hidden lg:table-cell">New Budget</TableHead>
                     <TableHead className="text-xs">Status</TableHead>
-                    <TableHead className="text-xs">Date</TableHead>
-                    <TableHead className="text-xs text-right">Actions</TableHead>
+                    <TableHead className="text-xs hidden lg:table-cell">Date</TableHead>
+                    <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -255,22 +255,22 @@ export function BudgetChangeOrders() {
                     <TableRow key={co.id}>
                       <TableCell className="text-xs font-mono font-medium">{co.bcoNo}</TableCell>
                       <TableCell className="text-xs font-medium max-w-[180px] truncate">{co.title}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{co.budget?.project?.name}</TableCell>
-                      <TableCell className="text-xs font-mono text-right">{formatCurrency(co.originalBudget)}</TableCell>
-                      <TableCell className="text-xs font-mono text-right">
+                      <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{co.budget?.project?.name}</TableCell>
+                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(co.originalBudget)}</TableCell>
+                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">
                         <span className={cn('flex items-center justify-end gap-1', co.changeAmount >= 0 ? 'text-amber-600' : 'text-emerald-600')}>
                           {co.changeAmount >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                           {formatCurrency(Math.abs(co.changeAmount))}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-right">{formatCurrency(co.newBudget)}</TableCell>
+                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(co.newBudget)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusColor[co.status] || '')}>
                           {co.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(co.createdAt), 'MMM d, yyyy')}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{format(new Date(co.createdAt), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="text-right hidden md:table-cell">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" title="View Details" onClick={() => setDetailCO(co)}>
                             <Eye className="h-3 w-3" />
@@ -313,7 +313,7 @@ export function BudgetChangeOrders() {
 
       {/* CO তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Budget Change Order</DialogTitle>
             <DialogDescription>Define budget adjustments for {budgets.find(b => b.id === selectedBudgetId)?.project?.name}</DialogDescription>
@@ -328,7 +328,7 @@ export function BudgetChangeOrders() {
 
       {/* বিস্তারিত ডায়ালগ */}
       <Dialog open={!!detailCO} onOpenChange={() => setDetailCO(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {detailCO?.bcoNo}
@@ -340,7 +340,7 @@ export function BudgetChangeOrders() {
           </DialogHeader>
           {detailCO && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Original Budget</p>
                   <p className="text-lg font-bold font-mono">{formatCurrency(detailCO.originalBudget)}</p>
@@ -416,7 +416,7 @@ export function BudgetChangeOrders() {
 
       {/* মুছে ফেলার নিশ্চিতকরণ */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Change Order</DialogTitle>
             <DialogDescription>This will permanently delete this change order and reverse any pending budget changes.</DialogDescription>

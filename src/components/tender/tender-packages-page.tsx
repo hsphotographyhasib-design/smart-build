@@ -329,7 +329,7 @@ export function TenderPackagesPage() {
 
       {/* ─── বিড প্যাকেজ তৈরির ডায়ালগ ─── */}
       <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) resetForm() }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Bid Package</DialogTitle>
             <DialogDescription>Set up a new tender bid package. It will be saved as a draft.</DialogDescription>

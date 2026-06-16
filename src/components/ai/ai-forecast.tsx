@@ -94,7 +94,7 @@ export function AIForecast() {
       <div className="p-6 space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-10 w-full" />
-        <div className="grid grid-cols-4 gap-3"><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /></div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3"><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /><Skeleton className="h-20 rounded-lg" /></div>
         <Skeleton className="h-72 rounded-lg" />
       </div>
     )
@@ -119,7 +119,7 @@ export function AIForecast() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full max-w-xl">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-xl">
           <TabsTrigger value="labour" className="gap-1.5 text-xs"><Users className="h-3.5 w-3.5" /> Labour</TabsTrigger>
           <TabsTrigger value="resources" className="gap-1.5 text-xs"><Package className="h-3.5 w-3.5" /> Resources</TabsTrigger>
           <TabsTrigger value="cost" className="gap-1.5 text-xs"><DollarSign className="h-3.5 w-3.5" /> Cost</TabsTrigger>

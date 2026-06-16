@@ -593,7 +593,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
             </CardHeader>
             <CardContent className="space-y-3">
               <DetailRow label="Site" value={ticket.site?.name || '—'} />
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <DetailRow label="Building" value={ticket.building || '—'} />
                 <DetailRow label="Floor" value={ticket.floor || '—'} />
                 <DetailRow label="Room" value={ticket.room || '—'} />
@@ -1205,7 +1205,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
             <DialogDescription className="text-xs">Review ticket {ticket?.ticketNo} and choose an action.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {([
                 { action: 'approve' as const, label: 'Approve', icon: CheckCircle2, color: 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/50' },
                 { action: 'reject' as const, label: 'Reject', icon: XCircle, color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950/30 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/50' },

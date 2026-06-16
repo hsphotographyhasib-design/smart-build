@@ -1,126 +1,121 @@
-"use client"
+'use client'
 
-import { useSyncExternalStore, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from 'react'
 
-// ── Breakpoint constants ──
-export const MOBILE_BREAKPOINT = 768
-export const TABLET_BREAKPOINT = 1024
-export const LAPTOP_BREAKPOINT = 1280
+// ═══════════════════════════════════════════════════════════════════
+// Device Detection Hook — comprehensive breakpoint & device info
+// ═══════════════════════════════════════════════════════════════════
 
-// ── Types ──
-type DeviceType = "mobile" | "tablet" | "laptop" | "desktop"
-type Orientation = "portrait" | "landscape"
+export type DeviceType = 'mobile' | 'tablet' | 'laptop' | 'desktop'
+export type Orientation = 'portrait' | 'landscape'
 
 export interface DeviceInfo {
-  deviceType: DeviceType
-  screenSize: { width: number; height: number }
-  orientation: Orientation
+  /** Device type based on width */
+  type: DeviceType
+  /** Width < 768px */
   isMobile: boolean
+  /** Width 768-1023px */
   isTablet: boolean
-  isDesktop: boolean
+  /** Width 1024-1439px */
   isLaptop: boolean
+  /** Width >= 1440px */
+  isDesktop: boolean
+  /** Width < 1024px (mobile or tablet) */
+  isMobileOrTablet: boolean
+  /** Width >= 768px (tablet, laptop, or desktop) */
+  isTabletAndUp: boolean
+  /** Width >= 1024px (laptop or desktop) */
+  isLaptopAndUp: boolean
+  /** Current viewport width in px */
+  screenWidth: number
+  /** Current viewport height in px */
+  screenHeight: number
+  /** Device orientation */
+  orientation: Orientation
+  /** Whether viewport is taller than wide */
+  isPortrait: boolean
+  /** Whether viewport is wider than tall */
+  isLandscape: boolean
+  /** CSS pixel ratio (for retina displays) */
+  pixelRatio: number
+  /** Viewport height in CSS vh units (accounts for mobile browser chrome) */
+  vh: number
 }
 
-// ── Helper functions ──
+const BREAKPOINTS = {
+  mobile: 768,    // < 768px
+  tablet: 1024,   // 768-1023px
+  laptop: 1440,    // 1024-1439px
+  desktop: 1440,   // >= 1440px
+} as const
 
-function getDeviceType(width: number): DeviceType {
-  if (width < MOBILE_BREAKPOINT) return "mobile"
-  if (width < TABLET_BREAKPOINT) return "tablet"
-  if (width < LAPTOP_BREAKPOINT) return "laptop"
-  return "desktop"
-}
-
-function getOrientation(width: number, height: number): Orientation {
-  return width >= height ? "landscape" : "portrait"
-}
-
-function buildDeviceInfo(width: number, height: number): DeviceInfo {
-  const deviceType = getDeviceType(width)
-  const orientation = getOrientation(width, height)
-
-  return {
-    deviceType,
-    screenSize: { width, height },
-    orientation,
-    isMobile: deviceType === "mobile",
-    isTablet: deviceType === "tablet",
-    isLaptop: deviceType === "laptop",
-    isDesktop: deviceType === "desktop",
-  }
-}
-
-/** SSR-safe default (assumed desktop) */
-const SSR_DEFAULT: DeviceInfo = buildDeviceInfo(1280, 800)
-
-// ── External store (module-level) ──
-// We keep a cached snapshot so useSyncExternalStore returns a stable reference
-// when the viewport hasn't changed.
-
-let cachedSnapshot: DeviceInfo = SSR_DEFAULT
-let cachedWidth = 1280
-let cachedHeight = 800
-
-const BREAKPOINT_QUERIES = [
-  `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
-  `(min-width: ${MOBILE_BREAKPOINT}px) and (max-width: ${TABLET_BREAKPOINT - 1}px)`,
-  `(min-width: ${TABLET_BREAKPOINT}px) and (max-width: ${LAPTOP_BREAKPOINT - 1}px)`,
-  `(min-width: ${LAPTOP_BREAKPOINT}px)`,
-]
-
-function getSnapshot(): DeviceInfo {
-  const width = window.innerWidth
-  const height = window.innerHeight
-  if (width === cachedWidth && height === cachedHeight) {
-    return cachedSnapshot
-  }
-  cachedSnapshot = buildDeviceInfo(width, height)
-  cachedWidth = width
-  cachedHeight = height
-  return cachedSnapshot
-}
-
-function getServerSnapshot(): DeviceInfo {
-  return SSR_DEFAULT
-}
-
-/** Device hook - provides full device information */
 export function useDevice(): DeviceInfo {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [info, setInfo] = useState<DeviceInfo>(() => getDeviceInfo())
 
-  const subscribe = useCallback((onStoreChange: () => void) => {
-    const mediaQueryLists = BREAKPOINT_QUERIES.map((q) => window.matchMedia(q))
-
-    // Debounced resize listener for accurate resize detection
-    const handleResize = () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(onStoreChange, 200)
-    }
-
-    // matchMedia listener only fires on breakpoint cross
-    const handleMediaChange = () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(onStoreChange, 200)
-    }
-
-    mediaQueryLists.forEach((mql) => {
-      mql.addEventListener("change", handleMediaChange)
-    })
-    window.addEventListener("resize", handleResize)
-
-    return () => {
-      mediaQueryLists.forEach((mql) => {
-        mql.removeEventListener("change", handleMediaChange)
-      })
-      window.removeEventListener("resize", handleResize)
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
+  const update = useCallback(() => {
+    setInfo(getDeviceInfo())
   }, [])
 
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  useEffect(() => {
+    // Listen to resize events (debounced by browser)
+    window.addEventListener('resize', update)
+    // Also listen to orientation change
+    const mqlOrientation = window.matchMedia('(orientation: portrait)')
+    mqlOrientation.addEventListener('change', update)
+
+    return () => {
+      window.removeEventListener('resize', update)
+      mqlOrientation.removeEventListener('change', update)
+    }
+  }, [update])
+
+  return info
 }
 
-/** Convenience hook - returns only isMobile boolean */
-export function useIsMobile(): boolean {
-  const { isMobile } = useDevice()
-  return isMobile
+function getDeviceInfo(): DeviceInfo {
+  if (typeof window === 'undefined') {
+    return {
+      type: 'desktop',
+      isMobile: false,
+      isTablet: false,
+      isLaptop: false,
+      isDesktop: true,
+      isMobileOrTablet: false,
+      isTabletAndUp: true,
+      isLaptopAndUp: true,
+      screenWidth: 1440,
+      screenHeight: 900,
+      orientation: 'landscape',
+      isPortrait: false,
+      isLandscape: true,
+      pixelRatio: 1,
+      vh: 900,
+    }
+  }
+
+  const w = window.innerWidth
+  const h = window.innerHeight
+  const type: DeviceType =
+    w < BREAKPOINTS.mobile ? 'mobile'
+    : w < BREAKPOINTS.tablet ? 'tablet'
+    : w < BREAKPOINTS.desktop ? 'laptop'
+    : 'desktop'
+
+  return {
+    type,
+    isMobile: type === 'mobile',
+    isTablet: type === 'tablet',
+    isLaptop: type === 'laptop',
+    isDesktop: type === 'desktop',
+    isMobileOrTablet: type === 'mobile' || type === 'tablet',
+    isTabletAndUp: type !== 'mobile',
+    isLaptopAndUp: type === 'laptop' || type === 'desktop',
+    screenWidth: w,
+    screenHeight: h,
+    orientation: w < h ? 'portrait' : 'landscape',
+    isPortrait: w < h,
+    isLandscape: w >= h,
+    pixelRatio: window.devicePixelRatio || 1,
+    vh: h,
+  }
 }

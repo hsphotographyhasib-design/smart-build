@@ -198,11 +198,11 @@ export function CostCodes() {
                   <TableHead className="text-xs w-8"></TableHead>
                   <TableHead className="text-xs">Code</TableHead>
                   <TableHead className="text-xs">Name</TableHead>
-                  <TableHead className="text-xs">Level</TableHead>
-                  <TableHead className="text-xs">Unit</TableHead>
-                  <TableHead className="text-xs text-center">Active</TableHead>
-                  <TableHead className="text-xs text-center">Usage</TableHead>
-                  <TableHead className="text-xs text-right">Actions</TableHead>
+                  <TableHead className="text-xs hidden md:table-cell">Level</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">Unit</TableHead>
+                  <TableHead className="text-xs text-center hidden md:table-cell">Active</TableHead>
+                  <TableHead className="text-xs text-center hidden lg:table-cell">Usage</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -229,7 +229,7 @@ export function CostCodes() {
 
       {/* তৈরির ডায়ালগ */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create Cost Code</DialogTitle>
             <DialogDescription>Add a new cost code to the hierarchy</DialogDescription>
@@ -244,7 +244,7 @@ export function CostCodes() {
 
       {/* সম্পাদনা ডায়ালগ */}
       <Dialog open={!!editCode} onOpenChange={() => setEditCode(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Cost Code</DialogTitle>
             <DialogDescription>Update {editCode?.code} — {editCode?.name}</DialogDescription>
@@ -261,7 +261,7 @@ export function CostCodes() {
 
       {/* মুছে ফেলার নিশ্চিতকরণ */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Cost Code</DialogTitle>
             <DialogDescription>Are you sure? This action cannot be undone. Cost codes with budget items or children cannot be deleted.</DialogDescription>
@@ -313,17 +313,17 @@ function CostCodeRow({ node, depth, expandedIds, toggleExpand, onEdit, onDelete,
           </span>
           {node.description && <p className="text-[11px] text-muted-foreground mt-0.5" style={{ paddingLeft: `${depth * 20}px` }}>{node.description}</p>}
         </TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', levelColors[node.level] || '')}>
             L{node.level} {levelLabels[node.level] || ''}
           </Badge>
         </TableCell>
-        <TableCell className="text-xs text-muted-foreground">{node.unitType || '—'}</TableCell>
-        <TableCell className="text-center">
+        <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">{node.unitType || '—'}</TableCell>
+        <TableCell className="text-center hidden md:table-cell">
           <Switch checked={node.isActive} onCheckedChange={(checked) => onToggleActive(node.id, checked)} className="scale-75" />
         </TableCell>
-        <TableCell className="text-center text-xs text-muted-foreground">{node._count?.budgetItems || 0}</TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-center text-xs text-muted-foreground hidden lg:table-cell">{node._count?.budgetItems || 0}</TableCell>
+        <TableCell className="text-right hidden md:table-cell">
           <div className="flex items-center justify-end gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(node)}>
               <Pencil className="h-3 w-3" />

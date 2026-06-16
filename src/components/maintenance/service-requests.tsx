@@ -473,13 +473,13 @@ function TicketTable({
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="text-xs">Ticket #</TableHead>
-                  <TableHead className="text-xs">Type</TableHead>
+                  <TableHead className="text-xs hidden md:table-cell">Type</TableHead>
                   <TableHead className="text-xs">Subject</TableHead>
-                  <TableHead className="text-xs">Category</TableHead>
-                  <TableHead className="text-xs">Priority</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">Category</TableHead>
+                  <TableHead className="text-xs hidden md:table-cell">Priority</TableHead>
                   <TableHead className="text-xs">Status</TableHead>
-                  <TableHead className="text-xs">Created</TableHead>
-                  <TableHead className="text-xs">SLA</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">Created</TableHead>
+                  <TableHead className="text-xs hidden lg:table-cell">SLA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -497,7 +497,7 @@ function TicketTable({
                           {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </TableCell>
                         <TableCell className="text-xs font-mono text-rose-600 font-medium">{ticket.ticketNo}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <Badge variant="secondary" className={cn('text-[10px]', TYPE_BADGE_COLORS[ticket.type] || '')}>
                             {TYPE_LABELS[ticket.type] || ticket.type}
                           </Badge>
@@ -508,12 +508,12 @@ function TicketTable({
                             <p className="text-xs text-muted-foreground truncate max-w-[180px]">{ticket.description}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           <Badge variant="secondary" className="text-xs">
                             {CATEGORY_LABELS[ticket.category] || ticket.category}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <Badge variant="secondary" className={cn('gap-1 text-xs', pri.color)}>
                             <span className={cn('h-1.5 w-1.5 rounded-full', pri.dotColor)} />
                             {pri.label}
@@ -524,10 +524,10 @@ function TicketTable({
                             {stat.label}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
+                        <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                           {new Date(ticket.createdAt).toLocaleDateString()}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           {ticket.slaDeadline ? <SLACountdown deadline={ticket.slaDeadline} /> : <span className="text-xs text-muted-foreground">—</span>}
                         </TableCell>
                       </TableRow>

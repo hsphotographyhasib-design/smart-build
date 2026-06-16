@@ -324,7 +324,7 @@ export function TenderVendorsPage() {
 
       {/* ─── ভেন্ডর যোগ ডায়ালগ ─── */}
       <Dialog open={addOpen} onOpenChange={open => { setAddOpen(open); if (!open) setForm(emptyVendorForm()) }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Vendor</DialogTitle>
             <DialogDescription>Add a new vendor to the tender vendor database.</DialogDescription>
@@ -418,7 +418,7 @@ export function TenderVendorsPage() {
 
       {/* ─── ভেন্ডর দেখার ডায়ালগ ─── */}
       <Dialog open={!!viewVendor} onOpenChange={open => { if (!open) setViewVendor(null) }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />

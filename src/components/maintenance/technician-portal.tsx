@@ -397,7 +397,7 @@ export function TechnicianPortal() {
 
       {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
           <TabsTrigger value="my-jobs" className="gap-1.5 text-xs sm:text-sm">
             <Briefcase className="h-3.5 w-3.5" /> My Jobs
             {myJobs.length > 0 && (
@@ -607,10 +607,10 @@ export function TechnicianPortal() {
                         <TableHead className="w-8"></TableHead>
                         <TableHead className="text-xs">Ticket#</TableHead>
                         <TableHead className="text-xs">Subject</TableHead>
-                        <TableHead className="text-xs">Customer</TableHead>
-                        <TableHead className="text-xs">Completed</TableHead>
-                        <TableHead className="text-xs">Rating</TableHead>
-                        <TableHead className="text-xs">Time Spent</TableHead>
+                        <TableHead className="text-xs hidden md:table-cell">Customer</TableHead>
+                        <TableHead className="text-xs hidden md:table-cell">Completed</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">Rating</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">Time Spent</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -630,17 +630,17 @@ export function TechnicianPortal() {
                               </TableCell>
                               <TableCell className="text-xs font-mono">{ticket.ticketNo}</TableCell>
                               <TableCell className="text-xs font-medium">{ticket.subject}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground">{ticket.customer?.name || '—'}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
+                              <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{ticket.customer?.name || '—'}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground hidden md:table-cell">
                                 {ticket.completedAt ? new Date(ticket.completedAt).toLocaleDateString() : '—'}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="hidden lg:table-cell">
                                 <div className="flex items-center gap-1">
                                   <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
                                   <span className="text-xs">—</span>
                                 </div>
                               </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
+                              <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                                 {timeSpent > 0 ? formatDuration(timeSpent) : '—'}
                               </TableCell>
                             </TableRow>

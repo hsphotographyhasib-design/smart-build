@@ -534,7 +534,7 @@ export function DispatchCenter() {
 
       {/* ট্যাবসমূহ */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="queue" className="gap-1.5 text-xs sm:text-sm">
             <ListTodo className="h-3.5 w-3.5" /> Ticket Queue
             {stats.unassignedCount > 0 && (
@@ -586,14 +586,14 @@ export function DispatchCenter() {
                           />
                         </TableHead>
                         <TableHead className="text-xs">Ticket#</TableHead>
-                        <TableHead className="text-xs">Type</TableHead>
-                        <TableHead className="text-xs">Category</TableHead>
+                        <TableHead className="text-xs hidden md:table-cell">Type</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">Category</TableHead>
                         <TableHead className="text-xs">Priority</TableHead>
-                        <TableHead className="text-xs">Customer</TableHead>
-                        <TableHead className="text-xs">Site</TableHead>
-                        <TableHead className="text-xs">Created</TableHead>
-                        <TableHead className="text-xs">SLA Status</TableHead>
-                        <TableHead className="text-xs">SLA Timer</TableHead>
+                        <TableHead className="text-xs hidden md:table-cell">Customer</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">Site</TableHead>
+                        <TableHead className="text-xs hidden md:table-cell">Created</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">SLA Status</TableHead>
+                        <TableHead className="text-xs hidden lg:table-cell">SLA Timer</TableHead>
                         <TableHead className="text-xs w-36">Action</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -620,8 +620,8 @@ export function DispatchCenter() {
                               />
                             </TableCell>
                             <TableCell className="text-xs font-mono font-medium">{ticket.ticketNo}</TableCell>
-                            <TableCell className="text-xs">{typeLabels[ticket.type] || ticket.type}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-xs hidden md:table-cell">{typeLabels[ticket.type] || ticket.type}</TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                                 {categoryLabels[ticket.category] || ticket.category}
                               </Badge>
@@ -632,15 +632,15 @@ export function DispatchCenter() {
                                 {pri.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-xs">{ticket.customer?.name || '—'}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">{ticket.site?.name || '—'}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{formatTimeAgo(ticket.createdAt)}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-xs hidden md:table-cell">{ticket.customer?.name || '—'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate hidden lg:table-cell">{ticket.site?.name || '—'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground hidden md:table-cell">{formatTimeAgo(ticket.createdAt)}</TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', sla.color)}>
                                 {sla.label}
                               </Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               {ticket.slaDeadline ? <SLACountdownTimer deadline={ticket.slaDeadline} /> : <span className="text-xs text-muted-foreground">—</span>}
                             </TableCell>
                             <TableCell>
@@ -817,7 +817,7 @@ export function DispatchCenter() {
                 </div>
               ) : (
                 <ScrollArea className="w-full">
-                  <div className="min-w-[800px]">
+                  <div className="min-w-0">
                     <Table>
                       <TableHeader>
                         <TableRow>

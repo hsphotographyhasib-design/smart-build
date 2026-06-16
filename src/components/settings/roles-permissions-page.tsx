@@ -910,7 +910,7 @@ export function RolesPermissionsPage() {
                               className="size-4"
                             />
                           </div>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {ACTION_COLUMNS.map((a) => {
                               const actionKey = `${rowKey}.${a.key}`
                               const isModified = currentFlat[actionKey] !== originalPermissions[actionKey]

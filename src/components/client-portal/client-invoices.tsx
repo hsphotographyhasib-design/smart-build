@@ -206,11 +206,11 @@ export function ClientInvoices() {
                       <TableRow>
                         <TableHead className="w-8"></TableHead>
                         <TableHead>Invoice No</TableHead>
-                        <TableHead>Date</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
-                        <TableHead className="text-right">Paid</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead className="text-right hidden lg:table-cell">Paid</TableHead>
+                        <TableHead className="text-right hidden lg:table-cell">Balance</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -229,7 +229,7 @@ export function ClientInvoices() {
                                 {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                               </TableCell>
                               <TableCell className="font-medium text-sm">{inv.invoiceNo}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
+                              <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                                 {new Date(inv.issueDate).toLocaleDateString()}
                               </TableCell>
                               <TableCell>
@@ -239,8 +239,8 @@ export function ClientInvoices() {
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right text-sm font-medium">{formatCurrency(inv.total)}</TableCell>
-                              <TableCell className="text-right text-sm text-emerald-600">{formatCurrency(inv.paidAmount)}</TableCell>
-                              <TableCell className="text-right text-sm font-medium">
+                              <TableCell className="text-right text-sm text-emerald-600 hidden lg:table-cell">{formatCurrency(inv.paidAmount)}</TableCell>
+                              <TableCell className="text-right text-sm font-medium hidden lg:table-cell">
                                 <span className={balance > 0 ? 'text-amber-600' : 'text-emerald-600'}>
                                   {formatCurrency(balance)}
                                 </span>

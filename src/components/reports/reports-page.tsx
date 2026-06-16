@@ -265,11 +265,11 @@ export function ReportsPage() {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-muted-foreground" />Start</Label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-[160px]" />
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full sm:w-[160px]" />
             </div>
             <div className="space-y-2">
               <Label>End</Label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-[160px]" />
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full sm:w-[160px]" />
             </div>
             <Button
               className="bg-amber-600 hover:bg-amber-700 text-white"

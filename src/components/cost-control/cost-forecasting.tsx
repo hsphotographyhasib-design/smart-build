@@ -319,13 +319,13 @@ export function CostForecasting() {
                 <TableRow>
                   <TableHead className="text-xs w-8"></TableHead>
                   <TableHead className="text-xs">Project</TableHead>
-                  <TableHead className="text-xs text-right">Budget</TableHead>
-                  <TableHead className="text-xs text-right">Actual</TableHead>
-                  <TableHead className="text-xs text-center">CPI</TableHead>
-                  <TableHead className="text-xs text-center">SPI</TableHead>
-                  <TableHead className="text-xs text-right">EAC</TableHead>
-                  <TableHead className="text-xs text-right">ETC</TableHead>
-                  <TableHead className="text-xs text-right">Cost Var %</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Budget</TableHead>
+                  <TableHead className="text-xs text-right hidden md:table-cell">Actual</TableHead>
+                  <TableHead className="text-xs text-center hidden md:table-cell">CPI</TableHead>
+                  <TableHead className="text-xs text-center hidden lg:table-cell">SPI</TableHead>
+                  <TableHead className="text-xs text-right hidden lg:table-cell">EAC</TableHead>
+                  <TableHead className="text-xs text-right hidden lg:table-cell">ETC</TableHead>
+                  <TableHead className="text-xs text-right hidden lg:table-cell">Cost Var %</TableHead>
                   <TableHead className="text-xs">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -344,23 +344,23 @@ export function CostForecasting() {
                           <p className="text-xs text-muted-foreground">{p.projectCode} &middot; {p.projectProgress}% complete</p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-right">{formatCurrency(p.revisedBudget)}</TableCell>
-                      <TableCell className="text-xs font-mono text-right">{formatCurrency(p.actualCost)}</TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">{formatCurrency(p.revisedBudget)}</TableCell>
+                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">{formatCurrency(p.actualCost)}</TableCell>
+                      <TableCell className="text-center hidden md:table-cell">
                         <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0 font-mono', p.cpi >= 0.95 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300')}>
                           {p.cpi.toFixed(3)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center hidden lg:table-cell">
                         <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0 font-mono', p.spi >= 0.95 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300')}>
                           {p.spi.toFixed(3)}
                         </Badge>
                       </TableCell>
-                      <TableCell className={cn('text-xs font-mono text-right', p.estimateAtCompletion > p.revisedBudget ? 'text-red-600' : '')}>
+                      <TableCell className={cn('text-xs font-mono text-right hidden lg:table-cell', p.estimateAtCompletion > p.revisedBudget ? 'text-red-600' : '')}>
                         {formatCurrency(p.estimateAtCompletion)}
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-right">{formatCurrency(p.estimateToComplete)}</TableCell>
-                      <TableCell className={cn('text-xs font-mono text-right', p.costVariancePercent < -5 ? 'text-red-600' : p.costVariancePercent < 0 ? 'text-amber-600' : 'text-emerald-600')}>
+                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(p.estimateToComplete)}</TableCell>
+                      <TableCell className={cn('text-xs font-mono text-right hidden lg:table-cell', p.costVariancePercent < -5 ? 'text-red-600' : p.costVariancePercent < 0 ? 'text-amber-600' : 'text-emerald-600')}>
                         {p.costVariancePercent >= 0 ? '+' : ''}{p.costVariancePercent.toFixed(1)}%
                       </TableCell>
                       <TableCell>
@@ -380,13 +380,13 @@ export function CostForecasting() {
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead className="text-xs">Cost Code</TableHead>
-                                    <TableHead className="text-xs text-right">Budget</TableHead>
-                                    <TableHead className="text-xs text-right">Actual</TableHead>
-                                    <TableHead className="text-xs text-right">Variance</TableHead>
+                                    <TableHead className="text-xs text-right hidden md:table-cell">Budget</TableHead>
+                                    <TableHead className="text-xs text-right hidden md:table-cell">Actual</TableHead>
+                                    <TableHead className="text-xs text-right hidden md:table-cell">Variance</TableHead>
                                     <TableHead className="text-xs">Progress</TableHead>
-                                    <TableHead className="text-xs text-center">CPI</TableHead>
-                                    <TableHead className="text-xs text-right">EAC</TableHead>
-                                    <TableHead className="text-xs text-right">Earned</TableHead>
+                                    <TableHead className="text-xs text-center hidden md:table-cell">CPI</TableHead>
+                                    <TableHead className="text-xs text-right hidden lg:table-cell">EAC</TableHead>
+                                    <TableHead className="text-xs text-right hidden lg:table-cell">Earned</TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -396,9 +396,9 @@ export function CostForecasting() {
                                         <p className="text-xs font-mono">{li.costCode.code}</p>
                                         <p className="text-[11px] text-muted-foreground">{li.costCode.name}</p>
                                       </TableCell>
-                                      <TableCell className="text-xs font-mono text-right">{formatCurrency(li.revisedBudget)}</TableCell>
-                                      <TableCell className="text-xs font-mono text-right">{formatCurrency(li.actualCost)}</TableCell>
-                                      <TableCell className={cn('text-xs font-mono text-right', li.variance < 0 ? 'text-red-600' : 'text-emerald-600')}>
+                                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">{formatCurrency(li.revisedBudget)}</TableCell>
+                                      <TableCell className="text-xs font-mono text-right hidden md:table-cell">{formatCurrency(li.actualCost)}</TableCell>
+                                      <TableCell className={cn('text-xs font-mono text-right hidden md:table-cell', li.variance < 0 ? 'text-red-600' : 'text-emerald-600')}>
                                         {li.variance >= 0 ? '+' : ''}{formatCurrency(li.variance)}
                                       </TableCell>
                                       <TableCell>
@@ -407,17 +407,17 @@ export function CostForecasting() {
                                           <span className="text-[10px] w-8 text-right">{li.percentComplete.toFixed(0)}%</span>
                                         </div>
                                       </TableCell>
-                                      <TableCell className="text-center">
+                                      <TableCell className="text-center hidden md:table-cell">
                                         {li.cpi !== null ? (
                                           <Badge variant="secondary" className={cn('text-[10px] px-1 py-0 font-mono', li.cpi >= 0.95 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300')}>
                                             {li.cpi.toFixed(2)}
                                           </Badge>
                                         ) : <span className="text-[10px] text-muted-foreground">—</span>}
                                       </TableCell>
-                                      <TableCell className={cn('text-xs font-mono text-right', li.eac > li.revisedBudget ? 'text-red-600' : '')}>
+                                      <TableCell className={cn('text-xs font-mono text-right hidden lg:table-cell', li.eac > li.revisedBudget ? 'text-red-600' : '')}>
                                         {formatCurrency(li.eac)}
                                       </TableCell>
-                                      <TableCell className="text-xs font-mono text-right">{formatCurrency(li.earnedRevenue)}</TableCell>
+                                      <TableCell className="text-xs font-mono text-right hidden lg:table-cell">{formatCurrency(li.earnedRevenue)}</TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>

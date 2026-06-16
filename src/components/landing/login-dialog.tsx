@@ -235,7 +235,7 @@ export function LoginDialog() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="relative w-full max-w-[820px] rounded-3xl overflow-hidden"
+              className="relative w-full sm:max-w-[820px] rounded-3xl overflow-hidden"
               style={{
                 boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.1), 0 0 100px -20px rgba(245, 158, 11, 0.2)',
               }}

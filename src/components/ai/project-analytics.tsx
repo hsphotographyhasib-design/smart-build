@@ -134,7 +134,7 @@ export function ProjectAnalytics() {
         </Card>
       ) : isLoading ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-3">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>
           <Skeleton className="h-80 rounded-lg" />
         </div>
       ) : (

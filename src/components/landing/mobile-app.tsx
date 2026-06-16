@@ -80,7 +80,7 @@ function IPhoneMockup() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 px-4 -mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 -mt-3">
             {[
               { label: 'Active', value: '12', bg: 'bg-[#ff5201]/10', text: 'text-[#ff5201]' },
               { label: 'On Track', value: '9', bg: 'bg-emerald-50', text: 'text-emerald-600' },

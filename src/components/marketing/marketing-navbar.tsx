@@ -149,7 +149,7 @@ export function MarketingNavbar() {
 
                 {/* মেগা মেনু ড্রপডাউন */}
                 {dropdownOpen && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[640px] bg-white rounded-xl shadow-xl shadow-gray-900/10 border border-gray-100 p-6 overflow-hidden">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[calc(100vw-2rem)] sm:w-[640px] bg-white rounded-xl shadow-xl shadow-gray-900/10 border border-gray-100 p-6 overflow-hidden">
                     <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-1 rounded-full mb-5" />
                     <div className="grid grid-cols-2 gap-8">
                       {/* শিল্প অনুযায়ী */}

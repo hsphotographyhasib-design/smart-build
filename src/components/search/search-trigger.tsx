@@ -28,7 +28,7 @@ export function SearchTrigger() {
   return (
     <button
       onClick={open}
-      className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground min-w-[200px] cursor-pointer"
+      className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground min-w-0 sm:min-w-[200px] cursor-pointer"
       aria-label="Open search (⌘K)"
     >
       <Search className="h-4 w-4 shrink-0" />

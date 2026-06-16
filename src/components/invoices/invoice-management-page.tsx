@@ -569,7 +569,7 @@ export function InvoiceManagementPage() {
 
       {/* ─── ইনভয়েস তৈরির ডায়ালগ ─── */}
       <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (!open) resetForm() }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Invoice</DialogTitle>
             <DialogDescription>Fill in the invoice details. It will be saved as a draft.</DialogDescription>

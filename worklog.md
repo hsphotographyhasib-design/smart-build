@@ -739,3 +739,179 @@ Stage Summary:
 - Accordion behavior: single source of truth via Zustand expandedMenuId, localStorage persistence, auto-expand on navigation
 - All 17 menu groups follow accordion pattern — only one parent expanded at any time
 - Sub-categories within groups also follow accordion pattern
+---
+Task ID: Mobile Responsive Filter Fixes
+Agent: Sub-Agent (general-purpose)
+Task: Fix all fixed-width filter/select/search elements to be mobile-responsive
+
+Work Log:
+- Comprehensive grep search across all .tsx files for w-[120px] through w-[200px] patterns
+- Identified 23 fixed-width filter/search elements across 11 files that needed responsive fixes
+- Correctly excluded: min-w-*, max-w-*, TableHead widths, TableCell truncation, non-filter elements, UI base components, already-fixed elements
+- Applied `w-full sm:w-[Npx]` pattern to all 23 instances
+
+Files changed (23 edits across 11 files):
+1. src/components/sales/product-catalog-page.tsx (2 edits) — w-[180px]→w-full sm:w-[180px], w-[130px]→w-full sm:w-[130px] on SelectTrigger
+2. src/components/sales/sales-invoices-page.tsx (1 edit) — w-[150px]→w-full sm:w-[150px] on SelectTrigger
+3. src/components/settings/login-activity-page.tsx (2 edits) — w-[160px]→w-full sm:w-[160px] on two SelectTriggers (status + date range)
+4. src/components/assets/assets-page.tsx (2 edits) — w-[150px]→w-full sm:w-[150px] on two SelectTriggers (type + status)
+5. src/components/subcontractors/work-orders-page.tsx (3 edits) — w-[150px]→w-full sm:w-[150px] (status), w-[180px]→w-full sm:w-[180px] (sub-contractor, project)
+6. src/components/common/audit-log-page.tsx (4 edits) — w-[180px]→w-full sm:w-[180px] (entity), w-[150px]→w-full sm:w-[150px] (action), w-[160px]→w-full sm:w-[160px] (two date inputs)
+7. src/components/maintenance/service-reports.tsx (1 edit) — w-[200px]→w-full sm:w-[200px] on search Input
+8. src/components/maintenance/maintenance-complaints.tsx (1 edit) — w-[200px]→w-full sm:w-[200px] on search Input
+9. src/components/reports/reports-page.tsx (2 edits) — w-[160px]→w-full sm:w-[160px] on two date Inputs
+10. src/components/resources/resource-productivity.tsx (2 edits) — w-[180px]→w-full sm:w-[180px] (project), w-[150px]→w-full sm:w-[150px] (type)
+11. src/components/resources/resource-planning.tsx (3 edits) — w-[160px]→w-full sm:w-[160px] (resource type), w-[150px]→w-full sm:w-[150px] (status), w-[180px]→w-full sm:w-[180px] (project)
+
+Previously already fixed (not touched): scheduling/schedule-list-page, scheduling/scheduling-page, finance/payments-page, finance/cashflow-page, finance/invoices-page, finance/daybook-page
+Correctly excluded: TableHead widths (boq-page), max-w truncation (TableCell spans), min-w containers (tender-comparison, whatsapp, ai), decorative elements (landing)
+---
+Task ID: Dialog max-w Mobile Responsive Fix
+Agent: Sub-Agent (general-purpose)
+Task: Fix all Dialog/DialogContent className max-w overrides that override the mobile-safe base `max-w-[calc(100%-2rem)]` from dialog.tsx
+
+Work Log:
+- Searched all .tsx files in src/components/ for DialogContent with max-w- class overrides
+- Identified 20 instances across 11 files where max-w-* was used WITHOUT the sm: prefix
+- Confirmed that files already using sm:max-w-* prefix (procurement, sales, maintenance, collaboration, hr, labour, finance, etc.) were correctly excluded
+- Applied sm: prefix to all 20 offending max-w-* classes
+- Final verification grep confirmed zero remaining un-prefixed max-w-* on DialogContent
+
+Files changed (20 edits across 11 files):
+1. src/components/cost-control/budget-change-orders.tsx (3 edits) — max-w-lg→sm:max-w-lg (line 316), max-w-lg→sm:max-w-lg max-h-[80vh] (line 331), max-w-sm→sm:max-w-sm (line 419)
+2. src/components/cost-control/cost-codes.tsx (3 edits) — max-w-md→sm:max-w-md (line 232, create dialog), max-w-md→sm:max-w-md (line 247, edit dialog), max-w-sm→sm:max-w-sm (line 264, delete dialog)
+3. src/components/cost-control/budget-management.tsx (3 edits) — max-w-md→sm:max-w-md (line 399, create budget), max-w-md→sm:max-w-md (line 436, add line item), max-w-lg→sm:max-w-lg (line 451, edit line item)
+4. src/components/tender/tender-packages-page.tsx (1 edit) — max-w-2xl→sm:max-w-2xl (line 332)
+5. src/components/tender/tender-vendors-page.tsx (2 edits) — max-w-2xl→sm:max-w-2xl (line 327, add vendor), max-w-3xl→sm:max-w-3xl (line 421, view vendor)
+6. src/components/tender/tender-detail-page.tsx (3 edits) — max-w-md→sm:max-w-md (line 534, invite vendor), max-w-md→sm:max-w-md (line 833, ask question), max-w-md→sm:max-w-md (line 910, create addendum)
+7. src/components/ai/ai-insights.tsx (1 edit) — max-w-lg→sm:max-w-lg (line 142)
+8. src/components/projects/project-detail-page.tsx (1 edit) — max-w-lg→sm:max-w-lg (line 739)
+9. src/components/resources/resource-productivity.tsx (1 edit) — max-w-lg→sm:max-w-lg (line 323)
+10. src/components/invoices/invoice-workflow-builder-page.tsx (1 edit) — max-w-3xl→sm:max-w-3xl (line 329)
+11. src/components/invoices/invoice-management-page.tsx (1 edit) — max-w-3xl→sm:max-w-3xl (line 572)
+
+---
+Task ID: Fix Non-Responsive Grid Layouts
+Agent: Grid-Fix Agent
+Task: Find and fix ALL non-responsive grid-cols-3/4/5/6 patterns across .tsx files
+
+Work Log:
+- Searched entire src/components/ codebase for non-responsive `grid grid-cols-N` patterns (N≥3)
+- Identified 19 non-responsive grid instances across 15 files
+- Applied responsive fixes: `grid-cols-3` → `grid-cols-1 sm:grid-cols-3`, `grid-cols-4` → `grid-cols-2 sm:grid-cols-4`, `grid-cols-5` → `grid-cols-3 sm:grid-cols-5`
+- Intentionally skipped landing/why-smartbuild.tsx:164 (inside `md:hidden` mobile-only container, 3-col comparison table is intentional)
+- Verified zero remaining non-responsive grid patterns (excluding ui/ components and the intentional skip)
+
+Files Changed (19 edits in 15 files):
+1. src/components/cost-control/budget-change-orders.tsx:343 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+2. src/components/settings/roles-permissions-page.tsx:913 — `grid grid-cols-4` → `grid grid-cols-2 sm:grid-cols-4`
+3. src/components/settings/login-activity-page.tsx:422 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3` (NEW find)
+4. src/components/projects/project-detail-page.tsx:1139 — skeleton `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+5. src/components/projects/project-detail-page.tsx:1251 — skeleton `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+6. src/components/projects/project-detail-page.tsx:1622 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+7. src/components/scheduling/schedule-detail-page.tsx:494 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3` (NEW find)
+8. src/components/invoices/invoice-workflow-builder-page.tsx:481 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+9. src/components/ai/ai-forecast.tsx:97 — skeleton `grid grid-cols-4` → `grid grid-cols-2 sm:grid-cols-4`
+10. src/components/ai/ai-forecast.tsx:122 — TabsList `grid grid-cols-4` → `grid grid-cols-2 sm:grid-cols-4`
+11. src/components/ai/project-analytics.tsx:137 — skeleton `grid grid-cols-4` → `grid grid-cols-2 sm:grid-cols-4`
+12. src/components/landing/roi-calculator.tsx:168 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3` (NEW find)
+13. src/components/landing/mobile-app.tsx:83 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3` (NEW find)
+14. src/components/maintenance/ticket-detail.tsx:596 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+15. src/components/maintenance/ticket-detail.tsx:1208 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+16. src/components/maintenance/maintenance-sites.tsx:894 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+17. src/components/maintenance/work-orders.tsx:932 — `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+18. src/components/maintenance/dispatch-center.tsx:537 — TabsList `grid grid-cols-4` → `grid grid-cols-2 sm:grid-cols-4` (NEW find)
+19. src/components/maintenance/technician-portal.tsx:400 — TabsList `grid grid-cols-5` → `grid grid-cols-3 sm:grid-cols-5` (NEW find)
+
+Skipped (intentional):
+- src/components/landing/why-smartbuild.tsx:164 — inside `md:hidden` container (mobile-only 3-column comparison table)
+
+---
+Task ID: Fix table max-h-600px patterns
+Agent: Sub-agent
+Task: Replace all `max-h-[600px]` on table/scroll containers with `max-h-[calc(100vh-280px)]` for dynamic viewport-based sizing
+
+Work Log:
+- Searched all .tsx files in src/components/ for `max-h-[600px]` — found 30 instances across 21 files
+- Skipped 2 instances in `src/components/ui/responsive.tsx` (per instructions: do not change ui/ files)
+- Replaced `max-h-[600px]` → `max-h-[calc(100vh-280px)]` in 20 files (28 instances total):
+  1. src/components/procurement/purchase-orders-page.tsx (1 instance)
+  2. src/components/procurement/purchase-requests-page.tsx (1 instance)
+  3. src/components/procurement/inventory-page.tsx (1 instance)
+  4. src/components/procurement/suppliers-page.tsx (1 instance)
+  5. src/components/sales/customers-page.tsx (1 instance)
+  6. src/components/sales/product-catalog-page.tsx (1 instance)
+  7. src/components/sales/sales-invoices-page.tsx (1 instance)
+  8. src/components/labour/payroll-page.tsx (1 instance)
+  9. src/components/labour/attendance-page.tsx (1 instance)
+  10. src/components/notifications/notifications-page.tsx (1 instance)
+  11. src/components/hr/leave-page.tsx (2 instances)
+  12. src/components/hr/employees-page.tsx (1 instance)
+  13. src/components/subcontractors/work-orders-page.tsx (1 instance)
+  14. src/components/subcontractors/subcontractors-page.tsx (1 instance)
+  15. src/components/resources/resource-requests.tsx (1 instance)
+  16. src/components/assets/assets-page.tsx (1 instance)
+  17. src/components/resources/resource-planning.tsx (1 instance)
+  18. src/components/projects/project-detail-page.tsx (9 instances — tasks, open items, RFIs, change events, change orders, commitments, direct costs, documents, daily notes)
+  19. src/components/common/audit-log-page.tsx (1 instance)
+  20. src/components/common/users-page.tsx (1 instance)
+- Verified: only 2 remaining `max-h-[600px]` instances in ui/responsive.tsx (intentionally skipped)
+- This matches the existing better pattern already used in invoice-retention-page.tsx
+
+---
+Task ID: Add hidden cols to unresponsive tables (cost-control, client-portal, common)
+Agent: Sub-agent
+Task: Find tables with 5+ visible columns that have NO responsive hiding, add hidden classes
+
+Work Log:
+- Audited ALL tables in:
+  - src/components/cost-control/ (5 files: budget-change-orders, cost-codes, budget-management, cost-forecasting, cost-control-dashboard)
+  - src/components/client-portal/ (6 files: client-invoices, client-service-requests, client-complaints, client-progress, client-documents, client-dashboard)
+  - src/components/common/ (users-page.tsx)
+  - src/components/settings/ (roles-permissions-page.tsx — referenced in task)
+- FINDING: All tables in the target directories ALREADY have responsive hidden classes (`hidden md:table-cell` / `hidden lg:table-cell` / `hidden sm:table-cell`) on at least some columns.
+- roles-permissions-page.tsx tables are wrapped in `hidden md:block` with separate mobile card views — desktop-only approach, no column hiding needed.
+- BUG FOUND & FIXED: budget-management.tsx line-items sub-table TOTAL row (lines 367-380) had NO hidden classes on its TableCells, while the matching TableHead columns used `hidden md:table-cell` and `hidden lg:table-cell`. This caused the TOTAL row to show all values on mobile even when data rows had columns hidden.
+  - Added `hidden md:table-cell` to: Original, Revised, Actual totals, and empty Actions cell
+  - Added `hidden lg:table-cell` to: Committed, EAC totals
+
+Files changed (1):
+  1. src/components/cost-control/budget-management.tsx — Fixed TOTAL row responsive class mismatch
+
+---
+Task ID: Mobile Responsiveness & Device-Aware Auto Layout System
+Agent: Main Orchestrator + 5 Sub-Agents
+Task: Complete responsive redesign — fix overflow, fixed widths, tables, dialogs, grids, touch
+
+Work Log:
+- Scanned entire codebase: found 7 critical, 5 high, 4 medium, 3 low responsive issues
+- Created `src/hooks/use-device.ts` — comprehensive device detection hook (isMobile/isTablet/isLaptop/isDesktop, orientation, pixelRatio)
+- Fixed `src/components/ui/table.tsx` — removed `whitespace-nowrap` from TableCell base (allows text wrapping on mobile)
+- Updated `src/app/globals.css` — added global overflow-x:hidden, responsive fluid typography (clamp for h1/h2/h3), touch-friendly min-height 44px for buttons/inputs on mobile, font-size 16px to prevent iOS zoom
+- Fixed `src/components/ui/dialog.tsx` — base already had mobile-safe max-w, no changes needed
+- Fixed `src/components/landing/login-dialog.tsx:238` — max-w-[820px] → sm:max-w-[820px]
+- Fixed `src/components/marketing/marketing-navbar.tsx:152` — w-[640px] → w-[calc(100vw-2rem)] sm:w-[640px]
+- Fixed `src/components/scheduling/schedule-gantt-chart.tsx:450` — w-[420px] min-w-[420px] → hidden md:flex md:w-[420px] md:min-w-[420px]
+- Fixed `src/components/maintenance/dispatch-center.tsx:820` — min-w-[800px] → min-w-0
+- Fixed `src/components/search/search-trigger.tsx:31` — min-w-[200px] → min-w-0 sm:min-w-[200px]
+- Updated `src/components/layout/mobile-header.tsx` — migrated accordion state from local useState to global Zustand store (consistent with desktop sidebar)
+
+Sub-Agent Results:
+1. Dialog max-w fix: 20 edits across 11 files (cost-control, tender, ai, projects, resources, invoices)
+2. Grid cols fix: 19 edits across 15 files (grid-cols-3 → grid-cols-1 sm:grid-cols-3, grid-cols-4 → grid-cols-2 sm:grid-cols-4)
+3. Filter width fix: 23 edits across 11 files (w-[Npx] → w-full sm:w-[Npx] on SelectTriggers and Inputs)
+4. Table max-h fix: 28 edits across 20 files (max-h-[600px] → max-h-[calc(100vh-280px)])
+5. Table column hiding audit: All target tables already had responsive hiding; fixed 1 bug in budget-management.tsx TOTAL row
+
+Browser Verification:
+- 375px (iPhone): Mobile header + hamburger menu, no horizontal overflow, drawer accordion works
+- 768px (iPad): Sidebar + content layout, no overflow
+- 1280px (Laptop): Desktop layout, no overflow
+- 1920px (Desktop): Desktop layout, no overflow
+- All viewports: documentWidth === viewportWidth (zero horizontal overflow)
+
+Stage Summary:
+- ~100+ edits across 50+ files
+- Zero lint errors
+- Zero browser console errors
+- All viewports verified: no horizontal scroll, no overflow, no broken navigation
