@@ -641,3 +641,35 @@ Stage Summary:
 - showMobileMoreDrawer state added to store (fixes mobile-more-drawer.tsx runtime error)
 - Sidebar state persists in localStorage across refreshes
 - Enterprise-grade sidebar with smooth scrolling, keyboard nav, auto-scroll, sticky headers
+
+---
+Task ID: sidebar-hierarchical-menu
+Agent: Main Orchestrator
+Task: Rebuild sidebar with proper hierarchical menu & submenu system
+
+Work Log:
+- Analyzed existing menu infrastructure: found MenuGroup/MenuItem Prisma models missing, API coded but broken, mobile hooks ready
+- Added 3 Prisma models to schema.prisma: MenuGroup (16 groups), MenuItem (self-referential with parentId), RoleAccess (69 entries)
+- Created prisma/seed-menus.ts with 16 groups, 84 items, 19 sub-children across all ERP modules
+- Pushed schema to DB, seeded data, verified 16 groups + 84 items + 69 role access entries
+- Updated /api/menus/route.ts to filter by isActive/parentId and handle super_admin role
+- Added /api/menus to ROUTE_PERMISSIONS in rbac.ts (was missing, causing Forbidden)
+- Completely rewrote app-layout.tsx desktop sidebar:
+  - Replaced hardcoded navSections with database-driven useMenuData hook
+  - Collapsible parent groups with ChevronDown animation (framer-motion)
+  - Sub-category folders with nested expand (3-level: Group → Category → Item)
+  - Auto-expand active parent when navigating to child pages
+  - Single-item groups render as direct navigation buttons
+  - Loading skeleton state while fetching menu data
+  - Computed expanded state (no setState in useEffect lint errors)
+  - Keyboard navigation preserved (Arrow keys, Home, End)
+  - Auto-scroll to active item preserved
+  - Responsive layout (desktop sidebar + mobile header/bottom nav)
+- Fixed global-search.tsx toggle ordering lint error
+- Browser-verified: 16 groups render, expand/collapse works, 3-level hierarchy works, auto-expand active, RBAC filtering
+
+Stage Summary:
+- Key files: prisma/schema.prisma, prisma/seed-menus.ts, src/app/api/menus/route.ts, src/lib/rbac.ts, src/components/layout/app-layout.tsx, src/components/search/global-search.tsx
+- Database: 3 new tables (MenuGroup, MenuItem, RoleAccess) with full ERP menu data
+- Sidebar: Database-driven hierarchical navigation with smooth animations
+- All lint errors resolved (0 errors, 1 warning)

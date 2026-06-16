@@ -1672,3 +1672,53 @@ model SearchAnalytics {
   @@index([createdAt])
   @@index([userId])
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// MENU SYSTEM — Hierarchical Navigation Configuration
+// ═══════════════════════════════════════════════════════════════════
+
+model MenuGroup {
+  id        String     @id @default(uuid())
+  code      String     @unique
+  label     String
+  icon      String     @default("FileText")
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+  items     MenuItem[]
+  roleAccess RoleAccess[]
+
+  @@index([code])
+  @@index([sortOrder])
+}
+
+model MenuItem {
+  id        String    @id @default(uuid())
+  groupId   String
+  label     String
+  page      String    @default("")
+  icon      String    @default("FileText")
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  isHidden  Boolean   @default(false)
+  parentId  String?
+  group     MenuGroup @relation(fields: [groupId], references: [id])
+  parent    MenuItem? @relation("MenuItemChildren", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuItemChildren")
+
+  @@index([groupId])
+  @@index([parentId])
+  @@index([page])
+  @@index([sortOrder])
+}
+
+model RoleAccess {
+  id      String    @id @default(uuid())
+  groupId String
+  roleId  String
+  canView Boolean   @default(true)
+  group   MenuGroup @relation(fields: [groupId], references: [id])
+
+  @@unique([groupId, roleId])
+  @@index([roleId])
+  @@index([groupId])
+}

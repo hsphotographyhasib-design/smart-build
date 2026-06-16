@@ -247,6 +247,7 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { pattern: '/api/auth/register', methods: { POST: ['super_admin', 'admin'] }, description: 'Register user' },
   { pattern: '/api/auth/me', methods: { GET: ['*'] }, description: 'Current user profile' },
   { pattern: '/api/auth/logout', methods: { POST: ['*'] }, description: 'Logout' },
+  { pattern: '/api/menus', methods: { GET: ['*'] }, description: 'Menu navigation' },
   { pattern: '/api/auth/users', methods: {
     GET: ['super_admin', 'admin', 'hr_manager'],
     POST: ['super_admin', 'admin'],

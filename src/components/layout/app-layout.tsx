@@ -1,21 +1,13 @@
 'use client'
 
-import React, { useRef, useEffect, useCallback, useMemo, useId } from 'react'
+import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import {
-  LayoutDashboard, FolderKanban, FileText, Receipt, Calculator,
-  ShoppingCart, Package, Users, UserCheck, Clock, DollarSign,
-  ClipboardList, Wrench, Truck, CalendarRange, Store,
-  Bell, ShieldCheck, UserCog, BarChart3, ScrollText, FileSpreadsheet,
-  ChevronLeft, ChevronRight, HardHat, Settings, LogOut,
-  Activity, Gauge, Hammer, Car, Ruler, UsersRound, ClipboardCheck, TrendingUp, LineChart,
-  Wallet, Tags, GitBranch, Target, Megaphone, MessageSquare,
-  Brain, Sparkles, FileBarChart, Eye, AlertTriangle
+  ChevronLeft, ChevronRight, HardHat, LogOut, Bell,
+  ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
-import { filterNavForRole } from '@/lib/rbac'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
@@ -25,151 +17,87 @@ import { GlobalSearchDialog } from '@/components/search/global-search'
 import { MobileHeader } from '@/components/layout/mobile-header'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { useIsMobile } from '@/hooks/use-mobile'
+import {
+  useMenuData,
+  IconByName,
+  findActiveInfo,
+  type MenuGroup,
+  type MenuTreeItem,
+} from '@/hooks/use-menu-data'
+import { Skeleton } from '@/components/ui/skeleton'
+import { AnimatePresence, motion } from 'framer-motion'
 
 // ═══════════════════════════════════════════════════════════════════
-// Navigation Data
+// Animation Variants — smooth expand/collapse
 // ═══════════════════════════════════════════════════════════════════
 
-interface NavItem {
-  label: string
-  page: AppPage
-  icon: React.ElementType
-  badge?: number
+const expandVariants = {
+  hidden: {
+    height: 0,
+    opacity: 0,
+    overflow: 'hidden',
+  },
+  visible: {
+    height: 'auto',
+    opacity: 1,
+    overflow: 'hidden',
+    transition: {
+      height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+      opacity: { duration: 0.2, delay: 0.03, ease: 'easeOut' },
+    },
+  },
+  exit: {
+    height: 0,
+    opacity: 0,
+    overflow: 'hidden',
+    transition: {
+      height: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+      opacity: { duration: 0.15, ease: 'easeIn' },
+    },
+  },
 }
 
-const navSections: { title: string; items: NavItem[] }[] = [
-  {
-    title: 'Main',
-    items: [
-      { label: 'Dashboard', page: 'dashboard', icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: 'Project Management',
-    items: [
-      { label: 'Projects', page: 'projects', icon: FolderKanban },
-      { label: 'Scheduling', page: 'scheduling', icon: CalendarRange },
-    ],
-  },
-  {
-    title: 'Finance',
-    items: [
-      { label: 'Invoices', page: 'invoices', icon: FileText },
-      { label: 'Payments', page: 'payments', icon: Receipt },
-      { label: 'BOQ', page: 'boq', icon: Calculator },
-      { label: 'Day Book', page: 'daybook', icon: FileSpreadsheet },
-      { label: 'Cashflow', page: 'cashflow', icon: DollarSign },
-    ],
-  },
-  {
-    title: 'Procurement',
-    items: [
-      { label: 'Purchase Requests', page: 'purchase-requests', icon: ShoppingCart },
-      { label: 'Purchase Orders', page: 'purchase-orders', icon: ClipboardList },
-      { label: 'Suppliers', page: 'suppliers', icon: Users },
-      { label: 'Inventory', page: 'inventory', icon: Package },
-    ],
-  },
-  {
-    title: 'Labour & HR',
-    items: [
-      { label: 'Labour Groups', page: 'labour-groups', icon: UserCheck },
-      { label: 'Attendance', page: 'attendance', icon: Clock },
-      { label: 'Payroll', page: 'payroll', icon: DollarSign },
-      { label: 'Employees', page: 'employees', icon: Users },
-      { label: 'Leave Mgmt', page: 'leave', icon: ScrollText },
-    ],
-  },
-  {
-    title: 'Operations',
-    items: [
-      { label: 'Sub Contractors', page: 'subcontractors', icon: Truck },
-      { label: 'Assets', page: 'assets', icon: Wrench },
-    ],
-  },
-  {
-    title: 'Resource Management',
-    items: [
-      { label: 'Resource Dashboard', page: 'resource-dashboard', icon: Activity },
-      { label: 'Resource Planning', page: 'resource-planning', icon: Gauge },
-      { label: 'Labour Resources', page: 'labour-resources', icon: HardHat },
-      { label: 'Equipment', page: 'equipment-resources', icon: Hammer },
-      { label: 'Vehicles', page: 'vehicle-resources', icon: Car },
-      { label: 'Tools', page: 'tool-resources', icon: Ruler },
-      { label: 'Crew Management', page: 'crew-management', icon: UsersRound },
-      { label: 'Resource Requests', page: 'resource-requests', icon: ClipboardCheck },
-      { label: 'Productivity', page: 'resource-productivity', icon: TrendingUp },
-      { label: 'Forecasting', page: 'resource-forecasting', icon: LineChart },
-    ],
-  },
-  {
-    title: 'Cost Control',
-    items: [
-      { label: 'Cost Dashboard', page: 'cost-control-dashboard', icon: Wallet },
-      { label: 'Budgets', page: 'budget-management', icon: FileSpreadsheet },
-      { label: 'Cost Codes', page: 'cost-codes', icon: Tags },
-      { label: 'Change Orders', page: 'budget-change-orders', icon: GitBranch },
-      { label: 'Cost Forecasting', page: 'cost-forecasting', icon: Target },
-    ],
-  },
-  {
-    title: 'Collaboration',
-    items: [
-      { label: 'Collab Hub', page: 'collaboration-dashboard', icon: MessageSquare },
-      { label: 'RFI Management', page: 'collaboration-rfis', icon: ClipboardList },
-      { label: 'Submittals', page: 'collaboration-submittals', icon: FileText },
-      { label: 'Discussions', page: 'collaboration-discussions', icon: MessageSquare },
-      { label: 'Approvals', page: 'collaboration-approvals', icon: ClipboardCheck },
-      { label: 'Announcements', page: 'collaboration-announcements', icon: Megaphone },
-    ],
-  },
-  {
-    title: 'Client Portal',
-    items: [
-      { label: 'Portal Dashboard', page: 'client-dashboard', icon: Users },
-      { label: 'Progress', page: 'client-progress', icon: TrendingUp },
-      { label: 'Invoices', page: 'client-invoices', icon: Receipt },
-      { label: 'Documents', page: 'client-documents', icon: FileText },
-      { label: 'Complaints', page: 'client-complaints', icon: MessageSquare },
-    ],
-  },
-  {
-    title: 'AI & Analytics',
-    items: [
-      { label: 'AI Dashboard', page: 'ai-dashboard', icon: Brain },
-      { label: 'AI Insights', page: 'ai-insights', icon: Sparkles },
-      { label: 'AI Forecasting', page: 'ai-forecast', icon: LineChart },
-      { label: 'Project Analytics', page: 'project-analytics', icon: Eye },
-      { label: 'Advanced Reports', page: 'advanced-reports', icon: FileBarChart },
-    ],
-  },
-  {
-    title: 'Sales',
-    items: [
-      { label: 'Product Catalog', page: 'product-catalog', icon: Store },
-      { label: 'Customers', page: 'customers', icon: Users },
-      { label: 'Sales Invoices', page: 'sales-invoices', icon: FileText },
-    ],
-  },
-  {
-    title: 'System',
-    items: [
-      { label: 'Reports', page: 'reports', icon: BarChart3 },
-      { label: 'Audit Log', page: 'audit-log', icon: ShieldCheck },
-      { label: 'Notifications', page: 'notifications', icon: Bell },
-      { label: 'Users', page: 'users', icon: UserCog },
-      { label: 'Settings', page: 'settings', icon: Settings },
-    ],
-  },
-]
-
 // ═══════════════════════════════════════════════════════════════════
-// Sidebar Nav Item Button
+// Sidebar Skeleton — loading state
 // ═══════════════════════════════════════════════════════════════════
 
-function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+function SidebarSkeleton({ collapsed }: { collapsed: boolean }) {
+  if (collapsed) {
+    return (
+      <div className="space-y-1.5 px-1 py-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-9 rounded-lg mx-auto" />
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-1 px-2 py-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <Skeleton className="h-8 w-32 rounded-md" />
+          <div className="pl-2 space-y-1">
+            <Skeleton className="h-8 w-full rounded-md" />
+            {i < 3 && <Skeleton className="h-8 w-[80%] rounded-md" />}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Sub-Menu Leaf Item — the actual navigable page
+// ═══════════════════════════════════════════════════════════════════
+
+function SubMenuItem({
+  item,
+  collapsed,
+}: {
+  item: { id: string; label: string; page: string; icon: string }
+  collapsed: boolean
+}) {
   const { currentPage, navigate } = useAppStore()
-  const ref = useRef<HTMLButtonElement>(null)
   const isActive = currentPage === item.page
 
   if (collapsed) {
@@ -178,15 +106,15 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              ref={ref}
               variant={isActive ? 'secondary' : 'ghost'}
               size="icon"
-              className="w-full h-9"
-              onClick={() => navigate(item.page)}
+              className="w-full h-8"
+              onClick={() => navigate(item.page as AppPage)}
               data-active={isActive}
+              data-page={item.page}
               aria-current={isActive ? 'page' : undefined}
             >
-              <item.icon className="h-4 w-4" />
+              <IconByName name={item.icon} className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">{item.label}</TooltipContent>
@@ -196,27 +124,247 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
   }
 
   return (
-    <Button
-      ref={ref}
-      variant={isActive ? 'secondary' : 'ghost'}
-      size="sm"
+    <button
       className={cn(
-        'w-full justify-start gap-2 h-9 px-3 text-sm font-normal sb-nav-item',
-        isActive && 'font-medium bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:bg-amber-950/30 dark:text-amber-200'
+        'flex items-center gap-2.5 w-full h-8 px-3 rounded-md text-[13px] transition-colors sb-nav-item',
+        isActive
+          ? 'font-medium bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200'
+          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
       )}
-      onClick={() => navigate(item.page)}
+      onClick={() => navigate(item.page as AppPage)}
       data-active={isActive}
       data-page={item.page}
       aria-current={isActive ? 'page' : undefined}
     >
-      <item.icon className="h-4 w-4 shrink-0" />
+      <IconByName
+        name={item.icon}
+        className={cn(
+          'h-3.5 w-3.5 shrink-0',
+          isActive ? 'text-amber-600 dark:text-amber-400' : ''
+        )}
+      />
       <span className="truncate">{item.label}</span>
-      {item.badge && item.badge > 0 && (
-        <Badge variant="destructive" className="ml-auto h-5 min-w-5 px-1.5 text-[10px]">
-          {item.badge > 9 ? '9+' : item.badge}
-        </Badge>
+    </button>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Menu Group — collapsible parent with children
+// ═══════════════════════════════════════════════════════════════════
+
+function MenuGroupItem({
+  group,
+  collapsed,
+  defaultExpanded,
+}: {
+  group: MenuGroup
+  collapsed: boolean
+  defaultExpanded: boolean
+}) {
+  const { currentPage, navigate } = useAppStore()
+  const [manualExpanded, setManualExpanded] = React.useState<boolean | null>(null)
+
+  const isSingleItem = group.items.length === 1 && !group.items[0].hasChildren && !group.items[0].isCategory
+  const hasActiveChild = group.items.some(
+    (item) =>
+      (item.page === currentPage && !item.isCategory) ||
+      item.children.some((c) => c.page === currentPage)
+  )
+  // Expand if: user manually expanded, OR current page is a child, OR default expanded
+  const expanded = manualExpanded !== null ? manualExpanded : (defaultExpanded || hasActiveChild)
+
+  // ── Collapsed mode: icon button or icon stack ──
+  if (collapsed) {
+    if (isSingleItem) {
+      const item = group.items[0]
+      const isActive = currentPage === item.page
+      return (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={isActive ? 'secondary' : 'ghost'}
+                size="icon"
+                className="w-full h-9"
+                onClick={() => navigate(item.page as AppPage)}
+                data-active={isActive}
+                data-page={item.page}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <IconByName name={group.icon} className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{group.label}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    }
+
+    return (
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={hasActiveChild ? 'secondary' : 'ghost'}
+              size="icon"
+              className="w-full h-9"
+              data-active={hasActiveChild}
+            >
+              <IconByName name={group.icon} className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">{group.label}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  // ── Expanded mode: full collapsible group ──
+  return (
+    <div className="group">
+      {/* Parent header */}
+      <button
+        onClick={() => {
+          if (isSingleItem) {
+            navigate(group.items[0].page as AppPage)
+          } else {
+            setManualExpanded((prev) => prev === null ? false : !prev)
+          }
+        }}
+        className={cn(
+          'flex items-center gap-2.5 w-full h-10 px-3 rounded-lg text-sm font-semibold transition-colors',
+          'hover:bg-accent/50 active:bg-accent/80',
+          hasActiveChild
+            ? 'text-amber-900 bg-amber-50/60 dark:text-amber-200 dark:bg-amber-950/20'
+            : 'text-foreground'
+        )}
+        aria-expanded={expanded}
+        aria-label={group.label}
+      >
+        <IconByName
+          name={group.icon}
+          className={cn(
+            'h-[18px] w-[18px] shrink-0',
+            hasActiveChild ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+          )}
+        />
+        <span className="flex-1 text-left truncate">{group.label}</span>
+        {!isSingleItem && (
+          <motion.div
+            animate={{ rotate: expanded ? 0 : -90 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          >
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 shrink-0',
+                hasActiveChild ? 'text-amber-600' : 'text-muted-foreground'
+              )}
+            />
+          </motion.div>
+        )}
+      </button>
+
+      {/* Children — animated expand/collapse */}
+      {!isSingleItem && (
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              key={`${group.id}-children`}
+              variants={expandVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="pl-3 pr-1 py-0.5 space-y-0.5">
+                {group.items.map((item) => {
+                  // Leaf item — directly navigable
+                  if (!item.isCategory && !item.hasChildren) {
+                    return (
+                      <SubMenuItem
+                        key={item.id}
+                        item={item}
+                        collapsed={false}
+                      />
+                    )
+                  }
+
+                  // Category/folder item with sub-children
+                  return <CategoryItem key={item.id} item={item} />
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
-    </Button>
+
+      {/* Separator between groups */}
+      <div className="h-px bg-border/30 my-1 mx-3" />
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Category Item — expandable sub-folder inside a group
+// ═══════════════════════════════════════════════════════════════════
+
+function CategoryItem({ item }: { item: MenuTreeItem }) {
+  const { currentPage, navigate } = useAppStore()
+  const [manualExpanded, setManualExpanded] = React.useState<boolean | null>(null)
+
+  const hasActiveChild = item.children.some((c) => c.page === currentPage)
+  const expanded = manualExpanded !== null ? manualExpanded : hasActiveChild
+
+  return (
+    <div>
+      <button
+        onClick={() => setManualExpanded((prev) => prev === null ? false : !prev)}
+        className={cn(
+          'flex items-center gap-2.5 w-full h-8 px-3 rounded-md text-[13px] transition-colors',
+          'hover:bg-accent/50 active:bg-accent/80',
+          hasActiveChild ? 'text-amber-900 dark:text-amber-200' : 'text-muted-foreground'
+        )}
+        aria-expanded={expanded}
+        aria-label={item.label}
+      >
+        <IconByName
+          name={item.icon}
+          className={cn(
+            'h-3.5 w-3.5 shrink-0',
+            hasActiveChild ? 'text-amber-600' : ''
+          )}
+        />
+        <span className="flex-1 text-left truncate">{item.label}</span>
+        <motion.div
+          animate={{ rotate: expanded ? 0 : -90 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+        >
+          <ChevronDown
+            className={cn(
+              'h-3 w-3 shrink-0',
+              hasActiveChild ? 'text-amber-600' : 'text-muted-foreground'
+            )}
+          />
+        </motion.div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key={`${item.id}-sub`}
+            variants={expandVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="pl-5 pr-1 py-0.5 space-y-0.5">
+              {item.children.map((child) => (
+                <SubMenuItem key={child.id} item={child} collapsed={false} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -227,32 +375,21 @@ function NavItemButton({ item, collapsed }: { item: NavItem; collapsed: boolean 
 export function AppSidebar() {
   const { sidebarOpen, setSidebarOpen, user, logout, currentPage } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const navInstanceId = useId()
 
-  // Filter sections by role
   const userRole = user?.role || 'labour'
-  const visibleSections = filterNavForRole(navSections, userRole)
-
-  // Flatten all items for keyboard navigation
-  const flatItems = useMemo(() => {
-    return visibleSections.flatMap((section) =>
-      section.items.map((item) => ({
-        ...item,
-        sectionTitle: section.title,
-      }))
-    )
-  }, [visibleSections])
+  const { menuGroups, loading } = useMenuData(userRole)
+  const activeInfo = useMemo(
+    () => findActiveInfo(menuGroups, currentPage),
+    [menuGroups, currentPage]
+  )
 
   // Auto-scroll to active menu item on page change
   useEffect(() => {
     if (!scrollRef.current || !currentPage) return
-
     const activeEl = scrollRef.current.querySelector(
       `[data-page="${currentPage}"]`
     ) as HTMLElement | null
-
     if (activeEl) {
-      // Use smooth scrollIntoView with block: 'nearest' to avoid jumping
       activeEl.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
@@ -261,20 +398,17 @@ export function AppSidebar() {
     }
   }, [currentPage, sidebarOpen])
 
-  // Keyboard navigation handler
+  // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const container = scrollRef.current
       if (!container) return
-
       const focusable = Array.from(
         container.querySelectorAll<HTMLElement>(
           'button[data-page]:not([disabled]), [role="button"][data-page]'
         )
       )
-
       if (focusable.length === 0) return
-
       const currentIdx = focusable.indexOf(document.activeElement as HTMLElement)
 
       switch (e.key) {
@@ -342,7 +476,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* Navigation — native scroll for maximum performance */}
+      {/* Navigation */}
       <div
         ref={scrollRef}
         className={cn(
@@ -353,33 +487,20 @@ export function AppSidebar() {
         role="tree"
         aria-label="Navigation menu"
       >
-        <div className="space-y-0.5">
-          {visibleSections.map((section) => (
-            <div key={section.title} role="treeitem" aria-selected={section.items.some(i => i.page === currentPage)} aria-label={section.title}>
-              {/* Section Header — sticky on scroll */}
-              {sidebarOpen && (
-                <div
-                  className="sticky top-0 z-10 bg-card/90 backdrop-blur-sm px-3 py-1.5"
-                >
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    {section.title}
-                  </p>
-                </div>
-              )}
-              <div className={sidebarOpen ? 'space-y-0.5' : 'flex flex-col items-center gap-0.5'}>
-                {section.items.map((item) => (
-                  <NavItemButton key={item.page} item={item} collapsed={!sidebarOpen} />
-                ))}
-              </div>
-              {sidebarOpen && (
-                <div className="h-1" aria-hidden="true">
-                  <Separator className="my-1.5 opacity-0" />
-                </div>
-              )}
-              {!sidebarOpen && <div className="h-2" aria-hidden="true" />}
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <SidebarSkeleton collapsed={!sidebarOpen} />
+        ) : (
+          <div className="space-y-0.5">
+            {menuGroups.map((group) => (
+              <MenuGroupItem
+                key={group.id}
+                group={group}
+                collapsed={!sidebarOpen}
+                defaultExpanded={activeInfo.groupId === group.id}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* User footer */}
