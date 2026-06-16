@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
   LogOut,
   ChevronDown,
@@ -75,29 +75,35 @@ function getInitials(name: string) {
 }
 
 export function MobileMoreDrawer() {
-  const { user, currentPage, navigate, logout, showMobileMoreDrawer, setShowMobileMoreDrawer } = useAppStore()
+  const { user, currentPage, navigate, logout, showMobileMoreDrawer, setShowMobileMoreDrawer, expandedMenuId, setExpandedMenuId, expandedSubItemId, setExpandedSubItemId } = useAppStore()
   const userRole = user?.role || 'admin'
   const { menuGroups, loading } = useMenuData(userRole)
 
-  const [expandedMenuId, setExpandedMenuId] = useState('')
-  const [expandedItemId, setExpandedItemId] = useState('')
-
   const activeInfo = useMemo(() => findActiveInfo(menuGroups, currentPage), [menuGroups, currentPage])
 
-  // কার্যকর প্রসারিত = ব্যবহারকারীর পছন্দ অথবা সক্রিয় রুট (নেভিগেশনে স্বয়ংক্রিয় প্রসারণ)
-  const effectiveExpandedMenuId = activeInfo.groupId || expandedMenuId
-  const effectiveExpandedItemId = activeInfo.itemId || expandedItemId
+  // Effective expanded: if user explicitly selected a menu, use that exclusively.
+  // If no manual selection, auto-expand based on active route.
+  const effectiveExpandedMenuId = expandedMenuId || activeInfo.groupId || ''
+  const effectiveExpandedSubItemId = expandedSubItemId || activeInfo.itemId || ''
 
-  // অ্যাকর্ডিয়ন টগল: নতুন গ্রুপ খোললে পূর্ববর্তীটি বন্ধ হয়
+  // Accordion toggle: opening a new group auto-closes the previous
   const toggleGroup = useCallback((groupId: string) => {
-    setExpandedMenuId((prev) => prev === groupId ? '' : groupId)
-    setExpandedItemId('')
-  }, [])
+    if (expandedMenuId === groupId) {
+      setExpandedMenuId('')
+    } else {
+      setExpandedMenuId(groupId)
+    }
+    setExpandedSubItemId('')
+  }, [expandedMenuId, setExpandedMenuId, setExpandedSubItemId])
 
-  // গ্রুপের মধ্যে উপ-আইটেমের জন্য অ্যাকর্ডিয়ন টগল
+  // Sub-item accordion toggle within a group
   const toggleItem = useCallback((itemId: string) => {
-    setExpandedItemId((prev) => prev === itemId ? '' : itemId)
-  }, [])
+    if (expandedSubItemId === itemId) {
+      setExpandedSubItemId('')
+    } else {
+      setExpandedSubItemId(itemId)
+    }
+  }, [expandedSubItemId, setExpandedSubItemId])
 
   const handleNav = useCallback((page: string) => {
     navigate(page as AppPage)
@@ -179,7 +185,7 @@ export function MobileMoreDrawer() {
                                 const isItemFolder = item.isCategory || item.hasChildren
                                 const isItemActive = item.page === currentPage && !item.isCategory
                                 const hasActiveDesc = item.hasChildren && item.children.some((c) => c.page === currentPage)
-                                const isItemExpanded = effectiveExpandedItemId === item.id
+                                const isItemExpanded = effectiveExpandedSubItemId === item.id
 
                                 // পাতা আইটেম
                                 if (!isItemFolder) {

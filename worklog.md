@@ -711,3 +711,31 @@ Stage Summary:
 - AI-powered auto-ticket creation from WhatsApp messages via z-ai-web-dev-sdk
 - 17 menu groups, 120 items, 80 role permissions in navigation
 - All seeded: SLA templates, maintenance sites, WhatsApp message templates
+
+---
+Task ID: Accordion-Sidebar
+Agent: Main Orchestrator
+Task: Implement Enterprise Accordion Sidebar Navigation (auto-close other menus)
+
+Work Log:
+- Inspected current sidebar code: app-layout.tsx uses local `manualExpanded` state per MenuGroupItem (multiple menus open simultaneously)
+- Mobile drawer (mobile-more-drawer.tsx) already had accordion with local state
+- Added `expandedMenuId` and `expandedSubItemId` to Zustand store with localStorage persistence (keys: sb_expanded_menu, sb_expanded_sub)
+- Added `setExpandedMenuId` and `setExpandedSubItemId` actions that persist to localStorage
+- Rewrote MenuGroupItem to use global `expandedMenuId` instead of local state — accordion logic: toggle sets/clears global ID
+- Rewrote CategoryItem (sub-folder) to use global `expandedSubItemId` — sub-accordion within a group
+- Updated mobile drawer to use Zustand store instead of local useState for consistency
+- Implemented auto-expand on navigation: useEffect in AppSidebar sets expandedMenuId to active route's parent
+- Used `initialMenuLoadRef` to distinguish initial load (respect persisted value) from navigation (auto-expand)
+- Fixed expanded logic: `expanded = expandedMenuId ? expandedMenuId === group.id : hasActiveChild` — prevents hasActiveChild from breaking accordion
+- Removed unused imports (Separator, Badge, useState from mobile drawer)
+- Browser verified: rapid clicking Resource→Maintenance→Project→Sales leaves only Sales expanded
+- Browser verified: persistence works — reload preserves Finance as expanded group
+- Browser verified: auto-expand on child navigation (Payments auto-expands Finance)
+- Lint: 0 errors, 1 pre-existing warning
+
+Stage Summary:
+- Key files modified: src/lib/store.ts, src/components/layout/app-layout.tsx, src/components/layout/mobile-more-drawer.tsx
+- Accordion behavior: single source of truth via Zustand expandedMenuId, localStorage persistence, auto-expand on navigation
+- All 17 menu groups follow accordion pattern — only one parent expanded at any time
+- Sub-categories within groups also follow accordion pattern

@@ -8,9 +8,8 @@ import {
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Badge } from '@/components/ui/badge'
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { SearchTrigger } from '@/components/search/search-trigger'
 import { GlobalSearchDialog } from '@/components/search/global-search'
@@ -155,14 +154,11 @@ function SubMenuItem({
 function MenuGroupItem({
   group,
   collapsed,
-  defaultExpanded,
 }: {
   group: MenuGroup
   collapsed: boolean
-  defaultExpanded: boolean
 }) {
-  const { currentPage, navigate } = useAppStore()
-  const [manualExpanded, setManualExpanded] = React.useState<boolean | null>(null)
+  const { currentPage, navigate, expandedMenuId, setExpandedMenuId, setExpandedSubItemId } = useAppStore()
 
   const isSingleItem = group.items.length === 1 && !group.items[0].hasChildren && !group.items[0].isCategory
   const hasActiveChild = group.items.some(
@@ -170,8 +166,11 @@ function MenuGroupItem({
       (item.page === currentPage && !item.isCategory) ||
       item.children.some((c) => c.page === currentPage)
   )
-  // Expand if: user manually expanded, OR current page is a child, OR default expanded
-  const expanded = manualExpanded !== null ? manualExpanded : (defaultExpanded || hasActiveChild)
+  // Accordion: if user explicitly selected a menu, use that exclusively.
+  // If no manual selection, auto-expand based on active route.
+  const expanded = expandedMenuId
+    ? expandedMenuId === group.id
+    : hasActiveChild
 
   // ── Collapsed mode: icon button or icon stack ──
   if (collapsed) {
@@ -220,17 +219,26 @@ function MenuGroupItem({
   }
 
   // ── Expanded mode: full collapsible group ──
+  const handleToggle = () => {
+    if (isSingleItem) {
+      navigate(group.items[0].page as AppPage)
+    } else {
+      // Accordion: toggle this group, auto-close others
+      if (expandedMenuId === group.id) {
+        setExpandedMenuId('')
+        setExpandedSubItemId('')
+      } else {
+        setExpandedMenuId(group.id)
+        setExpandedSubItemId('')
+      }
+    }
+  }
+
   return (
     <div className="group">
       {/* Parent header */}
       <button
-        onClick={() => {
-          if (isSingleItem) {
-            navigate(group.items[0].page as AppPage)
-          } else {
-            setManualExpanded((prev) => prev === null ? false : !prev)
-          }
-        }}
+        onClick={handleToggle}
         className={cn(
           'flex items-center gap-2.5 w-full h-10 px-3 rounded-lg text-sm font-semibold transition-colors',
           'hover:bg-accent/50 active:bg-accent/80',
@@ -308,16 +316,26 @@ function MenuGroupItem({
 // ═══════════════════════════════════════════════════════════════════
 
 function CategoryItem({ item }: { item: MenuTreeItem }) {
-  const { currentPage, navigate } = useAppStore()
-  const [manualExpanded, setManualExpanded] = React.useState<boolean | null>(null)
+  const { currentPage, expandedSubItemId, setExpandedSubItemId } = useAppStore()
 
   const hasActiveChild = item.children.some((c) => c.page === currentPage)
-  const expanded = manualExpanded !== null ? manualExpanded : hasActiveChild
+  // Sub-accordion: if user explicitly selected a sub-item, use that exclusively
+  const expanded = expandedSubItemId
+    ? expandedSubItemId === item.id
+    : hasActiveChild
+
+  const handleToggle = () => {
+    if (expandedSubItemId === item.id) {
+      setExpandedSubItemId('')
+    } else {
+      setExpandedSubItemId(item.id)
+    }
+  }
 
   return (
     <div>
       <button
-        onClick={() => setManualExpanded((prev) => prev === null ? false : !prev)}
+        onClick={handleToggle}
         className={cn(
           'flex items-center gap-2.5 w-full h-8 px-3 rounded-md text-[13px] transition-colors',
           'hover:bg-accent/50 active:bg-accent/80',
@@ -373,7 +391,7 @@ function CategoryItem({ item }: { item: MenuTreeItem }) {
 // ═══════════════════════════════════════════════════════════════════
 
 export function AppSidebar() {
-  const { sidebarOpen, setSidebarOpen, user, logout, currentPage } = useAppStore()
+  const { sidebarOpen, setSidebarOpen, user, logout, currentPage, expandedMenuId, setExpandedMenuId, setExpandedSubItemId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const userRole = user?.role || 'labour'
@@ -382,6 +400,35 @@ export function AppSidebar() {
     () => findActiveInfo(menuGroups, currentPage),
     [menuGroups, currentPage]
   )
+
+  // Auto-expand parent group on navigation (accordion: only one open at a time)
+  // On initial load, respect persisted expandedMenuId from localStorage.
+  // Only auto-expand when menus load and no persisted value exists,
+  // or when user navigates to a different page.
+  const initialMenuLoadRef = useRef(true)
+
+  useEffect(() => {
+    if (activeInfo.groupId) {
+      if (initialMenuLoadRef.current) {
+        // First time menus load — only auto-expand if nothing persisted
+        if (!expandedMenuId) {
+          setExpandedMenuId(activeInfo.groupId)
+          if (activeInfo.itemId) {
+            setExpandedSubItemId(activeInfo.itemId)
+          }
+        }
+        initialMenuLoadRef.current = false
+      } else {
+        // Subsequent page navigations — always auto-expand active route's parent
+        setExpandedMenuId(activeInfo.groupId)
+        if (activeInfo.itemId) {
+          setExpandedSubItemId(activeInfo.itemId)
+        } else {
+          setExpandedSubItemId('')
+        }
+      }
+    }
+  }, [activeInfo.groupId, activeInfo.itemId])
 
   // Auto-scroll to active menu item on page change
   useEffect(() => {
@@ -496,7 +543,6 @@ export function AppSidebar() {
                 key={group.id}
                 group={group}
                 collapsed={!sidebarOpen}
-                defaultExpanded={activeInfo.groupId === group.id}
               />
             ))}
           </div>

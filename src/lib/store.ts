@@ -103,6 +103,10 @@ interface AppState {
   sidebarOpen: boolean
   showMobileMoreDrawer: boolean
   
+  // Accordion — single source of truth, only one parent expanded at a time
+  expandedMenuId: string
+  expandedSubItemId: string
+  
   // থিম
   theme: 'light' | 'dark' | 'system'
   
@@ -116,6 +120,10 @@ interface AppState {
   setSidebarOpen: (open: boolean) => void
   setShowMobileMoreDrawer: (show: boolean) => void
   setBreadcrumbs: (items: { label: string; page?: AppPage; params?: Record<string, string> }[]) => void
+  
+  // কার্য - Accordion
+  setExpandedMenuId: (id: string) => void
+  setExpandedSubItemId: (id: string) => void
   
   // কার্য - থিম
   setTheme: (theme: 'light' | 'dark' | 'system') => void
@@ -133,6 +141,10 @@ export const useAppStore = create<AppState>((set) => ({
   breadcrumbs: [{ label: 'Dashboard' }],
   sidebarOpen: typeof window !== 'undefined' ? localStorage.getItem('sb_sidebar') !== 'false' : true,
   showMobileMoreDrawer: false,
+  
+  // Accordion — persisted in localStorage, only one parent open at a time
+  expandedMenuId: typeof window !== 'undefined' ? (localStorage.getItem('sb_expanded_menu') || '') : '',
+  expandedSubItemId: typeof window !== 'undefined' ? (localStorage.getItem('sb_expanded_sub') || '') : '',
   
   // থিম
   theme: 'light',
@@ -254,6 +266,20 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setShowMobileMoreDrawer: (show) => set({ showMobileMoreDrawer: show }),
   setBreadcrumbs: (items) => set({ breadcrumbs: items }),
+  
+  // Accordion actions — single source of truth
+  setExpandedMenuId: (id) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sb_expanded_menu', id)
+    }
+    set({ expandedMenuId: id })
+  },
+  setExpandedSubItemId: (id) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sb_expanded_sub', id)
+    }
+    set({ expandedSubItemId: id })
+  },
   
   // থিম কার্যসমূহ
   setTheme: (theme) => {
