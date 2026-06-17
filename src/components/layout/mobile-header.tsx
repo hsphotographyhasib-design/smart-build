@@ -22,7 +22,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { SessionTimerBadge } from '@/components/layout/session-timer-badge'
 import { useMenuData, IconByName, findActiveInfo } from '@/hooks/use-menu-data'
 import { SearchTrigger } from '@/components/search/search-trigger'
@@ -36,13 +36,13 @@ const expandVariants = {
   hidden: { height: 0, opacity: 0, overflow: 'hidden' },
   visible: {
     height: 'auto', opacity: 1, overflow: 'hidden',
-    transition: { height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] }, opacity: { duration: 0.2, delay: 0.05, ease: 'easeOut' } },
+    transition: { height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const }, opacity: { duration: 0.2, delay: 0.05, ease: 'easeOut' } },
   },
   exit: {
     height: 0, opacity: 0, overflow: 'hidden',
-    transition: { height: { duration: 0.2, ease: [0.4, 0, 1, 1] }, opacity: { duration: 0.15, ease: 'easeIn' } },
+    transition: { height: { duration: 0.25, ease: [0.4, 0, 1, 1] as const }, opacity: { duration: 0.15, ease: 'easeIn' } },
   },
-}
+} satisfies Variants
 
 // ─────────────────────────────────────────────────────────────────────
 // মোবাইল স্কেলিটন

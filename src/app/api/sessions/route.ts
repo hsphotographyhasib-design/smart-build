@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         country: session.country,
         city: session.city,
         status: session.status,
-        lastActivityAt: session.lastActivityAt.toISOString(),
+        lastActivityAt: (session.lastActivityAt ?? session.createdAt).toISOString(),
         expiresAt: session.expiresAt.toISOString(),
         createdAt: session.createdAt.toISOString(),
         revokedAt: session.revokedAt?.toISOString() || null,

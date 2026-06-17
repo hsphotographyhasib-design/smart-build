@@ -30,14 +30,14 @@ interface TabDef {
 const roleTabs: Record<string, TabDef[]> = {
   client: [
     { label: 'Dashboard', page: 'dashboard', icon: LayoutDashboard },
-    { label: 'Complaints', page: 'maintenance-service-requests', icon: MessageSquare },
-    { label: 'Service Requests', page: 'client-service-requests', icon: Headphones },
+    { label: 'Complaints', page: 'client-complaints', icon: MessageSquare },
+    { label: 'Service Requests', page: 'maintenance-service-requests', icon: Headphones },
     { label: 'Invoices', page: 'invoices', icon: Receipt },
     { label: 'Notifications', page: 'notifications', icon: Bell },
     { label: 'More', page: null, icon: MoreHorizontal },
   ],
   technician: [
-    { label: 'Jobs', page: 'maintenance-technician-portal', icon: Briefcase },
+    { label: 'Jobs', page: 'maintenance-work-orders-maintenance', icon: Briefcase },
     { label: 'Attendance', page: 'attendance', icon: Clock },
     { label: 'Materials', page: 'maintenance-materials', icon: Package },
     { label: 'Tasks', page: 'projects', icon: ListChecks },
