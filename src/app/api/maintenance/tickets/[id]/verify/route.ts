@@ -48,7 +48,7 @@ export async function POST(
 
     const ticket = await db.maintenanceTicket.findUnique({
       where: { id },
-      include: { workOrder: true },
+      include: { workOrders: true },
     })
     if (!ticket) {
       return NextResponse.json({ success: false, error: 'Ticket not found' }, { status: 404 })
@@ -114,9 +114,10 @@ export async function POST(
     })
 
     // সংযুক্ত ওয়ার্ক অর্ডার সম্পন্ন হলে, আবার in_progress-এ সেট করা হচ্ছে
-    if (ticket.workOrder && ticket.workOrder.status === 'completed') {
+    const verifyWorkOrder = ticket.workOrders[0]
+    if (verifyWorkOrder && verifyWorkOrder.status === 'completed') {
       await db.maintenanceWorkOrder.update({
-        where: { id: ticket.workOrder.id },
+        where: { id: verifyWorkOrder.id },
         data: { status: 'in_progress', actualCompletionDate: null },
       })
     }

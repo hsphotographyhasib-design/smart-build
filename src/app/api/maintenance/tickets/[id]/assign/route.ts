@@ -44,7 +44,7 @@ export async function POST(
         assignedTechnicianId: technicianId,
         assignedTeamId: teamId || null,
         status: 'assigned',
-        actualResponseMinutes: ticket.actualResponseMinutes === 0
+        actualResponseMinutes: ticket.actualResponseMinutes == null
           ? Math.round((Date.now() - ticket.createdAt.getTime()) / 60000)
           : undefined,
       },

@@ -149,26 +149,26 @@ export async function GET(request: NextRequest) {
 
     const [paymentsByMonth, expensesByMonth] = await Promise.all([
       // মাস অনুযায়ী আয় (পেমেন্ট)
-      db.$queryRawUnsafe<Array<{ month: string; total: number }>>(`
+      db.$queryRawUnsafe(`
         SELECT
-          strftime('%Y-%m', date) as month,
+          DATE_FORMAT(date, '%Y-%m') as month,
           SUM(amount) as total
         FROM Payment
         WHERE date >= ? AND status = 'completed'
-        GROUP BY strftime('%Y-%m', date)
+        GROUP BY DATE_FORMAT(date, '%Y-%m')
         ORDER BY month ASC
-      `, sixMonthsAgo.toISOString()),
+      `, sixMonthsAgo.toISOString()) as Promise<Array<{ month: string; total: number }>>,
 
       // মাস অনুযায়ী ব্যয়
-      db.$queryRawUnsafe<Array<{ month: string; total: number }>>(`
+      db.$queryRawUnsafe(`
         SELECT
-          strftime('%Y-%m', date) as month,
+          DATE_FORMAT(date, '%Y-%m') as month,
           SUM(amount) as total
         FROM Expense
         WHERE date >= ? AND status = 'approved'
-        GROUP BY strftime('%Y-%m', date)
+        GROUP BY DATE_FORMAT(date, '%Y-%m')
         ORDER BY month ASC
-      `, sixMonthsAgo.toISOString()),
+      `, sixMonthsAgo.toISOString()) as Promise<Array<{ month: string; total: number }>>,
     ])
 
     // গত ৬ মাসের জন্য মাসের লেবেল তৈরি করা হচ্ছে

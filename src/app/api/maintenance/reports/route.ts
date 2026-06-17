@@ -140,10 +140,10 @@ export async function GET(request: NextRequest) {
         const performance = technicians.map((t) => {
           const completedTickets = t.tickets.filter((tk) => tk.status === 'closed')
           const avgResponse = completedTickets.length > 0
-            ? completedTickets.reduce((sum, tk) => sum + tk.actualResponseMinutes, 0) / completedTickets.length
+            ? completedTickets.reduce((sum, tk) => sum + (tk.actualResponseMinutes ?? 0), 0) / completedTickets.length
             : 0
           const avgResolution = completedTickets.length > 0
-            ? completedTickets.reduce((sum, tk) => sum + tk.actualResolutionMinutes, 0) / completedTickets.length
+            ? completedTickets.reduce((sum, tk) => sum + (tk.actualResolutionMinutes ?? 0), 0) / completedTickets.length
             : 0
           const avgRating = t.serviceRatings.length > 0
             ? t.serviceRatings.reduce((sum, r) => sum + r.rating, 0) / t.serviceRatings.length
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'customer_satisfaction': {
-        const ratings = await db.serviceRating.findMany({
+        const ratings = await (db as any).serviceRating.findMany({
           where: {
             ...(ticketWhere.customerId ? { customerId: ticketWhere.customerId } : {}),
           },
@@ -181,12 +181,12 @@ export async function GET(request: NextRequest) {
           take: 100,
         })
 
-        const summary = await db.serviceRating.aggregate({
+        const summary = await (db as any).serviceRating.aggregate({
           _avg: { rating: true, punctuality: true, quality: true, professionalism: true, overallScore: true },
           _count: { id: true },
         })
 
-        const byCategory = await db.serviceRating.groupBy({
+        const byCategory = await (db as any).serviceRating.groupBy({
           by: ['ticketId'],
           where: ticketWhere.customerId ? { customerId: ticketWhere.customerId } : {},
           _avg: { rating: true },
@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'pm_compliance': {
-        const schedules = await db.pMSchedule.findMany({
+        const schedules = await (db as any).pMSchedule.findMany({
           where: { ...ticketWhere, isActive: true },
           select: { id: true, scheduleNo: true, scheduleType: true, visitCount: true, totalVisits: true, nextVisitDate: true, lastVisitDate: true },
         })
@@ -257,7 +257,7 @@ export async function GET(request: NextRequest) {
         const overdue = schedules.filter((s) => s.nextVisitDate && new Date(s.nextVisitDate) < now)
         const upcoming = schedules.filter((s) => s.nextVisitDate && new Date(s.nextVisitDate) >= now && new Date(s.nextVisitDate) <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000))
 
-        const byType = await db.pMSchedule.groupBy({
+        const byType = await (db as any).pMSchedule.groupBy({
           by: ['scheduleType'],
           where: { ...ticketWhere, isActive: true },
           _count: { id: true },
@@ -308,31 +308,31 @@ export async function GET(request: NextRequest) {
 
       case 'revenue': {
         const [invoiceSummary, paidSummary, pendingSummary] = await Promise.all([
-          db.maintenanceInvoice.aggregate({
+          (db as any).maintenanceInvoice.aggregate({
             where: ticketWhere,
             _sum: { total: true, labourCost: true, materialCost: true, serviceCharges: true, transportCost: true, tax: true, discount: true },
             _count: { id: true },
           }),
-          db.maintenanceInvoice.aggregate({
+          (db as any).maintenanceInvoice.aggregate({
             where: { ...ticketWhere, status: 'paid' },
             _sum: { total: true, paidAmount: true },
             _count: { id: true },
           }),
-          db.maintenanceInvoice.aggregate({
+          (db as any).maintenanceInvoice.aggregate({
             where: { ...ticketWhere, status: { in: ['draft', 'sent'] } },
             _sum: { total: true },
             _count: { id: true },
           }),
         ])
 
-        const byStatus = await db.maintenanceInvoice.groupBy({
+        const byStatus = await (db as any).maintenanceInvoice.groupBy({
           by: ['status'],
           where: ticketWhere,
           _sum: { total: true },
           _count: { id: true },
         })
 
-        const byMonth = await db.maintenanceInvoice.findMany({
+        const byMonth = await (db as any).maintenanceInvoice.findMany({
           where: ticketWhere,
           select: { createdAt: true, total: true, status: true },
         })

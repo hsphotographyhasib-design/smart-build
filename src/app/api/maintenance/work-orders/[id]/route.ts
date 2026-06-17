@@ -103,7 +103,7 @@ export async function PUT(
       await db.maintenanceTicket.update({
         where: { id: existing.ticketId },
         data: {
-          labourHours: workOrder.labourHours,
+          labourHours: workOrder.labourHours ?? 0,
           materialCost: workOrder.materialCost,
           serviceCost: workOrder.serviceCost,
           totalCost: workOrder.totalCost,

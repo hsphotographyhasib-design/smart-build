@@ -49,6 +49,7 @@ interface WhatsAppConvertDialogProps {
   lastMessages?: { content?: string | null }[]
   customerId?: string | null
   siteId?: string | null
+  convertType?: string
   onSuccess?: (ticketId: string) => void
   trigger?: React.ReactNode
   open?: boolean
@@ -62,12 +63,13 @@ export function WhatsAppConvertDialog({
   lastMessages,
   customerId,
   siteId,
+  convertType: initialConvertType = 'complaint',
   onSuccess,
   trigger,
   open,
   onOpenChange,
 }: WhatsAppConvertDialogProps) {
-  const [convertType, setConvertType] = useState('complaint')
+  const [convertType, setConvertType] = useState(initialConvertType)
   const [category, setCategory] = useState('')
   const [priority, setPriority] = useState('medium')
   const [selectedSiteId, setSelectedSiteId] = useState<string>(siteId || '')

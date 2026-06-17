@@ -87,7 +87,7 @@ export async function POST(
       .map(m => `[${m.direction === 'incoming' ? 'Customer' : 'Agent'}]: ${m.content}`)
       .join('\n')
 
-    const ticketSubject = subject || `WhatsApp ${convertTo.replace('_', ' ')} - ${conversation.contact.name || conversation.contact.phone}`
+    const ticketSubject = subject || `WhatsApp ${convertTo.replace('_', ' ')} - ${conversation.contact.name || conversation.contact.phoneNumber}`
     const ticketDescription = description || messageHistory || 'Created from WhatsApp conversation'
 
     // createdById-এর জন্য একটি সিস্টেম ইউজার খুঁজে বের করা হচ্ছে
@@ -109,7 +109,7 @@ export async function POST(
         subject: ticketSubject,
         description: ticketDescription,
         customerId: conversation.contact.customerId,
-        contactPhone: conversation.contact.phone,
+        contactPhone: conversation.contact.phoneNumber,
         contactPerson: conversation.contact.name || undefined,
         createdById: systemUser.id,
       },
@@ -144,7 +144,7 @@ export async function POST(
           },
           body: JSON.stringify({
             messaging_product: 'whatsapp',
-            to: conversation.contact.phone,
+            to: conversation.contact.phoneNumber,
             type: 'text',
             text: { body: confirmMsg },
           }),

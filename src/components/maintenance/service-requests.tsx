@@ -287,7 +287,7 @@ export function ServiceRequests() {
             isLoading={isLoading}
             expandedId={expandedId}
             setExpandedId={setExpandedId}
-            onNavigate={navigate}
+            onNavigate={navigate as (page: string, params?: Record<string, string>) => void}
           />
         </TabsContent>
 
@@ -297,7 +297,7 @@ export function ServiceRequests() {
             isLoading={isLoading}
             expandedId={expandedId}
             setExpandedId={setExpandedId}
-            onNavigate={navigate}
+            onNavigate={navigate as (page: string, params?: Record<string, string>) => void}
             emptyMessage="No requests created by you"
           />
         </TabsContent>
@@ -444,7 +444,7 @@ function TicketTable({
   tickets: any[]
   isLoading: boolean
   expandedId: string | null
-  setExpandedId: (id: string | null) => void
+  setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
   onNavigate: (page: string, params?: Record<string, string>) => void
   emptyMessage?: string
 }) {

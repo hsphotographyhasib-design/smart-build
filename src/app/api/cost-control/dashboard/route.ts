@@ -56,22 +56,25 @@ export async function GET(request: NextRequest) {
     const topCostCodes = await db.costCode.findMany({
       where: { level: 1, isActive: true },
       include: {
+        budgetItems: { select: { originalBudget: true, actualCost: true } },
         children: {
           include: {
+            budgetItems: { select: { originalBudget: true, actualCost: true } },
             children: {
               include: {
-                children: {
-                  include: { budgetItems: { select: { originalBudget: true, actualCost: true } } },
-                },
                 budgetItems: { select: { originalBudget: true, actualCost: true } },
+                children: {
+                  include: {
+                    budgetItems: { select: { originalBudget: true, actualCost: true } },
+                    children: {
+                      include: { budgetItems: { select: { originalBudget: true, actualCost: true } } },
+                    },
+                  },
+                },
               },
-              budgetItems: { select: { originalBudget: true, actualCost: true } },
             },
-            budgetItems: { select: { originalBudget: true, actualCost: true } },
           },
-          budgetItems: { select: { originalBudget: true, actualCost: true } },
         },
-        budgetItems: { select: { originalBudget: true, actualCost: true } },
       },
       orderBy: { sortOrder: 'asc' },
     })

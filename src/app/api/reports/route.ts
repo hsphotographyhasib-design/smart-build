@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         data = {
           period: { start: startDate.toISOString(), end: endDate.toISOString() },
           income: { total: totalIncome, transactions: payments.length },
-          expense: { projectExpense, daybookExpense: daybookExpenseTotal, total: totalExpense, transactions: expenses.length + daybookExpenses.length },
+          expense: { projectExpense: projectExpenses, daybookExpense: daybookExpenseTotal, total: totalExpense, transactions: expenses.length + daybookExpenses.length },
           net: totalIncome - totalExpense,
         }
         break
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
         // সম্পদ প্রতিবেদন
         const assets = await db.asset.findMany({
           include: {
-            _count: { select: { assetIssue: true, assetMaintenance: true } },
+            _count: { select: { issues: true, assetMaintenance: true } },
           },
         })
         const typeSummary: Record<string, { count: number; totalValue: number; available: number; issued: number; maintenance: number; disposed: number }> = {}

@@ -26,8 +26,7 @@ export async function GET(
         closedBy: { select: { id: true, name: true } },
         timeline: { include: { performedBy: { select: { id: true, name: true, avatar: true } } }, orderBy: { createdAt: 'asc' } },
         materialRequests: { orderBy: { createdAt: 'desc' } },
-        workOrder: { include: { assignedTechnician: { select: { id: true, user: { select: { name: true } } } } } },
-        serviceRating: true,
+        workOrders: { include: { assignedTechnician: { select: { id: true, user: { select: { name: true } } } } } },
         invoices: { orderBy: { createdAt: 'desc' } },
       },
     })
