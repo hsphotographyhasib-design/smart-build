@@ -3,7 +3,7 @@ export type View =
   | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare'
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
   | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
-  | 'risks' | 'changes' | 'lookahead' | 'procurement'
+  | 'risks' | 'changes' | 'lookahead' | 'procurement' | 'quality' | 'hse'
   | 'documents' | 'site-progress' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
 
 export interface Kpis {

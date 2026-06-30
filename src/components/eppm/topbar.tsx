@@ -34,6 +34,8 @@ const titles: Record<View, { title: string; sub: string }> = {
   lookahead: { title: 'Lookahead Planning', sub: 'Short-interval work window' },
   procurement: { title: 'Procurement Planning', sub: 'Materials, suppliers & lead times' },
   documents: { title: 'Document Management', sub: 'Drawings, RFIs & submittals' },
+  quality: { title: 'Quality Management', sub: 'Inspections, NCRs & punch lists' },
+  hse: { title: 'HSE Dashboard', sub: 'Health, safety & environment incidents' },
   'site-progress': { title: 'Site Progress', sub: 'Daily reports & progress curves' },
   reports: { title: 'Reporting & Analytics', sub: 'Export-ready enterprise reports' },
   'ai-planner': { title: 'AI Project Planner', sub: 'Schedule optimisation & delay prediction' },

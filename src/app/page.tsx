@@ -24,6 +24,8 @@ import { ChangesView } from '@/components/eppm/views/changes-view'
 import { LookaheadView } from '@/components/eppm/views/lookahead-view'
 import { ProcurementView } from '@/components/eppm/views/procurement-view'
 import { DocumentsView } from '@/components/eppm/views/documents-view'
+import { QualityView } from '@/components/eppm/views/quality-view'
+import { HseView } from '@/components/eppm/views/hse-view'
 import { SiteProgressView } from '@/components/eppm/views/site-progress-view'
 import { ReportsView } from '@/components/eppm/views/reports-view'
 import { AiPlannerView } from '@/components/eppm/views/ai-planner-view'
@@ -75,6 +77,8 @@ export default function Home() {
       case 'lookahead': return <LookaheadView onNavigate={navigate} />
       case 'procurement': return <ProcurementView onNavigate={navigate} />
       case 'documents': return <DocumentsView onNavigate={navigate} />
+      case 'quality': return <QualityView onNavigate={navigate} />
+      case 'hse': return <HseView onNavigate={navigate} />
       case 'site-progress': return <SiteProgressView onNavigate={navigate} />
       case 'reports': return <ReportsView onNavigate={navigate} />
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />

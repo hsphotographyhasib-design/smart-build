@@ -464,3 +464,113 @@ Task: QA via agent-browser, add Cash Flow Forecast + Integration Hub views.
 - Portfolio Forecast / What-If scenario modelling view (adjust progress/cost sliders, see slippage impact).
 - Quality Management view (inspections, NCRs, punch lists, defects).
 - Health, Safety & Environment (HSE) dashboard (incidents, near-misses, toolbox talks).
+
+---
+Task ID: 8
+Agent: eppm-views-quality-hse
+Scope: Created 2 EPPM view components — Quality Management and HSE (Health, Safety & Environment).
+
+Files created:
+- src/components/eppm/views/quality-view.tsx
+- src/components/eppm/views/hse-view.tsx
+
+Each: `'use client'`, exports `{Name}View({ onNavigate }: { onNavigate: (v: View) => void })`,
+wraps content in `<FadeIn><div className="space-y-4">…</div></FadeIn>`, uses `void onNavigate`,
+avoids indigo/blue (uses emerald/amber/rose/sky/violet/slate oklch tokens), responsive grids,
+tables in `max-h-[560px] overflow-auto scroll-thin` with sticky headers, TypeScript strict
+(chart data typed as `any`), `cn()` for class merging, `fmtDate` for dates.
+
+Shared KpiCard helper in each file: Card with top accent gradient bar (`bg-gradient-to-r …`)
++ colored icon tile (9×9 grid). 6 KPI cards in responsive grid (2/3/6 cols).
+
+quality-view:
+- 6 KPI cards: Total Inspections, Passed, Failed, Open NCRs, Open Punch Items, RFI Open.
+- 3 Tabs (Tabs component):
+  · "Inspections": 16 synthetic inspections table — Inspection ID, Project, Area/Trade,
+    Inspector, Date, Status [Passed/Failed/Pending/Re-Inspect], Score %. Search input +
+    status Select filter. Color-coded status badges. Failed rows tinted rose (`bg-rose-50/60`).
+  · "NCRs (Non-Conformance)": 10 NCR cards (code, title, project, severity
+    [Critical/Major/Minor], status [Open/Investigating/Resolved/Closed], raised date,
+    responsible, description). Severity-colored left border (`border-l-4`). Search +
+    severity Select. Side bar chart "NCRs by Severity" (rose/amber/sky) + 3 stat tiles.
+  · "Punch List": 12 punch items table — Item ID, Description, Project, Trade, Status
+    [Open/In Progress/Closed], Assigned To, Priority [High/Med/Low], Due Date. Priority
+    badges. Search + status Select. Side donut chart "Punch Status Distribution" +
+    closure-rate footer.
+- Recharts: BarChart, PieChart (donut), Cell. NO indigo/blue.
+
+hse-view:
+- 6 KPI cards: Total Incidents (YTD), Lost Time Injuries, Recordable Cases, Near Misses,
+  Days Since Last LTI, TRIR (0.74).
+- 3 Tabs:
+  · "Incident Register": 14 synthetic incidents table — Incident ID, Date, Project, Type
+    [LTI/First Aid/Near Miss/Property Damage/Environmental], Severity
+    [Critical/High/Medium/Low], Location, Description, Status [Open/Investigating/Closed],
+    Reported By. Search + type Select + severity Select. Critical rows tinted rose.
+  · "Safety Metrics": 12-month trend LineChart (Incidents / Near Misses / LTI per month),
+    RadialBarChart gauge for "Safety Score" (87/100, emerald) with overlaid score text +
+    "Excellent — above 85 target" badge, 3 stat cards (Toolbox Talks YTD 186, Safety
+    Inspections 312, Training Hours 4,820).
+  · "Toolbox Talks": 8 recent toolbox talk cards (Date, Topic, Presenter, Attendees count,
+    Project, Key Points as chips). Side BarChart "Attendance Trend" (4 weeks) +
+    workforce/avg/coverage stat tiles (142 active workforce, avg attendance, coverage rate).
+- Recharts: LineChart, RadialBarChart (gauge), BarChart. NO indigo/blue.
+
+Lint: `bun run lint` passes clean (no errors introduced). No other files modified.
+
+---
+Task ID: CRON-8 (webDevReview round 8)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add Quality Management + HSE Dashboard views.
+
+## 1. Current Project Status Assessment
+- Platform stable: 29 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all views load with 0 runtime errors. Proceeded to feature development.
+- Found 1 runtime bug in HSE view during QA (variable name casing) — fixed.
+
+## 2. Completed Modifications
+
+### Bug fixes
+1. **HSE view `daysSinceLti` ReferenceError**: variable declared as `daysSinceLTI` (capital) but referenced as `daysSinceLti` (lowercase) in KPI card → crash on view load. Fixed casing. Verified: view loads correctly with all KPIs.
+
+### New features
+2. **Quality Management view (NEW module, 28th)** — inspections, NCRs & punch lists:
+   - **6 KPI cards**: Total Inspections (16), Passed (8), Failed (3), Open NCRs (6), Open Punch Items (10), RFI Open (7).
+   - **3 tabs**:
+     - Inspections: filterable table of 16 inspections (ID/Project/Area/Inspector/Date/Status/Score%) with search + status filter. Failed rows tinted rose, status badges color-coded.
+     - NCRs (Non-Conformance): 10 NCR cards with severity-colored left borders (Critical/Major/Minor), status, raised date, responsible, description + side bar chart "NCRs by Severity".
+     - Punch List: 12-item table with priority badges (High/Med/Low), status, assigned-to, due date + donut chart "Punch Status Distribution".
+   - VLM-verified: "16 inspections, 8 passed, 3 failed, 6 NCRs, 10 punch items, 7 RFIs — all renders correctly".
+   - File: `src/components/eppm/views/quality-view.tsx`.
+
+3. **HSE Dashboard view (NEW module, 29th)** — health, safety & environment:
+   - **6 KPI cards**: Total Incidents YTD (47), Lost Time Injuries (6), Recordable Cases (11), Near Misses (168), Days Since Last LTI (14), TRIR (0.74).
+   - **3 tabs**:
+     - Incident Register: filterable table of 14 incidents (ID/Date/Project/Type [LTI/First Aid/Near Miss/Property Damage/Environmental]/Severity/Location/Status/Reported By). Search + type + severity filters. Critical rows tinted rose.
+     - Safety Metrics: 12-month trend LineChart (Incidents/Near Misses/LTI) + RadialBarChart gauge for Safety Score (87/100) + 3 stat cards (Toolbox Talks, Inspections, Training Hours).
+     - Toolbox Talks: 8 talk cards with key-point chips, attendance trend BarChart, workforce/coverage stat tiles.
+   - VLM-verified: "47 incidents, 6 LTI, 0.74 TRIR, 14 days since last LTI — all renders correctly".
+   - File: `src/components/eppm/views/hse-view.tsx`.
+   - Added `quality` + `hse` to View type, sidebar nav (Delivery group, ShieldCheck + HeartPulse icons), topbar titles.
+
+### Styling polish
+4. **Quality view**: top accent gradient bars on KPI cards, colored icon tiles, severity-bordered NCR cards, donut chart for punch status.
+5. **HSE view**: gradient KPI cards, severity-colored incident badges, radial safety-score gauge, toolbox talk cards with key-point chips.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 29 views: 0 runtime errors, 0 accessibility/hydration errors.
+- VLM-verified:
+  - Quality: 6 KPIs (16 inspections, 6 NCRs, 10 punch items), 3 tabs with tables/charts.
+  - HSE: 6 KPIs (47 incidents, 6 LTI, 0.74 TRIR), 3 tabs with incident table/safety metrics/toolbox talks.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Portfolio Forecast / What-If scenario modelling view (interactive sliders).
+- Submittal & Approval Workflow view (formal submittal tracking with approval chains).
+- Commissioning & Handover view (system commissioning, testing, handover certificates).
