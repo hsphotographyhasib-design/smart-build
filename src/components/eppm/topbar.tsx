@@ -23,6 +23,8 @@ const titles: Record<View, { title: string; sub: string }> = {
   'critical-path': { title: 'Critical Path Analysis', sub: 'CPM network & float analysis' },
   milestones: { title: 'Milestone Timeline', sub: 'Programme-level milestone schedule' },
   resources: { title: 'Resource Management', sub: 'Labour, equipment & materials' },
+  equipment: { title: 'Equipment Planning', sub: 'Fleet allocation & maintenance schedule' },
+  workforce: { title: 'Workforce Planning', sub: 'Crew allocation & competency matrix' },
   costs: { title: 'Cost Management', sub: 'Budget vs actual & forecast' },
   evm: { title: 'Earned Value Management', sub: 'PV · EV · AC · SPI · CPI' },
   baselines: { title: 'Baseline Management', sub: 'Schedule & cost snapshots' },

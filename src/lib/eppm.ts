@@ -2,7 +2,7 @@
 export type View =
   | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare'
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
-  | 'resources' | 'costs' | 'evm' | 'baselines'
+  | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines'
   | 'risks' | 'changes' | 'lookahead' | 'procurement'
   | 'documents' | 'site-progress' | 'reports' | 'ai-planner' | 'admin'
 

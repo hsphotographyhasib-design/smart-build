@@ -13,6 +13,8 @@ import { ActivitiesView } from '@/components/eppm/views/activities-view'
 import { CriticalPathView } from '@/components/eppm/views/critical-path-view'
 import { MilestonesView } from '@/components/eppm/views/milestones-view'
 import { ResourcesView } from '@/components/eppm/views/resources-view'
+import { EquipmentView } from '@/components/eppm/views/equipment-view'
+import { WorkforceView } from '@/components/eppm/views/workforce-view'
 import { CostsView } from '@/components/eppm/views/costs-view'
 import { EvmView } from '@/components/eppm/views/evm-view'
 import { RisksView } from '@/components/eppm/views/risks-view'
@@ -60,6 +62,8 @@ export default function Home() {
       case 'critical-path': return <CriticalPathView onNavigate={navigate} />
       case 'milestones': return <MilestonesView onNavigate={navigate} />
       case 'resources': return <ResourcesView onNavigate={navigate} />
+      case 'equipment': return <EquipmentView onNavigate={navigate} />
+      case 'workforce': return <WorkforceView onNavigate={navigate} />
       case 'costs': return <CostsView onNavigate={navigate} />
       case 'evm': return <EvmView onNavigate={navigate} />
       case 'baselines': return <BaselinesView onNavigate={navigate} />

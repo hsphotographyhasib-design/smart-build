@@ -348,3 +348,63 @@ Task: QA via agent-browser, add Global Search command palette + Procurement Plan
 - Portfolio Forecast / What-If scenario modelling view.
 - Equipment Planning view (equipment schedule, allocation, maintenance, QR integration).
 - Workforce Planning view (crew allocation, competency matrix, rotations).
+
+---
+Task ID: CRON-6 (webDevReview round 6)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, fix DialogTitle accessibility bug, add Equipment Planning + Workforce Planning views.
+
+## 1. Current Project Status Assessment
+- Platform stable: 25 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA found 1 accessibility bug (DialogTitle missing in GlobalSearch dialog). Fixed + proceeded to feature development.
+
+## 2. Completed Modifications
+
+### Bug fixes
+1. **Accessibility — DialogContent missing DialogTitle**: The GlobalSearch dialog used `DialogContent` without a `DialogTitle`, triggering Radix accessibility warnings ("requires a DialogTitle for screen reader users"). Fixed by adding `<DialogTitle className="sr-only">Global Search</DialogTitle>` (visually hidden but accessible). Verified: console cleared + reloaded, no warnings.
+
+### New features
+2. **Equipment Planning view (NEW module, 24th)** — fleet allocation & maintenance:
+   - **6 KPI cards**: Total Fleet (12), Operating (7), Avg Utilisation (47%), Idle (2), In Service/Break (2), Service Due ≤7d (3).
+   - **3 tabs**:
+     - Fleet Register: filterable table of 12 equipment units (cranes, excavators, TBM, bulldozers, pumps) with code/name/project/status/utilisation bars/fuel level/next service/operator/QR buttons. Search + status + type filters. Breakdown rows tinted rose, maintenance tinted amber.
+     - Maintenance Schedule: sorted-by-urgency list with urgent (≤3d rose) / soon (≤7d amber) highlighting + Critical Alerts card (breakdowns, low fuel, service due) + fleet daily-rate value card.
+     - Analytics: utilisation-by-type dual-axis bar chart + fleet status distribution pie chart.
+   - 12 realistic equipment units across all flagship projects with operators, fuel levels, service schedules, QR codes.
+   - VLM-verified: all KPIs, table, maintenance list, and charts render correctly.
+   - File: `src/components/eppm/views/equipment-view.tsx` (~230 lines).
+
+3. **Workforce Planning view (NEW module, 25th)** — crew allocation & competency:
+   - **6 KPI cards**: Total Workforce (128), Allocated (108), Available (20), Active Crews (9), Avg Competency (89%), Overtime Hrs/wk (58).
+   - **3 tabs**:
+     - Crew Allocation: filterable table of 12 crews with avatars, type badges, size/allocated counts, shift, competency bars, overtime (red if >10h), status, foreman. Search + type + status filters.
+     - Competency Matrix: table of 6 trades × 4 dimensions (Safety/Technical/Quality/Productivity) with progress bars + overall badges, plus a multi-series radar chart.
+     - Manpower Forecast: 8-week Planned/Actual/Forecast area chart + utilisation health card (84%) + overtime hotspots list.
+   - 12 realistic crews (steel fixers, concrete, electrical, MEP, tunnelling, etc.) across projects with foremen, certifications, shifts, overtime.
+   - VLM-verified: all KPIs, crew table, competency matrix + radar, and forecast chart render correctly.
+   - File: `src/components/eppm/views/workforce-view.tsx` (~230 lines).
+   - Added `equipment` + `workforce` to View type, sidebar nav (Controls group, Wrench + HardHat icons), topbar titles.
+
+### Styling polish
+4. **Equipment table**: utilisation bars colored by threshold (emerald ≥80%, amber ≥50%, rose <50%), fuel-level red when <40%, service-date red when ≤3d.
+5. **Workforce table**: overtime red when >10h, competency bars, crew avatars with initials, standby rows tinted.
+6. **Maintenance schedule**: urgency-colored cards (rose ≤3d, amber ≤7d) with gradient alerts panel.
+7. Both views use FadeIn wrapper, top accent gradient bars on KPI cards, colored icon tiles.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 25 views: 0 runtime errors, 0 accessibility warnings, 0 hydration errors.
+- VLM-verified:
+  - Equipment: 6 KPIs, fleet table (12 units with utilisation/fuel/service), maintenance schedule with alerts, analytics charts.
+  - Workforce: 6 KPIs (128 workforce, 89% competency), crew table, competency matrix + radar, 8-week forecast chart.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Portfolio Forecast / What-If scenario modelling view.
+- Cash Flow Forecast view (dedicated cash-flow projection with monthly buckets, committed vs actual).
+- Integration Hub view (maintenance, tender, finance, HR, inventory, CRM connectors status).
