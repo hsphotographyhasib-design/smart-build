@@ -574,3 +574,115 @@ Task: QA via agent-browser, add Quality Management + HSE Dashboard views.
 - Portfolio Forecast / What-If scenario modelling view (interactive sliders).
 - Submittal & Approval Workflow view (formal submittal tracking with approval chains).
 - Commissioning & Handover view (system commissioning, testing, handover certificates).
+
+---
+Task ID: 9
+Agent: eppm-commissioning-view
+Scope: Created 1 EPPM view component — Commissioning & Handover.
+
+File created:
+- src/components/eppm/views/commissioning-view.tsx
+
+Structure:
+- `'use client'`, exports `CommissioningView({ onNavigate }: { onNavigate: (v: View) => void })`, `void onNavigate`,
+  wraps content in `<FadeIn>` + `<div className="space-y-4">`.
+- Uses `useDashboardData` for project code → name lookup only; all commissioning data is synthesised in-component.
+- CHART tokens: emerald / amber / rose / sky / violet / slate oklch — NO indigo/blue.
+
+6 KPI cards (Card + top accent gradient bar + colored icon tile):
+- Total Systems (16) — Boxes / slate
+- Tested & Passed (8, with % of total hint) — CheckCircle2 / emerald
+- Failed Tests (3) — XCircle / rose
+- Pending Commissioning (2) — Clock / amber
+- Handover Certs Issued (3) — Award / violet
+- Systems Ready for Handover (7) — FileCheck / sky
+
+3 tabs:
+1. "Systems Register" — filterable table of 16 synthetic commissioning systems
+   (System ID, System Name, Project code+name, Discipline [Electrical/Mechanical/HVAC/Plumbing/Fire/ELV]
+   with colored dot, Status badge, Test Date, Test % Progress bar, Witnessed By).
+   Search input + Status Select + Discipline Select filters. Empty-state row.
+   Failed rows tinted rose, Passed tinted emerald, Handed Over tinted violet.
+   Table in `max-h-[560px] overflow-auto scroll-thin` with sticky header.
+2. "Test & Inspection" — list of 10 test record cards
+   (Test ID, System, Discipline dot, Test Type badge [Pre-Functional/Functional/Performance/Integration/SAT],
+   Result badge [Pass/Fail/Pending] with icon, Date, Inspector, Defects count with alert icon, Notes).
+   Failed/Pass cards have colored borders. Includes:
+   - Bar chart "Tests by Discipline" (per-discipline colored bars using DISCIPLINE_COLOR map)
+   - Donut "Pass / Fail / Pending distribution" with Legend
+3. "Handover Certificates" — table of 8 handover certificates
+   (Certificate No, Project code+name, System Group, Handover Date, Status badge, Accepted By,
+   Acceptance Date, Handover Value, Retention %, Warranty Until). Issued rows tinted emerald, Rejected tinted rose.
+   Plus 3 summary cards: Total Handover Value, Retention Held (5%), Issued Value.
+
+Helper maps: SYSTEM_STATUS_BADGE, TEST_RESULT_BADGE, TEST_TYPE_BADGE, CERT_STATUS_BADGE, DISCIPLINE_COLOR.
+Icons used: clipboard-check, flask-conical, award, file-check, boxes, check-circle-2, x-circle, clock,
+search, filter, alert-triangle, wrench, calendar, user, shield-check.
+
+Casing verified: totalSystems, testedPassed, failedTests, pendingCommissioning, certsIssued,
+readyForHandover, totalHandoverValue, totalRetention, issuedHandoverValue, sysQuery, sysStatus,
+sysDiscipline, filteredSystems, testsByDiscipline, resultDistribution — all referenced consistently.
+
+Verification:
+- `bun run lint` — clean (no errors).
+- Dev log shows successful compilation, no runtime errors.
+
+---
+Task ID: CRON-9 (webDevReview round 9)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add What-If Scenario Modelling + Commissioning & Handover views.
+
+## 1. Current Project Status Assessment
+- Platform stable: 31 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all views load with 0 runtime errors. No bugs found.
+- Proceeded to feature development per next-phase recommendations.
+
+## 2. Completed Modifications
+
+### New features
+1. **What-If Scenario Modelling view (NEW module, 30th)** — interactive portfolio forecasting:
+   - **Project selector** + Reset button.
+   - **4 interactive sliders** (Scenario Levers panel):
+     - Productivity Change (-30% to +30%) — affects remaining progress
+     - Cost Variance (-20% to +40%) — applies to remaining budget
+     - Duration Variance (-25% to +50%) — applies to remaining duration
+     - Risk Contingency Realised (0-100%) — consumes 5% budget contingency
+   - **Animated Verdict banner** (Framer Motion AnimatePresence): Healthy / Watch / At-Risk / Critical — re-evaluates live as sliders move (e.g. +25% cost → Critical).
+   - **4 Impact KPI cards**: Forecast EAC, Finish Slip, Progress, Margin — each shows scenario value + delta vs baseline with trend arrows (emerald positive / rose negative).
+   - **Baseline vs Scenario bar chart** comparing Budget/Forecast/Revenue/Margin.
+   - **Detailed Impact Breakdown** grid: original budget, actual, base/scenario forecast, cost overrun %, risk cost, margin %.
+   - **Live recalculation verified**: adjusting Cost Variance to +25% updated forecast $81M→$88.8M and margin $15M→$7.3M in real time.
+   - VLM-verified: "all elements properly styled, real data, live recalculation working".
+   - File: `src/components/eppm/views/whatif-view.tsx` (~280 lines).
+
+2. **Commissioning & Handover view (NEW module, 31st)** — system testing & handover certificates:
+   - **6 KPI cards**: Total Systems (16), Tested & Passed (8), Failed Tests (3), Pending Commissioning (2), Handover Certs Issued (3), Systems Ready (7).
+   - **3 tabs**:
+     - Systems Register: 16-row filterable table (System ID/Name/Project/Discipline [Electrical/Mechanical/HVAC/Plumbing/Fire/ELV]/Status/Test Date/Test %/Witnessed By). Failed rows tinted rose, Passed emerald, Handed Over violet. Search + status + discipline filters.
+     - Test & Inspection: 10 test record cards (Test ID/System/Type [Pre-Functional/Functional/Performance/Integration/SAT]/Result/Date/Inspector/Defects) + BarChart "Tests by Discipline" + donut "Pass/Fail/Pending".
+     - Handover Certificates: 8-row certificate table (Cert No/Project/System Group/Handover Date/Status/Accepted By/Acceptance Date/Retention %/Warranty Until) + summary cards (Total Handover Value, Retention Held, Issued Value).
+   - VLM-verified: "16 systems, 8 passed, 3 failed, 3 certs issued — all renders correctly".
+   - File: `src/components/eppm/views/commissioning-view.tsx`.
+   - Added `whatif` + `commissioning` to View type, sidebar nav (Portfolio group SlidersHorizontal icon, Delivery group ClipboardCheck icon), topbar titles.
+
+### Styling polish
+3. **What-If**: gradient accent bars on impact cards (emerald positive / rose negative), Framer Motion verdict banner transitions, slider value badges color-coded, "how it works" helper card.
+4. **Commissioning**: top accent gradient bars on KPI cards, discipline color-coding, test progress bars, status-tinted table rows.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 31 views: 0 runtime errors, 0 accessibility/hydration errors.
+- VLM-verified:
+  - What-If: 4 sliders, live verdict banner, 4 impact KPIs with deltas, comparison chart. Slider adjustment (+25% cost) → forecast $81M→$88.8M, margin $15M→$7.3M — live recalculation confirmed.
+  - Commissioning: 6 KPIs (16 systems, 8 passed, 3 failed), 3 tabs with tables/charts.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Submittal & Approval Workflow view (formal submittal tracking with approval chains).
+- Claims & Disputes view (extension of time, delay claims, dispute resolution).
+- Lessons Learned / Project Closeout view (post-mortem, knowledge base).

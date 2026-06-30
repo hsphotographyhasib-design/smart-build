@@ -6,6 +6,7 @@ import { TopBar } from '@/components/eppm/topbar'
 import { DashboardView } from '@/components/eppm/views/dashboard-view'
 import { ProjectsView } from '@/components/eppm/views/projects-view'
 import { CompareView } from '@/components/eppm/views/compare-view'
+import { WhatIfView } from '@/components/eppm/views/whatif-view'
 import { PortfoliosView } from '@/components/eppm/views/portfolios-view'
 import { ProgramsView } from '@/components/eppm/views/programs-view'
 import { GanttView } from '@/components/eppm/views/gantt-view'
@@ -26,6 +27,7 @@ import { ProcurementView } from '@/components/eppm/views/procurement-view'
 import { DocumentsView } from '@/components/eppm/views/documents-view'
 import { QualityView } from '@/components/eppm/views/quality-view'
 import { HseView } from '@/components/eppm/views/hse-view'
+import { CommissioningView } from '@/components/eppm/views/commissioning-view'
 import { SiteProgressView } from '@/components/eppm/views/site-progress-view'
 import { ReportsView } from '@/components/eppm/views/reports-view'
 import { AiPlannerView } from '@/components/eppm/views/ai-planner-view'
@@ -60,6 +62,7 @@ export default function Home() {
       case 'programs': return <ProgramsView onNavigate={navigate} />
       case 'projects': return <ProjectsView onNavigate={navigate} onOpenProject={(id) => { setProjectId(id); navigate('gantt') }} />
       case 'compare': return <CompareView onNavigate={navigate} />
+      case 'whatif': return <WhatIfView onNavigate={navigate} />
       case 'wbs': return <WbsView projectId={projectId} onNavigate={navigate} />
       case 'activities': return <ActivitiesView onNavigate={navigate} />
       case 'gantt': return <GanttView projectId={projectId} setProjectId={setProjectId} onNavigate={navigate} />
@@ -79,6 +82,7 @@ export default function Home() {
       case 'documents': return <DocumentsView onNavigate={navigate} />
       case 'quality': return <QualityView onNavigate={navigate} />
       case 'hse': return <HseView onNavigate={navigate} />
+      case 'commissioning': return <CommissioningView onNavigate={navigate} />
       case 'site-progress': return <SiteProgressView onNavigate={navigate} />
       case 'reports': return <ReportsView onNavigate={navigate} />
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />

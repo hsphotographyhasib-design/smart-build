@@ -1,10 +1,10 @@
 // Shared EPPM client-side types (mirror API shapes loosely)
 export type View =
-  | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare'
+  | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare' | 'whatif'
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
   | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
   | 'risks' | 'changes' | 'lookahead' | 'procurement' | 'quality' | 'hse'
-  | 'documents' | 'site-progress' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
+  | 'documents' | 'site-progress' | 'commissioning' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number

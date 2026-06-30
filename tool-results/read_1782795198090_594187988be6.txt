@@ -1,0 +1,511 @@
+     1→'use client'
+     2→
+     3→import { useMemo, useState } from 'react'
+     4→import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+     5→import { Badge } from '@/components/ui/badge'
+     6→import { Input } from '@/components/ui/input'
+     7→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+     8→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+     9→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    10→import { Search, Filter, ClipboardCheck, CheckCircle2, XCircle, AlertOctagon, ListChecks, FileQuestion, ShieldAlert } from 'lucide-react'
+    11→import { fmtDate, type View } from '@/lib/eppm'
+    12→import { cn } from '@/lib/utils'
+    13→import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts'
+    14→import { FadeIn } from '../motion'
+    15→
+    16→const CHART = {
+    17→  emerald: 'oklch(0.55 0.12 162)',
+    18→  amber: 'oklch(0.7 0.16 80)',
+    19→  rose: 'oklch(0.6 0.2 25)',
+    20→  sky: 'oklch(0.62 0.1 195)',
+    21→  violet: 'oklch(0.65 0.18 305)',
+    22→  slate: 'oklch(0.55 0.02 250)',
+    23→}
+    24→
+    25→type InspStatus = 'Passed' | 'Failed' | 'Pending' | 'Re-Inspect'
+    26→interface Inspection {
+    27→  id: string
+    28→  project: string
+    29→  area: string
+    30→  trade: string
+    31→  inspector: string
+    32→  date: string
+    33→  status: InspStatus
+    34→  score: number
+    35→}
+    36→
+    37→const INSPECTIONS: Inspection[] = [
+    38→  { id: 'INS-2401', project: 'PRJ-001', area: 'Level 3 – Slab', trade: 'Concrete', inspector: 'S. Patel', date: '2025-01-22', status: 'Passed', score: 96 },
+    39→  { id: 'INS-2402', project: 'PRJ-002', area: 'Grid F – Steel', trade: 'Structural', inspector: 'M. Chen', date: '2025-01-21', status: 'Failed', score: 58 },
+    40→  { id: 'INS-2403', project: 'PRJ-003', area: 'MEP Risers', trade: 'Electrical', inspector: 'K. Ali', date: '2025-01-20', status: 'Passed', score: 92 },
+    41→  { id: 'INS-2404', project: 'PRJ-001', area: 'Façade N', trade: 'Envelope', inspector: 'S. Patel', date: '2025-01-19', status: 'Re-Inspect', score: 74 },
+    42→  { id: 'INS-2405', project: 'PRJ-004', area: 'Lift Shaft 2', trade: 'MEP', inspector: 'J. Müller', date: '2025-01-18', status: 'Pending', score: 0 },
+    43→  { id: 'INS-2406', project: 'PRJ-002', area: 'Basement Waterproofing', trade: 'Civil', inspector: 'R. Khan', date: '2025-01-17', status: 'Passed', score: 88 },
+    44→  { id: 'INS-2407', project: 'PRJ-003', area: 'Roof Slab', trade: 'Waterproofing', inspector: 'K. Ali', date: '2025-01-16', status: 'Failed', score: 62 },
+    45→  { id: 'INS-2408', project: 'PRJ-001', area: 'Level 2 – Columns', trade: 'Concrete', inspector: 'S. Patel', date: '2025-01-15', status: 'Passed', score: 94 },
+    46→  { id: 'INS-2409', project: 'PRJ-004', area: 'Lobby Fit-out', trade: 'Finishes', inspector: 'J. Müller', date: '2025-01-14', status: 'Re-Inspect', score: 71 },
+    47→  { id: 'INS-2410', project: 'PRJ-002', area: 'Curtain Wall', trade: 'Envelope', inspector: 'M. Chen', date: '2025-01-12', status: 'Passed', score: 90 },
+    48→  { id: 'INS-2411', project: 'PRJ-003', area: 'Plant Room', trade: 'Mechanical', inspector: 'K. Ali', date: '2025-01-11', status: 'Pending', score: 0 },
+    49→  { id: 'INS-2412', project: 'PRJ-001', area: 'Stair Core B', trade: 'Structural', inspector: 'L. Rossi', date: '2025-01-10', status: 'Passed', score: 97 },
+    50→  { id: 'INS-2413', project: 'PRJ-004', area: 'Pool Deck', trade: 'Waterproofing', inspector: 'J. Müller', date: '2025-01-09', status: 'Failed', score: 55 },
+    51→  { id: 'INS-2414', project: 'PRJ-002', area: 'Level 5 – Slab', trade: 'Concrete', inspector: 'M. Chen', date: '2025-01-08', status: 'Passed', score: 91 },
+    52→  { id: 'INS-2415', project: 'PRJ-003', area: 'Switchgear Room', trade: 'Electrical', inspector: 'K. Ali', date: '2025-01-07', status: 'Re-Inspect', score: 78 },
+    53→  { id: 'INS-2416', project: 'PRJ-001', area: 'Basement Carpark', trade: 'Civil', inspector: 'S. Patel', date: '2025-01-06', status: 'Passed', score: 89 },
+    54→]
+    55→
+    56→type NCRSeverity = 'Critical' | 'Major' | 'Minor'
+    57→type NCRStatus = 'Open' | 'Investigating' | 'Resolved' | 'Closed'
+    58→interface NCR {
+    59→  code: string
+    60→  title: string
+    61→  project: string
+    62→  severity: NCRSeverity
+    63→  status: NCRStatus
+    64→  raised: string
+    65→  responsible: string
+    66→  desc: string
+    67→}
+    68→
+    69→const NCRS: NCR[] = [
+    70→  { code: 'NCR-018', title: 'Reinforcement cover不足', project: 'PRJ-002', severity: 'Critical', status: 'Investigating', raised: '2025-01-21', responsible: 'M. Chen', desc: 'Cover to main rebar at Grid F measured 25mm vs specified 40mm. Affects 8 columns on Level 2.' },
+    71→  { code: 'NCR-017', title: 'Concrete cube 28-day strength below spec', project: 'PRJ-001', severity: 'Major', status: 'Open', raised: '2025-01-19', responsible: 'S. Patel', desc: 'Cube set C-312 achieved 28 MPa vs required 35 MPa. Pour on Level 3 suspended.' },
+    72→  { code: 'NCR-016', title: 'Weld seam porosity in steel members', project: 'PRJ-002', severity: 'Major', status: 'Investigating', raised: '2025-01-17', responsible: 'R. Khan', desc: 'Ultrasonic testing identified porosity in 4 of 12 primary beam welds at Grid F.' },
+    73→  { code: 'NCR-015', title: 'Missing firestop at penetration', project: 'PRJ-003', severity: 'Major', status: 'Resolved', raised: '2025-01-15', responsible: 'K. Ali', desc: 'Cable penetrations through 2-hour fire-rated wall lacking firestop seals. Rework issued.' },
+    74→  { code: 'NCR-014', title: 'Tile lippage exceeds tolerance', project: 'PRJ-004', severity: 'Minor', status: 'Closed', raised: '2025-01-12', responsible: 'J. Müller', desc: 'Lippage at tile joints in lobby measured 1.8mm vs 1.0mm max. Affected area re-laid.' },
+    75→  { code: 'NCR-013', title: 'Paint finish colour mismatch', project: 'PRJ-001', severity: 'Minor', status: 'Open', raised: '2025-01-11', responsible: 'S. Patel', desc: 'Wall paint on Level 2 north wing varies from approved sample. Repainting scheduled.' },
+    76→  { code: 'NCR-012', title: 'HVAC duct leakage above threshold', project: 'PRJ-003', severity: 'Major', status: 'Investigating', raised: '2025-01-10', responsible: 'K. Ali', desc: 'Duct pressure test on riser B recorded 8% leakage vs 3% specification.' },
+    77→  { code: 'NCR-011', title: 'Waterproofing membrane pinholes', project: 'PRJ-004', severity: 'Critical', status: 'Open', raised: '2025-01-08', responsible: 'J. Müller', desc: 'Holiday survey of pool deck membrane revealed 23 pinholes over 40m² area.' },
+    78→  { code: 'NCR-010', title: 'Door frame plumb out of tolerance', project: 'PRJ-002', severity: 'Minor', status: 'Closed', raised: '2025-01-05', responsible: 'M. Chen', desc: 'Door frames at Units 4-6 out of plumb by 6mm. Frames re-set and re-checked.' },
+    79→  { code: 'NCR-009', title: 'Switchgear busbar alignment', project: 'PRJ-003', severity: 'Minor', status: 'Resolved', raised: '2025-01-03', responsible: 'K. Ali', desc: 'Busbar alignment at main switchgear outside 1mm tolerance. Shimmed to spec.' },
+    80→]
+    81→
+    82→type PunchStatus = 'Open' | 'In Progress' | 'Closed'
+    83→type Priority = 'High' | 'Med' | 'Low'
+    84→interface Punch {
+    85→  id: string
+    86→  desc: string
+    87→  project: string
+    88→  trade: string
+    89→  status: PunchStatus
+    90→  assigned: string
+    91→  priority: Priority
+    92→  due: string
+    93→}
+    94→
+    95→const PUNCHES: Punch[] = [
+    96→  { id: 'P-101', desc: 'Touch-up paint at column capitals, L2', project: 'PRJ-001', trade: 'Finishes', status: 'Open', assigned: 'S. Patel', priority: 'Med', due: '2025-01-28' },
+    97→  { id: 'P-102', desc: 'Replace 3 cracked floor tiles, lobby', project: 'PRJ-004', trade: 'Finishes', status: 'In Progress', assigned: 'J. Müller', priority: 'High', due: '2025-01-26' },
+    98→  { id: 'P-103', desc: 'Install missing door closer, Unit 4', project: 'PRJ-002', trade: 'Joinery', status: 'Open', assigned: 'M. Chen', priority: 'Low', due: '2025-02-02' },
+    99→  { id: 'P-104', desc: 'Seal gaps around duct penetrations, riser B', project: 'PRJ-003', trade: 'Mechanical', status: 'In Progress', assigned: 'K. Ali', priority: 'High', due: '2025-01-25' },
+   100→  { id: 'P-105', desc: 'Clean glazing at curtain wall, N elevation', project: 'PRJ-001', trade: 'Envelope', status: 'Open', assigned: 'S. Patel', priority: 'Low', due: '2025-02-05' },
+   101→  { id: 'P-106', desc: 'Adjust door hardware, stair core B', project: 'PRJ-001', trade: 'Joinery', status: 'Closed', assigned: 'L. Rossi', priority: 'Med', due: '2025-01-18' },
+   102→  { id: 'P-107', desc: 'Re-torque bolted connections, Grid F', project: 'PRJ-002', trade: 'Structural', status: 'Open', assigned: 'R. Khan', priority: 'High', due: '2025-01-24' },
+   103→  { id: 'P-108', desc: 'Label electrical circuits, plant room', project: 'PRJ-003', trade: 'Electrical', status: 'In Progress', assigned: 'K. Ali', priority: 'Med', due: '2025-01-30' },
+   104→  { id: 'P-109', desc: 'Apply intumescent coating, steel beams L3', project: 'PRJ-001', trade: 'Fireproofing', status: 'Open', assigned: 'S. Patel', priority: 'High', due: '2025-01-27' },
+   105→  { id: 'P-110', desc: 'Re-level floor screed, bathroom 5A', project: 'PRJ-004', trade: 'Finishes', status: 'Closed', assigned: 'J. Müller', priority: 'Med', due: '2025-01-15' },
+   106→  { id: 'P-111', desc: 'Install signage at exits, all levels', project: 'PRJ-002', trade: 'Signage', status: 'Open', assigned: 'M. Chen', priority: 'Low', due: '2025-02-08' },
+   107→  { id: 'P-112', desc: 'Calibrate BMS sensors, HVAC', project: 'PRJ-003', trade: 'Mechanical', status: 'In Progress', assigned: 'K. Ali', priority: 'Med', due: '2025-02-01' },
+   108→]
+   109→
+   110→const INSPECTION_STATUS_CLASS: Record<InspStatus, string> = {
+   111→  Passed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+   112→  Failed: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+   113→  Pending: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+   114→  'Re-Inspect': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
+   115→}
+   116→
+   117→const NCR_SEVERITY_CLASS: Record<NCRSeverity, string> = {
+   118→  Critical: 'border-rose-500',
+   119→  Major: 'border-amber-500',
+   120→  Minor: 'border-sky-500',
+   121→}
+   122→
+   123→const NCR_SEVERITY_BADGE: Record<NCRSeverity, string> = {
+   124→  Critical: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+   125→  Major: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+   126→  Minor: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+   127→}
+   128→
+   129→const NCR_STATUS_BADGE: Record<NCRStatus, string> = {
+   130→  Open: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+   131→  Investigating: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+   132→  Resolved: 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
+   133→  Closed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+   134→}
+   135→
+   136→const PUNCH_STATUS_BADGE: Record<PunchStatus, string> = {
+   137→  Open: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+   138→  'In Progress': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+   139→  Closed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+   140→}
+   141→
+   142→const PRIORITY_BADGE: Record<Priority, string> = {
+   143→  High: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+   144→  Med: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+   145→  Low: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+   146→}
+   147→
+   148→interface KpiDef {
+   149→  label: string
+   150→  value: string | number
+   151→  icon: any
+   152→  tile: string
+   153→  bar: string
+   154→}
+   155→
+   156→function KpiCard({ kpi }: { kpi: KpiDef }) {
+   157→  const Icon = kpi.icon
+   158→  return (
+   159→    <Card className="overflow-hidden pt-0">
+   160→      <div className={cn('h-1 w-full', kpi.bar)} />
+   161→      <CardContent className="p-4 pt-3">
+   162→        <div className="flex items-start justify-between gap-2">
+   163→          <div className="min-w-0">
+   164→            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{kpi.label}</div>
+   165→            <div className="mt-1 text-2xl font-bold tabular-nums">{kpi.value}</div>
+   166→          </div>
+   167→          <div className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', kpi.tile)}>
+   168→            <Icon className="h-4 w-4" />
+   169→          </div>
+   170→        </div>
+   171→      </CardContent>
+   172→    </Card>
+   173→  )
+   174→}
+   175→
+   176→export function QualityView({ onNavigate }: { onNavigate: (v: View) => void }) {
+   177→  void onNavigate
+   178→  const [tab, setTab] = useState('inspections')
+   179→
+   180→  // Inspection filters
+   181→  const [iq, setIq] = useState('')
+   182→  const [iStatus, setIStatus] = useState('all')
+   183→
+   184→  // NCR filters
+   185→  const [nq, setNq] = useState('')
+   186→  const [nSev, setNSev] = useState('all')
+   187→
+   188→  // Punch filters
+   189→  const [pq, setPq] = useState('')
+   190→  const [pStatus, setPStatus] = useState('all')
+   191→
+   192→  const kpis: KpiDef[] = [
+   193→    { label: 'Total Inspections', value: INSPECTIONS.length, icon: ClipboardCheck, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
+   194→    { label: 'Passed', value: INSPECTIONS.filter(i => i.status === 'Passed').length, icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+   195→    { label: 'Failed', value: INSPECTIONS.filter(i => i.status === 'Failed').length, icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+   196→    { label: 'Open NCRs', value: NCRS.filter(n => n.status === 'Open' || n.status === 'Investigating').length, icon: AlertOctagon, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+   197→    { label: 'Open Punch Items', value: PUNCHES.filter(p => p.status !== 'Closed').length, icon: ListChecks, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
+   198→    { label: 'RFI Open', value: 7, icon: FileQuestion, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
+   199→  ]
+   200→
+   201→  const filteredInspections = useMemo(() => {
+   202→    return INSPECTIONS.filter(i => {
+   203→      if (iq && !`${i.id} ${i.project} ${i.area} ${i.trade} ${i.inspector}`.toLowerCase().includes(iq.toLowerCase())) return false
+   204→      if (iStatus !== 'all' && i.status !== iStatus) return false
+   205→      return true
+   206→    })
+   207→  }, [iq, iStatus])
+   208→
+   209→  const filteredNcrs = useMemo(() => {
+   210→    return NCRS.filter(n => {
+   211→      if (nq && !`${n.code} ${n.title} ${n.project} ${n.responsible} ${n.desc}`.toLowerCase().includes(nq.toLowerCase())) return false
+   212→      if (nSev !== 'all' && n.severity !== nSev) return false
+   213→      return true
+   214→    })
+   215→  }, [nq, nSev])
+   216→
+   217→  const filteredPunches = useMemo(() => {
+   218→    return PUNCHES.filter(p => {
+   219→      if (pq && !`${p.id} ${p.desc} ${p.project} ${p.trade} ${p.assigned}`.toLowerCase().includes(pq.toLowerCase())) return false
+   220→      if (pStatus !== 'all' && p.status !== pStatus) return false
+   221→      return true
+   222→    })
+   223→  }, [pq, pStatus])
+   224→
+   225→  const ncrBySeverity: any[] = [
+   226→    { name: 'Critical', count: NCRS.filter(n => n.severity === 'Critical').length, fill: CHART.rose },
+   227→    { name: 'Major', count: NCRS.filter(n => n.severity === 'Major').length, fill: CHART.amber },
+   228→    { name: 'Minor', count: NCRS.filter(n => n.severity === 'Minor').length, fill: CHART.sky },
+   229→  ]
+   230→
+   231→  const punchByStatus: any[] = [
+   232→    { name: 'Open', value: PUNCHES.filter(p => p.status === 'Open').length, fill: CHART.amber },
+   233→    { name: 'In Progress', value: PUNCHES.filter(p => p.status === 'In Progress').length, fill: CHART.sky },
+   234→    { name: 'Closed', value: PUNCHES.filter(p => p.status === 'Closed').length, fill: CHART.emerald },
+   235→  ]
+   236→
+   237→  return (
+   238→    <FadeIn>
+   239→      <div className="space-y-4">
+   240→        {/* KPI strip */}
+   241→        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+   242→          {kpis.map(k => <KpiCard key={k.label} kpi={k} />)}
+   243→        </div>
+   244→
+   245→        <Tabs value={tab} onValueChange={setTab}>
+   246→          <TabsList className="flex-wrap h-auto">
+   247→            <TabsTrigger value="inspections">Inspections</TabsTrigger>
+   248→            <TabsTrigger value="ncrs">NCRs (Non-Conformance)</TabsTrigger>
+   249→            <TabsTrigger value="punch">Punch List</TabsTrigger>
+   250→          </TabsList>
+   251→
+   252→          {/* Inspections tab */}
+   253→          <TabsContent value="inspections" className="mt-3 space-y-4">
+   254→            <Card>
+   255→              <CardHeader className="pb-3">
+   256→                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   257→                  <div>
+   258→                    <CardTitle className="text-sm">Inspection Register</CardTitle>
+   259→                    <CardDescription className="text-xs">{filteredInspections.length} of {INSPECTIONS.length} inspections</CardDescription>
+   260→                  </div>
+   261→                  <div className="flex flex-wrap gap-2">
+   262→                    <div className="relative">
+   263→                      <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   264→                      <Input value={iq} onChange={e => setIq(e.target.value)} placeholder="Search inspections…" className="pl-8 h-9 w-56" />
+   265→                    </div>
+   266→                    <Select value={iStatus} onValueChange={setIStatus}>
+   267→                      <SelectTrigger className="h-9 w-40"><Filter className="h-3.5 w-3.5 mr-1.5" /><SelectValue /></SelectTrigger>
+   268→                      <SelectContent>
+   269→                        <SelectItem value="all">All Status</SelectItem>
+   270→                        <SelectItem value="Passed">Passed</SelectItem>
+   271→                        <SelectItem value="Failed">Failed</SelectItem>
+   272→                        <SelectItem value="Pending">Pending</SelectItem>
+   273→                        <SelectItem value="Re-Inspect">Re-Inspect</SelectItem>
+   274→                      </SelectContent>
+   275→                    </Select>
+   276→                  </div>
+   277→                </div>
+   278→              </CardHeader>
+   279→              <CardContent className="p-0">
+   280→                <div className="max-h-[560px] overflow-auto scroll-thin">
+   281→                  <Table>
+   282→                    <TableHeader className="sticky top-0 bg-card z-10">
+   283→                      <TableRow className="bg-muted/40 hover:bg-muted/40">
+   284→                        <TableHead className="w-[100px]">Inspection ID</TableHead>
+   285→                        <TableHead className="w-[90px]">Project</TableHead>
+   286→                        <TableHead className="min-w-[200px]">Area / Trade</TableHead>
+   287→                        <TableHead className="w-[120px]">Inspector</TableHead>
+   288→                        <TableHead className="w-[100px]">Date</TableHead>
+   289→                        <TableHead className="w-[110px]">Status</TableHead>
+   290→                        <TableHead className="w-[80px] text-right">Score</TableHead>
+   291→                      </TableRow>
+   292→                    </TableHeader>
+   293→                    <TableBody>
+   294→                      {filteredInspections.map(i => (
+   295→                        <TableRow key={i.id} className={cn('hover:bg-muted/40', i.status === 'Failed' && 'bg-rose-50/60 dark:bg-rose-950/20')}>
+   296→                          <TableCell className="font-mono text-[10px] text-muted-foreground">{i.id}</TableCell>
+   297→                          <TableCell className="font-mono text-[10px]">{i.project}</TableCell>
+   298→                          <TableCell>
+   299→                            <div className="text-xs font-medium truncate max-w-[260px]">{i.area}</div>
+   300→                            <div className="text-[10px] text-muted-foreground">{i.trade}</div>
+   301→                          </TableCell>
+   302→                          <TableCell className="text-[11px]">{i.inspector}</TableCell>
+   303→                          <TableCell className="text-[10px] text-muted-foreground">{fmtDate(i.date)}</TableCell>
+   304→                          <TableCell><Badge variant="outline" className={cn('text-[9px]', INSPECTION_STATUS_CLASS[i.status])}>{i.status}</Badge></TableCell>
+   305→                          <TableCell className="text-right">
+   306→                            {i.score > 0 ? (
+   307→                              <span className={cn('text-xs font-bold tabular-nums', i.score >= 85 ? 'text-emerald-600' : i.score >= 70 ? 'text-amber-600' : 'text-rose-600')}>{i.score}%</span>
+   308→                            ) : <span className="text-[10px] text-muted-foreground">—</span>}
+   309→                          </TableCell>
+   310→                        </TableRow>
+   311→                      ))}
+   312→                      {filteredInspections.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-xs text-muted-foreground py-10">No inspections match filters</TableCell></TableRow>}
+   313→                    </TableBody>
+   314→                  </Table>
+   315→                </div>
+   316→              </CardContent>
+   317→            </Card>
+   318→          </TabsContent>
+   319→
+   320→          {/* NCRs tab */}
+   321→          <TabsContent value="ncrs" className="mt-3 space-y-4">
+   322→            <div className="grid gap-4 lg:grid-cols-3">
+   323→              <Card className="lg:col-span-2">
+   324→                <CardHeader className="pb-3">
+   325→                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   326→                    <div>
+   327→                      <CardTitle className="text-sm">Non-Conformance Reports</CardTitle>
+   328→                      <CardDescription className="text-xs">{filteredNcrs.length} of {NCRS.length} NCRs</CardDescription>
+   329→                    </div>
+   330→                    <div className="flex flex-wrap gap-2">
+   331→                      <div className="relative">
+   332→                        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   333→                        <Input value={nq} onChange={e => setNq(e.target.value)} placeholder="Search NCRs…" className="pl-8 h-9 w-52" />
+   334→                      </div>
+   335→                      <Select value={nSev} onValueChange={setNSev}>
+   336→                        <SelectTrigger className="h-9 w-36"><Filter className="h-3.5 w-3.5 mr-1.5" /><SelectValue /></SelectTrigger>
+   337→                        <SelectContent>
+   338→                          <SelectItem value="all">All Severity</SelectItem>
+   339→                          <SelectItem value="Critical">Critical</SelectItem>
+   340→                          <SelectItem value="Major">Major</SelectItem>
+   341→                          <SelectItem value="Minor">Minor</SelectItem>
+   342→                        </SelectContent>
+   343→                      </Select>
+   344→                    </div>
+   345→                  </div>
+   346→                </CardHeader>
+   347→                <CardContent>
+   348→                  <div className="max-h-[560px] overflow-auto scroll-thin space-y-2 pr-1">
+   349→                    {filteredNcrs.map(n => (
+   350→                      <div key={n.code} className={cn('rounded-lg border-l-4 border-y border-r p-3', NCR_SEVERITY_CLASS[n.severity])}>
+   351→                        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+   352→                          <div className="min-w-0">
+   353→                            <div className="flex items-center gap-2 flex-wrap">
+   354→                              <span className="font-mono text-[10px] text-muted-foreground">{n.code}</span>
+   355→                              <Badge variant="outline" className={cn('text-[9px]', NCR_SEVERITY_BADGE[n.severity])}>{n.severity}</Badge>
+   356→                              <Badge variant="outline" className={cn('text-[9px]', NCR_STATUS_BADGE[n.status])}>{n.status}</Badge>
+   357→                              <span className="font-mono text-[10px] text-muted-foreground">{n.project}</span>
+   358→                            </div>
+   359→                            <div className="text-xs font-semibold mt-1">{n.title}</div>
+   360→                            <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{n.desc}</div>
+   361→                          </div>
+   362→                          <div className="text-right shrink-0 sm:text-right">
+   363→                            <div className="text-[10px] text-muted-foreground">Raised</div>
+   364→                            <div className="text-[11px] font-medium">{fmtDate(n.raised)}</div>
+   365→                          </div>
+   366→                        </div>
+   367→                        <div className="flex items-center justify-between pt-2 mt-2 border-t">
+   368→                          <div className="text-[10px] text-muted-foreground">Responsible: <span className="text-foreground font-medium">{n.responsible}</span></div>
+   369→                        </div>
+   370→                      </div>
+   371→                    ))}
+   372→                    {filteredNcrs.length === 0 && (
+   373→                      <div className="text-center text-xs text-muted-foreground py-10">No NCRs match filters</div>
+   374→                    )}
+   375→                  </div>
+   376→                </CardContent>
+   377→              </Card>
+   378→
+   379→              <Card>
+   380→                <CardHeader className="pb-3">
+   381→                  <CardTitle className="text-sm">NCRs by Severity</CardTitle>
+   382→                  <CardDescription className="text-xs">Distribution across all NCRs</CardDescription>
+   383→                </CardHeader>
+   384→                <CardContent>
+   385→                  <ResponsiveContainer width="100%" height={260}>
+   386→                    <BarChart data={ncrBySeverity} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+   387→                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
+   388→                      <XAxis dataKey="name" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+   389→                      <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" width={28} allowDecimals={false} />
+   390→                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} cursor={{ fill: 'oklch(0.55 0.02 250 / 0.08)' }} />
+   391→                      <Bar dataKey="count" name="NCRs" radius={[4, 4, 0, 0]}>
+   392→                        {ncrBySeverity.map((d, i) => <Cell key={i} fill={d.fill} />)}
+   393→                      </Bar>
+   394→                    </BarChart>
+   395→                  </ResponsiveContainer>
+   396→                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+   397→                    {ncrBySeverity.map(s => (
+   398→                      <div key={s.name} className="rounded-md border p-2">
+   399→                        <div className="text-lg font-bold tabular-nums" style={{ color: s.fill }}>{s.count}</div>
+   400→                        <div className="text-[10px] text-muted-foreground">{s.name}</div>
+   401→                      </div>
+   402→                    ))}
+   403→                  </div>
+   404→                </CardContent>
+   405→              </Card>
+   406→            </div>
+   407→          </TabsContent>
+   408→
+   409→          {/* Punch List tab */}
+   410→          <TabsContent value="punch" className="mt-3 space-y-4">
+   411→            <div className="grid gap-4 lg:grid-cols-3">
+   412→              <Card className="lg:col-span-2">
+   413→                <CardHeader className="pb-3">
+   414→                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   415→                    <div>
+   416→                      <CardTitle className="text-sm">Punch List</CardTitle>
+   417→                      <CardDescription className="text-xs">{filteredPunches.length} of {PUNCHES.length} punch items</CardDescription>
+   418→                    </div>
+   419→                    <div className="flex flex-wrap gap-2">
+   420→                      <div className="relative">
+   421→                        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   422→                        <Input value={pq} onChange={e => setPq(e.target.value)} placeholder="Search punch items…" className="pl-8 h-9 w-52" />
+   423→                      </div>
+   424→                      <Select value={pStatus} onValueChange={setPStatus}>
+   425→                        <SelectTrigger className="h-9 w-36"><Filter className="h-3.5 w-3.5 mr-1.5" /><SelectValue /></SelectTrigger>
+   426→                        <SelectContent>
+   427→                          <SelectItem value="all">All Status</SelectItem>
+   428→                          <SelectItem value="Open">Open</SelectItem>
+   429→                          <SelectItem value="In Progress">In Progress</SelectItem>
+   430→                          <SelectItem value="Closed">Closed</SelectItem>
+   431→                        </SelectContent>
+   432→                      </Select>
+   433→                    </div>
+   434→                  </div>
+   435→                </CardHeader>
+   436→                <CardContent className="p-0">
+   437→                  <div className="max-h-[560px] overflow-auto scroll-thin">
+   438→                    <Table>
+   439→                      <TableHeader className="sticky top-0 bg-card z-10">
+   440→                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+   441→                          <TableHead className="w-[70px]">Item ID</TableHead>
+   442→                          <TableHead className="min-w-[220px]">Description</TableHead>
+   443→                          <TableHead className="w-[80px]">Project</TableHead>
+   444→                          <TableHead className="w-[110px]">Trade</TableHead>
+   445→                          <TableHead className="w-[110px]">Status</TableHead>
+   446→                          <TableHead className="w-[120px]">Assigned To</TableHead>
+   447→                          <TableHead className="w-[80px]">Priority</TableHead>
+   448→                          <TableHead className="w-[100px]">Due Date</TableHead>
+   449→                        </TableRow>
+   450→                      </TableHeader>
+   451→                      <TableBody>
+   452→                        {filteredPunches.map(p => (
+   453→                          <TableRow key={p.id} className="hover:bg-muted/40">
+   454→                            <TableCell className="font-mono text-[10px] text-muted-foreground">{p.id}</TableCell>
+   455→                            <TableCell><div className="text-xs font-medium truncate max-w-[260px]">{p.desc}</div></TableCell>
+   456→                            <TableCell className="font-mono text-[10px]">{p.project}</TableCell>
+   457→                            <TableCell className="text-[10px]">{p.trade}</TableCell>
+   458→                            <TableCell><Badge variant="outline" className={cn('text-[9px]', PUNCH_STATUS_BADGE[p.status])}>{p.status}</Badge></TableCell>
+   459→                            <TableCell className="text-[11px]">{p.assigned}</TableCell>
+   460→                            <TableCell><Badge variant="outline" className={cn('text-[9px]', PRIORITY_BADGE[p.priority])}>{p.priority}</Badge></TableCell>
+   461→                            <TableCell className="text-[10px] text-muted-foreground">{fmtDate(p.due)}</TableCell>
+   462→                          </TableRow>
+   463→                        ))}
+   464→                        {filteredPunches.length === 0 && <TableRow><TableCell colSpan={8} className="text-center text-xs text-muted-foreground py-10">No punch items match filters</TableCell></TableRow>}
+   465→                      </TableBody>
+   466→                    </Table>
+   467→                  </div>
+   468→                </CardContent>
+   469→              </Card>
+   470→
+   471→              <Card>
+   472→                <CardHeader className="pb-3">
+   473→                  <CardTitle className="text-sm">Punch Status Distribution</CardTitle>
+   474→                  <CardDescription className="text-xs">Open · In Progress · Closed</CardDescription>
+   475→                </CardHeader>
+   476→                <CardContent>
+   477→                  <ResponsiveContainer width="100%" height={240}>
+   478→                    <PieChart>
+   479→                      <Pie data={punchByStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2}>
+   480→                        {punchByStatus.map((d, i) => <Cell key={i} fill={d.fill} />)}
+   481→                      </Pie>
+   482→                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+   483→                      {/* Legend rendered manually below for compactness */}
+   484→                    </PieChart>
+   485→                  </ResponsiveContainer>
+   486→                  <div className="mt-2 flex flex-wrap justify-center gap-3 text-[10px]">
+   487→                    {punchByStatus.map(s => (
+   488→                      <span key={s.name} className="flex items-center gap-1.5">
+   489→                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.fill }} />
+   490→                        <span className="text-muted-foreground">{s.name}</span>
+   491→                        <span className="font-semibold tabular-nums">{s.value}</span>
+   492→                      </span>
+   493→                    ))}
+   494→                  </div>
+   495→                  <div className="mt-3 pt-3 border-t flex items-center gap-2 text-[11px]">
+   496→                    <ShieldAlert className="h-3.5 w-3.5 text-amber-600" />
+   497→                    <span className="text-muted-foreground">Closure rate:</span>
+   498→                    <span className="font-semibold tabular-nums">
+   499→                      {Math.round((PUNCHES.filter(p => p.status === 'Closed').length / PUNCHES.length) * 100)}%
+   500→                    </span>
+   501→                  </div>
+   502→                </CardContent>
+   503→              </Card>
+   504→            </div>
+   505→          </TabsContent>
+   506→        </Tabs>
+   507→      </div>
+   508→    </FadeIn>
+   509→  )
+   510→}
+   511→
