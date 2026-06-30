@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { KpiCard } from '../kpi-card'
+import { AnimatedNumber } from '../animated-number'
 import { ProjectDrawer } from '../project-drawer'
 import { fmtMoney, fmtNum, fmtPct, fmtDate, healthColor, statusColor, type Kpis, type ProjectLite, type RiskLite, type ActivityLite, type ChangeLite } from '@/lib/eppm'
 import {
@@ -109,12 +110,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
 
       {/* KPI grid */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-        <KpiCard label="Portfolio Budget" value={fmtMoney(k.totalBudget)} sub={`${k.portfolios} portfolios`} icon={DollarSign} tone="emerald" trend={{ value: 2.4, up: true }} />
-        <KpiCard label="Actual Spend" value={fmtMoney(k.totalActual)} sub={`of ${fmtMoney(k.totalForecast)} forecast`} icon={TrendingUp} tone="amber" trend={{ value: 1.8, up: true }} />
-        <KpiCard label="Revenue (Backlog)" value={fmtMoney(k.totalRevenue)} sub={`GP ${fmtMoney(k.grossProfit)}`} icon={Target} tone="sky" trend={{ value: 3.1, up: true }} />
-        <KpiCard label="Avg Progress" value={fmtPct(k.avgProgress)} sub={`${k.projects} active projects`} icon={Activity} tone="default" trend={{ value: 4.2, up: true }} />
-        <KpiCard label="Critical Activities" value={fmtNum(k.criticalActivities)} sub={`avg float ${k.avgFloat.toFixed(1)}d`} icon={GitBranch} tone="rose" />
-        <KpiCard label="Open Risks" value={fmtNum(k.openRisks)} sub={`${k.highRisks} high-severity`} icon={AlertTriangle} tone="rose" />
+        <KpiCard label="Portfolio Budget" value={<AnimatedNumber value={k.totalBudget} format="money" />} sub={`${k.portfolios} portfolios`} icon={DollarSign} tone="emerald" trend={{ value: 2.4, up: true }} />
+        <KpiCard label="Actual Spend" value={<AnimatedNumber value={k.totalActual} format="money" />} sub={`of ${fmtMoney(k.totalForecast)} forecast`} icon={TrendingUp} tone="amber" trend={{ value: 1.8, up: true }} />
+        <KpiCard label="Revenue (Backlog)" value={<AnimatedNumber value={k.totalRevenue} format="money" />} sub={`GP ${fmtMoney(k.grossProfit)}`} icon={Target} tone="sky" trend={{ value: 3.1, up: true }} />
+        <KpiCard label="Avg Progress" value={<AnimatedNumber value={k.avgProgress} format="percent" />} sub={`${k.projects} active projects`} icon={Activity} tone="default" trend={{ value: 4.2, up: true }} />
+        <KpiCard label="Critical Activities" value={<AnimatedNumber value={k.criticalActivities} format="int" />} sub={`avg float ${k.avgFloat.toFixed(1)}d`} icon={GitBranch} tone="rose" />
+        <KpiCard label="Open Risks" value={<AnimatedNumber value={k.openRisks} format="int" />} sub={`${k.highRisks} high-severity`} icon={AlertTriangle} tone="rose" />
       </div>
 
       {/* Charts row 1 */}

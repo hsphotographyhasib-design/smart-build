@@ -4,9 +4,8 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Scale, X, Plus, TrendingUp, TrendingDown, Minus, Download, ArrowUpDown } from 'lucide-react'
+import { Scale, X, Plus, TrendingUp, TrendingDown, Minus, Download, ArrowUpDown, Check } from 'lucide-react'
 import { useDashboardData } from '../use-data'
 import { fmtMoney, fmtPct, fmtDate, fmtNum, healthColor, statusColor, exportCsv, type View, type ProjectLite } from '@/lib/eppm'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
@@ -118,18 +117,22 @@ export function CompareView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   const disabled = !checked && selected.length >= 4
                   const idx = selected.indexOf(p.id)
                   return (
-                    <button
+                    <div
                       key={p.id}
+                      role="button"
+                      tabIndex={disabled ? -1 : 0}
                       onClick={() => !disabled && toggle(p.id)}
-                      disabled={disabled}
+                      onKeyDown={(e) => { if (!disabled && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(p.id) } }}
                       className={cn(
                         'flex items-center gap-2.5 rounded-lg border p-2 text-left transition-all',
-                        checked ? 'border-primary bg-primary/5' : 'hover:bg-muted/40',
-                        disabled && 'opacity-40 cursor-not-allowed'
+                        disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/40',
+                        checked ? 'border-primary bg-primary/5' : 'hover:bg-muted/40'
                       )}
                       style={checked ? { borderColor: PALETTE[idx % 6] + '80', backgroundColor: PALETTE[idx % 6] + '10' } : {}}
                     >
-                      <Checkbox checked={checked} disabled={disabled} className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                      <span className={cn('grid h-4 w-4 shrink-0 place-items-center rounded border transition-colors', checked ? 'bg-primary border-primary text-primary-foreground' : 'border-input')}>
+                        {checked && <Check className="h-3 w-3" />}
+                      </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono text-[10px] text-muted-foreground">{p.code}</span>
@@ -138,7 +141,7 @@ export function CompareView({ onNavigate }: { onNavigate: (v: View) => void }) {
                         <div className="text-xs font-medium truncate">{p.name}</div>
                       </div>
                       <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{p.progress.toFixed(0)}%</span>
-                    </button>
+                    </div>
                   )
                 })}
               </div>

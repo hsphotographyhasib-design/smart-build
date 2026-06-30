@@ -3,7 +3,7 @@
 import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks,
   CalendarRange, GitBranch, Users, DollarSign, TrendingUp, GitCompareArrows,
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
-  ChevronDown, Building2, Radio, Construction, Scale,
+  ChevronDown, Building2, Radio, Construction, Scale, Milestone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -24,6 +24,7 @@ const groups: NavGroup[] = [
     { id: 'activities', label: 'Activities', icon: ListChecks },
     { id: 'gantt', label: 'Gantt Schedule', icon: CalendarRange },
     { id: 'critical-path', label: 'Critical Path', icon: GitBranch },
+    { id: 'milestones', label: 'Milestone Timeline', icon: Milestone },
     { id: 'lookahead', label: 'Lookahead', icon: Telescope },
   ]},
   { title: 'Controls', items: [

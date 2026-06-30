@@ -1,7 +1,7 @@
 // Shared EPPM client-side types (mirror API shapes loosely)
 export type View =
   | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare'
-  | 'wbs' | 'activities' | 'gantt' | 'critical-path'
+  | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
   | 'resources' | 'costs' | 'evm' | 'baselines'
   | 'risks' | 'changes' | 'lookahead'
   | 'documents' | 'site-progress' | 'reports' | 'ai-planner' | 'admin'

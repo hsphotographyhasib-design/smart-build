@@ -235,3 +235,58 @@ Task: QA via agent-browser, add Project Comparison view + wire drawer into Dashb
 - PDF/Excel export (currently CSV only).
 - Add a Milestone Timeline view (programme-level milestone Gantt across projects).
 - Add a Notifications/Alerts center (consolidate delayed activities, expiring risks, pending approvals).
+
+---
+Task ID: CRON-4 (webDevReview round 4)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, fix nested-button hydration bug, add Notifications Center + Milestone Timeline + animated KPIs.
+
+## 1. Current Project Status Assessment
+- Platform stable: 22 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA found 1 real bug (nested-button hydration error) + proceeded to feature development.
+
+## 2. Completed Modifications
+
+### Bug fixes
+1. **CRITICAL — Nested `<button>` hydration error**: The Compare view's project picker had a `<button>` containing a `<Checkbox>` (which renders as a `<button>`), causing React hydration warnings ("button cannot be a descendant of button"). Fixed by converting the outer `<button>` to a `<div role="button">` with a custom styled checkbox indicator (Check icon). Verified: console cleared + reloaded, no hydration errors.
+2. **Milestone Timeline runtime crash**: `now` variable was scoped inside a `useMemo` callback but referenced outside it at component level → `ReferenceError`. Fixed by declaring `const now = Date.now()` at component scope. Verified: view loads and renders correctly.
+
+### New features
+3. **Notifications/Alerts Center (topbar bell dropdown)** — consolidates portfolio-wide alerts:
+   - Replaces the static bell button with a `Popover` panel.
+   - Badge shows total alert count; pulses red when high-severity alerts exist.
+   - **6 tabs**: All / Delay / Risk / Approve / Crit / Budget — each with live counts.
+   - **Alert types**: delayed activities (+slip days), high-score open risks (P×I), pending change-order approvals, zero-float critical-path activities, budget overruns (forecast > budget+5%).
+   - Each alert row: colored severity icon, project code, title, detail, date, meta badge; clicking navigates to the relevant module (risks/changes/critical-path/costs).
+   - Empty state ("All clear") when no alerts.
+   - Footer links to Risk Register + Pending Approvals.
+   - VLM-verified: "16 total, 9 high, 6 risks, 5 approvals, 4 critical, 1 budget — all renders correctly with real data".
+   - File: `src/components/eppm/notifications-bell.tsx` (~180 lines). Wired into TopBar (requires `onNavigate` prop).
+
+4. **Milestone Timeline view (NEW module, 22nd)** — programme-level milestone schedule:
+   - **4 KPI cards**: Total / Completed / Upcoming / Overdue milestones.
+   - **Timeline visualisation**: month-label header, red TODAY marker, project lanes (top 8 projects) with animated diamond markers (green=completed, amber=upcoming, rose=overdue); hover tooltips show milestone name + date; click opens Project Drawer.
+   - **Filter buttons**: all / completed / upcoming / overdue.
+   - **Milestone register list**: scrollable, sorted by date, with status icons, project codes, health badges, "in Nd" / "Nd overdue" relative dates.
+   - Framer Motion spring animation on marker entrance; FadeIn wrapper.
+   - File: `src/components/eppm/views/milestones-view.tsx` (~240 lines).
+   - VLM-verified: "11 milestones (6 upcoming, 5 overdue), TODAY marker, project lanes with diamond markers, filters, register list — all renders correctly".
+
+### Styling polish
+5. **Animated count-up KPIs on Dashboard**: 6 KPI cards now animate from 0 to their target value on load (money/percent/int formats) using a new `AnimatedNumber` component backed by `useCountUp` (requestAnimationFrame easing). VLM-verified: "$1.9B, $722M, $2.5B, 37.1%, 54, 11" all display.
+6. New `AnimatedNumber` component (`src/components/eppm/animated-number.tsx`) — reusable across views.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 22 views: 0 runtime errors, 0 hydration errors.
+- VLM-verified: Notifications panel (real alerts with correct counts), Milestone Timeline (11 milestones, TODAY marker, diamond markers), Dashboard KPIs (animated, real values).
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Global search functionality (the topbar search input is currently decorative).
+- Add a Portfolio Forecast / What-If scenario modelling view.

@@ -11,6 +11,7 @@ import { ProgramsView } from '@/components/eppm/views/programs-view'
 import { GanttView } from '@/components/eppm/views/gantt-view'
 import { ActivitiesView } from '@/components/eppm/views/activities-view'
 import { CriticalPathView } from '@/components/eppm/views/critical-path-view'
+import { MilestonesView } from '@/components/eppm/views/milestones-view'
 import { ResourcesView } from '@/components/eppm/views/resources-view'
 import { CostsView } from '@/components/eppm/views/costs-view'
 import { EvmView } from '@/components/eppm/views/evm-view'
@@ -56,6 +57,7 @@ export default function Home() {
       case 'activities': return <ActivitiesView onNavigate={navigate} />
       case 'gantt': return <GanttView projectId={projectId} setProjectId={setProjectId} onNavigate={navigate} />
       case 'critical-path': return <CriticalPathView onNavigate={navigate} />
+      case 'milestones': return <MilestonesView onNavigate={navigate} />
       case 'resources': return <ResourcesView onNavigate={navigate} />
       case 'costs': return <CostsView onNavigate={navigate} />
       case 'evm': return <EvmView onNavigate={navigate} />
@@ -76,7 +78,7 @@ export default function Home() {
     <div className="flex min-h-screen w-full bg-muted/20">
       <Sidebar view={view} onNavigate={navigate} collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar view={view} onToggleSidebar={() => setCollapsed(c => !c)} />
+        <TopBar view={view} onToggleSidebar={() => setCollapsed(c => !c)} onNavigate={navigate} />
         <main className="flex-1 p-4 lg:p-6">
           <div className="mx-auto max-w-[1600px]">
             <FadeIn key={view}>{render()}</FadeIn>

@@ -1,12 +1,13 @@
 'use client'
 
-import { Search, Bell, Menu, Moon, Sun, Plus, HelpCircle, ChevronRight } from 'lucide-react'
+import { Search, Menu, Moon, Sun, Plus, HelpCircle, ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { NotificationsBell } from './notifications-bell'
 import type { View } from '@/lib/eppm'
 
 const titles: Record<View, { title: string; sub: string }> = {
@@ -19,6 +20,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   activities: { title: 'Activity Management', sub: 'Schedule activity register' },
   gantt: { title: 'Gantt Schedule', sub: 'Interactive programme timeline' },
   'critical-path': { title: 'Critical Path Analysis', sub: 'CPM network & float analysis' },
+  milestones: { title: 'Milestone Timeline', sub: 'Programme-level milestone schedule' },
   resources: { title: 'Resource Management', sub: 'Labour, equipment & materials' },
   costs: { title: 'Cost Management', sub: 'Budget vs actual & forecast' },
   evm: { title: 'Earned Value Management', sub: 'PV · EV · AC · SPI · CPI' },
@@ -33,7 +35,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   admin: { title: 'System Administration', sub: 'RBAC · audit · configuration' },
 }
 
-export function TopBar({ view, onToggleSidebar }: { view: View; onToggleSidebar: () => void }) {
+export function TopBar({ view, onToggleSidebar, onNavigate }: { view: View; onToggleSidebar: () => void; onNavigate: (v: View) => void }) {
   const { theme, setTheme } = useTheme()
   const t = titles[view] ?? titles.dashboard
   return (
@@ -57,10 +59,7 @@ export function TopBar({ view, onToggleSidebar }: { view: View; onToggleSidebar:
         <Plus className="h-4 w-4" /> New Project
       </Button>
 
-      <Button variant="ghost" size="icon" className="relative">
-        <Bell className="h-5 w-5" />
-        <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">7</span>
-      </Button>
+      <NotificationsBell onNavigate={onNavigate} />
 
       <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
