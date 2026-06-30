@@ -1,0 +1,324 @@
+// SmartBuild EPPM — Enterprise Project Portfolio Management
+// Primavera P6-style data model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------
+// ORGANISATIONAL HIERARCHY
+// -----------------------------------------------------------
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  businessUnit String?
+  department  String?
+  client      String?
+  description String?
+  status      String   @default("Active") // Active | On Hold | Closed
+  health      String   @default("Green")  // Green | Yellow | Red
+  budget      Float    @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  managerId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  programs    Program[]
+  projects    Project[]
+}
+
+model Program {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  status      String   @default("Active")
+  health      String   @default("Green")
+  budget      Float    @default(0)
+  managerId   String?
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects    Project[]
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  description   String?
+  status        String   @default("Active") // Active | Planning | On Hold | Completed | Cancelled
+  health        String   @default("Green")   // Green | Yellow | Red
+  category      String?  // Building | Infrastructure | Industrial | MEP | Fit-Out
+  priority      String   @default("Medium")  // Low | Medium | High | Critical
+  budget        Float    @default(0)
+  actualCost    Float    @default(0)
+  committedCost Float    @default(0)
+  forecastCost  Float    @default(0)
+  revenue       Float    @default(0)
+  progress      Float    @default(0) // 0-100
+  startDate     DateTime?
+  finishDate    DateTime?
+  baselineStart DateTime?
+  baselineFinish DateTime?
+  portfolioId   String?
+  portfolio     Portfolio? @relation(fields: [portfolioId], references: [id])
+  programId     String?
+  program       Program?   @relation(fields: [programId], references: [id])
+  managerId     String?
+  client        String?
+  location      String?
+  createdAt     DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wbs           Wbs[]
+  activities    Activity[]
+  risks         Risk[]
+  baselines     Baseline[]
+  changes       ChangeOrder[]
+  documents     Document[]
+  reports       DailyReport[]
+}
+
+// -----------------------------------------------------------
+// WORK BREAKDOWN STRUCTURE
+// -----------------------------------------------------------
+
+model Wbs {
+  id          String   @id @default(cuid())
+  code        String
+  name        String
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Wbs?     @relation("WbsTree", fields: [parentId], references: [id])
+  children    Wbs[]    @relation("WbsTree")
+  level       Int      @default(1)
+  weight      Float    @default(0)
+  progress    Float    @default(0)
+  startDate   DateTime?
+  finishDate  DateTime?
+  budget      Float    @default(0)
+  actualCost  Float    @default(0)
+  isMilestone Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activities  Activity[]
+}
+
+// -----------------------------------------------------------
+// ACTIVITIES & SCHEDULING
+// -----------------------------------------------------------
+
+model Activity {
+  id            String   @id @default(cuid())
+  activityId    String
+  name          String
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  wbsId         String?
+  wbs           Wbs?     @relation(fields: [wbsId], references: [id])
+  type          String   @default("Task Activity") // Task | LOE | Start Milestone | Finish Milestone | WBS Summary
+  status        String   @default("Not Started") // Not Started | In Progress | Completed
+  duration      Float    @default(0) // original duration (days)
+  remainingDur  Float    @default(0)
+  actualDur     Float    @default(0)
+  startDate     DateTime?
+  finishDate    DateTime?
+  earlyStart    DateTime?
+  earlyFinish   DateTime?
+  lateStart     DateTime?
+  lateFinish    DateTime?
+  baselineStart DateTime?
+  baselineFinish DateTime?
+  progress      Float    @default(0) // 0-100
+  totalFloat    Float    @default(0)
+  freeFloat     Float    @default(0)
+  isCritical    Boolean  @default(false)
+  constraint    String?  // As Late As Possible | Must Start On | etc
+  constraintDate DateTime?
+  calendar      String   @default("Standard 5d")
+  responsible   String?
+  cost          Float    @default(0)
+  actualCost    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  predecessors  Dependency[] @relation("Successor")
+  successors    Dependency[] @relation("Predecessor")
+  assignments   ResourceAssignment[]
+}
+
+model Dependency {
+  id            String @id @default(cuid())
+  predecessorId String
+  successorId   String
+  type          String @default("FS") // FS | SS | FF | SF
+  lag           Float  @default(0)
+  predecessor   Activity @relation("Predecessor", fields: [predecessorId], references: [id], onDelete: Cascade)
+  successor     Activity @relation("Successor", fields: [successorId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------
+// RESOURCES
+// -----------------------------------------------------------
+
+model Resource {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  name       String
+  type       String   @default("Labour") // Labour | Equipment | Material | Vehicle | Tool | Subcontractor | Crew
+  role       String?
+  unit       String   @default("day") // day | hour | m3 | ton | lump
+  rate       Float    @default(0)
+  maxUnits   Float    @default(8) // availability per day
+  calendar   String   @default("Standard 5d")
+  department String?
+  phone      String?
+  email      String?
+  status     String   @default("Active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  assignments ResourceAssignment[]
+}
+
+model ResourceAssignment {
+  id          String  @id @default(cuid())
+  activityId  String
+  resourceId  String
+  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  resource    Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  plannedUnits Float  @default(0)
+  actualUnits  Float  @default(0)
+  remainingUnits Float @default(0)
+  cost        Float   @default(0)
+  unitsPerDay Float   @default(1)
+}
+
+// -----------------------------------------------------------
+// RISK MANAGEMENT
+// -----------------------------------------------------------
+
+model Risk {
+  id          String   @id @default(cuid())
+  code        String
+  title       String
+  description String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    String   @default("Schedule") // Schedule | Cost | Technical | External | Resource | Quality
+  probability Int      @default(3) // 1-5
+  impact      Int      @default(3) // 1-5
+  score       Int      @default(9)
+  status      String   @default("Open") // Open | Mitigated | Closed | Realized
+  strategy    String?  // Avoid | Mitigate | Transfer | Accept
+  mitigation  String?
+  owner       String?
+  responseCost Float   @default(0)
+  raisedDate  DateTime @default(now())
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -----------------------------------------------------------
+// BASELINE MANAGEMENT
+// -----------------------------------------------------------
+
+model Baseline {
+  id          String   @id @default(cuid())
+  name        String
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        String   @default("Project") // Project | Primary | Secondary
+  isCurrent   Boolean  @default(false)
+  startDate   DateTime?
+  finishDate  DateTime?
+  budget      Float    @default(0)
+  duration    Float    @default(0)
+  notes       String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+}
+
+// -----------------------------------------------------------
+// CHANGE MANAGEMENT
+// -----------------------------------------------------------
+
+model ChangeOrder {
+  id          String   @id @default(cuid())
+  code        String
+  title       String
+  description String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        String   @default("Variation") // Variation | Delay Notice | Claim | EOT | Schedule Revision
+  status      String   @default("Submitted") // Submitted | Under Review | Approved | Rejected
+  costImpact  Float    @default(0)
+  timeImpact  Float    @default(0) // days
+  raisedBy    String?
+  raisedDate  DateTime @default(now())
+  approvedDate DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -----------------------------------------------------------
+// DOCUMENTS & DAILY REPORTS
+// -----------------------------------------------------------
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type       String   @default("Drawing") // Drawing | Spec | Method Statement | Contract | RFI | Submittal | Photo | Report
+  category   String?
+  version    String   @default("1.0")
+  status     String   @default("Draft") // Draft | Under Review | Approved | Superseded
+  uploadedBy String?
+  fileUrl    String?
+  createdAt  DateTime @default(now())
+}
+
+model DailyReport {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reportDate DateTime
+  weather    String?
+  manpower   Int      @default(0)
+  progress   String?
+  notes      String?
+  delays     String?
+  supervisor String?
+  createdAt  DateTime @default(now())
+}
+
+// -----------------------------------------------------------
+// USERS / SYSTEM
+// -----------------------------------------------------------
+
+model AppUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("Planner")
+  avatar    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
