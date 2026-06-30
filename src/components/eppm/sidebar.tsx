@@ -3,7 +3,7 @@
 import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks,
   CalendarRange, GitBranch, Users, DollarSign, TrendingUp, GitCompareArrows,
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
-  ChevronDown, Building2, Radio, Construction, Scale, Milestone,
+  ChevronDown, Building2, Radio, Construction, Scale, Milestone, Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -29,6 +29,7 @@ const groups: NavGroup[] = [
   ]},
   { title: 'Controls', items: [
     { id: 'resources', label: 'Resources', icon: Users },
+    { id: 'procurement', label: 'Procurement', icon: Truck },
     { id: 'costs', label: 'Cost Management', icon: DollarSign },
     { id: 'evm', label: 'Earned Value (EVM)', icon: TrendingUp },
     { id: 'baselines', label: 'Baselines', icon: GitCompareArrows },

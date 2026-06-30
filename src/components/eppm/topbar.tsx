@@ -1,13 +1,14 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Search, Menu, Moon, Sun, Plus, HelpCircle, ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { NotificationsBell } from './notifications-bell'
+import { GlobalSearch } from './global-search'
 import type { View } from '@/lib/eppm'
 
 const titles: Record<View, { title: string; sub: string }> = {
@@ -28,6 +29,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   risks: { title: 'Risk Register', sub: 'Probability × impact analysis' },
   changes: { title: 'Change Management', sub: 'Variations, EOT & claims' },
   lookahead: { title: 'Lookahead Planning', sub: 'Short-interval work window' },
+  procurement: { title: 'Procurement Planning', sub: 'Materials, suppliers & lead times' },
   documents: { title: 'Document Management', sub: 'Drawings, RFIs & submittals' },
   'site-progress': { title: 'Site Progress', sub: 'Daily reports & progress curves' },
   reports: { title: 'Reporting & Analytics', sub: 'Export-ready enterprise reports' },
@@ -35,11 +37,25 @@ const titles: Record<View, { title: string; sub: string }> = {
   admin: { title: 'System Administration', sub: 'RBAC · audit · configuration' },
 }
 
-export function TopBar({ view, onToggleSidebar, onNavigate }: { view: View; onToggleSidebar: () => void; onNavigate: (v: View) => void }) {
+export function TopBar({ view, onToggleSidebar, onNavigate, onOpenProject }: { view: View; onToggleSidebar: () => void; onNavigate: (v: View) => void; onOpenProject: (id: string) => void }) {
   const { theme, setTheme } = useTheme()
   const t = titles[view] ?? titles.dashboard
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} onNavigate={onNavigate} onOpenProject={onOpenProject} />
       <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="shrink-0">
         <Menu className="h-5 w-5" />
       </Button>
@@ -50,10 +66,11 @@ export function TopBar({ view, onToggleSidebar, onNavigate }: { view: View; onTo
         <h1 className="truncate text-base font-bold tracking-tight leading-tight">{t.title}</h1>
       </div>
 
-      <div className="hidden md:flex relative w-72">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search projects, activities, risks…" className="pl-8 h-9 bg-muted/50 border-0" />
-      </div>
+      <button onClick={() => setSearchOpen(true)} className="hidden md:flex relative w-72 items-center gap-2 rounded-lg border bg-muted/50 px-3 h-9 text-muted-foreground hover:bg-muted transition-colors">
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="text-xs flex-1 text-left">Search projects, activities, risks…</span>
+        <kbd className="inline-flex h-5 items-center gap-0.5 rounded border bg-background px-1 font-mono text-[9px]">⌘K</kbd>
+      </button>
 
       <Button variant="outline" size="sm" className="hidden lg:flex h-9 gap-1.5">
         <Plus className="h-4 w-4" /> New Project

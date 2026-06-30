@@ -19,6 +19,7 @@ import { RisksView } from '@/components/eppm/views/risks-view'
 import { BaselinesView } from '@/components/eppm/views/baselines-view'
 import { ChangesView } from '@/components/eppm/views/changes-view'
 import { LookaheadView } from '@/components/eppm/views/lookahead-view'
+import { ProcurementView } from '@/components/eppm/views/procurement-view'
 import { DocumentsView } from '@/components/eppm/views/documents-view'
 import { SiteProgressView } from '@/components/eppm/views/site-progress-view'
 import { ReportsView } from '@/components/eppm/views/reports-view'
@@ -65,6 +66,7 @@ export default function Home() {
       case 'risks': return <RisksView onNavigate={navigate} />
       case 'changes': return <ChangesView onNavigate={navigate} />
       case 'lookahead': return <LookaheadView onNavigate={navigate} />
+      case 'procurement': return <ProcurementView onNavigate={navigate} />
       case 'documents': return <DocumentsView onNavigate={navigate} />
       case 'site-progress': return <SiteProgressView onNavigate={navigate} />
       case 'reports': return <ReportsView onNavigate={navigate} />
@@ -78,7 +80,7 @@ export default function Home() {
     <div className="flex min-h-screen w-full bg-muted/20">
       <Sidebar view={view} onNavigate={navigate} collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar view={view} onToggleSidebar={() => setCollapsed(c => !c)} onNavigate={navigate} />
+        <TopBar view={view} onToggleSidebar={() => setCollapsed(c => !c)} onNavigate={navigate} onOpenProject={(id) => { setProjectId(id); navigate('gantt') }} />
         <main className="flex-1 p-4 lg:p-6">
           <div className="mx-auto max-w-[1600px]">
             <FadeIn key={view}>{render()}</FadeIn>

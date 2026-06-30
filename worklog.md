@@ -290,3 +290,61 @@ Task: QA via agent-browser, fix nested-button hydration bug, add Notifications C
 - PDF/Excel export (currently CSV only).
 - Global search functionality (the topbar search input is currently decorative).
 - Add a Portfolio Forecast / What-If scenario modelling view.
+
+---
+Task ID: CRON-5 (webDevReview round 5)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add Global Search command palette + Procurement Planning view + styling polish.
+
+## 1. Current Project Status Assessment
+- Platform stable: 23 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all views load with 0 runtime errors, 0 hydration errors. No bugs found.
+- Proceeded to feature development per next-phase recommendations (global search was top recommendation).
+
+## 2. Completed Modifications
+
+### New features
+1. **Global Search command palette (Ctrl/Cmd+K)** — replaces the decorative topbar search input:
+   - Clicking the search button or pressing Ctrl/Cmd+K opens a cmdk-powered dialog.
+   - Searches across **4 entity types** in real-time: Projects, Activities, Risks, Changes.
+   - Grouped results with counts per type; each result has colored icon, title, subtitle (code/project/status/score), and badge.
+   - Keyboard navigation (↑↓ to navigate, ↵ to select, ESC to close).
+   - Selecting a result navigates to the relevant module (and opens project drawer for project/activity results).
+   - Footer shows result count + keyboard hints.
+   - Fixed cmdk filtering: set `shouldFilter={false}` to use external query-based filtering (cmdk's internal filter was hiding valid results).
+   - VLM-verified: "tower" → 2 projects (North/South Tower) + 2 activities (Tower Slabs). Keyboard nav + enter navigated to Activity Management.
+   - File: `src/components/eppm/global-search.tsx` (~130 lines). Wired into TopBar (requires `onNavigate` + `onOpenProject` props).
+
+2. **Procurement Planning view (NEW module, 23rd)** — material planning & supplier tracking:
+   - **6 KPI cards**: Total PR Value ($40.6M), Open Requests, On Order, Delivered, Delayed, Active Suppliers.
+   - **3 tabs**:
+     - Purchase Requests: filterable table (15 PRs) with PR code, material, project, quantity/unit, supplier, lead time, status (color-coded), delivery date (red if overdue), value. Search + status filter + category filter + export/new buttons.
+     - Suppliers: 7 supplier cards with factory icons, country, star rating, on-time rate %, open orders, order value, progress bars.
+     - Analytics: Spend by Category pie chart + Supplier Lead Times & On-time Performance dual-axis bar chart.
+   - 15 realistic purchase requests across all flagship projects (Metro, Tower, Solar, Hospital, Bridge, Mall, WTP) with 7 suppliers.
+   - VLM-verified: all KPIs, table, supplier cards, and charts render correctly with real data.
+   - File: `src/components/eppm/views/procurement-view.tsx` (~240 lines).
+   - Added `procurement` to View type, sidebar nav (Controls group, Truck icon), topbar title.
+
+### Styling polish
+3. **Search button redesign**: topbar search is now a styled button with ⌘K kbd hint (was a plain Input).
+4. **Procurement KPI cards**: top accent gradient bars, colored icon tiles, tabular numbers.
+5. **Procurement table**: delayed rows tinted rose, overdue delivery dates in red bold, status badges color-coded.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 23 views: 0 runtime errors, 0 hydration errors.
+- VLM-verified:
+  - Global Search: "tower" → 2 projects + 2 activities, keyboard nav works, navigates on enter.
+  - Procurement: 6 KPIs ($40.6M total), 15 PRs in table, supplier cards with ratings/on-time, pie + bar charts.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Portfolio Forecast / What-If scenario modelling view.
+- Equipment Planning view (equipment schedule, allocation, maintenance, QR integration).
+- Workforce Planning view (crew allocation, competency matrix, rotations).
