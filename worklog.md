@@ -408,3 +408,59 @@ Task: QA via agent-browser, fix DialogTitle accessibility bug, add Equipment Pla
 - Portfolio Forecast / What-If scenario modelling view.
 - Cash Flow Forecast view (dedicated cash-flow projection with monthly buckets, committed vs actual).
 - Integration Hub view (maintenance, tender, finance, HR, inventory, CRM connectors status).
+
+---
+Task ID: CRON-7 (webDevReview round 7)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add Cash Flow Forecast + Integration Hub views.
+
+## 1. Current Project Status Assessment
+- Platform stable: 27 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all views load with 0 runtime errors. No bugs found.
+- Proceeded to feature development per next-phase recommendations (cash flow + integrations were top recommendations).
+
+## 2. Completed Modifications
+
+### New features
+1. **Cash Flow Forecast view (NEW module, 26th)** — dedicated cash-flow projection:
+   - **6 KPI cards**: Total Inflow ($2.3B), Total Outflow ($1.4B), Net Position ($922M), Peak Funding, YTD Inflow ($824M), YTD Outflow ($295M).
+   - **3 tabs**:
+     - Cash Flow S-Curve: ComposedChart with inflow (emerald area), outflow (rose area), net cash (sky line) over monthly buckets. Revenue distributed proportionally to planned; actuals for past months, forecast for future.
+     - Monthly Breakdown: table with Month/Inflow/Outflow/Net/Cumulative/Status (Actual vs Forecast badge), color-coded net (emerald positive / rose negative), cumulative bold.
+     - Cumulative Position: ComposedChart with cumulative area + inflow/outflow lines + Cash Health card (margin %, peak funding) + Funding Requirements list (months with negative cumulative).
+   - Computes inflow from revenue, outflow from actual/forecast cost, net, and running cumulative.
+   - VLM-verified: "$2.3B inflow, $1.4B outflow, $922M net — all renders correctly".
+   - File: `src/components/eppm/views/cashflow-view.tsx` (~200 lines). Fixed lint: refactored cumulative useMemo from mutable `run` to immutable reduce.
+
+2. **Integration Hub view (NEW module, 27th)** — ERP & external system connectors:
+   - **6 KPI cards**: Total Connectors (12), Connected (9), Syncing (1), Errors (1), Avg Health (91%), Records Synced (157,556).
+   - **3 tabs**:
+     - Connectors: grid of 12 connector cards (CMMS, Tender, Finance, HR/Payroll, Inventory, Procurement, CRM, Google Maps, WhatsApp, Email/SMTP, QR Management, Technician Portal) with icons, category, description, status badge (connected/syncing/error/disconnected with appropriate icons), last-sync time, health % bar, records count, sync interval, enable/disable Switch (toggles state). Error connectors border-rose, disabled opacity-60.
+     - Sync Activity: 24-hour area chart (syncs + errors per hour) + Integration Status card (uptime 99.7%, latency 142ms, data 2.4GB) + By Category breakdown.
+     - Error Log: scrollable list of 8 recent sync failures with severity icons, error codes (AUTH_401, TIMEOUT, RATE_429, etc.), timestamps, color-coded by severity.
+   - Interactive: toggling a connector's switch changes its status (disconnected ↔ syncing).
+   - VLM-verified: "12 connectors, 9 connected, 1 syncing, 1 error, 91% health, 157,556 records — all renders correctly".
+   - File: `src/components/eppm/views/integrations-view.tsx` (~230 lines).
+   - Added `cashflow` + `integrations` to View type, sidebar nav (Controls group Wallet icon, System group Plug icon), topbar titles.
+
+### Styling polish
+3. **Cash Flow**: gradient areas for inflow (emerald) / outflow (rose), color-coded net values, cumulative bold, funding-requirements list with amber badges, Cash Health gradient card.
+4. **Integrations**: top status bar per connector card (emerald/amber/rose/muted by status), spinning RefreshCw icon for syncing, health progress bars, severity-colored error log entries, Switch toggles with visual feedback.
+
+## 3. Verification Results
+- ESLint: clean (fixed 1 immutability lint error in cashflow cumulative reduce).
+- All API routes 200.
+- agent-browser sweep of all 27 views: 0 runtime errors, 0 accessibility/hydration errors.
+- VLM-verified:
+  - Cash Flow: 6 KPIs ($2.3B/$1.4B/$922M), composed chart with inflow/outflow/net, all 3 tabs render.
+  - Integrations: 6 KPIs (12 connectors, 91% health, 157K records), connector grid with switches, sync activity chart, error log.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Portfolio Forecast / What-If scenario modelling view (adjust progress/cost sliders, see slippage impact).
+- Quality Management view (inspections, NCRs, punch lists, defects).
+- Health, Safety & Environment (HSE) dashboard (incidents, near-misses, toolbox talks).

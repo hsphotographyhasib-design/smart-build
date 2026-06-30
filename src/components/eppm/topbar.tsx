@@ -27,6 +27,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   workforce: { title: 'Workforce Planning', sub: 'Crew allocation & competency matrix' },
   costs: { title: 'Cost Management', sub: 'Budget vs actual & forecast' },
   evm: { title: 'Earned Value Management', sub: 'PV · EV · AC · SPI · CPI' },
+  cashflow: { title: 'Cash Flow Forecast', sub: 'Monthly inflow, outflow & cumulative position' },
   baselines: { title: 'Baseline Management', sub: 'Schedule & cost snapshots' },
   risks: { title: 'Risk Register', sub: 'Probability × impact analysis' },
   changes: { title: 'Change Management', sub: 'Variations, EOT & claims' },
@@ -36,6 +37,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   'site-progress': { title: 'Site Progress', sub: 'Daily reports & progress curves' },
   reports: { title: 'Reporting & Analytics', sub: 'Export-ready enterprise reports' },
   'ai-planner': { title: 'AI Project Planner', sub: 'Schedule optimisation & delay prediction' },
+  integrations: { title: 'Integration Hub', sub: 'ERP & external system connectors' },
   admin: { title: 'System Administration', sub: 'RBAC · audit · configuration' },
 }
 

@@ -19,6 +19,7 @@ import { CostsView } from '@/components/eppm/views/costs-view'
 import { EvmView } from '@/components/eppm/views/evm-view'
 import { RisksView } from '@/components/eppm/views/risks-view'
 import { BaselinesView } from '@/components/eppm/views/baselines-view'
+import { CashflowView } from '@/components/eppm/views/cashflow-view'
 import { ChangesView } from '@/components/eppm/views/changes-view'
 import { LookaheadView } from '@/components/eppm/views/lookahead-view'
 import { ProcurementView } from '@/components/eppm/views/procurement-view'
@@ -26,6 +27,7 @@ import { DocumentsView } from '@/components/eppm/views/documents-view'
 import { SiteProgressView } from '@/components/eppm/views/site-progress-view'
 import { ReportsView } from '@/components/eppm/views/reports-view'
 import { AiPlannerView } from '@/components/eppm/views/ai-planner-view'
+import { IntegrationsView } from '@/components/eppm/views/integrations-view'
 import { AdminView } from '@/components/eppm/views/admin-view'
 import { WbsView } from '@/components/eppm/views/wbs-view'
 import { FadeIn } from '@/components/eppm/motion'
@@ -66,6 +68,7 @@ export default function Home() {
       case 'workforce': return <WorkforceView onNavigate={navigate} />
       case 'costs': return <CostsView onNavigate={navigate} />
       case 'evm': return <EvmView onNavigate={navigate} />
+      case 'cashflow': return <CashflowView onNavigate={navigate} />
       case 'baselines': return <BaselinesView onNavigate={navigate} />
       case 'risks': return <RisksView onNavigate={navigate} />
       case 'changes': return <ChangesView onNavigate={navigate} />
@@ -75,6 +78,7 @@ export default function Home() {
       case 'site-progress': return <SiteProgressView onNavigate={navigate} />
       case 'reports': return <ReportsView onNavigate={navigate} />
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />
+      case 'integrations': return <IntegrationsView onNavigate={navigate} />
       case 'admin': return <AdminView onNavigate={navigate} />
       default: return <DashboardView onNavigate={navigate} />
     }

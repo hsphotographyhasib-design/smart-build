@@ -2,9 +2,9 @@
 export type View =
   | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare'
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
-  | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines'
+  | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
   | 'risks' | 'changes' | 'lookahead' | 'procurement'
-  | 'documents' | 'site-progress' | 'reports' | 'ai-planner' | 'admin'
+  | 'documents' | 'site-progress' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number

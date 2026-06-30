@@ -4,6 +4,7 @@ import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks
   CalendarRange, GitBranch, Users, DollarSign, TrendingUp, GitCompareArrows,
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
   ChevronDown, Building2, Radio, Construction, Scale, Milestone, Truck, Wrench, HardHat,
+  Wallet, Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -34,6 +35,7 @@ const groups: NavGroup[] = [
     { id: 'procurement', label: 'Procurement', icon: Truck },
     { id: 'costs', label: 'Cost Management', icon: DollarSign },
     { id: 'evm', label: 'Earned Value (EVM)', icon: TrendingUp },
+    { id: 'cashflow', label: 'Cash Flow Forecast', icon: Wallet },
     { id: 'baselines', label: 'Baselines', icon: GitCompareArrows },
     { id: 'risks', label: 'Risk Register', icon: AlertTriangle },
     { id: 'changes', label: 'Change Management', icon: FileEdit },
@@ -44,7 +46,10 @@ const groups: NavGroup[] = [
     { id: 'reports', label: 'Reporting', icon: BarChart3 },
     { id: 'ai-planner', label: 'AI Project Planner', icon: Sparkles },
   ]},
-  { title: 'System', items: [{ id: 'admin', label: 'Administration', icon: Settings }] },
+  { title: 'System', items: [
+    { id: 'integrations', label: 'Integration Hub', icon: Plug },
+    { id: 'admin', label: 'Administration', icon: Settings },
+  ]},
 ]
 
 export function Sidebar({ view, onNavigate, collapsed }: {
