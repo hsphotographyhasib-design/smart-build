@@ -182,3 +182,56 @@ Task: QA via agent-browser, fix bugs, add Project Detail Drawer + wire Reporting
 - Virtualize Gantt for 100k+ activities.
 - Full RBAC + NextAuth on APIs.
 - PDF/Excel export (currently CSV only) — integrate a server-side PDF generator.
+
+---
+Task ID: CRON-3 (webDevReview round 3)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add Project Comparison view + wire drawer into Dashboard + styling polish.
+
+## 1. Current Project Status Assessment
+- Platform stable: 21 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all 21 views load with 0 runtime errors. No bugs found.
+- Proceeded to feature development per next-phase recommendations.
+
+## 2. Completed Modifications
+
+### New features
+1. **Project Comparison view (NEW module, 21st)** — side-by-side portfolio benchmarking:
+   - **Multi-select project picker** (2–4 projects): scrollable grid of all projects with checkboxes, colored health dots, progress %; selected projects shown as animated chips with remove buttons; disabled state at 4 selections.
+   - **Performance Radar chart**: 6 normalized dimensions (Progress, Budget, Cost Efficiency, Revenue, Margin, Schedule) on 0–100 scale, one colored radar per project.
+   - **Budget vs Actual vs Forecast** grouped bar chart across selected projects.
+   - **Metric Comparison table**: 15 rows (Status, Health, Progress, Budget, Actual, Committed, Forecast, Cost Variance, Revenue, Gross Profit, Margin %, Spend %, Finish Slip, Start, Finish) with one column per project; best value in each row highlighted with an up/down arrow icon + primary tint.
+   - **4 Verdict cards**: Highest Margin, Most Progress, Best Cost Control, Best Schedule — auto-computed winners with values + project codes.
+   - **Empty state**: friendly prompt when <2 projects selected.
+   - Framer Motion: chip enter/exit animations, FadeIn on comparison section.
+   - File: `src/components/eppm/views/compare-view.tsx` (~200 lines).
+   - Added `compare` to View type, sidebar nav (Portfolio group, Scale icon), topbar title.
+   - VLM-verified: radar chart, bar chart, metric table with highlights, verdict cards all render correctly with real data (3 projects: Metro/Solar/Tower).
+
+2. **Project Drawer wired into Dashboard**:
+   - Critical Activities list items now clickable → opens Project Drawer for that activity's project.
+   - Delayed Activities list items now clickable → opens Project Drawer.
+   - VLM-verified: clicking "Base Slab Concrete Pour" (PRJ-METRO-STA-A) opened the drawer with the correct project.
+
+### Styling polish
+3. **Compare view**: colored selection chips with project palette, hover-border highlight on picker cards, striped metric table rows, best-value cells with arrow indicators.
+4. **Dashboard**: critical/delayed activity items converted to buttons with hover border-primary tint.
+5. **Animations**: Framer Motion AnimatePresence on compare chips, FadeIn wrappers.
+
+## 3. Verification Results
+- ESLint: clean (fixed 1 hooks-order error: moved radarData useMemo after early return → converted to IIFE).
+- All API routes 200.
+- agent-browser sweep of all 21 views: 0 runtime errors.
+- VLM-verified:
+  - Compare empty state: "renders OK" with selector + prompt.
+  - Compare with 3 projects: radar chart, bar chart, metric table, verdict cards all correct with real data.
+  - Dashboard drawer: opens correct project (Metro Station A) from critical activity click.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Add a Milestone Timeline view (programme-level milestone Gantt across projects).
+- Add a Notifications/Alerts center (consolidate delayed activities, expiring risks, pending approvals).

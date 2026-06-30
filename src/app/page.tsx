@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/eppm/sidebar'
 import { TopBar } from '@/components/eppm/topbar'
 import { DashboardView } from '@/components/eppm/views/dashboard-view'
 import { ProjectsView } from '@/components/eppm/views/projects-view'
+import { CompareView } from '@/components/eppm/views/compare-view'
 import { PortfoliosView } from '@/components/eppm/views/portfolios-view'
 import { ProgramsView } from '@/components/eppm/views/programs-view'
 import { GanttView } from '@/components/eppm/views/gantt-view'
@@ -50,6 +51,7 @@ export default function Home() {
       case 'portfolios': return <PortfoliosView onNavigate={navigate} />
       case 'programs': return <ProgramsView onNavigate={navigate} />
       case 'projects': return <ProjectsView onNavigate={navigate} onOpenProject={(id) => { setProjectId(id); navigate('gantt') }} />
+      case 'compare': return <CompareView onNavigate={navigate} />
       case 'wbs': return <WbsView projectId={projectId} onNavigate={navigate} />
       case 'activities': return <ActivitiesView onNavigate={navigate} />
       case 'gantt': return <GanttView projectId={projectId} setProjectId={setProjectId} onNavigate={navigate} />

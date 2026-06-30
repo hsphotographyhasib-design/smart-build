@@ -3,7 +3,7 @@
 import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks,
   CalendarRange, GitBranch, Users, DollarSign, TrendingUp, GitCompareArrows,
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
-  ChevronDown, Building2, Radio, Construction,
+  ChevronDown, Building2, Radio, Construction, Scale,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -17,6 +17,7 @@ const groups: NavGroup[] = [
     { id: 'portfolios', label: 'Portfolios', icon: FolderKanban },
     { id: 'programs', label: 'Programs', icon: Network },
     { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'compare', label: 'Compare Projects', icon: Scale },
   ]},
   { title: 'Planning & Scheduling', items: [
     { id: 'wbs', label: 'WBS', icon: ListTree },

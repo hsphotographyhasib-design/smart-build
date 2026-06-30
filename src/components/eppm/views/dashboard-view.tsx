@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { KpiCard } from '../kpi-card'
+import { ProjectDrawer } from '../project-drawer'
 import { fmtMoney, fmtNum, fmtPct, fmtDate, healthColor, statusColor, type Kpis, type ProjectLite, type RiskLite, type ActivityLite, type ChangeLite } from '@/lib/eppm'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -36,6 +37,8 @@ interface DashData {
 export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) {
   const [data, setData] = useState<DashData | null>(null)
   const [aiInsight, setAiInsight] = useState<string>('')
+  const [drawerProject, setDrawerProject] = useState<ProjectLite | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard').then(r => r.json()).then(setData).catch(() => {})
@@ -238,8 +241,10 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
           <CardContent className="p-0">
             <ScrollArea className="h-[240px] px-4 pb-3">
               <div className="space-y-1.5">
-                {topCritical.map(a => (
-                  <div key={a.id} className="flex items-center gap-2 rounded-md border p-2 hover:bg-muted/50 transition-colors">
+                {topCritical.map(a => {
+                  const proj = data.projects.find(p => p.id === a.projectId)
+                  return (
+                  <button key={a.id} onClick={() => proj && (setDrawerProject(proj), setDrawerOpen(true))} className="flex w-full items-center gap-2 rounded-md border p-2 hover:bg-muted/50 hover:border-primary/40 transition-colors text-left">
                     <div className="grid h-7 w-7 shrink-0 place-items-center rounded bg-rose-50 dark:bg-rose-950/40">
                       <GitBranch className="h-3.5 w-3.5 text-rose-600" />
                     </div>
@@ -248,8 +253,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
                       <div className="truncate text-[10px] text-muted-foreground">{a.project?.code} · float {a.totalFloat}d · {a.progress}%</div>
                     </div>
                     <Badge variant="outline" className="text-[9px] shrink-0 border-rose-200 text-rose-600">{a.remainingDur}d left</Badge>
-                  </div>
-                ))}
+                  </button>
+                  )
+                })}
               </div>
             </ScrollArea>
           </CardContent>
@@ -271,15 +277,16 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
               <div className="space-y-1.5">
                 {delayed.map(a => {
                   const slip = a.finishDate && a.baselineFinish ? Math.round((+new Date(a.finishDate) - +new Date(a.baselineFinish)) / 86400000) : 0
+                  const proj = data.projects.find(p => p.id === a.projectId)
                   return (
-                    <div key={a.id} className="flex items-center gap-2 rounded-md border p-2">
+                    <button key={a.id} onClick={() => proj && (setDrawerProject(proj), setDrawerOpen(true))} className="flex w-full items-center gap-2 rounded-md border p-2 hover:bg-muted/50 hover:border-primary/40 transition-colors text-left">
                       <CalendarClock className="h-4 w-4 text-amber-600 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-xs font-medium">{a.name}</div>
                         <div className="truncate text-[10px] text-muted-foreground">{a.project?.code} · due {fmtDate(a.baselineFinish)}</div>
                       </div>
                       <Badge variant="outline" className="text-[9px] border-amber-200 text-amber-600">+{slip}d slip</Badge>
-                    </div>
+                    </button>
                   )
                 })}
                 {delayed.length === 0 && <div className="py-8 text-center text-xs text-muted-foreground">No delayed activities</div>}
@@ -393,6 +400,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
           </CardContent>
         </Card>
       </div>
+      <ProjectDrawer
+        project={drawerProject}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onNavigate={onNavigate}
+      />
     </div>
   )
 }

@@ -14,6 +14,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   portfolios: { title: 'Portfolio Management', sub: 'Strategic investment portfolios' },
   programs: { title: 'Program Management', sub: 'Grouped project delivery' },
   projects: { title: 'Project Register', sub: 'Enterprise project lifecycle' },
+  compare: { title: 'Project Comparison', sub: 'Side-by-side portfolio benchmarking' },
   wbs: { title: 'Work Breakdown Structure', sub: 'Hierarchical scope decomposition' },
   activities: { title: 'Activity Management', sub: 'Schedule activity register' },
   gantt: { title: 'Gantt Schedule', sub: 'Interactive programme timeline' },
