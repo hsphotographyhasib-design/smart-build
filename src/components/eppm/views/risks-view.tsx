@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Search, Download, ShieldAlert, ShieldCheck, FolderOpen, DollarSign, AlertTriangle } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtDate, statusColor, type View } from '@/lib/eppm'
+import { fmtMoney, fmtDate, statusColor, exportCsv, type View } from '@/lib/eppm'
 import { cn } from '@/lib/utils'
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, Cell } from 'recharts'
 
@@ -227,7 +227,7 @@ export function RisksView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <SelectItem value="Realized">Realized</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5"><Download className="h-4 w-4" />Export</Button>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCsv('risks')}><Download className="h-4 w-4" />Export</Button>
             </div>
           </div>
         </CardHeader>

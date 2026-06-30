@@ -56,16 +56,17 @@ export async function GET(req: NextRequest) {
     const pEnd = p.finishDate.getTime()
     const dur = Math.max(1, pEnd - pStart)
     const now = Date.now()
-    const elapsedRatio = Math.min(1, Math.max(0, (now - pStart) / dur))
     months.forEach(m => {
-      const yy = 2000 + parseInt(m.label.split("'")[1])
+      const parts = m.label.split(' ')
+      const yy = 2000 + parseInt(parts[1])
       const d = new Date(Date.UTC(yy, monthIdx(m.label), 15))
       if (d.getTime() >= pStart && d.getTime() <= pEnd) {
         const span = Math.min(pEnd, endOfMonth(d).getTime()) - Math.max(pStart, startOfMonth(d).getTime())
         const ratio = Math.max(0, span / dur)
         m.planned += p.budget * ratio
         m.forecast += p.forecastCost * ratio
-        if (d.getTime() <= now) m.actual += p.actualCost * ratio * (elapsedRatio || 0.5) / Math.max(0.01, elapsedRatio)
+        // actual: distribute actualCost across elapsed months proportionally to planned ratio
+        if (d.getTime() <= now) m.actual += p.actualCost * ratio
       }
     })
   }

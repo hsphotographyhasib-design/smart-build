@@ -82,3 +82,50 @@ Unresolved / Next-phase recommendations:
 - Virtualize the Gantt for 100k+ activities (currently renders all rows).
 - Export endpoints (PDF/Excel/CSV) for Reporting module.
 - Full RBAC enforcement on APIs + NextAuth.
+
+---
+Task ID: CRON-1 (webDevReview round 1)
+Agent: Z.ai Code (autonomous review)
+Task: QA the EPPM platform via agent-browser, fix bugs, add features & styling polish.
+
+## 1. Current Project Status Assessment
+- Dev server running detached on :3000, all 19 modules loading clean, no JS errors, lint passing.
+- Found 2 real bugs during QA + 1 Next.js config warning.
+
+## 2. Completed Modifications
+
+### Bug fixes
+1. **CRITICAL — Cash-flow S-curve was flat (all zeros)**: dashboard API year-parsing bug (`m.label.split("'")[1]` returned undefined because label format is `"Oct 25"` not `"Oct '25"`). Fixed to `m.label.split(' ')[1]`. S-curve now shows real rising curves ($4M→$104M peak), Actual stops at today, Forecast continues. Verified via VLM.
+2. **Date staleness**: seed data anchored to 2025-01-01 meant "today" (2026-06-30) fell at/past project ends → Gantt TODAY marker invisible, EVM/progress unrealistic. Re-anchored seed base to 2025-10-15 (today ≈ portfolio-day-258, mid-flight). Reset DB + re-seeded. Now: 37.1% avg progress, $722M of $1.9B spent, TODAY marker visible.
+3. **Gantt non-critical bars not visible by default**: default project was a compact-template project (mostly critical). Changed auto-select to prefer flagship `PRJ-METRO-STA-A` (rich mix of critical + non-critical activities). Both red critical and teal non-critical bars now render.
+4. **Next.js allowedDevOrigins warning**: added preview domains to next.config.ts.
+
+### New features
+5. **Site Progress view (NEW module, 20th)** — full daily-progress reporting center with 4 tabs:
+   - Daily Reports: scrollable feed of report cards (project code, weather, manpower, progress notes, delays, supervisor avatar, health badge) + side panel (today's site status, weekly productivity bar chart).
+   - Manpower Trend: 14-day area chart of total workers deployed.
+   - Progress Curves: multi-project S-curve line chart (cumulative % over lifecycle).
+   - Photo Gallery: 12-tile grid with project codes, dates, health badges, upload button.
+   - KPI strip: Active Sites, Manpower Today, Reports (14d), Open Issues.
+   - API: `/api/daily-reports` (reports + manpower trend + progress curves + totals).
+6. **CSV Export** — `/api/export?type=projects|activities|risks|resources|changes` endpoint with proper CSV escaping + Content-Disposition headers. Wired up export buttons on Projects, Activities, Risks, Changes views (functional downloads). `exportCsv()` helper in lib/eppm.
+
+### Styling polish
+7. **Framer Motion view transitions**: `FadeIn` wrapper keyed by view in page.tsx — smooth fade+slide between modules.
+8. **Enhanced KpiCard**: top accent gradient bar, hover lift (-2px), icon spring-scale on hover, gradient sheen on hover.
+9. **Motion utilities** (`motion.tsx`): FadeIn, StaggerGroup/Item, useCountUp hook.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200 (`/`, `/api/dashboard`, `/api/daily-reports`, `/api/export?type=*`, `/api/resources`, `/api/projects/[id]`, `/api/ai-planner`).
+- agent-browser sweep of all 20 views: 0 runtime errors, all render with content.
+- VLM-verified: Dashboard (polished, realistic mid-project values, S-curve fixed), Gantt (critical+non-critical bars + TODAY marker), Site Progress (4 tabs all rendering), EVM, Risk matrix.
+- CSV export produces well-formed CSV with correct dates.
+
+## 4. Unresolved / Next-phase recommendations
+- Wire up the remaining "Generate" buttons in Reporting view to call `/api/export`.
+- Project detail drawer (overview/schedule/cost/risk/team tabs) — click a project row to open.
+- Realtime WebSocket mini-service for live progress updates.
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.

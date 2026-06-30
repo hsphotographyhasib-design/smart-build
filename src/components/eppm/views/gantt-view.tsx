@@ -31,9 +31,10 @@ export function GanttView({ projectId, setProjectId, onNavigate }: {
 
   useEffect(() => {
     if (!activeId && dash?.projects?.length) {
-      const first = dash.projects[0].id
-      setActiveId(first)
-      setProjectId(first)
+      // Prefer a flagship project (rich mix of critical + non-critical activities)
+      const flagship = dash.projects.find(p => p.code === 'PRJ-METRO-STA-A') ?? dash.projects.find(p => p.code === 'PRJ-TWR-NORTH') ?? dash.projects[0]
+      setActiveId(flagship.id)
+      setProjectId(flagship.id)
     }
   }, [dash, activeId, setProjectId])
 

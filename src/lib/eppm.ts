@@ -4,7 +4,7 @@ export type View =
   | 'wbs' | 'activities' | 'gantt' | 'critical-path'
   | 'resources' | 'costs' | 'evm' | 'baselines'
   | 'risks' | 'changes' | 'lookahead'
-  | 'documents' | 'reports' | 'ai-planner' | 'admin'
+  | 'documents' | 'site-progress' | 'reports' | 'ai-planner' | 'admin'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number
@@ -76,3 +76,15 @@ export const statusColor = (s: string) =>
   : s === 'Active' || s === 'Open' || s === 'Submitted' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
   : s === 'On Hold' || s === 'Rejected' || s === 'Realized' ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
   : 'text-muted-foreground bg-muted border-border'
+
+// Trigger a CSV export download from the /api/export endpoint
+export function exportCsv(type: 'projects' | 'activities' | 'risks' | 'resources' | 'changes', projectId?: string) {
+  const params = new URLSearchParams({ type })
+  if (projectId) params.set('projectId', projectId)
+  const a = document.createElement('a')
+  a.href = `/api/export?${params}`
+  a.download = ''
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}

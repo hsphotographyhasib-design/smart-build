@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Search, Download, GitBranch, AlertTriangle, Clock } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtDate, fmtPct, statusColor, type View } from '@/lib/eppm'
+import { fmtDate, fmtPct, statusColor, exportCsv, type View } from '@/lib/eppm'
 import { cn } from '@/lib/utils'
 
 export function ActivitiesView({ onNavigate }: { onNavigate: (v: View) => void }) {
@@ -65,7 +65,7 @@ export function ActivitiesView({ onNavigate }: { onNavigate: (v: View) => void }
               <Select value={proj} onValueChange={setProj}><SelectTrigger className="h-9 w-40"><SelectValue placeholder="Project" /></SelectTrigger><SelectContent><SelectItem value="all">All Projects</SelectItem>{data.projects.map(p => <SelectItem key={p.id} value={p.id}>{p.code}</SelectItem>)}</SelectContent></Select>
               <Select value={crit} onValueChange={setCrit}><SelectTrigger className="h-9 w-32"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="critical">Critical</SelectItem><SelectItem value="normal">Non-critical</SelectItem></SelectContent></Select>
               <Select value={status} onValueChange={setStatus}><SelectTrigger className="h-9 w-36"><SelectValue placeholder="Status" /></SelectTrigger><SelectContent><SelectItem value="all">All Status</SelectItem><SelectItem value="Not Started">Not Started</SelectItem><SelectItem value="In Progress">In Progress</SelectItem><SelectItem value="Completed">Completed</SelectItem></SelectContent></Select>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5"><Download className="h-4 w-4" />Export</Button>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCsv('activities', proj !== 'all' ? proj : undefined)}><Download className="h-4 w-4" />Export</Button>
             </div>
           </div>
         </CardHeader>

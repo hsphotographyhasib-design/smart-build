@@ -18,10 +18,12 @@ import { BaselinesView } from '@/components/eppm/views/baselines-view'
 import { ChangesView } from '@/components/eppm/views/changes-view'
 import { LookaheadView } from '@/components/eppm/views/lookahead-view'
 import { DocumentsView } from '@/components/eppm/views/documents-view'
+import { SiteProgressView } from '@/components/eppm/views/site-progress-view'
 import { ReportsView } from '@/components/eppm/views/reports-view'
 import { AiPlannerView } from '@/components/eppm/views/ai-planner-view'
 import { AdminView } from '@/components/eppm/views/admin-view'
 import { WbsView } from '@/components/eppm/views/wbs-view'
+import { FadeIn } from '@/components/eppm/motion'
 import type { View } from '@/lib/eppm'
 
 export default function Home() {
@@ -60,6 +62,7 @@ export default function Home() {
       case 'changes': return <ChangesView onNavigate={navigate} />
       case 'lookahead': return <LookaheadView onNavigate={navigate} />
       case 'documents': return <DocumentsView onNavigate={navigate} />
+      case 'site-progress': return <SiteProgressView onNavigate={navigate} />
       case 'reports': return <ReportsView onNavigate={navigate} />
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />
       case 'admin': return <AdminView onNavigate={navigate} />
@@ -73,7 +76,9 @@ export default function Home() {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar view={view} onToggleSidebar={() => setCollapsed(c => !c)} />
         <main className="flex-1 p-4 lg:p-6">
-          <div className="mx-auto max-w-[1600px]">{render()}</div>
+          <div className="mx-auto max-w-[1600px]">
+            <FadeIn key={view}>{render()}</FadeIn>
+          </div>
         </main>
         <footer className="mt-auto border-t bg-background/95 px-4 py-2.5 backdrop-blur">
           <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-1 text-[11px] text-muted-foreground sm:flex-row">

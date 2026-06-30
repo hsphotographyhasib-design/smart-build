@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Search, Download, FileEdit, Clock, CheckCircle2, XCircle, DollarSign, CalendarClock } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtDate, statusColor, type View } from '@/lib/eppm'
+import { fmtMoney, fmtDate, statusColor, exportCsv, type View } from '@/lib/eppm'
 import { cn } from '@/lib/utils'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts'
 
@@ -189,7 +189,7 @@ export function ChangesView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <SelectItem value="Implemented">Implemented</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5"><Download className="h-4 w-4" />Export</Button>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCsv('changes')}><Download className="h-4 w-4" />Export</Button>
             </div>
           </div>
         </CardHeader>

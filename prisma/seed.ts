@@ -2,7 +2,8 @@ import { PrismaClient } from '@prisma/client'
 const db = new PrismaClient()
 
 const day = 86400000
-const D = (offset: number) => new Date(Date.UTC(2025, 0, 1) + offset * day)
+// Base anchored so "today" lands ~portfolio-day-258 (mid-flight, realistic EVM/progress)
+const D = (offset: number) => new Date(Date.UTC(2025, 9, 15) + offset * day)
 
 async function main() {
   console.log('🌱 Seeding SmartBuild EPPM...')
@@ -360,7 +361,7 @@ async function main() {
   )
 
   // ---------- DAILY REPORTS ----------
-  const today = Math.floor((Date.now() - Date.UTC(2025, 0, 1)) / day)
+  const today = Math.floor((Date.now() - Date.UTC(2025, 9, 15)) / day)
   for (let p = 0; p < projects.length; p++) {
     for (let d = 0; d < 6; d++) {
       const dayOff = today - d

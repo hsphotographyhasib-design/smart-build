@@ -26,6 +26,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   changes: { title: 'Change Management', sub: 'Variations, EOT & claims' },
   lookahead: { title: 'Lookahead Planning', sub: 'Short-interval work window' },
   documents: { title: 'Document Management', sub: 'Drawings, RFIs & submittals' },
+  'site-progress': { title: 'Site Progress', sub: 'Daily reports & progress curves' },
   reports: { title: 'Reporting & Analytics', sub: 'Export-ready enterprise reports' },
   'ai-planner': { title: 'AI Project Planner', sub: 'Schedule optimisation & delay prediction' },
   admin: { title: 'System Administration', sub: 'RBAC · audit · configuration' },

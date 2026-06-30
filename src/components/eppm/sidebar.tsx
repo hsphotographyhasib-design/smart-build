@@ -3,7 +3,7 @@
 import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks,
   CalendarRange, GitBranch, Users, DollarSign, TrendingUp, GitCompareArrows,
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
-  ChevronDown, Building2, Radio,
+  ChevronDown, Building2, Radio, Construction,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -35,6 +35,7 @@ const groups: NavGroup[] = [
   ]},
   { title: 'Delivery', items: [
     { id: 'documents', label: 'Documents', icon: FileText },
+    { id: 'site-progress', label: 'Site Progress', icon: Construction },
     { id: 'reports', label: 'Reporting', icon: BarChart3 },
     { id: 'ai-planner', label: 'AI Project Planner', icon: Sparkles },
   ]},

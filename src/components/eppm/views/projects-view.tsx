@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Briefcase, Search, Plus, Filter, Download, MapPin, User, CalendarDays } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtPct, fmtDate, healthColor, statusColor, type View } from '@/lib/eppm'
+import { fmtMoney, fmtPct, fmtDate, healthColor, statusColor, exportCsv, type View } from '@/lib/eppm'
 
 export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: View) => void; onOpenProject: (id: string) => void }) {
   const data = useDashboardData()
@@ -83,7 +83,7 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
                   <SelectItem value="Red">Red</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5"><Download className="h-4 w-4" />Export</Button>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCsv('projects')}><Download className="h-4 w-4" />Export</Button>
               <Button size="sm" className="h-9 gap-1.5"><Plus className="h-4 w-4" />New</Button>
             </div>
           </div>
