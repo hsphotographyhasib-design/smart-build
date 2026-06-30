@@ -4,7 +4,7 @@ export type View =
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
   | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
   | 'risks' | 'changes' | 'lookahead' | 'procurement' | 'quality' | 'hse'
-  | 'documents' | 'site-progress' | 'commissioning' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
+  | 'documents' | 'submittals' | 'site-progress' | 'commissioning' | 'closeout' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number

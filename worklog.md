@@ -686,3 +686,101 @@ Task: QA via agent-browser, add What-If Scenario Modelling + Commissioning & Han
 - Submittal & Approval Workflow view (formal submittal tracking with approval chains).
 - Claims & Disputes view (extension of time, delay claims, dispute resolution).
 - Lessons Learned / Project Closeout view (post-mortem, knowledge base).
+
+---
+Task ID: 10
+Agent: eppm-views-batch-5
+Scope: Created 2 EPPM view components (submittals, closeout).
+
+Files created:
+- src/components/eppm/views/submittals-view.tsx
+- src/components/eppm/views/closeout-view.tsx
+
+Each: `'use client'`, exports `{Name}View({ onNavigate }: { onNavigate: (v: View) => void })`,
+wraps content in `<FadeIn>` + `<div className="space-y-4">`, uses `void onNavigate`,
+avoids indigo/blue (uses emerald/amber/rose/sky/violet/slate oklch tokens), tables in
+`max-h-[560px] overflow-auto scroll-thin` with sticky headers, TypeScript strict (chart
+data typed as any), 6 KPI cards each with top accent gradient bar + colored icon tile.
+
+submittals-view: Submittal & Approval Workflow. 6 KPI cards (Total Submittals, Pending
+Review, Approved, Rejected/Revise, Overdue, Avg Review Days). 3 tabs:
+  1. Submittal Register — 16 synthetic submittals (Submittal No, Title, Project, Type,
+     Discipline, Status, Submitted, Due Date, Reviewer). Search + status + type filters.
+     Rejected/Revise rows tinted rose, Approved tinted emerald, overdue due dates red.
+  2. Approval Chain — left list of 4 submittal cards (click to select), right vertical
+     timeline with 5 stages (Prepared → Submitted → Consultant Review → Client Review →
+     Approved/Rejected) each with reviewer, date, decision badge, comments; plus
+     "Cycle Time by Stage" BarChart (violet).
+  3. Transmittals — 4 summary cards + table of 10 transmittals (No, Date, From, To,
+     Subject, Docs, Status, Acknowledged). Uses FileSignature, CheckCircle2, XCircle,
+     Clock, ArrowRight, Mail icons.
+
+closeout-view: Project Closeout & Lessons Learned. 6 KPI cards (Projects in Closeout,
+Closeout Complete, Pending Certificates, Retention Held [fmtMoney], Lessons Captured,
+Avg Closeout Days). 3 tabs:
+  1. Closeout Checklist — 4 project cards, each with 12-item checklist (Done/Pending/N/A
+     states with icons), progress bar, completion %, target date.
+  2. Lessons Learned — 12 lesson cards (searchable, category filter) with category-colored
+     badges, description, action taken, submitter, date, helpful rating; side panel PieChart
+     "Lessons by Category" + legend breakdown.
+  3. Retention & Warranties — 3 summary cards (Held/Released/Active Warranties) + table of
+     10 records (Project, Retention %, Amount, Release Date, Status, Warranty Period,
+     Warranty Until, Bond Status). Uses BookOpenCheck, CheckCircle2, Clock, Award,
+     ShieldCheck icons.
+
+Verified: `bun run lint` passes clean (no errors, no warnings) for both files.
+Note: /agent-ctx not writable in this environment; work record logged to worklog.md only.
+
+---
+Task ID: CRON-10 (webDevReview round 10)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, add Submittal & Approval Workflow + Project Closeout & Lessons Learned views.
+
+## 1. Current Project Status Assessment
+- Platform stable: 33 modules now, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all views load with 0 runtime errors. No bugs found.
+- Proceeded to feature development per next-phase recommendations.
+
+## 2. Completed Modifications
+
+### New features
+1. **Submittal & Approval Workflow view (NEW module, 32nd)** — formal submittal tracking with approval chains:
+   - **6 KPI cards**: Total Submittals (16), Pending Review (6), Approved (6), Rejected/Revise (3), Overdue (2), Avg Review Days (6.4d).
+   - **3 tabs**:
+     - Submittal Register: 16-row filterable table (Submittal No/Title/Project/Type [Shop Drawing/Material Sample/Technical Proposal/Method Statement/Mock-up]/Discipline/Status/Submitted/Due/Current Reviewer). Search + status + type filters. Rejected rows tinted rose, Approved emerald, overdue dates red.
+     - Approval Chain: left submittal selector list with stage progress pips, right vertical timeline (5 stages: Prepared → Submitted → Consultant → Client → Approved/Rejected) with reviewer/date/decision/comments + "Cycle Time by Stage" bar chart.
+     - Transmittals: 4 summary cards + 10-row transmittal register table (Transmittal No/Date/From/To/Subject/Docs/Status/Acknowledged Date).
+   - VLM-verified: "16 submittals, 6 pending, 6 approved, 3 rejected, 2 overdue, 6.4d avg — all renders correctly".
+   - File: `src/components/eppm/views/submittals-view.tsx`.
+
+2. **Project Closeout & Lessons Learned view (NEW module, 33rd)** — closeout checklists & knowledge base:
+   - **6 KPI cards**: Projects in Closeout (4), Closeout Complete (1), Pending Certificates (7), Retention Held ($5.3M), Lessons Captured (12), Avg Closeout Days (48d).
+   - **3 tabs**:
+     - Closeout Checklist: 4 project cards each with 12-item checklist (Final Accounts/Punch List/As-Built Drawings/O&M Manuals/Retention Released/Final Inspection/Permits Closed/Warranties/Performance Cert/Insurance/Subcontractor Releases/Client Acceptance), progress bars, Done/Pending/N/A states.
+     - Lessons Learned: 12 searchable lesson cards (ID/Project/Category [Technical/Procurement/Schedule/Quality/Safety/Contract]/Title/Description/Action Taken/Submitted By/Date/Rating) + side pie chart "Lessons by Category".
+     - Retention & Warranties: 3 summary cards + 10-row retention/warranty table (Project/Retention %/Amount/Release Date/Status/Warranty Period/Warranty Until/Bond Status).
+   - VLM-verified: "4 projects in closeout, $5.3M retention, 12 lessons, checklists with progress — all renders correctly".
+   - File: `src/components/eppm/views/closeout-view.tsx`.
+   - Added `submittals` + `closeout` to View type, sidebar nav (Delivery group, FileSignature + BookOpenCheck icons), topbar titles.
+
+### Styling polish
+3. **Submittals**: top accent gradient bars on KPI cards, approval chain timeline with stage pips, status-tinted table rows, overdue date red highlighting.
+4. **Closeout**: checklist progress bars, category-colored lesson badges, retention summary cards, Done/Pending/N/A status indicators.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200.
+- agent-browser sweep of all 33 views: 0 runtime errors, 0 accessibility/hydration errors.
+- VLM-verified:
+  - Submittals: 6 KPIs (16 submittals, 6.4d avg review), 3 tabs with register/approval chain timeline/transmittals.
+  - Closeout: 6 KPIs (4 projects, $5.3M retention, 12 lessons), 3 tabs with checklists/lessons/retention.
+
+## 4. Unresolved / Next-phase recommendations
+- Realtime WebSocket mini-service for live progress updates (still pending across rounds).
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only).
+- Claims & Disputes view (extension of time, delay claims, dispute resolution).
+- Project Calendar / Holiday Calendar view (regional calendars, working/non-working days).
+- Executive Scorecard / KPI Targets view (strategic KPIs vs actuals with traffic-light status).

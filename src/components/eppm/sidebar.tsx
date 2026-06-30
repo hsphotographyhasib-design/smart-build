@@ -5,6 +5,7 @@ import { LayoutDashboard, FolderKanban, Network, Briefcase, ListTree, ListChecks
   AlertTriangle, FileEdit, Telescope, FileText, BarChart3, Sparkles, Settings,
   ChevronDown, Building2, Radio, Construction, Scale, Milestone, Truck, Wrench, HardHat,
   Wallet, Plug, ShieldCheck, HeartPulse, SlidersHorizontal, ClipboardCheck,
+  FileSignature, BookOpenCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -43,10 +44,12 @@ const groups: NavGroup[] = [
   ]},
   { title: 'Delivery', items: [
     { id: 'documents', label: 'Documents', icon: FileText },
+    { id: 'submittals', label: 'Submittals', icon: FileSignature },
     { id: 'quality', label: 'Quality Management', icon: ShieldCheck },
     { id: 'hse', label: 'HSE Dashboard', icon: HeartPulse },
     { id: 'commissioning', label: 'Commissioning', icon: ClipboardCheck },
     { id: 'site-progress', label: 'Site Progress', icon: Construction },
+    { id: 'closeout', label: 'Closeout & Lessons', icon: BookOpenCheck },
     { id: 'reports', label: 'Reporting', icon: BarChart3 },
     { id: 'ai-planner', label: 'AI Project Planner', icon: Sparkles },
   ]},
