@@ -1,13 +1,14 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { FileText, FileSpreadsheet, FileChartColumn, Presentation, FileBarChart, Activity, HeartPulse, AlertTriangle, DollarSign, Users, TrendingUp, GitBranch, Banknote, CalendarClock, Download, Sparkles, FileDown, Clock, CheckCircle2 } from 'lucide-react'
+import { FileText, FileSpreadsheet, FileChartColumn, Presentation, FileBarChart, Activity, HeartPulse, AlertTriangle, DollarSign, Users, TrendingUp, GitBranch, Banknote, CalendarClock, Download, Sparkles, FileDown, Clock, CheckCircle2, Loader2 } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtDate, fmtNum, type View } from '@/lib/eppm'
+import { fmtMoney, fmtDate, fmtNum, exportCsv, type View } from '@/lib/eppm'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts'
 
 const CHART = { emerald: 'oklch(0.55 0.12 162)', amber: 'oklch(0.7 0.16 80)', rose: 'oklch(0.6 0.2 25)', sky: 'oklch(0.62 0.1 195)', violet: 'oklch(0.65 0.18 305)', slate: 'oklch(0.55 0.02 250)' }
@@ -21,19 +22,19 @@ interface Template {
   color: string
 }
 
-const TEMPLATES: Template[] = [
-  { id: 'exec', title: 'Executive Summary', desc: 'High-level KPI snapshot for leadership review', icon: FileBarChart, formats: ['PDF', 'PPT'], color: 'emerald' },
-  { id: 'portfolio', title: 'Portfolio Status', desc: 'Cross-portfolio health, budget & progress', icon: Banknote, formats: ['PDF', 'Excel'], color: 'sky' },
-  { id: 'health', title: 'Project Health', desc: 'Health scorecards by project & program', icon: HeartPulse, formats: ['PDF'], color: 'rose' },
-  { id: 'delay', title: 'Delay Analysis', desc: 'Slippage, float erosion & delay impact', icon: AlertTriangle, formats: ['PDF', 'Excel'], color: 'amber' },
-  { id: 'costvar', title: 'Cost Variance', desc: 'Budget vs actual vs forecast deviations', icon: DollarSign, formats: ['Excel', 'CSV'], color: 'emerald' },
-  { id: 'resutil', title: 'Resource Utilisation', desc: 'Capacity, allocation & over-allocation', icon: Users, formats: ['Excel', 'PDF'], color: 'violet' },
-  { id: 'evm', title: 'EVM Report', desc: 'Earned value metrics: CPI, SPI, EAC, VAC', icon: TrendingUp, formats: ['PDF', 'Excel'], color: 'sky' },
-  { id: 'risk', title: 'Risk Register', desc: 'All risks, scores, mitigation status', icon: AlertTriangle, formats: ['Excel', 'CSV'], color: 'rose' },
-  { id: 'scurve', title: 'Progress S-Curve', desc: 'Planned vs actual progress over time', icon: Activity, formats: ['PDF'], color: 'amber' },
-  { id: 'cpath', title: 'Critical Path', desc: 'Critical activities & float analysis', icon: GitBranch, formats: ['PDF', 'Excel'], color: 'rose' },
-  { id: 'cashflow', title: 'Cash Flow Forecast', desc: 'Planned vs actual cashflow & projection', icon: Banknote, formats: ['Excel', 'CSV'], color: 'emerald' },
-  { id: 'weekly', title: 'Weekly Progress', desc: 'Site progress, look-ahead & exceptions', icon: CalendarClock, formats: ['PDF', 'PPT'], color: 'sky' },
+const TEMPLATES: (Template & { exportType?: 'projects' | 'activities' | 'risks' | 'resources' | 'changes' })[] = [
+  { id: 'exec', title: 'Executive Summary', desc: 'High-level KPI snapshot for leadership review', icon: FileBarChart, formats: ['PDF', 'PPT'], color: 'emerald', exportType: 'projects' },
+  { id: 'portfolio', title: 'Portfolio Status', desc: 'Cross-portfolio health, budget & progress', icon: Banknote, formats: ['PDF', 'Excel'], color: 'sky', exportType: 'projects' },
+  { id: 'health', title: 'Project Health', desc: 'Health scorecards by project & program', icon: HeartPulse, formats: ['PDF'], color: 'rose', exportType: 'projects' },
+  { id: 'delay', title: 'Delay Analysis', desc: 'Slippage, float erosion & delay impact', icon: AlertTriangle, formats: ['PDF', 'Excel'], color: 'amber', exportType: 'activities' },
+  { id: 'costvar', title: 'Cost Variance', desc: 'Budget vs actual vs forecast deviations', icon: DollarSign, formats: ['Excel', 'CSV'], color: 'emerald', exportType: 'projects' },
+  { id: 'resutil', title: 'Resource Utilisation', desc: 'Capacity, allocation & over-allocation', icon: Users, formats: ['Excel', 'PDF'], color: 'violet', exportType: 'resources' },
+  { id: 'evm', title: 'EVM Report', desc: 'Earned value metrics: CPI, SPI, EAC, VAC', icon: TrendingUp, formats: ['PDF', 'Excel'], color: 'sky', exportType: 'projects' },
+  { id: 'risk', title: 'Risk Register', desc: 'All risks, scores, mitigation status', icon: AlertTriangle, formats: ['Excel', 'CSV'], color: 'rose', exportType: 'risks' },
+  { id: 'scurve', title: 'Progress S-Curve', desc: 'Planned vs actual progress over time', icon: Activity, formats: ['PDF'], color: 'amber', exportType: 'activities' },
+  { id: 'cpath', title: 'Critical Path', desc: 'Critical activities & float analysis', icon: GitBranch, formats: ['PDF', 'Excel'], color: 'rose', exportType: 'activities' },
+  { id: 'cashflow', title: 'Cash Flow Forecast', desc: 'Planned vs actual cashflow & projection', icon: Banknote, formats: ['Excel', 'CSV'], color: 'emerald', exportType: 'projects' },
+  { id: 'weekly', title: 'Weekly Progress', desc: 'Site progress, look-ahead & exceptions', icon: CalendarClock, formats: ['PDF', 'PPT'], color: 'sky', exportType: 'changes' },
 ]
 
 const FORMAT_ICON: Record<string, any> = { PDF: FileText, Excel: FileSpreadsheet, CSV: FileChartColumn, PPT: Presentation }
@@ -74,6 +75,7 @@ const fmtBadge = (s: string) =>
 export function ReportsView({ onNavigate }: { onNavigate: (v: View) => void }) {
   void onNavigate
   const data = useDashboardData()
+  const [generating, setGenerating] = useState<string | null>(null)
 
   const statusData = useMemo<any[]>(() => {
     if (!data) return []
@@ -143,7 +145,24 @@ export function ReportsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                       return <Badge key={f} variant="secondary" className="text-[9px] gap-1 px-1.5"><FI className="h-2.5 w-2.5" />{f}</Badge>
                     })}
                   </div>
-                  <Button size="sm" variant="outline" className="h-7 text-[10px] w-full mt-1"><FileDown className="h-3 w-3 mr-1" />Generate</Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] w-full mt-1 gap-1"
+                    disabled={generating === t.id}
+                    onClick={() => {
+                      setGenerating(t.id)
+                      toast({ title: `Generating "${t.title}"`, description: `Format: ${t.formats.join(', ')} · sourcing live portfolio data` })
+                      setTimeout(() => {
+                        if (t.exportType) exportCsv(t.exportType)
+                        setGenerating(null)
+                        toast({ title: `Report ready`, description: `"${t.title}" exported as CSV` })
+                      }, 900)
+                    }}
+                  >
+                    {generating === t.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileDown className="h-3 w-3" />}
+                    {generating === t.id ? 'Generating…' : 'Generate'}
+                  </Button>
                 </div>
               )
             })}

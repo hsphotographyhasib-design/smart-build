@@ -10,13 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Briefcase, Search, Plus, Filter, Download, MapPin, User, CalendarDays } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtPct, fmtDate, healthColor, statusColor, exportCsv, type View } from '@/lib/eppm'
+import { fmtMoney, fmtPct, fmtDate, healthColor, statusColor, exportCsv, type View, type ProjectLite } from '@/lib/eppm'
+import { ProjectDrawer } from '../project-drawer'
 
 export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: View) => void; onOpenProject: (id: string) => void }) {
   const data = useDashboardData()
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('all')
   const [health, setHealth] = useState('all')
+  const [drawerProject, setDrawerProject] = useState<ProjectLite | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const projects = useMemo(() => {
     if (!data) return []
@@ -106,7 +109,7 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
               </TableHeader>
               <TableBody>
                 {projects.map(p => (
-                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={() => onOpenProject(p.id)}>
+                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={() => { setDrawerProject(p); setDrawerOpen(true) }}>
                     <TableCell className="font-mono text-[11px] text-muted-foreground">{p.code}</TableCell>
                     <TableCell>
                       <div className="font-medium text-sm truncate max-w-[280px]">{p.name}</div>
@@ -137,6 +140,12 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
           </div>
         </CardContent>
       </Card>
+      <ProjectDrawer
+        project={drawerProject}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onNavigate={onNavigate}
+      />
     </div>
   )
 }

@@ -1,15 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Building2, FolderKanban, ArrowRight, Users, DollarSign, Activity } from 'lucide-react'
 import { useDashboardData } from '../use-data'
-import { fmtMoney, fmtPct, healthColor, statusColor, type View } from '@/lib/eppm'
+import { fmtMoney, fmtPct, healthColor, statusColor, type View, type ProjectLite } from '@/lib/eppm'
+import { ProjectDrawer } from '../project-drawer'
 
 export function PortfoliosView({ onNavigate }: { onNavigate: (v: View) => void }) {
   const data = useDashboardData()
+  const [drawerProject, setDrawerProject] = useState<ProjectLite | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   if (!data) return <div className="h-64 animate-pulse bg-muted/40 rounded-xl" />
 
   const totalBudget = data.portfolios.reduce((s, p) => s + (p.projects ?? []).reduce((a: number, x: any) => a + x.budget, 0), 0)
@@ -91,11 +95,33 @@ export function PortfoliosView({ onNavigate }: { onNavigate: (v: View) => void }
                   <span>{projs.length} projects · {(p.programs ?? []).length} programs</span>
                   <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => onNavigate('projects')}>Open <ArrowRight className="h-3 w-3" /></Button>
                 </div>
+                {/* Project list */}
+                <div className="space-y-1 mt-1">
+                  {projs.slice(0, 4).map((pj: any) => (
+                    <button
+                      key={pj.id}
+                      onClick={() => { setDrawerProject(pj as ProjectLite); setDrawerOpen(true) }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/50 transition-colors group"
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${pj.health === 'Green' ? 'bg-emerald-500' : pj.health === 'Yellow' ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                      <span className="font-mono text-[9px] text-muted-foreground shrink-0 w-16 truncate">{pj.code}</span>
+                      <span className="text-[11px] truncate flex-1 group-hover:text-primary">{pj.name}</span>
+                      <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{pj.progress.toFixed(0)}%</span>
+                    </button>
+                  ))}
+                  {projs.length > 4 && <div className="text-[10px] text-muted-foreground text-center pt-0.5">+{projs.length - 4} more</div>}
+                </div>
               </CardContent>
             </Card>
           )
         })}
       </div>
+      <ProjectDrawer
+        project={drawerProject}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onNavigate={onNavigate}
+      />
     </div>
   )
 }

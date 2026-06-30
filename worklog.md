@@ -129,3 +129,56 @@ Task: QA the EPPM platform via agent-browser, fix bugs, add features & styling p
 - Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
 - Virtualize Gantt for 100k+ activities.
 - Full RBAC + NextAuth on APIs.
+
+---
+Task ID: CRON-2 (webDevReview round 2)
+Agent: Z.ai Code (autonomous review)
+Task: QA via agent-browser, fix bugs, add Project Detail Drawer + wire Reporting exports + styling polish.
+
+## 1. Current Project Status Assessment
+- Platform stable: 20 modules, all APIs 200, lint clean, dev server detached on :3000.
+- QA sweep: all 20 views load with 0 runtime errors. Dark mode verified clean (no contrast issues, no white flashes).
+- No bugs found this round — proceeded to feature development.
+
+## 2. Completed Modifications
+
+### New features
+1. **Project Detail Drawer (slide-in Sheet from right)** — rich project inspector with 5 tabs:
+   - **Overview**: schedule snapshot (start/finish/baseline + finish-variance badge), overall progress bar with tick markers, budget-health & margin-forecast cards.
+   - **Schedule**: activity stats (Total/Critical/In-Progress) + scrollable activity table (ID/name/dur/%) with critical rows highlighted, "Open Gantt" link.
+   - **Cost & EVM**: PV/EV/AC/EAC stat cards, CPI & SPI cards with colored values + progress bars (under/over budget, ahead/behind labels), S-Curve area chart (PV/EV/AC), Export Activities CSV button.
+   - **Risks**: project risk register cards with score badges + mitigation text, "Full Register" link.
+   - **Team**: 5 project team members (PM/Planning/Controls/Site Eng/QS) with colored avatars + key milestones list.
+   - Header: code/status/health/priority badges, location/client/manager, mini-KPI row (Progress/Budget/Spend/Forecast).
+   - Framer Motion fade-in per tab.
+   - File: `src/components/eppm/project-drawer.tsx` (~280 lines).
+2. **Drawer wired into Projects + Portfolios views**:
+   - Projects: clicking any table row opens the drawer for that project.
+   - Portfolios: each portfolio card now includes a clickable list of up to 4 projects (colored health dot, code, name, progress %); clicking opens the drawer.
+3. **Reporting Generate buttons functional**: 12 report templates now have working Generate buttons that show a loading spinner ("Generating…"), fire a toast notification ("Generating…"), call `/api/export` with the mapped export type (projects/activities/risks/resources/changes), then show a "Report ready" toast. Each template maps to the appropriate export dataset.
+
+### Styling polish
+4. **Portfolios view**: project lists inside portfolio cards with hover highlight (group-hover:text-primary), colored health dots, monospace codes, progress %.
+5. **Toast notifications**: wired the existing radix `useToast` system for report-generation feedback.
+6. **Framer Motion**: per-tab content fade-in animations in the drawer.
+
+## 3. Verification Results
+- ESLint: clean.
+- All API routes 200 (`/`, `/api/dashboard`, `/api/export?type=*`, `/api/projects/[id]`, `/api/daily-reports`, `/api/resources`).
+- agent-browser sweep of all 20 views: 0 runtime errors.
+- VLM-verified:
+  - Project Drawer Overview tab: "polished and professional, clear hierarchy, logical layout".
+  - Cost & EVM tab: real EVM data (PV $69.4M, EV $58.8M, AC $64M, CPI 0.92, SPI 0.85), S-curve rendering correctly.
+  - Schedule tab: activity stats + table render correctly.
+  - Reporting: toast "Report ready" appeared, CSV export triggered (HTTP 200).
+  - Portfolios: clickable project lists visible inside cards.
+  - Dark mode: clean, readable, no contrast issues.
+
+## 4. Unresolved / Next-phase recommendations
+- Wire the Project Drawer into the Dashboard (portfolio list & critical/delayed activity click → open drawer).
+- Add a Project Comparison view (select 2-4 projects, side-by-side metrics).
+- Realtime WebSocket mini-service for live progress updates.
+- Drag-&-drop WBS reordering + activity inline editing (PATCH APIs).
+- Virtualize Gantt for 100k+ activities.
+- Full RBAC + NextAuth on APIs.
+- PDF/Excel export (currently CSV only) — integrate a server-side PDF generator.
