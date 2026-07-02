@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
@@ -14,22 +14,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
-  title: "SmartBuild EPPM — Enterprise Project Portfolio Management",
-  description:
-    "Enterprise-grade Project Portfolio Management platform: planning, scheduling, cost control, resource management, risk management & analytics. Built for SmartBuild Enterprise.",
-  keywords: [
-    "EPPM", "Primavera P6", "Project Controls", "Portfolio Management", "Gantt",
-    "Earned Value Management", "Critical Path", "SmartBuild",
-  ],
-  authors: [{ name: "SmartBuild Enterprise" }],
-  icons: { icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg" },
-  openGraph: {
-    title: "SmartBuild EPPM",
-    description: "Enterprise Project Portfolio Management Platform",
-    siteName: "SmartBuild",
-    type: "website",
-  },
+  title: "SmartBuild Enterprise",
+  description: "Enterprise Project Portfolio Management Platform",
 };
 
 export default function RootLayout({
@@ -38,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${poppins.variable} antialiased bg-background text-foreground`}
       >
         <Providers>{children}</Providers>
         <Toaster />
