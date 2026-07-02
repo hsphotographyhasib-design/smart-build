@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Users, ShieldCheck, KeyRound, Lock, Fingerprint, Gauge, ShieldAlert, ScrollText, Settings2, CheckCircle2, XCircle, Search, UserCog, Calendar, Coins, Globe, BellRing, Activity as ActivityIcon } from 'lucide-react'
+import { UserRoleManager } from '@/components/eppm/admin/user-role-manager'
 import { fmtDate, type View } from '@/lib/eppm'
 import { cn } from '@/lib/utils'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
@@ -128,6 +129,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
         </TabsList>
 
         <TabsContent value="users" className="mt-3 space-y-4">
+          <UserRoleManager />
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

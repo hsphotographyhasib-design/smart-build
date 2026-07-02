@@ -150,19 +150,19 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
   const totalDisputeValue  = DISPUTES.reduce((s, d) => s + d.claimValue, 0)
 
   const filteredEot = useMemo(() => allEot.filter(e => {
-    if (eotQ && !${e.code}  .toLowerCase().includes(eotQ.toLowerCase())) return false
+    if (eotQ && !`${e.code} ${e.title}`.toLowerCase().includes(eotQ.toLowerCase())) return false
     if (eotStatus !== 'all' && e.status !== eotStatus) return false
     return true
   }), [allEot, eotQ, eotStatus])
 
   const filteredClaims = useMemo(() => allClaims.filter(c => {
-    if (claimQ && !${c.code}  .toLowerCase().includes(claimQ.toLowerCase())) return false
+    if (claimQ && !`${c.code} ${c.title}`.toLowerCase().includes(claimQ.toLowerCase())) return false
     if (claimStatus !== 'all' && c.status !== claimStatus) return false
     return true
   }), [allClaims, claimQ, claimStatus])
 
   const filteredDisputes = useMemo(() => DISPUTES.filter(d => {
-    if (dispQ && !${d.id}  .toLowerCase().includes(dispQ.toLowerCase())) return false
+    if (dispQ && !`${d.id} ${d.relatedClaim}`.toLowerCase().includes(dispQ.toLowerCase())) return false
     if (dispForum !== 'all' && d.forum !== dispForum) return false
     if (dispStatus !== 'all' && d.status !== dispStatus) return false
     return true
@@ -204,12 +204,12 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
         </div>
 
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          <KpiCard label="EOT Requests"    value={allEot.length}               icon={CalendarDays} accentClass="from-sky-500 to-sky-600"       sub={${eotApproved.length} approved} />
-          <KpiCard label="Days Approved"   value={${daysApproved}d}          icon={CheckCircle2} accentClass="from-emerald-500 to-emerald-600" sub="Calendar days granted" />
-          <KpiCard label="Days Pending"    value={${daysPending}d}           icon={Clock}        accentClass="from-amber-500 to-amber-600"    sub={${eotPending.length} pending} />
-          <KpiCard label="Total Claims"    value={fmtMoney(totalClaimValue)}   icon={DollarSign}   accentClass="from-violet-500 to-violet-600"  sub={${allClaims.length} lodged} />
-          <KpiCard label="Claims Approved" value={fmtMoney(approvedClaimValue)} icon={TrendingUp}  accentClass="from-emerald-600 to-teal-600"   sub={${claimsApproved.length} approved} />
-          <KpiCard label="Active Disputes" value={activeDisputes.length}       icon={Gavel}        accentClass="from-rose-500 to-rose-600"      sub={${DISPUTES.length} total referred} />
+          <KpiCard label="EOT Requests"    value={allEot.length}               icon={CalendarDays} accentClass="from-sky-500 to-sky-600"       sub={`${eotApproved.length} approved`} />
+          <KpiCard label="Days Approved"   value={`${daysApproved}d`}          icon={CheckCircle2} accentClass="from-emerald-500 to-emerald-600" sub="Calendar days granted" />
+          <KpiCard label="Days Pending"    value={`${daysPending}d`}           icon={Clock}        accentClass="from-amber-500 to-amber-600"    sub={`${eotPending.length} pending`} />
+          <KpiCard label="Total Claims"    value={fmtMoney(totalClaimValue)}   icon={DollarSign}   accentClass="from-violet-500 to-violet-600"  sub={`${allClaims.length} lodged`} />
+          <KpiCard label="Claims Approved" value={fmtMoney(approvedClaimValue)} icon={TrendingUp}  accentClass="from-emerald-600 to-teal-600"   sub={`${claimsApproved.length} approved`} />
+          <KpiCard label="Active Disputes" value={activeDisputes.length}       icon={Gavel}        accentClass="from-rose-500 to-rose-600"      sub={`${DISPUTES.length} total referred`} />
         </div>
 
         <Tabs defaultValue="eot">
@@ -293,7 +293,7 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                           <CartesianGrid strokeDasharray="3 3" opacity={0.15} horizontal={false} />
                           <XAxis type="number" tick={{ fontSize: 10 }} />
                           <YAxis dataKey="cause" type="category" tick={{ fontSize: 10 }} width={84} />
-                          <Tooltip formatter={(v: number) => [${v}d, 'Days']} contentStyle={{ fontSize: 11, borderRadius: 6 }} />
+                          <Tooltip formatter={(v: number) => [`${v}d`, 'Days']} contentStyle={{ fontSize: 11, borderRadius: 6 }} />
                           <Bar dataKey="days" radius={[0, 4, 4, 0]} maxBarSize={24}>{eotByCause.map((_: any, i: number) => <Cell key={i} fill={CAT_COLORS[i % CAT_COLORS.length]} />)}</Bar>
                         </BarChart>
                       </ResponsiveContainer>
@@ -304,10 +304,10 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <CardContent className="p-4 space-y-2">
                     <div className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">EOT Summary</div>
                     {[
-                      { label: 'Total Requested', value: ${allEot.reduce((s: number, e: any) => s + (e.timeImpact || 0), 0)}d, color: 'text-foreground' },
-                      { label: 'Days Approved',   value: ${daysApproved}d,  color: 'text-emerald-600' },
-                      { label: 'Days Pending',    value: ${daysPending}d,   color: 'text-amber-600' },
-                      { label: 'Critical Path',   value: ${allEot.filter((e: any) => e.criticalPath).length} requests, color: 'text-rose-600' },
+                      { label: 'Total Requested', value: `${allEot.reduce((s: number, e: any) => s + (e.timeImpact || 0), 0)}d`, color: 'text-foreground' },
+                      { label: 'Days Approved',   value: `${daysApproved}d`,  color: 'text-emerald-600' },
+                      { label: 'Days Pending',    value: `${daysPending}d`,   color: 'text-amber-600' },
+                      { label: 'Critical Path',   value: `${allEot.filter((e: any) => e.criticalPath).length} requests`, color: 'text-rose-600' },
                     ].map(s => (
                       <div key={s.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{s.label}</span>
@@ -413,8 +413,8 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                     {[
                       { label: 'Total Lodged',   value: fmtMoney(totalClaimValue),    color: 'text-foreground' },
                       { label: 'Approved Value', value: fmtMoney(approvedClaimValue), color: 'text-emerald-600' },
-                      { label: 'Pending Review', value: ${allClaims.filter((c: any) => c.status === 'Submitted' || c.status === 'Under Review').length} claims, color: 'text-amber-600' },
-                      { label: 'Recovery Rate',  value: totalClaimValue > 0 ? ${((approvedClaimValue / totalClaimValue) * 100).toFixed(0)}% : '-', color: 'text-sky-600' },
+                      { label: 'Pending Review', value: `${allClaims.filter((c: any) => c.status === 'Submitted' || c.status === 'Under Review').length} claims`, color: 'text-amber-600' },
+                      { label: 'Recovery Rate',  value: totalClaimValue > 0 ? `${((approvedClaimValue / totalClaimValue) * 100).toFixed(0)}%` : '-', color: 'text-sky-600' },
                     ].map(s => (
                       <div key={s.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{s.label}</span>
@@ -489,7 +489,7 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                         <span>Raised: <strong className="text-foreground">{fmtDate(d.raisedDate)}</strong></span>
                         {d.hearingDate && <span>Hearing: <strong className="text-amber-600">{fmtDate(d.hearingDate)}</strong></span>}
                         {d.resolvedDate && <span>Resolved: <strong className="text-emerald-600">{fmtDate(d.resolvedDate)}</strong></span>}
-                        <span className="col-span-2">Panel: <strong className="text-foreground">{d.panelMembers[0]}{d.panelMembers.length > 1 ?  +  more : ''}</strong></span>
+                        <span className="col-span-2">Panel: <strong className="text-foreground">{d.panelMembers[0]}{d.panelMembers.length > 1 ? ` +${d.panelMembers.length - 1} more` : ''}</strong></span>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
                         <p className="line-clamp-1 text-[10px] text-muted-foreground">{d.notes}</p>

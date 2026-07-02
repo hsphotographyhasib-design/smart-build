@@ -3,9 +3,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { Briefcase, Activity, AlertTriangle, FileEdit, Search, ArrowRight, GitBranch, Clock } from 'lucide-react'
+import { Briefcase, Activity, AlertTriangle, FileEdit, Search, ArrowRight, GitBranch } from 'lucide-react'
 import { useDashboardData } from './use-data'
-import { fmtMoney, fmtPct, fmtDate, healthColor, statusColor, type View } from '@/lib/eppm'
+import { fmtPct, healthColor, statusColor, type View } from '@/lib/eppm'
+import { flattenLeaves } from '@/lib/navigation'
+import { useAuth } from '@/components/auth/auth-context'
 import { cn } from '@/lib/utils'
 
 interface SearchResult {
@@ -28,7 +30,22 @@ export function GlobalSearch({
   onOpenProject: (id: string) => void
 }) {
   const data = useDashboardData()
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
+
+  // Config-driven page/module results (respects RBAC).
+  const pageResults = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return flattenLeaves(user?.role)
+      .filter((l) => !!l.view && (
+        l.label.toLowerCase().includes(q) ||
+        l.description?.toLowerCase().includes(q) ||
+        l.categoryLabel.toLowerCase().includes(q) ||
+        l.keywords?.some((k) => k.includes(q))
+      ))
+      .slice(0, 8)
+  }, [query, user?.role])
 
   const results = useMemo<SearchResult[]>(() => {
     if (!data || !query.trim()) return []
@@ -88,7 +105,7 @@ export function GlobalSearch({
         <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2 [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4">
           <div className="flex items-center gap-2 border-b px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <CommandInput placeholder="Search projects, activities, risks, changes…" value={query} onValueChange={setQuery} className="border-0 ring-0" />
+            <CommandInput placeholder="Search pages, projects, activities, risks…" value={query} onValueChange={setQuery} className="border-0 ring-0" />
             <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">ESC</kbd>
           </div>
           <CommandList className="max-h-[420px]">
@@ -105,6 +122,28 @@ export function GlobalSearch({
                 </div>
               )}
             </CommandEmpty>
+            {pageResults.length > 0 && (
+              <>
+                <CommandGroup heading={`Pages & Modules (${pageResults.length})`}>
+                  {pageResults.map((p) => {
+                    const Icon = p.icon
+                    return (
+                      <CommandItem key={`page-${p.categoryLabel}-${p.id}`} value={`page-${p.id}`} onSelect={() => { onOpenChange(false); onNavigate(p.view!) }} className="gap-2.5">
+                        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10">
+                          <Icon className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-medium">{p.label}</div>
+                          <div className="truncate text-[10px] text-muted-foreground">{p.categoryLabel}{p.columnTitle ? ` · ${p.columnTitle}` : ''}</div>
+                        </div>
+                        <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-aria-selected:opacity-100" />
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
             {(['project', 'activity', 'risk', 'change'] as const).map(g => (
               groups[g].length > 0 && (
                 <CommandGroup key={g} heading={`${groupLabels[g]} (${groups[g].length})`}>
@@ -133,7 +172,7 @@ export function GlobalSearch({
               <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px]">↑↓</kbd> navigate</span>
               <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px]">↵</kbd> select</span>
             </div>
-            <span>{results.length} results</span>
+            <span>{pageResults.length + results.length} results</span>
           </div>
         </Command>
       </DialogContent>
