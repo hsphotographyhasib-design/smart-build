@@ -68,6 +68,19 @@ export async function GET(req: NextRequest) {
       costImpact: c.costImpact, timeImpact: c.timeImpact, raisedDate: c.raisedDate.toISOString().slice(0,10),
     }))
     filename = 'changes'
+  } else if (type === 'claims') {
+    const cl = await db.changeOrder.findMany({
+      where: { type: { in: ['Claim', 'EOT', 'Delay Notice'] } },
+      include: { project: true },
+      orderBy: { raisedDate: 'desc' },
+    })
+    rows = cl.map(c => ({
+      code: c.code, title: c.title, project: c.project.code, type: c.type, status: c.status,
+      costImpact: c.costImpact, timeImpact: c.timeImpact,
+      raisedDate: c.raisedDate.toISOString().slice(0, 10),
+      approvedDate: c.approvedDate?.toISOString().slice(0, 10) ?? '',
+    }))
+    filename = 'claims'
   }
 
   const csv = toCsv(rows)

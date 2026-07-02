@@ -3,7 +3,7 @@ export type View =
   | 'dashboard' | 'portfolios' | 'programs' | 'projects' | 'compare' | 'whatif'
   | 'wbs' | 'activities' | 'gantt' | 'critical-path' | 'milestones'
   | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
-  | 'risks' | 'changes' | 'lookahead' | 'procurement' | 'quality' | 'hse'
+  | 'risks' | 'changes' | 'claims' | 'lookahead' | 'procurement' | 'quality' | 'hse'
   | 'documents' | 'submittals' | 'site-progress' | 'commissioning' | 'closeout' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
 
 export interface Kpis {
@@ -78,7 +78,7 @@ export const statusColor = (s: string) =>
   : 'text-muted-foreground bg-muted border-border'
 
 // Trigger a CSV export download from the /api/export endpoint
-export function exportCsv(type: 'projects' | 'activities' | 'risks' | 'resources' | 'changes', projectId?: string) {
+export function exportCsv(type: 'projects' | 'activities' | 'risks' | 'resources' | 'changes' | 'claims', projectId?: string) {
   const params = new URLSearchParams({ type })
   if (projectId) params.set('projectId', projectId)
   const a = document.createElement('a')
