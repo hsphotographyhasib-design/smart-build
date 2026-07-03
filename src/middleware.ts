@@ -20,18 +20,18 @@ export async function middleware(req: NextRequest) {
     return session ? NextResponse.redirect(new URL('/app', req.url)) : NextResponse.next()
   }
 
-  // The enterprise app under /app requires a session.
-  if (pathname === '/app' || pathname.startsWith('/app/')) {
-    if (!session) {
-      const url = new URL('/login', req.url)
-      url.searchParams.set('from', pathname)
-      return NextResponse.redirect(url)
-    }
-    return NextResponse.next()
+  // No public site: the root (and anything else) opens the authentication
+  // page first, or the app if already signed in.
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(session ? '/app' : '/login', req.url))
   }
 
-  // Everything else is the public corporate website (home, about, services,
-  // projects, industries, safety, careers, news, contact, legal pages, ...).
+  // Everything else (the app under /app, etc.) requires a session.
+  if (!session) {
+    const url = new URL('/login', req.url)
+    url.searchParams.set('from', pathname)
+    return NextResponse.redirect(url)
+  }
   return NextResponse.next()
 }
 
