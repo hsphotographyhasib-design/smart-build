@@ -128,7 +128,7 @@ export default function Home() {
       <footer className="mt-auto border-t bg-background/95 px-4 py-2.5 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-1 text-[11px] text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-3">
-            <span>© 2025 SmartBuild Enterprise · EPPM v4.2.1</span>
+            <span>© 2025 HJSB EPPM · Enterprise Project Portfolio Management v4.2.1</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline">Primavera P6-class engine</span>
           </div>

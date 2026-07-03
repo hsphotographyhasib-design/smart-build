@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 
 const db = new PrismaClient()
 
-const EMAIL = 'admin@smartbuild.io'
+const EMAIL = 'admin@hjsb.com'
 const PASSWORD = 'admin123'
 
 async function main() {

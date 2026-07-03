@@ -60,7 +60,7 @@ export function AiPlannerView({ onNavigate }: { onNavigate: (v: View) => void })
             <div className="flex items-center gap-2.5">
               <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground"><Sparkles className="h-4.5 w-4.5" /></div>
               <div>
-                <CardTitle className="text-sm">SmartBuild AI Planner</CardTitle>
+                <CardTitle className="text-sm">HJSB AI Planner</CardTitle>
                 <CardDescription className="text-xs">Primavera-grade schedule intelligence</CardDescription>
               </div>
             </div>

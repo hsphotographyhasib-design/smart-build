@@ -4,8 +4,14 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ChevronDown, Phone, Mail, Clock, Search, ShoppingCart, Building2 } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, Mail, Search, Building2, LogIn, UserCheck, MonitorSmartphone } from "lucide-react"
 import { company } from "@/lib/corporate-data"
+
+const portalLinks = [
+  { label: "Employee Login", href: "/login", icon: LogIn },
+  { label: "Client Portal", href: "/login?portal=client", icon: UserCheck },
+  { label: "EPPM Login", href: "/login", icon: MonitorSmartphone },
+]
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
@@ -25,40 +31,33 @@ export default function Header() {
     setActiveDropdown(null)
   }, [pathname])
 
-  const navItems = [
-    {
-      label: "Home",
-      href: "/",
-      dropdown: [
-        { label: "Home", href: "/" },
-      ],
-    },
-    {
-      label: "Pages",
-      href: "#",
-      dropdown: [
-        { label: "About Us", href: "/about" },
-        { label: "Our Team", href: "/about#leadership" },
-        { label: "FAQ", href: "/#faq" },
-        { label: "Gallery", href: "/gallery" },
-        { label: "Careers", href: "/careers" },
-      ],
-    },
+  const navItems: {
+    label: string
+    href: string
+    dropdown?: { label: string; href: string }[]
+    wide?: boolean
+  }[] = [
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
     {
       label: "Services",
       href: "/services",
+      dropdown: company.services.map((s) => ({ label: s.title, href: `/services/${s.slug}` })),
+      wide: true,
+    },
+    { label: "Industries", href: "/industries" },
+    { label: "Projects", href: "/projects" },
+    {
+      label: "Resources",
+      href: "#",
       dropdown: [
-        { label: "General Construction", href: "/services/general-construction" },
-        { label: "Architectural Design", href: "/services/architectural-design" },
-        { label: "Project Management", href: "/services/project-management" },
-        { label: "Renovation & Remodeling", href: "/services/renovation-remodeling" },
-        { label: "Infrastructure Development", href: "/services/infrastructure-development" },
-        { label: "Green Building", href: "/services/green-building" },
+        { label: "News & Insights", href: "/news" },
+        { label: "Safety & Quality", href: "/safety" },
+        { label: "Gallery", href: "/gallery" },
+        { label: "Products", href: "/products" },
       ],
     },
-    { label: "Products", href: "/products" },
-    { label: "Projects", href: "/projects" },
-    { label: "News", href: "/news" },
+    { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/contact" },
   ]
 
@@ -78,13 +77,12 @@ export default function Header() {
                 <Phone className="w-3.5 h-3.5" /> {company.phone}
               </a>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> {company.hours}
-              </span>
-              <Link href="/contact" className="hover:text-corp-gold transition-colors">Login</Link>
-              <span>/</span>
-              <Link href="/contact" className="hover:text-corp-gold transition-colors">Register</Link>
+            <div className="flex items-center gap-5 text-xs text-gray-400">
+              {portalLinks.map((portal) => (
+                <Link key={portal.label} href={portal.href} className="flex items-center gap-1.5 hover:text-corp-gold transition-colors">
+                  <portal.icon className="w-3.5 h-3.5" /> {portal.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -124,7 +122,7 @@ export default function Header() {
                 >
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-1 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       pathname === item.href
                         ? "text-corp-gold bg-white/10"
                         : "text-white/80 hover:text-white hover:bg-white/5"
@@ -140,9 +138,11 @@ export default function Header() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 8 }}
-                          className="absolute top-full left-0 mt-1 w-56 rounded-xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                          className={`absolute top-full left-0 mt-1 rounded-xl bg-white shadow-2xl border border-gray-100 overflow-hidden ${
+                            item.wide ? "w-[34rem]" : "w-56"
+                          }`}
                         >
-                          <div className="py-2">
+                          <div className={item.wide ? "py-2 grid grid-cols-2" : "py-2"}>
                             {item.dropdown.map((sub) => (
                               <Link
                                 key={sub.label}
@@ -164,19 +164,28 @@ export default function Header() {
             {/* Right Actions */}
             <div className="flex items-center gap-2">
               <button
+                aria-label="Search"
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all"
               >
                 <Search className="w-4.5 h-4.5" />
               </button>
               <Link
+                href="/login"
+                className="hidden xl:inline-flex items-center gap-2 border border-white/20 hover:border-corp-gold/60 hover:text-corp-gold text-white/90 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300"
+              >
+                <LogIn className="w-4 h-4" />
+                EPPM Login
+              </Link>
+              <Link
                 href="/contact"
                 className="hidden lg:inline-flex items-center gap-2 bg-corp-gold hover:bg-corp-gold-light text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg shadow-corp-gold/20 hover:shadow-corp-gold/30"
               >
                 <Phone className="w-4 h-4" />
-                Request a Quote
+                Request Quotation
               </Link>
               <button
+                aria-label="Open menu"
                 className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-white hover:bg-white/10 transition-colors"
                 onClick={() => setMobileOpen(!mobileOpen)}
               >
@@ -201,7 +210,8 @@ export default function Header() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search services, projects, news..."
+                  aria-label="Search the website"
                   className="w-full bg-white rounded-2xl px-6 py-5 text-lg text-gray-900 placeholder-gray-400 outline-none shadow-2xl"
                   autoFocus
                 />
@@ -226,10 +236,11 @@ export default function Header() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl"
+              className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl overflow-y-auto"
             >
               <div className="p-5">
                 <button
+                  aria-label="Close menu"
                   onClick={() => setMobileOpen(false)}
                   className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 ml-auto mb-4"
                 >
@@ -249,7 +260,7 @@ export default function Header() {
                       >
                         {item.label}
                       </Link>
-                      {item.dropdown?.map((sub) => (
+                      {item.label === "Resources" && item.dropdown?.map((sub) => (
                         <Link
                           key={sub.label}
                           href={sub.href}
@@ -262,6 +273,21 @@ export default function Header() {
                     </div>
                   ))}
                 </nav>
+
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-2">
+                  <div className="px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">HJSB EPPM Platform</div>
+                  {portalLinks.map((portal) => (
+                    <Link
+                      key={portal.label}
+                      href={portal.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-corp-green/5 hover:text-corp-green transition-colors"
+                    >
+                      <portal.icon className="w-4 h-4 text-corp-gold" /> {portal.label}
+                    </Link>
+                  ))}
+                </div>
+
                 <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
                   <a href={`tel:${company.phone}`} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:text-corp-green">
                     <Phone className="w-4 h-4 text-corp-gold" /> {company.phone}
@@ -274,7 +300,7 @@ export default function Header() {
                     onClick={() => setMobileOpen(false)}
                     className="block text-center bg-corp-gold text-white px-4 py-3.5 rounded-xl text-sm font-semibold mt-4"
                   >
-                    Request a Quote
+                    Request Quotation
                   </Link>
                 </div>
               </div>

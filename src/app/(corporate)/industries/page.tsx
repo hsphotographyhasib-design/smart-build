@@ -1,12 +1,12 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Landmark, Building, Home, Factory, Route, Hotel, GraduationCap, HeartPulse, ArrowRight } from "lucide-react"
+import { Landmark, Building, Home, Factory, Route, Hotel, GraduationCap, HeartPulse, Fuel, PlugZap, ArrowRight } from "lucide-react"
 import { company } from "@/lib/corporate-data"
 import SectionHeader from "@/components/corporate/section-header"
 
 const iconMap: Record<string, React.ElementType> = {
-  Landmark, Building, Home, Factory, Route, Hotel, GraduationCap, HeartPulse,
+  Landmark, Building, Home, Factory, Route, Hotel, GraduationCap, HeartPulse, Fuel, PlugZap,
 }
 
 export default function IndustriesPage() {

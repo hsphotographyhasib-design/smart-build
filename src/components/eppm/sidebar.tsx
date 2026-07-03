@@ -71,7 +71,7 @@ export function Sidebar({ view, onNavigate, collapsed }: {
         </div>
         {!collapsed && (
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-sm font-bold tracking-tight">SmartBuild EPPM</div>
+            <div className="truncate text-sm font-bold tracking-tight">HJSB EPPM</div>
             <div className="truncate text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Enterprise Portfolio</div>
           </div>
         )}

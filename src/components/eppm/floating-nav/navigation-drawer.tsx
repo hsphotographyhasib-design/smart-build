@@ -65,7 +65,7 @@ export function NavigationDrawer({ open, onClose, currentView, onNavigate }: Nav
               <div className="flex items-center gap-2">
                 <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground"><Building2 className="h-4 w-4" /></div>
                 <div className="leading-none">
-                  <div className="text-sm font-extrabold">SmartBuild</div>
+                  <div className="text-sm font-extrabold">HJSB</div>
                   <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</div>
                 </div>
               </div>

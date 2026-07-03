@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useParams, notFound } from "next/navigation"
 import { motion } from "framer-motion"
-import { Building2, Palette, ClipboardCheck, RefreshCw, Route, Leaf, CheckCircle, ArrowRight } from "lucide-react"
+import { Building2, Palette, ClipboardCheck, RefreshCw, Route, Leaf, CheckCircle, ArrowRight, Compass, Zap, Wrench, Frame, Flame, Landmark } from "lucide-react"
 import { company } from "@/lib/corporate-data"
 import SectionHeader from "@/components/corporate/section-header"
 
@@ -14,6 +14,12 @@ const iconMap: Record<string, React.ReactNode> = {
   RefreshCw: <RefreshCw className="w-10 h-10" />,
   Route: <Route className="w-10 h-10" />,
   Leaf: <Leaf className="w-10 h-10" />,
+  Compass: <Compass className="w-10 h-10" />,
+  Zap: <Zap className="w-10 h-10" />,
+  Wrench: <Wrench className="w-10 h-10" />,
+  Frame: <Frame className="w-10 h-10" />,
+  Flame: <Flame className="w-10 h-10" />,
+  Landmark: <Landmark className="w-10 h-10" />,
 }
 
 const fadeUp = {

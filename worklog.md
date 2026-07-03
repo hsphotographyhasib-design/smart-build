@@ -50,7 +50,7 @@ Notes for next agents:
 ---
 Task ID: ROOT (orchestrator)
 Agent: Z.ai Code (principal)
-Task: Build complete SmartBuild EPPM (Enterprise Project Portfolio Management) platform — Primavera P6 class.
+Task: Build complete HJSB EPPM (Enterprise Project Portfolio Management) platform — Primavera P6 class.
 
 Work Log:
 - Designed comprehensive Prisma schema (Portfolio, Program, Project, Wbs, Activity, Dependency, Resource, ResourceAssignment, Risk, Baseline, ChangeOrder, Document, DailyReport, AppUser) and pushed to SQLite.

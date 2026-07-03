@@ -20,15 +20,18 @@ export async function middleware(req: NextRequest) {
     return session ? NextResponse.redirect(new URL('/app', req.url)) : NextResponse.next()
   }
 
-  // The marketing landing page at "/" is public for everyone.
-  if (pathname === '/') return NextResponse.next()
-
-  // Everything else (the app under /app, etc.) requires a session.
-  if (!session) {
-    const url = new URL('/login', req.url)
-    url.searchParams.set('from', pathname)
-    return NextResponse.redirect(url)
+  // The enterprise app under /app requires a session.
+  if (pathname === '/app' || pathname.startsWith('/app/')) {
+    if (!session) {
+      const url = new URL('/login', req.url)
+      url.searchParams.set('from', pathname)
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next()
   }
+
+  // Everything else is the public corporate website (home, about, services,
+  // projects, industries, safety, careers, news, contact, legal pages, ...).
   return NextResponse.next()
 }
 

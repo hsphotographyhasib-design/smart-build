@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Building2, Palette, ClipboardCheck, RefreshCw, Route, Leaf, CheckCircle, ArrowRight } from "lucide-react"
+import { Building2, Palette, ClipboardCheck, RefreshCw, Route, Leaf, CheckCircle, ArrowRight, Compass, Zap, Wrench, Frame, Flame, Landmark } from "lucide-react"
 import { company } from "@/lib/corporate-data"
 import SectionHeader from "@/components/corporate/section-header"
 
@@ -13,6 +13,12 @@ const iconMap: Record<string, React.ReactNode> = {
   RefreshCw: <RefreshCw className="w-8 h-8" />,
   Route: <Route className="w-8 h-8" />,
   Leaf: <Leaf className="w-8 h-8" />,
+  Compass: <Compass className="w-8 h-8" />,
+  Zap: <Zap className="w-8 h-8" />,
+  Wrench: <Wrench className="w-8 h-8" />,
+  Frame: <Frame className="w-8 h-8" />,
+  Flame: <Flame className="w-8 h-8" />,
+  Landmark: <Landmark className="w-8 h-8" />,
 }
 
 export default function ServicesPage() {

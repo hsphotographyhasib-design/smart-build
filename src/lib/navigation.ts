@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SmartBuild — Centralized Enterprise Navigation Configuration
+// HJSB EPPM — Centralized Enterprise Navigation Configuration
 //
 // Single source of truth for the floating mega-menu navigation. Never hardcode
 // menus in components — everything (labels, icons, routes, RBAC, badges,

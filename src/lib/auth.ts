@@ -3,7 +3,7 @@
 // be imported from middleware (edge runtime). Node-only helpers live in auth-server.ts.
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 
-export const SESSION_COOKIE = 'sb_session'
+export const SESSION_COOKIE = 'hjsb_session'
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days (seconds)
 
 // Role tiers. New sign-ups always start as "Customer".
@@ -34,7 +34,7 @@ function getSecret(): Uint8Array {
   const secret =
     process.env.AUTH_SECRET ||
     // dev fallback so the app runs without configuration; override in .env for production
-    'dev-insecure-secret-change-me-smartbuild-eppm'
+    'dev-insecure-secret-change-me-hjsb-eppm'
   return new TextEncoder().encode(secret)
 }
 

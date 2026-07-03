@@ -6,19 +6,19 @@ const day = 86400000
 const D = (offset: number) => new Date(Date.UTC(2025, 9, 15) + offset * day)
 
 async function main() {
-  console.log('🌱 Seeding SmartBuild EPPM...')
+  console.log('🌱 Seeding HJSB EPPM...')
 
   // ---------- USERS ----------
   const users = await db.appUser.createMany({
     data: [
-      { name: 'Daniel Okafor', email: 'daniel@smartbuild.io', role: 'Super Admin' },
-      { name: 'Sarah Lim', email: 'sarah@smartbuild.io', role: 'Portfolio Director' },
-      { name: 'Raj Patel', email: 'raj@smartbuild.io', role: 'Planning Manager' },
-      { name: 'Maria Santos', email: 'maria@smartbuild.io', role: 'Project Manager' },
-      { name: 'Ahmed Hassan', email: 'ahmed@smartbuild.io', role: 'Project Controls Manager' },
-      { name: 'Chen Wei', email: 'chen@smartbuild.io', role: 'Scheduler' },
-      { name: 'Lisa Brown', email: 'lisa@smartbuild.io', role: 'Quantity Surveyor' },
-      { name: 'Tom Wilson', email: 'tom@smartbuild.io', role: 'Site Engineer' },
+      { name: 'Daniel Okafor', email: 'daniel@hjsb.com', role: 'Super Admin' },
+      { name: 'Sarah Lim', email: 'sarah@hjsb.com', role: 'Portfolio Director' },
+      { name: 'Raj Patel', email: 'raj@hjsb.com', role: 'Planning Manager' },
+      { name: 'Maria Santos', email: 'maria@hjsb.com', role: 'Project Manager' },
+      { name: 'Ahmed Hassan', email: 'ahmed@hjsb.com', role: 'Project Controls Manager' },
+      { name: 'Chen Wei', email: 'chen@hjsb.com', role: 'Scheduler' },
+      { name: 'Lisa Brown', email: 'lisa@hjsb.com', role: 'Quantity Surveyor' },
+      { name: 'Tom Wilson', email: 'tom@hjsb.com', role: 'Site Engineer' },
     ],
   })
 

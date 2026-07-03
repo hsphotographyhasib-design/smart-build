@@ -174,7 +174,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                 <Building2 className="h-4.5 w-4.5" />
               </div>
               <div className="hidden sm:block text-left leading-none">
-                <div className="text-xs font-extrabold tracking-tight">SmartBuild</div>
+                <div className="text-xs font-extrabold tracking-tight">HJSB</div>
                 <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</div>
               </div>
             </button>
@@ -339,7 +339,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
         <DialogContent className="sm:max-w-md rounded-3xl p-6 border border-border/80 bg-background/90 backdrop-blur-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2.5 text-base font-bold">
-              <QrCode className="h-5 w-5 text-primary" /> <span>SmartBuild QR Scanner</span>
+              <QrCode className="h-5 w-5 text-primary" /> <span>HJSB QR Scanner</span>
             </DialogTitle>
             <DialogDescription className="text-xs">Scan project tags, employee cards, or equipment badges for instant lookup.</DialogDescription>
           </DialogHeader>

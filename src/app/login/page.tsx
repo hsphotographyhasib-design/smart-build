@@ -143,8 +143,8 @@ export default function LoginPage() {
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-lg font-bold tracking-tight">SmartBuild</div>
-            <div className="text-[11px] text-emerald-200/80">Enterprise EPPM</div>
+            <div className="text-lg font-bold tracking-tight">HJSB EPPM</div>
+            <div className="text-[11px] text-emerald-200/80">Enterprise Project Portfolio Management</div>
           </div>
         </div>
         <div className="relative space-y-5 text-white">
@@ -159,7 +159,7 @@ export default function LoginPage() {
             <span className="inline-flex items-center gap-1.5"><KeyRound className="h-4 w-4" /> Encrypted sessions</span>
           </div>
         </div>
-        <div className="relative text-[11px] text-slate-400">© 2025 SmartBuild Enterprise · EPPM v4.2.1</div>
+        <div className="relative text-[11px] text-slate-400">© 2025 HJSB EPPM · Project Portfolio Management v4.2.1</div>
       </div>
 
       {/* Auth panel */}
@@ -174,7 +174,7 @@ export default function LoginPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Building2 className="h-4.5 w-4.5" />
             </div>
-            <span className="font-bold">SmartBuild</span>
+            <span className="font-bold">HJSB EPPM</span>
           </div>
 
           <h2 className="text-xl font-bold tracking-tight">
@@ -183,7 +183,7 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === 'signup'
               ? 'Sign up to get started — new accounts start as Customer.'
-              : 'Sign in to your SmartBuild workspace.'}
+              : 'Sign in to your HJSB EPPM workspace.'}
           </p>
 
           {/* Social / WhatsApp */}
@@ -242,7 +242,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
-            {mode === 'signup' ? 'Already have an account?' : 'New to SmartBuild?'}{' '}
+            {mode === 'signup' ? 'Already have an account?' : 'New to HJSB EPPM?'}{' '}
             <button
               type="button"
               onClick={() => setMode(mode === 'signup' ? 'signin' : 'signup')}
@@ -305,3 +305,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
+

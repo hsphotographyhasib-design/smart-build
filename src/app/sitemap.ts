@@ -1,18 +1,13 @@
 import { MetadataRoute } from "next"
+import { company } from "@/lib/corporate-data"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://hasanurjaya.com"
+  const baseUrl = company.website
 
-  const routes = [
+  const staticRoutes = [
     "",
     "/about",
     "/services",
-    "/services/general-construction",
-    "/services/architectural-design",
-    "/services/project-management",
-    "/services/renovation-remodeling",
-    "/services/infrastructure-development",
-    "/services/green-building",
     "/projects",
     "/industries",
     "/products",
@@ -21,9 +16,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/news",
     "/gallery",
     "/contact",
+    "/privacy",
+    "/terms",
   ]
 
-  return routes.map((route) => ({
+  const serviceRoutes = company.services.map((s) => `/services/${s.slug}`)
+  const projectRoutes = company.projects.map((p) => `/projects/${p.slug}`)
+
+  return [...staticRoutes, ...serviceRoutes, ...projectRoutes].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
