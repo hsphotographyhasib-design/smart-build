@@ -147,7 +147,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
         </div>
       </FadeIn>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-3">
         {/* Case queue */}
         <Card className="xl:col-span-1">
           <CardHeader className="pb-3">
@@ -187,7 +187,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
         </Card>
 
         {/* Case detail */}
-        <div className="space-y-4 xl:col-span-2">
+        <div className="min-w-0 space-y-4 xl:col-span-2">
           {/* Escalation banner */}
           {sla && sla.breached.length > 0 && (
             <Card className="border-rose-300 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/30">

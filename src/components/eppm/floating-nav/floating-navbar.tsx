@@ -184,7 +184,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
           <div className="flex-1 flex items-center gap-2 min-w-0">
             <NavigationSearch onNavigate={onNavigate} onOpenProject={onOpenProject} />
             <div className="hidden lg:block h-6 w-px bg-border/70 shrink-0" />
-            <div className="hidden lg:flex flex-1 min-w-0">
+            <div className="hidden lg:flex flex-1 min-w-0 overflow-hidden">
               <NavigationScroller>
                 {nav.map((cat) => (
                   <CategoryButton
@@ -199,10 +199,12 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                 ))}
               </NavigationScroller>
             </div>
+            {/* Hard right boundary so the category strip can never touch the action cluster */}
+            <div className="hidden lg:block h-6 w-px bg-border/70 shrink-0" />
           </div>
 
           {/* RIGHT — favorites, recents, QR, AI, timer, notifications, theme, profile */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 pl-0.5">
             {/* Favorites */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

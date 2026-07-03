@@ -169,7 +169,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/20 pb-16 lg:pb-0">
+    <div className="flex min-h-screen w-full flex-col overflow-x-clip bg-muted/20 pb-16 lg:pb-0">
       <FloatingNavbar
         view={view}
         onNavigate={navigate}
@@ -177,8 +177,9 @@ export default function Home() {
         mobileDrawerOpen={mobileDrawerOpen}
         setMobileDrawerOpen={setMobileDrawerOpen}
       />
-      <main className="flex-1 p-4 lg:p-6 pt-2 lg:pt-3">
-        <div className="mx-auto max-w-[1600px]">
+      {/* pt clears the floating navbar (sticky top-4 + h-14 ⇒ visual bottom ≈72px) */}
+      <main className="flex-1 min-w-0 px-4 lg:px-6 pb-6 pt-8 lg:pt-8">
+        <div className="mx-auto min-w-0 max-w-[1600px]">
           <FadeIn key={view}>{render()}</FadeIn>
         </div>
       </main>
