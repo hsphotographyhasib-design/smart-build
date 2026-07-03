@@ -7,6 +7,12 @@ export type View =
   | 'documents' | 'submittals' | 'site-progress' | 'commissioning' | 'closeout' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
   | 'maintenance' | 'complaints' | 'service-requests' | 'work-orders'
   | 'preventive' | 'corrective' | 'predictive' | 'dispatch' | 'technicians' | 'amc'
+  | 'tender-packages' | 'bid-comparison' | 'award-management' | 'vendor-prequal'
+  | 'employees' | 'vehicles' | 'assets' | 'stock' | 'warehouses' | 'stock-movements'
+  | 'purchase-requests' | 'purchase-orders' | 'suppliers' | 'goods-receipt'
+  | 'invoices' | 'payments' | 'exec-reports' | 'financial-reports'
+  | 'sso' | 'audit' | 'docs' | 'tickets' | 'customer-portal' | 'technician-portal'
+  | 'workflow-engine'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number

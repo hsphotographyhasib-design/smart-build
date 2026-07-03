@@ -39,6 +39,17 @@ import { IntegrationsView } from '@/components/eppm/views/integrations-view'
 import { AdminView } from '@/components/eppm/views/admin-view'
 import { WbsView } from '@/components/eppm/views/wbs-view'
 import MaintenanceView, { type MaintenanceFocus } from '@/components/eppm/views/maintenance-view'
+import TenderView, { type TenderFocus } from '@/components/eppm/views/tender-view'
+import HrView from '@/components/eppm/views/hr-view'
+import FleetAssetsView, { type FleetFocus } from '@/components/eppm/views/fleet-assets-view'
+import InventoryView, { type InventoryFocus } from '@/components/eppm/views/inventory-view'
+import ProcurementOpsView, { type ProcureFocus } from '@/components/eppm/views/procurement-ops-view'
+import AccountsView, { type AccountsFocus } from '@/components/eppm/views/accounts-view'
+import ExecReportsView, { type ExecReportsFocus } from '@/components/eppm/views/exec-reports-view'
+import SecurityView, { type SecurityFocus } from '@/components/eppm/views/security-view'
+import SupportView, { type SupportFocus } from '@/components/eppm/views/support-view'
+import PortalsView, { type PortalsFocus } from '@/components/eppm/views/portals-view'
+import WorkflowEngineView from '@/components/eppm/views/workflow-engine-view'
 import { FadeIn } from '@/components/eppm/motion'
 import { useNav } from '@/components/eppm/nav/nav-context'
 import type { View } from '@/lib/eppm'
@@ -119,6 +130,40 @@ export default function Home() {
       case 'technicians':
       case 'amc':
         return <MaintenanceView onNavigate={navigate} focus={view as MaintenanceFocus} />
+      case 'tender-packages':
+      case 'bid-comparison':
+      case 'award-management':
+      case 'vendor-prequal':
+        return <TenderView onNavigate={navigate} focus={view as TenderFocus} />
+      case 'employees': return <HrView onNavigate={navigate} />
+      case 'vehicles':
+      case 'assets':
+        return <FleetAssetsView onNavigate={navigate} focus={view as FleetFocus} />
+      case 'stock':
+      case 'warehouses':
+      case 'stock-movements':
+        return <InventoryView onNavigate={navigate} focus={view as InventoryFocus} />
+      case 'purchase-requests':
+      case 'purchase-orders':
+      case 'suppliers':
+      case 'goods-receipt':
+        return <ProcurementOpsView onNavigate={navigate} focus={view as ProcureFocus} />
+      case 'invoices':
+      case 'payments':
+        return <AccountsView onNavigate={navigate} focus={view as AccountsFocus} />
+      case 'exec-reports':
+      case 'financial-reports':
+        return <ExecReportsView onNavigate={navigate} focus={view as ExecReportsFocus} />
+      case 'sso':
+      case 'audit':
+        return <SecurityView onNavigate={navigate} focus={view as SecurityFocus} />
+      case 'docs':
+      case 'tickets':
+        return <SupportView onNavigate={navigate} focus={view as SupportFocus} />
+      case 'customer-portal':
+      case 'technician-portal':
+        return <PortalsView onNavigate={navigate} focus={view as PortalsFocus} />
+      case 'workflow-engine': return <WorkflowEngineView onNavigate={navigate} />
       default: return <DashboardView onNavigate={navigate} />
     }
   }

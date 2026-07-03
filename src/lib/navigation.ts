@@ -6,8 +6,8 @@
 // descriptions, keywords) lives here so the nav scales to hundreds of items.
 //
 // Hierarchy:  Category  →  Column (section)  →  Leaf (feature page)
-// "Route" maps to the app's state-based `View`. Items without a `view` are
-// `soon: true` (rendered disabled — full information architecture, zero dead links).
+// "Route" maps to the app's state-based `View`. Every leaf has a live view;
+// the optional `soon` flag renders an item disabled if a future module needs it.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -18,7 +18,7 @@ import {
   ClipboardCheck, BookOpenCheck, Plug, Settings, Gavel, BarChart3, Sparkles,
   Construction, PackageCheck, ClipboardList, Boxes, Package, Warehouse, ReceiptText,
   CreditCard, Handshake, LifeBuoy, Hammer, Radar, CalendarClock, ShoppingCart,
-  FileCheck2, UserCog, ScrollText, Contact, MessageSquareWarning,
+  FileCheck2, UserCog, ScrollText, Contact, MessageSquareWarning, Workflow,
 } from 'lucide-react'
 import type { View } from '@/lib/eppm'
 
@@ -109,10 +109,10 @@ export const NAV: NavCategory[] = [
         id: 'tender',
         title: 'Tender & Bid',
         items: [
-          { id: 'tender-packages', label: 'Tender Packages', icon: ClipboardList, soon: true, description: 'Scope & tender documents' },
-          { id: 'bid-comparison', label: 'Bid Comparison', icon: Scale, soon: true, description: 'Technical & commercial evaluation' },
-          { id: 'award-management', label: 'Award Management', icon: Gavel, soon: true, description: 'Recommendation & award' },
-          { id: 'vendor-prequal', label: 'Vendor Prequalification', icon: Handshake, soon: true, description: 'Contractor prequalification' },
+          { id: 'tender-packages', label: 'Tender Packages', icon: ClipboardList, view: 'tender-packages', description: 'Scope & tender documents', keywords: ['tender', 'package', 'rfq'] },
+          { id: 'bid-comparison', label: 'Bid Comparison', icon: Scale, view: 'bid-comparison', description: 'Technical & commercial evaluation', keywords: ['bid', 'evaluation', 'scoring'] },
+          { id: 'award-management', label: 'Award Management', icon: Gavel, view: 'award-management', description: 'Recommendation & award', keywords: ['award', 'loa'] },
+          { id: 'vendor-prequal', label: 'Vendor Prequalification', icon: Handshake, view: 'vendor-prequal', description: 'Contractor prequalification', keywords: ['vendor', 'prequalification'] },
         ],
       },
       {
@@ -137,6 +137,7 @@ export const NAV: NavCategory[] = [
         id: 'requests',
         title: 'Requests',
         items: [
+          { id: 'workflow-engine', label: 'Workflow Engine', icon: Workflow, view: 'workflow-engine', description: 'Complaint → payment automation', keywords: ['workflow', 'sla', 'escalation', 'automation', 'state machine'] },
           { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning, view: 'complaints', description: 'Customer complaint intake', keywords: ['complaint', 'customer', 'intake'] },
           { id: 'service-requests', label: 'Service Requests', icon: ClipboardList, view: 'service-requests', description: 'Logged service demands', keywords: ['service', 'request', 'sr'] },
         ],
@@ -175,7 +176,7 @@ export const NAV: NavCategory[] = [
         items: [
           { id: 'resources', label: 'Resources', icon: Users, view: 'resources', description: 'Enterprise resource pool' },
           { id: 'workforce', label: 'Workforce Planning', icon: HardHat, view: 'workforce', description: 'Crews, shifts & competency' },
-          { id: 'employees', label: 'Employees', icon: Contact, soon: true, description: 'HR master records' },
+          { id: 'employees', label: 'Employees', icon: Contact, view: 'employees', description: 'HR master records', keywords: ['hr', 'staff', 'attendance', 'leave'] },
         ],
       },
       {
@@ -183,17 +184,17 @@ export const NAV: NavCategory[] = [
         title: 'Equipment & Assets',
         items: [
           { id: 'equipment', label: 'Equipment', icon: Wrench, view: 'equipment', description: 'Fleet allocation & maintenance' },
-          { id: 'vehicles', label: 'Vehicles', icon: Truck, soon: true, description: 'Vehicle fleet & fuel' },
-          { id: 'assets', label: 'Assets', icon: Boxes, soon: true, description: 'Asset register & tracking' },
+          { id: 'vehicles', label: 'Vehicles', icon: Truck, view: 'vehicles', description: 'Vehicle fleet & fuel', keywords: ['fleet', 'roadtax', 'fuel'] },
+          { id: 'assets', label: 'Assets', icon: Boxes, view: 'assets', description: 'Asset register & tracking', keywords: ['asset', 'qr', 'register'] },
         ],
       },
       {
         id: 'inventory',
         title: 'Inventory',
         items: [
-          { id: 'stock', label: 'Stock', icon: Package, soon: true, description: 'Materials & stock levels' },
-          { id: 'warehouses', label: 'Warehouses', icon: Warehouse, soon: true, description: 'Stores & locations' },
-          { id: 'stock-movements', label: 'Stock Movements', icon: PackageCheck, soon: true, description: 'Issues, returns & transfers' },
+          { id: 'stock', label: 'Stock', icon: Package, view: 'stock', description: 'Materials & stock levels', keywords: ['stock', 'materials', 'reorder'] },
+          { id: 'warehouses', label: 'Warehouses', icon: Warehouse, view: 'warehouses', description: 'Stores & locations', keywords: ['warehouse', 'store', 'yard'] },
+          { id: 'stock-movements', label: 'Stock Movements', icon: PackageCheck, view: 'stock-movements', description: 'Issues, returns & transfers', keywords: ['issue', 'transfer', 'grn'] },
         ],
       },
     ],
@@ -210,16 +211,16 @@ export const NAV: NavCategory[] = [
         title: 'Sourcing',
         items: [
           { id: 'procurement', label: 'Procurement Planning', icon: Truck, view: 'procurement', description: 'Material planning & tracking' },
-          { id: 'purchase-requests', label: 'Purchase Requests', icon: ClipboardList, soon: true, description: 'Requisitions & approvals', badgeKey: 'approvals' },
-          { id: 'purchase-orders', label: 'Purchase Orders', icon: ShoppingCart, soon: true, description: 'PO issue & tracking' },
+          { id: 'purchase-requests', label: 'Purchase Requests', icon: ClipboardList, view: 'purchase-requests', description: 'Requisitions & approvals', badgeKey: 'approvals', keywords: ['pr', 'requisition', 'approval'] },
+          { id: 'purchase-orders', label: 'Purchase Orders', icon: ShoppingCart, view: 'purchase-orders', description: 'PO issue & tracking', keywords: ['po', 'order'] },
         ],
       },
       {
         id: 'suppliers',
         title: 'Suppliers',
         items: [
-          { id: 'suppliers', label: 'Suppliers', icon: Handshake, soon: true, description: 'Vendor master & ratings' },
-          { id: 'goods-receipt', label: 'Goods Receipt', icon: PackageCheck, soon: true, description: 'Delivery & GRN' },
+          { id: 'suppliers', label: 'Suppliers', icon: Handshake, view: 'suppliers', description: 'Vendor master & ratings', keywords: ['supplier', 'vendor', 'rating'] },
+          { id: 'goods-receipt', label: 'Goods Receipt', icon: PackageCheck, view: 'goods-receipt', description: 'Delivery & GRN', keywords: ['grn', 'delivery', 'receipt'] },
         ],
       },
     ],
@@ -252,8 +253,8 @@ export const NAV: NavCategory[] = [
         id: 'accounts',
         title: 'Accounts',
         items: [
-          { id: 'invoices', label: 'Invoices', icon: ReceiptText, soon: true, description: 'AR / AP invoicing' },
-          { id: 'payments', label: 'Payments', icon: CreditCard, soon: true, description: 'Certificates & payments' },
+          { id: 'invoices', label: 'Invoices', icon: ReceiptText, view: 'invoices', description: 'AR / AP invoicing', keywords: ['invoice', 'ar', 'ap', 'claim'] },
+          { id: 'payments', label: 'Payments', icon: CreditCard, view: 'payments', description: 'Certificates & payments', keywords: ['payment', 'certificate', 'receipt'] },
         ],
       },
     ],
@@ -270,8 +271,8 @@ export const NAV: NavCategory[] = [
         title: 'Analytics',
         items: [
           { id: 'reports', label: 'Report Center', icon: BarChart3, view: 'reports', description: '12 templates & analytics' },
-          { id: 'exec-reports', label: 'Executive Reports', icon: ScrollText, soon: true, description: 'Board & sponsor packs' },
-          { id: 'financial-reports', label: 'Financial Reports', icon: ReceiptText, soon: true, description: 'Cost & cashflow reporting' },
+          { id: 'exec-reports', label: 'Executive Reports', icon: ScrollText, view: 'exec-reports', description: 'Board & sponsor packs', keywords: ['board', 'executive', 'pack'] },
+          { id: 'financial-reports', label: 'Financial Reports', icon: ReceiptText, view: 'financial-reports', description: 'Cost & cashflow reporting', keywords: ['p&l', 'financial', 'statement'] },
         ],
       },
       {
@@ -302,8 +303,8 @@ export const NAV: NavCategory[] = [
         id: 'access',
         title: 'Access & Security',
         items: [
-          { id: 'sso', label: 'SSO & Security', icon: ShieldCheck, soon: true, description: 'Identity & policies' },
-          { id: 'audit', label: 'Audit Log', icon: ScrollText, soon: true, description: 'System activity trail' },
+          { id: 'sso', label: 'SSO & Security', icon: ShieldCheck, view: 'sso', description: 'Identity & policies', keywords: ['sso', 'oauth', 'mfa', 'security'] },
+          { id: 'audit', label: 'Audit Log', icon: ScrollText, view: 'audit', description: 'System activity trail', keywords: ['audit', 'log', 'trail'] },
         ],
       },
     ],
@@ -319,16 +320,16 @@ export const NAV: NavCategory[] = [
         id: 'help',
         title: 'Help',
         items: [
-          { id: 'docs', label: 'Documentation', icon: BookOpenCheck, soon: true, description: 'Guides & knowledge base' },
-          { id: 'tickets', label: 'Support Tickets', icon: LifeBuoy, soon: true, description: 'Raise & track tickets' },
+          { id: 'docs', label: 'Documentation', icon: BookOpenCheck, view: 'docs', description: 'Guides & knowledge base', keywords: ['help', 'guide', 'kb'] },
+          { id: 'tickets', label: 'Support Tickets', icon: LifeBuoy, view: 'tickets', description: 'Raise & track tickets', keywords: ['ticket', 'helpdesk', 'issue'] },
         ],
       },
       {
         id: 'portals',
         title: 'Portals',
         items: [
-          { id: 'customer-portal', label: 'Customer Portal', icon: Contact, soon: true, tier: 'public', description: 'Client project access' },
-          { id: 'technician-portal', label: 'Technician Portal', icon: HardHat, soon: true, description: 'Field technician app' },
+          { id: 'customer-portal', label: 'Customer Portal', icon: Contact, view: 'customer-portal', tier: 'public', description: 'Client project access', keywords: ['client', 'portal'] },
+          { id: 'technician-portal', label: 'Technician Portal', icon: HardHat, view: 'technician-portal', description: 'Field technician app', keywords: ['technician', 'field', 'jobs'] },
         ],
       },
     ],
