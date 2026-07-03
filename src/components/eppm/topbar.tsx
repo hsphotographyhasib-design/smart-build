@@ -45,6 +45,17 @@ const titles: Record<View, { title: string; sub: string }> = {
   'ai-planner': { title: 'AI Project Planner', sub: 'Schedule optimisation & delay prediction' },
   integrations: { title: 'Integration Hub', sub: 'ERP & external system connectors' },
   admin: { title: 'System Administration', sub: 'RBAC · audit · configuration' },
+  claims: { title: 'Claims & Disputes', sub: 'EOT, claims & dispute resolution' },
+  maintenance: { title: 'Maintenance Management', sub: 'Requests, work orders & field service' },
+  complaints: { title: 'Complaints', sub: 'Customer complaint intake & triage' },
+  'service-requests': { title: 'Service Requests', sub: 'Logged service demands & triage' },
+  'work-orders': { title: 'Work Orders', sub: 'Corrective, preventive & predictive jobs' },
+  preventive: { title: 'Preventive Maintenance', sub: 'Planned PPM schedules & compliance' },
+  corrective: { title: 'Corrective Maintenance', sub: 'Breakdown & reactive repairs' },
+  predictive: { title: 'Predictive Maintenance', sub: 'Condition-based monitoring' },
+  dispatch: { title: 'Dispatch Center', sub: 'Crew dispatch & workload routing' },
+  technicians: { title: 'Technician Roster', sub: 'Skills, certifications & availability' },
+  amc: { title: 'AMC Contracts', sub: 'Annual maintenance contracts & SLAs' },
 }
 
 export function TopBar({ view, onToggleSidebar, onNavigate, onOpenProject }: { view: View; onToggleSidebar: () => void; onNavigate: (v: View) => void; onOpenProject: (id: string) => void }) {

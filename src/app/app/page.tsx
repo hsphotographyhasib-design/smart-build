@@ -38,6 +38,7 @@ import { AiPlannerView } from '@/components/eppm/views/ai-planner-view'
 import { IntegrationsView } from '@/components/eppm/views/integrations-view'
 import { AdminView } from '@/components/eppm/views/admin-view'
 import { WbsView } from '@/components/eppm/views/wbs-view'
+import MaintenanceView, { type MaintenanceFocus } from '@/components/eppm/views/maintenance-view'
 import { FadeIn } from '@/components/eppm/motion'
 import { useNav } from '@/components/eppm/nav/nav-context'
 import type { View } from '@/lib/eppm'
@@ -107,6 +108,17 @@ export default function Home() {
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />
       case 'integrations': return <IntegrationsView onNavigate={navigate} />
       case 'admin': return <AdminView onNavigate={navigate} />
+      case 'maintenance':
+      case 'complaints':
+      case 'service-requests':
+      case 'work-orders':
+      case 'preventive':
+      case 'corrective':
+      case 'predictive':
+      case 'dispatch':
+      case 'technicians':
+      case 'amc':
+        return <MaintenanceView onNavigate={navigate} focus={view as MaintenanceFocus} />
       default: return <DashboardView onNavigate={navigate} />
     }
   }

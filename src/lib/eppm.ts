@@ -5,6 +5,8 @@ export type View =
   | 'resources' | 'equipment' | 'workforce' | 'costs' | 'evm' | 'baselines' | 'cashflow'
   | 'risks' | 'changes' | 'claims' | 'lookahead' | 'procurement' | 'quality' | 'hse'
   | 'documents' | 'submittals' | 'site-progress' | 'commissioning' | 'closeout' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
+  | 'maintenance' | 'complaints' | 'service-requests' | 'work-orders'
+  | 'preventive' | 'corrective' | 'predictive' | 'dispatch' | 'technicians' | 'amc'
 
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number
