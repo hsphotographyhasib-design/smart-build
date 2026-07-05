@@ -39,7 +39,7 @@ export function BottomNav({ currentView, onNavigate, onOpenDrawer }: BottomNavPr
     { id: 'work', label: 'Work', icon: ClipboardList, active: currentView === 'work-orders' || cat === 'maintenance', action: () => onNavigate('work-orders') },
   ]
   const right = [
-    { id: 'alerts', label: 'Notifications', icon: Bell, active: currentView === 'workflow-engine', action: () => onNavigate('workflow-engine'), badge: unread },
+    { id: 'alerts', label: 'Notifications', icon: Bell, active: currentView === 'notifications', action: () => onNavigate('notifications'), badge: unread },
     { id: 'profile', label: 'Profile', icon: User, active: currentView === 'admin', action: () => onNavigate('admin') },
   ]
 

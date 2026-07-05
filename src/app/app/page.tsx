@@ -51,6 +51,9 @@ import SupportView, { type SupportFocus } from '@/components/eppm/views/support-
 import PortalsView, { type PortalsFocus } from '@/components/eppm/views/portals-view'
 import WorkflowEngineView from '@/components/eppm/views/workflow-engine-view'
 import MobileHome from '@/components/eppm/views/mobile-home'
+import MobileWorkOrders from '@/components/eppm/views/mobile-work-orders'
+import MobileCreateComplaint from '@/components/eppm/views/mobile-create-complaint'
+import NotificationsView from '@/components/eppm/views/notifications-view'
 import { FadeIn } from '@/components/eppm/motion'
 import { useNav } from '@/components/eppm/nav/nav-context'
 import type { View } from '@/lib/eppm'
@@ -129,10 +132,21 @@ export default function Home() {
       case 'ai-planner': return <AiPlannerView onNavigate={navigate} />
       case 'integrations': return <IntegrationsView onNavigate={navigate} />
       case 'admin': return <AdminView onNavigate={navigate} />
+      case 'work-orders': return (
+        <>
+          <div className="lg:hidden"><MobileWorkOrders onNavigate={navigate} /></div>
+          <div className="hidden lg:block"><MaintenanceView onNavigate={navigate} focus="work-orders" /></div>
+        </>
+      )
+      case 'complaints': return (
+        <>
+          <div className="lg:hidden"><MobileCreateComplaint onNavigate={navigate} /></div>
+          <div className="hidden lg:block"><MaintenanceView onNavigate={navigate} focus="complaints" /></div>
+        </>
+      )
+      case 'notifications': return <NotificationsView onNavigate={navigate} />
       case 'maintenance':
-      case 'complaints':
       case 'service-requests':
-      case 'work-orders':
       case 'preventive':
       case 'corrective':
       case 'predictive':

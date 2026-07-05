@@ -7,6 +7,7 @@ export type View =
   | 'documents' | 'submittals' | 'site-progress' | 'commissioning' | 'closeout' | 'reports' | 'integrations' | 'ai-planner' | 'admin'
   | 'maintenance' | 'complaints' | 'service-requests' | 'work-orders'
   | 'preventive' | 'corrective' | 'predictive' | 'dispatch' | 'technicians' | 'amc'
+  | 'notifications'
   | 'tender-packages' | 'bid-comparison' | 'award-management' | 'vendor-prequal'
   | 'employees' | 'vehicles' | 'assets' | 'stock' | 'warehouses' | 'stock-movements'
   | 'purchase-requests' | 'purchase-orders' | 'suppliers' | 'goods-receipt'

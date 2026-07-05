@@ -81,6 +81,7 @@ const titles: Record<View, { title: string; sub: string }> = {
   'customer-portal': { title: 'Customer Portal', sub: 'Client-scoped project access' },
   'technician-portal': { title: 'Technician Portal', sub: 'Field technician job list' },
   'workflow-engine': { title: 'Workflow Engine', sub: 'Complaint → payment automation with SLA & audit' },
+  notifications: { title: 'Notifications', sub: 'Realtime alerts, approvals & mentions' },
 }
 
 export function TopBar({ view, onToggleSidebar, onNavigate, onOpenProject }: { view: View; onToggleSidebar: () => void; onNavigate: (v: View) => void; onOpenProject: (id: string) => void }) {
