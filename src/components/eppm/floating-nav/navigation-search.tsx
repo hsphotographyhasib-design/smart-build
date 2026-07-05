@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, QrCode } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { GlobalSearch } from '../global-search'
 import type { View } from '@/lib/eppm'
 import { cn } from '@/lib/utils'
@@ -9,12 +9,14 @@ import { cn } from '@/lib/utils'
 export function NavigationSearch({
   onNavigate,
   onOpenProject,
+  variant = 'compact',
 }: {
   onNavigate: (v: View) => void
   onOpenProject: (id: string) => void
+  /** 'full' → large centred pill (header row); 'compact' → icon/small button. */
+  variant?: 'full' | 'compact'
 }) {
   const [searchOpen, setSearchOpen] = useState(false)
-  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,34 +31,27 @@ export function NavigationSearch({
 
   return (
     <>
-      <div className="relative flex items-center select-none">
-        <button
-          onClick={() => setSearchOpen(true)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className={cn(
-            "flex items-center gap-2 rounded-full border border-border bg-background/30 backdrop-blur-md px-3.5 py-1.5 text-xs text-muted-foreground transition-all duration-300 hover:bg-background/60 hover:border-foreground/20 focus:outline-none focus:ring-1 focus:ring-primary/30",
-            focused ? "w-40 sm:w-48 lg:w-60 border-primary/30 shadow-inner" : "w-10 sm:w-40 lg:w-48"
-          )}
-          aria-label="Search portfolio"
-        >
-          <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80" />
-          <span className="hidden sm:inline text-left truncate flex-1 text-[11px] text-muted-foreground/75">
-            Search...
-          </span>
-          <kbd className="hidden lg:inline-flex h-4 items-center gap-0.5 rounded border bg-background/60 px-1 font-mono text-[8px] text-muted-foreground/60 scale-90">
-            ⌘K
-          </kbd>
-        </button>
-
-        <button 
-          onClick={() => setSearchOpen(true)}
-          className="hidden md:flex ml-1 h-8 w-8 items-center justify-center rounded-full border border-transparent hover:border-border hover:bg-background/40 text-muted-foreground hover:text-foreground transition-all duration-200"
-          title="Scan QR Code"
-        >
-          <QrCode className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      <button
+        onClick={() => setSearchOpen(true)}
+        aria-label="Search"
+        className={cn(
+          'group flex items-center rounded-full border border-border bg-muted/50 text-muted-foreground transition-all hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/40',
+          variant === 'full'
+            ? 'w-full gap-3 px-4 py-2.5 text-sm'
+            : 'w-10 justify-center gap-2 px-2.5 py-2 sm:w-auto sm:justify-start sm:px-3.5 sm:py-2 text-xs',
+        )}
+      >
+        <Search className={cn('shrink-0 text-muted-foreground/80', variant === 'full' ? 'h-4.5 w-4.5' : 'h-4 w-4')} />
+        <span className={cn('flex-1 truncate text-left', variant === 'full' ? 'inline' : 'hidden sm:inline text-[13px]')}>
+          {variant === 'full' ? 'Search equipment, customers, work orders…' : 'Search…'}
+        </span>
+        <kbd className={cn(
+          'items-center gap-0.5 rounded-md border bg-background/70 px-1.5 font-mono text-muted-foreground/70',
+          variant === 'full' ? 'hidden md:inline-flex h-5 text-[10px]' : 'hidden lg:inline-flex h-4 text-[9px]',
+        )}>
+          ⌘K
+        </kbd>
+      </button>
 
       <GlobalSearch
         open={searchOpen}

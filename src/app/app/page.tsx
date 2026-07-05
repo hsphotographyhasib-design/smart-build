@@ -50,6 +50,7 @@ import SecurityView, { type SecurityFocus } from '@/components/eppm/views/securi
 import SupportView, { type SupportFocus } from '@/components/eppm/views/support-view'
 import PortalsView, { type PortalsFocus } from '@/components/eppm/views/portals-view'
 import WorkflowEngineView from '@/components/eppm/views/workflow-engine-view'
+import MobileHome from '@/components/eppm/views/mobile-home'
 import { FadeIn } from '@/components/eppm/motion'
 import { useNav } from '@/components/eppm/nav/nav-context'
 import type { View } from '@/lib/eppm'
@@ -85,7 +86,16 @@ export default function Home() {
 
   const render = () => {
     switch (view) {
-      case 'dashboard': return <DashboardView onNavigate={navigate} />
+      case 'dashboard': return (
+        <>
+          <div className="lg:hidden">
+            <MobileHome onNavigate={navigate} onOpenDrawer={() => setMobileDrawerOpen(true)} />
+          </div>
+          <div className="hidden lg:block">
+            <DashboardView onNavigate={navigate} />
+          </div>
+        </>
+      )
       case 'portfolios': return <PortfoliosView onNavigate={navigate} />
       case 'programs': return <ProgramsView onNavigate={navigate} />
       case 'projects': return <ProjectsView onNavigate={navigate} onOpenProject={(id) => { setProjectId(id); navigate('gantt') }} />
@@ -169,7 +179,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col overflow-x-clip bg-muted/20 pb-16 lg:pb-0">
+    <div className="flex min-h-screen w-full flex-col overflow-x-clip bg-muted/20 pb-28 lg:pb-0">
       <FloatingNavbar
         view={view}
         onNavigate={navigate}
@@ -202,7 +212,6 @@ export default function Home() {
         currentView={view}
         onNavigate={navigate}
         onOpenDrawer={() => setMobileDrawerOpen(true)}
-        onTriggerSearch={() => setBottomSearchOpen(true)}
       />
       <GlobalSearch
         open={bottomSearchOpen}

@@ -1,54 +1,91 @@
 'use client'
 
-import { LayoutDashboard, Briefcase, Search, Menu, BarChart3 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Home, ClipboardList, Bell, User, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
 import { categoryForView } from '@/lib/navigation'
+import { useNavBadges } from '@/components/eppm/nav/nav-context'
 
 interface BottomNavProps {
   currentView: View
   onNavigate: (v: View) => void
   onOpenDrawer: () => void
-  onTriggerSearch: () => void
 }
 
-export function BottomNav({ currentView, onNavigate, onOpenDrawer, onTriggerSearch }: BottomNavProps) {
+// Floating pill bottom navigation (mobile) — matches the HJSB mobile reference:
+// Home · Work · [+ Complaint] · Notifications · Profile. Auto-hides on scroll
+// down and reappears on scroll up.
+export function BottomNav({ currentView, onNavigate, onOpenDrawer }: BottomNavProps) {
   const cat = categoryForView(currentView)
-  const items = [
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard, active: currentView === 'dashboard', action: () => onNavigate('dashboard') },
-    { id: 'projects', label: 'Projects', icon: Briefcase, active: cat === 'projects', action: () => onNavigate('projects') },
-    { id: 'reports', label: 'Reports', icon: BarChart3, active: cat === 'reports', action: () => onNavigate('reports') },
-    { id: 'menu', label: 'Menu', icon: Menu, active: false, action: onOpenDrawer },
+  const badges = useNavBadges()
+  const unread = (badges.workOrders ?? 0) + (badges.approvals ?? 0)
+
+  const [hidden, setHidden] = useState(false)
+  const lastY = useRef(0)
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY
+      if (y > lastY.current && y > 80) setHidden(true)
+      else setHidden(false)
+      lastY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const left = [
+    { id: 'home', label: 'Home', icon: Home, active: currentView === 'dashboard', action: () => onNavigate('dashboard') },
+    { id: 'work', label: 'Work', icon: ClipboardList, active: currentView === 'work-orders' || cat === 'maintenance', action: () => onNavigate('work-orders') },
+  ]
+  const right = [
+    { id: 'alerts', label: 'Notifications', icon: Bell, active: currentView === 'workflow-engine', action: () => onNavigate('workflow-engine'), badge: unread },
+    { id: 'profile', label: 'Profile', icon: User, active: currentView === 'admin', action: () => onNavigate('admin') },
   ]
 
   return (
-    <div className="fixed bottom-5 left-1/2 z-[9999] flex h-14 w-[90%] max-w-md -translate-x-1/2 select-none items-center justify-between rounded-full border border-border bg-background/70 px-5 shadow-2xl backdrop-blur-2xl lg:hidden">
-      {items.slice(0, 2).map((item) => <BottomItem key={item.id} {...item} />)}
+    <div
+      className={cn(
+        'fixed bottom-4 left-1/2 z-[9999] flex h-16 w-[92%] max-w-md -translate-x-1/2 select-none items-center justify-between rounded-[26px] border border-border bg-background/80 px-3 shadow-2xl backdrop-blur-2xl transition-transform duration-300 lg:hidden',
+        hidden ? 'translate-y-24' : 'translate-y-0',
+      )}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {left.map((i) => <BottomItem key={i.id} {...i} />)}
 
-      {/* Raised center search */}
+      {/* Center action — create complaint */}
       <button
-        onClick={onTriggerSearch}
-        aria-label="Search"
-        className="grid h-12 w-12 -translate-y-3 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95"
+        onClick={() => onNavigate('complaints')}
+        aria-label="Create complaint"
+        className="grid h-14 w-14 -translate-y-4 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform active:scale-90"
       >
-        <Search className="h-5 w-5" />
+        <Plus className="h-6 w-6" />
       </button>
 
-      {items.slice(2).map((item) => <BottomItem key={item.id} {...item} />)}
+      {right.map((i) => <BottomItem key={i.id} {...i} />)}
     </div>
   )
 }
 
-function BottomItem({ label, icon: Icon, active, action }: { label: string; icon: typeof Menu; active: boolean; action: () => void }) {
+function BottomItem({
+  label, icon: Icon, active, action, badge = 0,
+}: { label: string; icon: typeof Home; active: boolean; action: () => void; badge?: number }) {
   return (
     <button
       onClick={action}
       className={cn(
-        'flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full transition-all duration-200',
+        'relative flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-2xl transition-all duration-200',
         active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
       )}
     >
-      <Icon className={cn('h-[18px] w-[18px] shrink-0 transition-transform', active && 'scale-110')} />
+      <span className="relative">
+        <Icon className={cn('h-5 w-5 shrink-0 transition-transform', active && 'scale-110')} />
+        {badge > 0 && (
+          <span className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
+      </span>
       <span className="text-[9px] font-bold tracking-tight">{label}</span>
     </button>
   )
