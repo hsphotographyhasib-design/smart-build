@@ -260,7 +260,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
         {/* ── Row 2 — floating category strip (desktop) ──────────────────── */}
         <div className="hidden lg:block">
           <div className="mx-auto max-w-[1600px] px-4 lg:px-6">
-            <div className="relative -mt-2.5 w-fit max-w-full">
+            <div className="relative -mt-2.5 mx-auto w-fit max-w-full">
               <nav aria-label="Primary" className="inline-flex max-w-full items-center rounded-2xl border border-border/60 bg-background px-1.5 py-1.5 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.22)]">
                 <div className="flex min-w-0 overflow-hidden">
                   <NavigationScroller>
