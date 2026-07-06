@@ -85,7 +85,7 @@ export function NotificationsBell({ onNavigate }: { onNavigate: (v: View) => voi
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full sm:h-9 sm:w-9" aria-label="Alerts and notifications">
           <Bell className="h-5 w-5" />
           {alerts.length > 0 && (
             <span className={cn('absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold text-white', high > 0 ? 'bg-rose-500 animate-pulse' : 'bg-amber-500')}>

@@ -50,7 +50,7 @@ export default function MobileWorkOrders({ onNavigate }: { onNavigate: (v: View)
   return (
     <div className="space-y-4 pb-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-extrabold tracking-tight">Work Orders</h1>
+        <h1 className="text-fluid-title font-extrabold tracking-tight">Work Orders</h1>
         <button className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-muted-foreground active:scale-95" aria-label="Filter">
           <Filter className="h-4 w-4" />
         </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Home, ClipboardList, Bell, User, Plus } from 'lucide-react'
+import { Home, FolderKanban, Bell, User, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
 import { categoryForView } from '@/lib/navigation'
@@ -36,7 +36,7 @@ export function BottomNav({ currentView, onNavigate, onOpenDrawer }: BottomNavPr
 
   const left = [
     { id: 'home', label: 'Home', icon: Home, active: currentView === 'dashboard', action: () => onNavigate('dashboard') },
-    { id: 'work', label: 'Work', icon: ClipboardList, active: currentView === 'work-orders' || cat === 'maintenance', action: () => onNavigate('work-orders') },
+    { id: 'projects', label: 'Projects', icon: FolderKanban, active: currentView === 'projects' || cat === 'projects', action: () => onNavigate('projects') },
   ]
   const right = [
     { id: 'alerts', label: 'Notifications', icon: Bell, active: currentView === 'notifications', action: () => onNavigate('notifications'), badge: unread },

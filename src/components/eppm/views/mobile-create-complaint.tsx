@@ -65,7 +65,7 @@ export default function MobileCreateComplaint({ onNavigate }: { onNavigate: (v: 
 
   return (
     <div className="space-y-5 pb-4">
-      <h1 className="text-xl font-extrabold tracking-tight">Create Complaint</h1>
+      <h1 className="text-fluid-title font-extrabold tracking-tight">Create Complaint</h1>
 
       <div className="space-y-4">
         <Field label="Category">

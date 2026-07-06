@@ -37,12 +37,13 @@ export function NavigationSearch({
         className={cn(
           'group flex items-center rounded-full border border-border bg-muted/50 text-muted-foreground transition-all hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/40',
           variant === 'full'
-            ? 'w-full gap-3 px-4 py-2.5 text-sm'
+            // <sm: collapses to a 44px icon button (search opens as an overlay)
+            ? 'h-11 w-11 justify-center gap-0 sm:h-auto sm:w-full sm:justify-start sm:gap-3 sm:px-4 sm:py-2.5 text-sm'
             : 'w-10 justify-center gap-2 px-2.5 py-2 sm:w-auto sm:justify-start sm:px-3.5 sm:py-2 text-xs',
         )}
       >
         <Search className={cn('shrink-0 text-muted-foreground/80', variant === 'full' ? 'h-4.5 w-4.5' : 'h-4 w-4')} />
-        <span className={cn('flex-1 truncate text-left', variant === 'full' ? 'inline' : 'hidden sm:inline text-[13px]')}>
+        <span className={cn('flex-1 truncate text-left', variant === 'full' ? 'hidden sm:inline' : 'hidden sm:inline text-[13px]')}>
           {variant === 'full' ? 'Search equipment, customers, work orders…' : 'Search…'}
         </span>
         <kbd className={cn(

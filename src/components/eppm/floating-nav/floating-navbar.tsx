@@ -165,12 +165,12 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
             <div className="flex shrink-0 items-center gap-2">
               <button
                 onClick={() => setMobileDrawerOpen(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted lg:hidden cursor-pointer"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted sm:h-9 sm:w-9 lg:hidden cursor-pointer"
                 aria-label="Open navigation drawer"
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <button className="flex items-center gap-2.5 cursor-pointer" onClick={() => { onNavigate('dashboard'); closeNow() }}>
+              <button className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
                   <Building2 className="h-5 w-5" />
                 </div>
@@ -181,20 +181,20 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
               </button>
             </div>
 
-            {/* CENTER — search */}
-            <div className="flex min-w-0 flex-1 justify-center">
-              <div className="w-full max-w-2xl">
+            {/* CENTER — search (full pill ≥sm; 44px icon → overlay on mobile) */}
+            <div className="flex min-w-0 flex-1 justify-end sm:justify-center">
+              <div className="sm:w-full sm:max-w-2xl">
                 <NavigationSearch variant="full" onNavigate={onNavigate} onOpenProject={onOpenProject} />
               </div>
             </div>
 
             {/* RIGHT — QR, notifications, theme, language, profile */}
             <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-              <button onClick={() => setQrOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer" title="QR Scanner" aria-label="QR Scanner">
+              <button onClick={() => setQrOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:h-9 sm:w-9" title="QR Scanner" aria-label="QR Scanner">
                 <QrCode className="h-4.5 w-4.5" />
               </button>
               <NotificationsBell onNavigate={onNavigate} />
-              <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer" title="Toggle Theme" aria-label="Toggle theme">
+              <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="relative hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:flex" title="Toggle Theme" aria-label="Toggle theme">
                 <Sun className="h-4.5 w-4.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-4.5 w-4.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               </button>
@@ -246,6 +246,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                       <DropdownMenuSeparator />
                     </>
                   )}
+                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer sm:hidden">Switch to {theme === 'dark' ? 'Light' : 'Dark'} Theme</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Profile &amp; Preferences</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Security &amp; 2FA</DropdownMenuItem>
                   <DropdownMenuSeparator />

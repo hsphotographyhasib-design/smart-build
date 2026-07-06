@@ -131,7 +131,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
       <FadeIn>
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2"><Workflow className="h-6 w-6 text-primary" /> Maintenance Workflow Engine</h1>
+            <h1 className="text-fluid-title font-bold tracking-tight flex items-center gap-2"><Workflow className="h-6 w-6 text-primary" /> Maintenance Workflow Engine</h1>
             <p className="text-sm text-muted-foreground">Complaint → verification → dispatch → execution → inspection → invoice → payment — no stage can be skipped</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -146,9 +146,10 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
         </div>
       </FadeIn>
 
-      {/* Dashboard widgets */}
-      <FadeIn delay={0.05}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+      {/* Dashboard widgets — container-query grid: adapts to available width,
+          not the viewport, so it stays correct in any layout slot */}
+      <FadeIn delay={0.05} className="@container">
+        <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-4 @6xl:grid-cols-8">
           {widgets.map((k) => (
             <Card key={k.label}><CardContent className="p-3.5">
               <k.icon className={cn('mb-2 h-6 w-6 rounded-md bg-muted p-1', k.tone)} />

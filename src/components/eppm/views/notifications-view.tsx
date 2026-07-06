@@ -80,7 +80,7 @@ export default function NotificationsView({ onNavigate }: { onNavigate: (v: View
   return (
     <div className="mx-auto max-w-2xl space-y-4 pb-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-extrabold tracking-tight">Notifications</h1>
+        <h1 className="text-fluid-title font-extrabold tracking-tight">Notifications</h1>
         {unreadCount > 0 && (
           <button onClick={markAll} className="flex items-center gap-1 text-xs font-semibold text-primary">
             <CheckCheck className="h-4 w-4" /> Mark all read
