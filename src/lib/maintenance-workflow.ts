@@ -45,6 +45,8 @@ export interface WfCase {
   trade: string
   priority: WfPriority
   status: WfStatus
+  /** Breach messages already escalated — prevents duplicate escalation events. */
+  escalated?: string[]
   createdAt: number
   respondedAt?: number   // first supervisor action — response SLA
   arrivedAt?: number     // technician check-in — arrival SLA
@@ -126,6 +128,7 @@ export const ACTIONS: WfAction[] = [
   { id: 'auto-inspection', label: 'Sent for Supervisor Inspection', from: ['WORK_COMPLETED'], to: 'SUPERVISOR_REVIEW', roles: ['System'], notify: ['Supervisor'] },
   { id: 'pass-inspection', label: 'Pass Inspection', from: ['SUPERVISOR_REVIEW'], to: 'CUSTOMER_REVIEW', roles: ['Supervisor'], notify: ['Customer'] },
   { id: 'fail-inspection', label: 'Fail Inspection (Rework)', from: ['SUPERVISOR_REVIEW'], to: 'IN_PROGRESS', roles: ['Supervisor'], notify: ['Technician'], danger: true },
+  { id: 'customer-reject', label: 'Reject & Reopen Work', from: ['CUSTOMER_REVIEW'], to: 'IN_PROGRESS', roles: ['Customer'], notify: ['Supervisor', 'Technician'], danger: true },
   {
     id: 'customer-approve', label: 'Customer Approve & Sign-off', from: ['CUSTOMER_REVIEW'], to: 'CUSTOMER_APPROVED', roles: ['Customer'],
     notify: ['Finance', 'Supervisor'], autoFollow: ['auto-close-wo', 'auto-draft-invoice'],
@@ -237,6 +240,33 @@ export function slaState(c: WfCase): SlaState {
   return { responseDue, arrivalDue, resolutionDue, responseMet, arrivalMet, resolutionMet, breached }
 }
 
+/**
+ * Escalation engine tick. If a breach exists that has not been escalated yet,
+ * returns a NEW case with escalation timeline/audit/notification events
+ * appended (status unchanged). Returns null when nothing new to escalate.
+ */
+export function escalateIfNeeded(c: WfCase): WfCase | null {
+  const fresh = slaState(c).breached.filter((b) => !(c.escalated ?? []).includes(b))
+  if (fresh.length === 0) return null
+  const now = Date.now()
+  const next: WfCase = {
+    ...c,
+    escalated: [...(c.escalated ?? []), ...fresh],
+    timeline: [...c.timeline],
+    audit: [...c.audit],
+    notifications: [...c.notifications],
+  }
+  for (const b of fresh) {
+    next.timeline.push({ at: now, label: `Escalation: ${b}`, actor: 'SLA Engine', role: 'System' })
+    next.audit.push({
+      at: now, actor: 'SLA Engine', role: 'System', action: `Auto-escalation — ${b}`,
+      from: c.status, to: c.status, ip: '127.0.0.1', gps: '—', device: 'Workflow Engine',
+    })
+    next.notifications.push({ at: now, event: `Escalation: ${b}`, recipients: ['Supervisor', 'Maintenance Manager'], read: false })
+  }
+  return next
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AI assistance (deterministic heuristics over live case data)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -308,6 +338,41 @@ function blankCase(partial: Omit<WfCase, 'status' | 'checklist' | 'photos' | 'si
     audit: [{ at: partial.createdAt, actor: partial.customer, role: 'Customer', action: 'Complaint Created', from: 'NEW', to: 'NEW', ip: '203.82.90.14', gps: '—', device: 'Customer Portal · Web' }],
     notifications: [{ at: partial.createdAt, event: 'Complaint Created', recipients: ['Super Admin', 'Maintenance Admin', 'Maintenance Manager', 'Supervisor'], read: true }],
   }
+}
+
+export interface NewComplaintInput {
+  title: string
+  desc: string
+  customer: string
+  site: string
+  trade: string
+  priority: WfPriority
+  photos?: number
+}
+
+/**
+ * Customer intake → live case. Creates the case, runs the SUBMIT transition as
+ * the customer, then records the system-validation pass — the complaint lands
+ * in SUBMITTED with admin notifications fired, exactly like the portal flow.
+ */
+export function createComplaintCase(input: NewComplaintInput, seq: number): WfCase {
+  const now = Date.now()
+  const id = `CMP-${seq}`
+  let c = blankCase({
+    id, title: input.title, desc: input.desc, customer: input.customer,
+    site: input.site, trade: input.trade, priority: input.priority,
+    createdAt: now, amountBnd: 0,
+  })
+  if (input.photos && input.photos > 0) c = { ...c, photos: { before: input.photos, progress: 0, after: 0 } }
+  c = applyAction(c, 'submit', { name: input.customer, role: 'Customer' }, seq)
+  // System validation gate (duplicate/asset/site checks) — recorded on the trail
+  c = {
+    ...c,
+    timeline: [...c.timeline, { at: now, label: 'System Validation Passed', actor: 'Workflow Engine', role: 'System' }],
+    audit: [...c.audit, { at: now, actor: 'Workflow Engine', role: 'System', action: 'System Validation Passed', from: 'SUBMITTED', to: 'SUBMITTED', ip: '127.0.0.1', gps: '—', device: 'Workflow Engine' }],
+    notifications: [...c.notifications, { at: now, event: 'Complaint validated — awaiting supervisor review', recipients: ['Maintenance Admin', 'Supervisor'], read: false }],
+  }
+  return c
 }
 
 export function seedCases(): WfCase[] {

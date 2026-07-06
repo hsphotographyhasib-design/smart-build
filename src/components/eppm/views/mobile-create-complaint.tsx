@@ -9,6 +9,9 @@ import { Camera, Plus, MapPin, Send, ChevronDown, X, CheckCircle2 } from 'lucide
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
+import type { WfPriority } from '@/lib/maintenance-workflow'
+import { useWorkflow } from '@/components/eppm/workflow/workflow-context'
+import { useAuth } from '@/components/auth/auth-context'
 
 const CATEGORIES: Record<string, string[]> = {
   Electrical: ['Lighting', 'Power Outlet', 'Distribution Board', 'Generator'],
@@ -18,7 +21,7 @@ const CATEGORIES: Record<string, string[]> = {
   'Fire Protection': ['Sprinkler', 'Fire Alarm', 'Extinguisher', 'Hydrant'],
   Lifts: ['Door Fault', 'Levelling', 'Button Panel', 'Emergency Phone'],
 }
-const PRIORITIES = ['Low', 'Medium', 'High'] as const
+const PRIORITIES = ['Low', 'Medium', 'High', 'Emergency'] as const
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -30,6 +33,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function MobileCreateComplaint({ onNavigate }: { onNavigate: (v: View) => void }) {
+  const { createComplaint } = useWorkflow()
+  const { user } = useAuth()
   const [category, setCategory] = useState('Electrical')
   const [sub, setSub] = useState('Lighting')
   const [priority, setPriority] = useState<(typeof PRIORITIES)[number]>('Medium')
@@ -42,8 +47,17 @@ export default function MobileCreateComplaint({ onNavigate }: { onNavigate: (v: 
       toast.error('Please add a location and description.')
       return
     }
-    const id = `CMP-2026-0${Math.floor(100 + Math.random() * 900)}`
-    toast.success(`Complaint ${id} submitted`, { description: 'Routed to the maintenance supervisor for triage.' })
+    // Real intake — the case enters the engine (NEW → SUBMITTED + validation)
+    const id = createComplaint({
+      title: `${sub} — ${category}`,
+      desc,
+      customer: user?.name ?? 'Customer Portal',
+      site: location.trim(),
+      trade: category,
+      priority: priority as WfPriority,
+      photos: photos.length,
+    })
+    toast.success(`Complaint ${id} submitted`, { description: 'Validated and routed to the maintenance supervisor.' })
     onNavigate('work-orders')
   }
 
@@ -77,15 +91,15 @@ export default function MobileCreateComplaint({ onNavigate }: { onNavigate: (v: 
         </Field>
 
         <Field label="Priority">
-          <div className="grid grid-cols-3 gap-2 rounded-xl bg-muted p-1">
+          <div className="grid grid-cols-4 gap-1.5 rounded-xl bg-muted p-1">
             {PRIORITIES.map((p) => (
               <button
                 key={p}
                 onClick={() => setPriority(p)}
                 className={cn(
-                  'rounded-lg py-2 text-sm font-bold transition-colors',
+                  'rounded-lg py-2 text-xs font-bold transition-colors sm:text-sm',
                   priority === p
-                    ? p === 'High' ? 'bg-rose-500 text-white' : p === 'Medium' ? 'bg-amber-500 text-white' : 'bg-primary text-primary-foreground'
+                    ? p === 'Emergency' ? 'bg-rose-600 text-white' : p === 'High' ? 'bg-rose-500 text-white' : p === 'Medium' ? 'bg-amber-500 text-white' : 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground',
                 )}
               >

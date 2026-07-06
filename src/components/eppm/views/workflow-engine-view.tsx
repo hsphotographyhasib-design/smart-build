@@ -12,16 +12,21 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Workflow, Bell, ScrollText, Clock, AlertTriangle, CheckCircle2, Camera,
   PenLine, Sparkles, MapPin, QrCode, ReceiptText, Gauge, ListChecks, User,
-  Hammer, ChevronRight, Zap, History,
+  Hammer, ChevronRight, Zap, History, Plus, RotateCcw,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { type View } from '@/lib/eppm'
 import {
-  type WfCase, type WfRole, seedCases, availableActions, applyAction, slaState,
+  type WfCase, type WfRole, type WfPriority, availableActions, slaState,
   aiInsights, WF_TECHS, STATUS_LABEL, MAIN_PATH, SLA_MATRIX,
 } from '@/lib/maintenance-workflow'
+import { useWorkflow } from '@/components/eppm/workflow/workflow-context'
 import { cn } from '@/lib/utils'
 import { FadeIn } from '../motion'
 
@@ -46,11 +51,16 @@ const prioTone = (p: WfCase['priority']) =>
   : p === 'Medium' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
   : 'border-border bg-muted text-muted-foreground'
 
+const TRADES = ['Electrical', 'HVAC', 'Plumbing', 'Civil', 'Fire Protection', 'Lifts']
+const PRIORITIES: WfPriority[] = ['Emergency', 'High', 'Medium', 'Low']
+
 export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void }) {
-  const [cases, setCases] = useState<WfCase[]>(() => seedCases())
-  const [selectedId, setSelectedId] = useState<string>(() => cases[0]?.id ?? '')
+  const wf = useWorkflow()
+  const { cases } = wf
+  const [selectedId, setSelectedId] = useState<string>('')
   const [role, setRole] = useState<WfRole>('Supervisor')
-  const [seq, setSeq] = useState(5123)
+  const [newOpen, setNewOpen] = useState(false)
+  const [form, setForm] = useState({ title: '', desc: '', customer: '', site: '', trade: 'Electrical', priority: 'Medium' as WfPriority })
 
   const selected = cases.find((c) => c.id === selectedId) ?? cases[0]
   const sla = selected ? slaState(selected) : null
@@ -68,30 +78,30 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
 
   const run = (actionId: string) => {
     if (!selected) return
-    setCases((prev) => prev.map((c) => {
-      if (c.id !== selected.id) return c
-      let next = applyAction(c, actionId, { name: actorName[role], role }, seq)
-      if (actionId === 'assign') next = { ...next, technician: WF_TECHS.find((t) => t.trade === c.trade)?.name ?? WF_TECHS[0].name }
-      return next
-    }))
-    setSeq((n) => n + 1)
+    wf.runAction(selected.id, actionId, { name: actorName[role], role })
   }
 
   const toggleChecklist = (idx: number) => {
     if (!selected || role !== 'Technician') return
-    setCases((prev) => prev.map((c) => (c.id === selected.id
-      ? { ...c, checklist: c.checklist.map((i, n) => (n === idx ? { ...i, done: !i.done } : i)) }
-      : c)))
+    wf.toggleChecklist(selected.id, idx)
   }
   const addPhoto = (kind: 'before' | 'progress' | 'after') => {
-    if (!selected) return
-    setCases((prev) => prev.map((c) => (c.id === selected.id
-      ? { ...c, photos: { ...c.photos, [kind]: c.photos[kind] + 1 } }
-      : c)))
+    if (selected) wf.addPhoto(selected.id, kind)
   }
   const captureSignature = () => {
-    if (!selected) return
-    setCases((prev) => prev.map((c) => (c.id === selected.id ? { ...c, signature: true } : c)))
+    if (selected) wf.captureSignature(selected.id)
+  }
+
+  const submitNew = () => {
+    if (!form.title.trim() || !form.desc.trim() || !form.customer.trim() || !form.site.trim()) {
+      toast.error('Title, description, customer and site are required.')
+      return
+    }
+    const id = wf.createComplaint(form)
+    setSelectedId(id)
+    setNewOpen(false)
+    setForm({ title: '', desc: '', customer: '', site: '', trade: 'Electrical', priority: 'Medium' })
+    toast.success(`Complaint ${id} submitted`, { description: 'Validated and routed to the maintenance supervisor.' })
   }
 
   // Dashboard widgets
@@ -124,12 +134,14 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2"><Workflow className="h-6 w-6 text-primary" /> Maintenance Workflow Engine</h1>
             <p className="text-sm text-muted-foreground">Complaint → verification → dispatch → execution → inspection → invoice → payment — no stage can be skipped</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground">Acting as</span>
             <Select value={role} onValueChange={(v) => setRole(v as WfRole)}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
             </Select>
+            <Button size="sm" onClick={() => setNewOpen(true)}><Plus className="mr-1 h-3.5 w-3.5" />New Complaint</Button>
+            <Button size="sm" variant="ghost" onClick={() => wf.resetDemo()} title="Reset demo data"><RotateCcw className="h-3.5 w-3.5" /></Button>
           </div>
         </div>
       </FadeIn>
@@ -449,6 +461,35 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
           )}
         </div>
       </div>
+
+      {/* New complaint intake — enters the engine at NEW → SUBMITTED */}
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-primary" /> Create Complaint</DialogTitle>
+            <DialogDescription>Submits into the workflow engine: validation → admin notification → supervisor review.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <Input placeholder="Title — e.g. AC not cooling in Meeting Room 4" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <Textarea placeholder="Describe the issue in detail…" rows={3} value={form.desc} onChange={(e) => setForm((f) => ({ ...f, desc: e.target.value }))} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input placeholder="Customer / requester" value={form.customer} onChange={(e) => setForm((f) => ({ ...f, customer: e.target.value }))} />
+              <Input placeholder="Site / location" value={form.site} onChange={(e) => setForm((f) => ({ ...f, site: e.target.value }))} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select value={form.trade} onValueChange={(v) => setForm((f) => ({ ...f, trade: v }))}>
+                <SelectTrigger><SelectValue placeholder="Trade" /></SelectTrigger>
+                <SelectContent>{TRADES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v as WfPriority }))}>
+                <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
+                <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p} — respond {SLA_MATRIX[p].response}m</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button onClick={submitNew}>Submit Complaint</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

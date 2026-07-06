@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo } 
 import type { View } from '@/lib/eppm'
 import type { BadgeKey } from '@/lib/navigation'
 import { useDashboardData } from '@/components/eppm/use-data'
+import { useWorkflowSafe } from '@/components/eppm/workflow/workflow-context'
 
 const FAV_KEY = 'sb:nav:favorites'
 const RECENT_KEY = 'sb:nav:recents'
@@ -97,15 +98,16 @@ export function useNav(): NavContextValue {
   return ctx
 }
 
-/** Live notification-badge counts, resolved from shared dashboard data. */
+/** Live notification-badge counts — dashboard KPIs + workflow engine state. */
 export function useNavBadges(): Record<BadgeKey, number> {
   const data = useDashboardData()
+  const wf = useWorkflowSafe()
   const k = data?.kpis
   return {
     risks: k?.openRisks ?? 0,
     changes: k?.pendingChanges ?? 0,
     delays: k?.delayedActivities ?? 0,
-    workOrders: 0,
-    approvals: 0,
+    workOrders: wf?.counts.fieldActive ?? 0,
+    approvals: wf?.counts.pendingApprovals ?? 0,
   }
 }
