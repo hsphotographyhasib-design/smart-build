@@ -94,7 +94,7 @@ export function NotificationsBell({ onNavigate }: { onNavigate: (v: View) => voi
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[400px] p-0" sideOffset={8}>
+      <PopoverContent align="end" className="w-[min(400px,calc(100vw-2rem))] p-0" sideOffset={8}>
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4" />

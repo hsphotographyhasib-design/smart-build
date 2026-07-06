@@ -57,6 +57,27 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* ── App-shell layout tokens (single source of truth) ──────────────
+     Header and floating nav are separate sticky layers; content offset
+     is derived from these — never hardcode page-level top spacing. */
+  --header-h: 4rem;            /* 64px mobile */
+  --nav-gap: 1rem;             /* 16px gap between header and floating nav */
+  --content-gap: 1.5rem;       /* 24px gap between floating nav and content */
+  --subnav-h: 3.25rem;         /* 52px floating category strip (desktop) */
+
+  /* ── Z-index scale — the ONLY sanctioned layer values ──────────────
+     content(0) < cards(10) < sticky-table(20) < floating-nav(30)
+     < header(40) < bottom-nav(45) < overlay/dropdown/modal(50)
+     < toast(100) */
+  --z-content: 0;
+  --z-card: 10;
+  --z-sticky: 20;
+  --z-nav: 30;
+  --z-header: 40;
+  --z-bottom-nav: 45;
+  --z-overlay: 50;
+  --z-toast: 100;
   /* Light — warm neutral surface with deep slate ink */
   --background: oklch(0.985 0.004 120);
   --foreground: oklch(0.18 0.02 165);
@@ -128,13 +149,26 @@
   --sidebar-ring: oklch(0.7 0.13 162);
 }
 
+/* Taller two-row header from the laptop breakpoint up */
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.5rem; /* 72px desktop — enterprise header band */
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Anchored scrolls land below the sticky header + floating nav */
+    scroll-padding-top: calc(var(--header-h) + var(--nav-gap) + var(--subnav-h) + var(--content-gap));
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "cv11", "ss01";
+    /* Hard stop for stray horizontal overflow on any page */
+    overflow-x: clip;
   }
 }
 

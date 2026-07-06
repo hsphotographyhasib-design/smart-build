@@ -158,10 +158,9 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
 
   return (
     <>
-      <header className="sticky top-0 z-[999] select-none">
-        {/* ── Row 1 — header bar ─────────────────────────────────────────── */}
-        <div className="border-b border-border/60 bg-background/85 backdrop-blur-2xl">
-          <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-2 px-3 sm:gap-4 lg:px-6">
+      {/* ── Top header — independent sticky layer (--z-header) ──────────── */}
+      <header className="sticky top-0 z-[var(--z-header)] h-[var(--header-h)] select-none border-b border-border/60 bg-background/85 backdrop-blur-2xl">
+        <div className="mx-auto flex h-full max-w-[1600px] items-center gap-2 px-3 sm:gap-4 lg:px-6">
             {/* LEFT — hamburger + logo + brand */}
             <div className="flex shrink-0 items-center gap-2">
               <button
@@ -254,14 +253,16 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
         </div>
+      </header>
 
-        {/* ── Row 2 — floating category strip (desktop) ──────────────────── */}
-        <div className="hidden lg:block">
+      {/* ── Floating navigation — separate sticky layer BELOW the header.
+             In flow: 16px (--nav-gap) below the header; when stuck it pins at
+             header height + gap, so it never touches or overlaps the header. */}
+      <div className="sticky top-[calc(var(--header-h)+var(--nav-gap))] z-[var(--z-nav)] mt-[var(--nav-gap)] hidden select-none lg:block">
           <div className="mx-auto max-w-[1600px] px-4 lg:px-6">
-            <div className="relative -mt-2.5 mx-auto w-fit max-w-full">
-              <nav aria-label="Primary" className="inline-flex max-w-full items-center rounded-2xl border border-border/60 bg-background px-1.5 py-1.5 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.22)]">
+            <div className="relative mx-auto w-fit max-w-full">
+              <nav aria-label="Primary" className="inline-flex h-[var(--subnav-h)] max-w-full items-center rounded-[20px] border border-border/60 bg-background px-1.5 py-1.5 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.22)]">
                 <div className="flex min-w-0 overflow-hidden">
                   <NavigationScroller>
                     {nav.map((cat) => (
@@ -283,8 +284,9 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
               <AnimatePresence>
                 {openCatObj && openCatObj.columns && (
                   <>
-                    <div className="fixed inset-0 z-[997]" onClick={closeNow} />
-                    <div className="absolute left-0 top-full z-[998] pt-2.5">
+                    {/* Backdrop below the panel (z-10 < z-20) inside the nav layer */}
+                    <div className="fixed inset-0 z-10" onClick={closeNow} />
+                    <div className="absolute left-1/2 top-full z-20 -translate-x-1/2 pt-2.5">
                       <MegaMenu
                         category={openCatObj}
                         currentView={view}
@@ -298,8 +300,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
               </AnimatePresence>
             </div>
           </div>
-        </div>
-      </header>
+      </div>
 
       {/* Mobile navigation drawer */}
       <NavigationDrawer

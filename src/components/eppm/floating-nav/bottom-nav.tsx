@@ -46,7 +46,7 @@ export function BottomNav({ currentView, onNavigate, onOpenDrawer }: BottomNavPr
   return (
     <div
       className={cn(
-        'fixed bottom-4 left-1/2 z-[9999] flex h-16 w-[92%] max-w-md -translate-x-1/2 select-none items-center justify-between rounded-[26px] border border-border bg-background/80 px-3 shadow-2xl backdrop-blur-2xl transition-transform duration-300 lg:hidden',
+        'fixed bottom-4 left-1/2 z-[var(--z-bottom-nav)] flex h-16 w-[min(92%,28rem)] -translate-x-1/2 select-none items-center justify-between rounded-[26px] border border-border bg-background/80 px-3 shadow-2xl backdrop-blur-2xl transition-transform duration-300 lg:hidden',
         hidden ? 'translate-y-24' : 'translate-y-0',
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}

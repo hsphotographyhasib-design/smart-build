@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FloatingNavbar } from '@/components/eppm/floating-nav/floating-navbar'
-import { BottomNav } from '@/components/eppm/floating-nav/bottom-nav'
-import { GlobalSearch } from '@/components/eppm/global-search'
+import { AppShell } from '@/components/eppm/app-shell'
 import { DashboardView } from '@/components/eppm/views/dashboard-view'
 import { ProjectsView } from '@/components/eppm/views/projects-view'
 import { CompareView } from '@/components/eppm/views/compare-view'
@@ -62,15 +60,6 @@ export default function Home() {
   const [view, setView] = useState<View>('dashboard')
   const [projectId, setProjectId] = useState<string | null>(null)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
-  const [bottomSearchOpen, setBottomSearchOpen] = useState(false)
-  // Client-only clock — avoids SSR/CSR hydration mismatch on the footer timestamp.
-  const [lastSync, setLastSync] = useState('')
-  useEffect(() => {
-    const tick = () => setLastSync(new Date().toLocaleTimeString())
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
 
   useEffect(() => {
     const saved = (typeof window !== 'undefined' && localStorage.getItem('eppm:view')) as View | null
@@ -193,46 +182,14 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col overflow-x-clip bg-muted/20 pb-28 lg:pb-0">
-      <FloatingNavbar
-        view={view}
-        onNavigate={navigate}
-        onOpenProject={(id) => { setProjectId(id); navigate('gantt') }}
-        mobileDrawerOpen={mobileDrawerOpen}
-        setMobileDrawerOpen={setMobileDrawerOpen}
-      />
-      {/* pt clears the floating navbar (sticky top-4 + h-14 ⇒ visual bottom ≈72px) */}
-      <main className="flex-1 min-w-0 px-4 lg:px-6 pb-6 pt-8 lg:pt-8">
-        <div className="mx-auto min-w-0 max-w-[1600px]">
-          <FadeIn key={view}>{render()}</FadeIn>
-        </div>
-      </main>
-      <footer className="mt-auto border-t bg-background/95 px-4 py-2.5 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-1 text-[11px] text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-3">
-            <span>© 2025 HJSB EPPM · Enterprise Project Portfolio Management v4.2.1</span>
-            <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline">Primavera P6-class engine</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> All systems operational</span>
-            <span className="hidden sm:inline">API &lt;300ms</span>
-            <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline" suppressHydrationWarning>Last sync {lastSync || '—'}</span>
-          </div>
-        </div>
-      </footer>
-      <BottomNav
-        currentView={view}
-        onNavigate={navigate}
-        onOpenDrawer={() => setMobileDrawerOpen(true)}
-      />
-      <GlobalSearch
-        open={bottomSearchOpen}
-        onOpenChange={setBottomSearchOpen}
-        onNavigate={navigate}
-        onOpenProject={(id) => { setProjectId(id); navigate('gantt') }}
-      />
-    </div>
+    <AppShell
+      view={view}
+      onNavigate={navigate}
+      onOpenProject={(id) => { setProjectId(id); navigate('gantt') }}
+      mobileDrawerOpen={mobileDrawerOpen}
+      setMobileDrawerOpen={setMobileDrawerOpen}
+    >
+      <FadeIn key={view}>{render()}</FadeIn>
+    </AppShell>
   )
 }

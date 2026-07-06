@@ -50,7 +50,7 @@ export function NavigationDrawer({ open, onClose, currentView, onNavigate }: Nav
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[1000] lg:hidden">
+        <div className="fixed inset-0 z-[var(--z-overlay)] lg:hidden">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}
