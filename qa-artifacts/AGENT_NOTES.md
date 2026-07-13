@@ -64,3 +64,37 @@ Root causes and fixes (all app-side):
    `aria-label` on each `<Cell>` in dashboard pies.
 
 Verification: a11y suite 16/16 green on all three viewports.
+
+---
+
+## Iteration 2 — Findings & Fixes (static analysis debt)
+
+Full-suite verify of iteration 1: **157 passed / 0 failed** (132 skipped-by-design).
+Iteration 2 targets lint + tsc so the build passes without masking.
+
+### ESLint (3 errors → 0)
+1. `exec-reports-view.tsx` — `PackTable` was defined inside the component
+   (recreated every render; remounts its subtree and defeats React Compiler).
+   Hoisted to module scope with an `onGenerate` prop.
+2. `maintenance-view.tsx` — `woByTrade` useMemo depended on `openWos`, itself an
+   unmemoized `.filter()` recreated per render (memo never cached). Now derives
+   from the stable `workOrders` store value, mirroring `woByType`.
+
+### TypeScript (22 errors → 0) and de-masking
+- `next.config.ts`: **removed `typescript.ignoreBuildErrors: true`** — builds
+  now fail on type errors, as they should.
+- `tsconfig.json`: target ES2017 → ES2022 (fixes regex `s`-flag error in
+  ai-planner-view; Next transpiles via SWC/browserslist so runtime output is
+  unaffected). Excluded `examples/` — standalone sample code referencing
+  uninstalled deps (socket.io); never imported by the app, and installing deps
+  solely to typecheck dead examples would add unjustified dependencies.
+- `prisma/seed.ts`: typed the def tables as tuples and the WBS network param
+  as a proper interface (was `{code,name,children?}`, too narrow for
+  `activities`/`deps`/`weight`).
+- `motion.tsx`: `staggerItem` annotated as framer-motion `Variants` so the
+  cubic-bezier `ease` array typechecks as a tuple.
+- `critical-path-view.tsx`: replaced the `reduce` grouping (whose accumulator
+  degraded `Object.entries` values to `unknown`) with a typed loop.
+
+Verification: `tsc --noEmit` clean, `eslint .` clean, `next build` compiles
+successfully with type-checking enforced, zero warnings.

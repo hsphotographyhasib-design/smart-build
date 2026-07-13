@@ -14,7 +14,8 @@ export function CriticalPathView({ onNavigate }: { onNavigate: (v: View) => void
   void onNavigate
 
   const crit = data.criticalActivities
-  const byProject = crit.reduce((acc, a) => { (acc[a.project?.code ?? ''] ??= []).push(a); return acc }, {} as Record<string, any[]>)
+  const byProject: Record<string, any[]> = {}
+  for (const a of crit) (byProject[a.project?.code ?? ''] ??= []).push(a)
 
   return (
     <div className="space-y-4">

@@ -41,20 +41,13 @@ const MARGIN = REVENUE.map((r) => ({ month: r.month, margin: +(((r.revenue - r.c
 
 export type ExecReportsFocus = 'exec-reports' | 'financial-reports'
 
-export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate?: (v: View) => void; focus?: ExecReportsFocus }) {
-  const [tab, setTab] = useState<string>(focus === 'financial-reports' ? 'financial' : 'executive')
-  const [packs, setPacks] = useState({ exec: SEED_EXEC, fin: SEED_FIN })
-
-  useEffect(() => { setTab(focus === 'financial-reports' ? 'financial' : 'executive') }, [focus])
-
-  const generate = (group: 'exec' | 'fin', id: string) => {
-    setPacks((prev) => ({ ...prev, [group]: prev[group].map((r) => (r.id === id ? { ...r, status: 'Generating' as const } : r)) }))
-    setTimeout(() => {
-      setPacks((prev) => ({ ...prev, [group]: prev[group].map((r) => (r.id === id ? { ...r, status: 'Ready' as const, lastRun: '03 Jul 2026' } : r)) }))
-    }, 1200)
-  }
-
-  const PackTable = ({ group, rows }: { group: 'exec' | 'fin'; rows: ReportPack[] }) => (
+// Module-scope (not recreated per render — react-hooks/static-components).
+function PackTable({ group, rows, onGenerate }: {
+  group: 'exec' | 'fin'
+  rows: ReportPack[]
+  onGenerate: (group: 'exec' | 'fin', id: string) => void
+}) {
+  return (
     <Table>
       <TableHeader><TableRow>
         <TableHead>Report</TableHead><TableHead className="hidden md:table-cell">Audience</TableHead>
@@ -81,7 +74,7 @@ export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate
             </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1.5">
-                <Button size="sm" variant="outline" disabled={r.status === 'Generating'} onClick={() => generate(group, r.id)}>
+                <Button size="sm" variant="outline" disabled={r.status === 'Generating'} onClick={() => onGenerate(group, r.id)}>
                   <FileBarChart className="mr-1 h-3.5 w-3.5" />Generate
                 </Button>
                 {r.status === 'Ready' && <Button size="sm" variant="ghost" title="Download PDF"><Download className="h-3.5 w-3.5" /></Button>}
@@ -92,6 +85,20 @@ export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate
       </TableBody>
     </Table>
   )
+}
+
+export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate?: (v: View) => void; focus?: ExecReportsFocus }) {
+  const [tab, setTab] = useState<string>(focus === 'financial-reports' ? 'financial' : 'executive')
+  const [packs, setPacks] = useState({ exec: SEED_EXEC, fin: SEED_FIN })
+
+  useEffect(() => { setTab(focus === 'financial-reports' ? 'financial' : 'executive') }, [focus])
+
+  const generate = (group: 'exec' | 'fin', id: string) => {
+    setPacks((prev) => ({ ...prev, [group]: prev[group].map((r) => (r.id === id ? { ...r, status: 'Generating' as const } : r)) }))
+    setTimeout(() => {
+      setPacks((prev) => ({ ...prev, [group]: prev[group].map((r) => (r.id === id ? { ...r, status: 'Ready' as const, lastRun: '03 Jul 2026' } : r)) }))
+    }, 1200)
+  }
 
   return (
     <div className="space-y-6">
@@ -156,13 +163,13 @@ export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate
         <TabsContent value="executive">
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-base">Executive Report Packs</CardTitle><CardDescription>Board and sponsor reporting on a fixed cadence</CardDescription></CardHeader>
-            <CardContent><PackTable group="exec" rows={packs.exec} /></CardContent>
+            <CardContent><PackTable group="exec" rows={packs.exec} onGenerate={generate} /></CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="financial">
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-base">Financial Report Packs</CardTitle><CardDescription>Cost, cashflow and commercial reporting</CardDescription></CardHeader>
-            <CardContent><PackTable group="fin" rows={packs.fin} /></CardContent>
+            <CardContent><PackTable group="fin" rows={packs.fin} onGenerate={generate} /></CardContent>
           </Card>
         </TabsContent>
       </Tabs>

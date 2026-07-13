@@ -15,6 +15,9 @@ test.describe('accessibility (axe, serious/critical)', () => {
     await page.context().clearCookies()
     await page.goto('/login')
     await page.getByRole('heading', { name: 'Welcome back' }).waitFor()
+    // Let the card's 350ms fade-in finish — axe measures contrast against
+    // the blended (semi-transparent) color mid-animation.
+    await page.waitForTimeout(600)
     const results = await new AxeBuilder({ page }).analyze()
     expect(seriousViolations(results)).toEqual([])
   })

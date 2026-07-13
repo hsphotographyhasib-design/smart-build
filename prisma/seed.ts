@@ -66,7 +66,8 @@ async function main() {
   console.log(`  ✓ ${projects.length} projects`)
 
   // ---------- RESOURCES ----------
-  const resDefs = [
+  // [code, name, type, role, unit, rate, maxUnits, department]
+  const resDefs: [string, string, string, string, string, number, number, string][] = [
     ['LAB-STRU', 'Structural Steel Crew A', 'Labour', 'Steel Fixer', 'day', 850, 8, 'Structural'],
     ['LAB-CONC', 'Concrete Pour Crew', 'Labour', 'Concreter', 'day', 720, 8, 'Civil'],
     ['LAB-MASN', 'Masonry Crew', 'Labour', 'Mason', 'day', 560, 8, 'Finishing'],
@@ -103,9 +104,17 @@ async function main() {
 
   // ---------- WBS + ACTIVITIES + DEPENDENCIES ----------
   // Build a realistic WBS+activity network for a couple flagship projects, plus summary for others
+  interface SeedWbsNode {
+    code: string; name: string; children?: SeedWbsNode[]
+    weight?: number; progress?: number; dur?: number; budget?: number; actual?: number
+  }
+  interface SeedNetwork extends SeedWbsNode {
+    activities?: any[]
+    deps?: { from: string; to: string; type?: string; lag?: number }[]
+  }
   const buildNetwork = async (
     project: typeof projects[0],
-    wbsTree: { code: string; name: string; children?: any[] },
+    wbsTree: SeedNetwork,
     startOffset: number
   ) => {
     const createdWbs: Record<string, string> = {}
@@ -278,7 +287,8 @@ async function main() {
   }
 
   // ---------- RISKS ----------
-  const riskDefs = [
+  // [projectCode, title, category, probability, impact, status, strategy, mitigation, owner, responseCost]
+  const riskDefs: [string, string, string, number, number, string, string, string, string, number][] = [
     ['PRJ-METRO-STA-A', 'TBM cutter head wear exceeds forecast', 'Schedule', 4, 5, 'Open', 'Mitigate', 'Procure spare cutter kits; rotate crews', 'Raj Patel', 850000],
     ['PRJ-METRO-STA-A', 'Ground settlement near heritage building', 'Technical', 3, 5, 'Mitigated', 'Mitigate', 'Install compensation grouting; monitoring', 'Ahmed Hassan', 1200000],
     ['PRJ-METRO-TUN', 'Differing ground conditions — boulders', 'Technical', 5, 4, 'Open', 'Mitigate', 'Probe ahead; adjust TBM parameters', 'Chen Wei', 2100000],
@@ -317,7 +327,8 @@ async function main() {
   ])
 
   // ---------- CHANGE ORDERS ----------
-  const changeDefs = [
+  // [projectCode, title, type, status, costImpact, timeImpact]
+  const changeDefs: [string, string, string, string, number, number][] = [
     ['PRJ-METRO-STA-A', 'CO-001 Additional waterproofing specification', 'Variation', 'Approved', 850000, 12],
     ['PRJ-METRO-STA-A', 'CO-002 Wayfinding signage upgrade', 'Variation', 'Under Review', 320000, 0],
     ['PRJ-METRO-TUN', 'EOT-001 Geotech delay — boulder zone', 'EOT', 'Submitted', 0, 45],

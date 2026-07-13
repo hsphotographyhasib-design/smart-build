@@ -430,9 +430,13 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
 
   const woByTrade = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const w of openWos) counts[w.trade] = (counts[w.trade] ?? 0) + 1
+    // Derive from the stable store value, not the per-render `openWos` array.
+    for (const w of workOrders) {
+      if (['Closed', 'Cancelled'].includes(w.status)) continue
+      counts[w.trade] = (counts[w.trade] ?? 0) + 1
+    }
     return Object.entries(counts).map(([trade, count]) => ({ trade, count }))
-  }, [openWos])
+  }, [workOrders])
 
   const woByType = useMemo(() => {
     const counts: Record<string, number> = {}
