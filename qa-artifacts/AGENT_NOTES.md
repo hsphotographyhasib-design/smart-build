@@ -98,3 +98,17 @@ Iteration 2 targets lint + tsc so the build passes without masking.
 
 Verification: `tsc --noEmit` clean, `eslint .` clean, `next build` compiles
 successfully with type-checking enforced, zero warnings.
+
+---
+
+## Phase 5 — Production verification
+
+- **Bug found:** `bun run start` runs `.next/standalone/server.js`, but
+  `next.config.ts` never set `output: "standalone"` — the file was never
+  emitted, so the production start path (and `.zscripts/build.sh`, which copies
+  `.next/standalone`) was dead. Fixed by enabling standalone output and staging
+  `.next/static` + `public/` into the bundle in the start script.
+- Rebuilt clean (0 errors, 0 warnings), served the standalone bundle with the
+  production env, and re-ran the suites against it:
+  smoke+journeys **127/127**, a11y+visual **31/31**. Dev/prod parity confirmed.
+- Full results, severity table and recommendations: `qa-artifacts/FINAL_QA_REPORT.md`.
