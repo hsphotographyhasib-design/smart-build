@@ -133,9 +133,9 @@ export function ResourcesView({ onNavigate }: { onNavigate: (v: View) => void })
                     const over = Math.round(((demand - r.maxUnits) / r.maxUnits) * 100)
                     return (
                       <div key={r.id} className="flex items-center gap-3 p-3">
-                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600"><AlertTriangle className="h-4 w-4" /></div>
+                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700"><AlertTriangle className="h-4 w-4" /></div>
                         <div className="min-w-0 flex-1"><div className="text-xs font-medium truncate">{r.name}</div><div className="text-[10px] text-muted-foreground">{r.department} · {r.role}</div></div>
-                        <div className="text-right"><div className="text-sm font-bold text-rose-600">{demand}/{r.maxUnits}</div><div className="text-[10px] text-muted-foreground">+{over}% over</div></div>
+                        <div className="text-right"><div className="text-sm font-bold text-rose-700">{demand}/{r.maxUnits}</div><div className="text-[10px] text-muted-foreground">+{over}% over</div></div>
                       </div>
                     )
                   })}

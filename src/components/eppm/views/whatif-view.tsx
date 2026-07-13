@@ -85,10 +85,10 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
   ]
 
   const verdictConfig = {
-    healthy: { label: 'Healthy', color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400', icon: CheckCircle2 },
-    watch: { label: 'Watch', color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400', icon: Gauge },
-    'at-risk': { label: 'At Risk', color: 'text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400', icon: AlertTriangle },
-    critical: { label: 'Critical', color: 'text-rose-600 bg-rose-50 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400', icon: AlertTriangle },
+    healthy: { label: 'Healthy', color: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400', icon: CheckCircle2 },
+    watch: { label: 'Watch', color: 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400', icon: Gauge },
+    'at-risk': { label: 'At Risk', color: 'text-orange-700 bg-orange-50 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400', icon: AlertTriangle },
+    critical: { label: 'Critical', color: 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400', icon: AlertTriangle },
   }[scenario.verdict as 'healthy' | 'watch' | 'at-risk' | 'critical']
 
   const reset = () => { setProgressBoost(0); setCostVariance(0); setDurationVariance(0); setRiskRealised(0) }
@@ -128,7 +128,7 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-amber-500" />Productivity Change</Label>
-                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', progressBoost > 0 ? 'text-emerald-600' : progressBoost < 0 ? 'text-rose-600' : '')}>{progressBoost > 0 ? '+' : ''}{progressBoost}%</Badge>
+                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', progressBoost > 0 ? 'text-emerald-700' : progressBoost < 0 ? 'text-rose-700' : '')}>{progressBoost > 0 ? '+' : ''}{progressBoost}%</Badge>
                 </div>
                 <Slider value={[progressBoost]} onValueChange={([v]) => setProgressBoost(v)} min={-30} max={30} step={5} className="py-1" />
                 <div className="flex justify-between text-[9px] text-muted-foreground"><span>-30%</span><span>0%</span><span>+30%</span></div>
@@ -138,7 +138,7 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-emerald-500" />Cost Variance</Label>
-                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', costVariance > 0 ? 'text-rose-600' : costVariance < 0 ? 'text-emerald-600' : '')}>{costVariance > 0 ? '+' : ''}{costVariance}%</Badge>
+                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', costVariance > 0 ? 'text-rose-700' : costVariance < 0 ? 'text-emerald-700' : '')}>{costVariance > 0 ? '+' : ''}{costVariance}%</Badge>
                 </div>
                 <Slider value={[costVariance]} onValueChange={([v]) => setCostVariance(v)} min={-20} max={40} step={5} className="py-1" />
                 <div className="flex justify-between text-[9px] text-muted-foreground"><span>-20%</span><span>0%</span><span>+40%</span></div>
@@ -148,7 +148,7 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-sky-500" />Duration Variance</Label>
-                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', durationVariance > 0 ? 'text-rose-600' : durationVariance < 0 ? 'text-emerald-600' : '')}>{durationVariance > 0 ? '+' : ''}{durationVariance}%</Badge>
+                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', durationVariance > 0 ? 'text-rose-700' : durationVariance < 0 ? 'text-emerald-700' : '')}>{durationVariance > 0 ? '+' : ''}{durationVariance}%</Badge>
                 </div>
                 <Slider value={[durationVariance]} onValueChange={([v]) => setDurationVariance(v)} min={-25} max={50} step={5} className="py-1" />
                 <div className="flex justify-between text-[9px] text-muted-foreground"><span>-25%</span><span>0%</span><span>+50%</span></div>
@@ -158,7 +158,7 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-rose-500" />Risk Contingency Realised</Label>
-                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', riskRealised > 0 ? 'text-amber-600' : '')}>{riskRealised}%</Badge>
+                  <Badge variant="outline" className={cn('text-[10px] tabular-nums', riskRealised > 0 ? 'text-amber-700' : '')}>{riskRealised}%</Badge>
                 </div>
                 <Slider value={[riskRealised]} onValueChange={([v]) => setRiskRealised(v)} min={0} max={100} step={10} className="py-1" />
                 <div className="flex justify-between text-[9px] text-muted-foreground"><span>0%</span><span>50%</span><span>100%</span></div>
@@ -236,13 +236,13 @@ export function WhatIfView({ onNavigate }: { onNavigate: (v: View) => void }) {
                 <div className="grid gap-2 sm:grid-cols-2">
                   {[
                     { l: 'Original Budget', v: fmtMoney(base.budget), tone: 'text-foreground' },
-                    { l: 'Actual to Date', v: fmtMoney(base.actualCost), tone: 'text-amber-600' },
+                    { l: 'Actual to Date', v: fmtMoney(base.actualCost), tone: 'text-amber-700' },
                     { l: 'Base Forecast', v: fmtMoney(base.forecastCost), tone: 'text-foreground' },
-                    { l: 'Scenario Forecast', v: fmtMoney(scenario.adjustedForecast), tone: scenario.adjustedForecast > base.forecastCost ? 'text-rose-600' : 'text-emerald-600' },
-                    { l: 'Cost Overrun vs Budget', v: `${scenario.costOverrun > 0 ? '+' : ''}${scenario.costOverrun.toFixed(1)}%`, tone: scenario.costOverrun > 0 ? 'text-rose-600' : 'text-emerald-600' },
-                    { l: 'Risk Cost Added', v: fmtMoney(scenario.riskCost), tone: scenario.riskCost > 0 ? 'text-amber-600' : 'text-muted-foreground' },
+                    { l: 'Scenario Forecast', v: fmtMoney(scenario.adjustedForecast), tone: scenario.adjustedForecast > base.forecastCost ? 'text-rose-700' : 'text-emerald-700' },
+                    { l: 'Cost Overrun vs Budget', v: `${scenario.costOverrun > 0 ? '+' : ''}${scenario.costOverrun.toFixed(1)}%`, tone: scenario.costOverrun > 0 ? 'text-rose-700' : 'text-emerald-700' },
+                    { l: 'Risk Cost Added', v: fmtMoney(scenario.riskCost), tone: scenario.riskCost > 0 ? 'text-amber-700' : 'text-muted-foreground' },
                     { l: 'Base Margin %', v: `${base.revenue ? ((base.revenue - base.forecastCost) / base.revenue * 100).toFixed(1) : 0}%`, tone: 'text-foreground' },
-                    { l: 'Scenario Margin %', v: `${scenario.newMarginPct.toFixed(1)}%`, tone: scenario.newMarginPct >= 15 ? 'text-emerald-600' : scenario.newMarginPct >= 10 ? 'text-amber-600' : 'text-rose-600' },
+                    { l: 'Scenario Margin %', v: `${scenario.newMarginPct.toFixed(1)}%`, tone: scenario.newMarginPct >= 15 ? 'text-emerald-700' : scenario.newMarginPct >= 10 ? 'text-amber-700' : 'text-rose-700' },
                   ].map(r => (
                     <div key={r.l} className="flex items-center justify-between rounded-md border px-3 py-2">
                       <span className="text-[11px] text-muted-foreground">{r.l}</span>
@@ -274,7 +274,7 @@ function ImpactCard({ label, base, scenario, delta, icon: Icon, unit, invert }: 
           {isZero ? (
             <span className="text-[10px] text-muted-foreground">no change</span>
           ) : (
-            <span className={cn('inline-flex items-center gap-0.5 text-[10px] font-medium', positive ? 'text-emerald-600' : 'text-rose-600')}>
+            <span className={cn('inline-flex items-center gap-0.5 text-[10px] font-medium', positive ? 'text-emerald-700' : 'text-rose-700')}>
               {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {delta > 0 ? '+' : ''}{unit === 'd' ? `${delta}d` : unit === '%' ? `${delta.toFixed(1)}%` : fmtMoney(delta)}
             </span>

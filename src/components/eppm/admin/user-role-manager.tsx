@@ -28,11 +28,11 @@ const ROLE_OPTIONS = [
 
 const roleTint = (role: string) =>
   role === ROLES.SUPER_ADMIN
-    ? 'text-rose-600'
+    ? 'text-rose-700'
     : role === ROLES.ADMIN
       ? 'text-violet-600'
       : role === ROLES.CUSTOMER
-        ? 'text-sky-600'
+        ? 'text-sky-700'
         : 'text-slate-500'
 
 const providerBadge = (p: string) =>
@@ -127,7 +127,7 @@ export function UserRoleManager() {
         {loading ? (
           <div className="flex items-center justify-center py-10 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /></div>
         ) : (
-          <div className="max-h-[560px] overflow-auto scroll-thin">
+          <div tabIndex={0} className="max-h-[560px] overflow-auto scroll-thin">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="border-b text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -164,7 +164,7 @@ export function UserRoleManager() {
                           onValueChange={(role) => void patch(u.id, { role })}
                           disabled={isSelf || savingId === u.id}
                         >
-                          <SelectTrigger className={cn('h-8 w-[190px] text-xs font-semibold', roleTint(u.role))}>
+                          <SelectTrigger aria-label={`Role for ${u.name}`} className={cn('h-8 w-[190px] text-xs font-semibold', roleTint(u.role))}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -176,6 +176,7 @@ export function UserRoleManager() {
                       </td>
                       <td className="px-2 py-2.5">
                         <Switch
+                          aria-label={`Account active for ${u.name}`}
                           checked={u.active}
                           onCheckedChange={(active) => void patch(u.id, { active })}
                           disabled={isSelf || savingId === u.id}

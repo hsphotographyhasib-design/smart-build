@@ -20,10 +20,10 @@ export function CriticalPathView({ onNavigate }: { onNavigate: (v: View) => void
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-3">
         <Card><CardContent className="p-4">
-          <div className="flex items-center justify-between"><div><div className="text-[11px] uppercase text-muted-foreground">Critical Activities</div><div className="text-2xl font-bold text-rose-600">{crit.length}</div></div><GitBranch className="h-6 w-6 text-rose-600" /></div>
+          <div className="flex items-center justify-between"><div><div className="text-[11px] uppercase text-muted-foreground">Critical Activities</div><div className="text-2xl font-bold text-rose-700">{crit.length}</div></div><GitBranch className="h-6 w-6 text-rose-700" /></div>
         </CardContent></Card>
         <Card><CardContent className="p-4">
-          <div className="flex items-center justify-between"><div><div className="text-[11px] uppercase text-muted-foreground">Zero Float</div><div className="text-2xl font-bold">{crit.filter(a => a.totalFloat === 0).length}</div></div><Zap className="h-6 w-6 text-amber-600" /></div>
+          <div className="flex items-center justify-between"><div><div className="text-[11px] uppercase text-muted-foreground">Zero Float</div><div className="text-2xl font-bold">{crit.filter(a => a.totalFloat === 0).length}</div></div><Zap className="h-6 w-6 text-amber-700" /></div>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <div className="flex items-center justify-between"><div><div className="text-[11px] uppercase text-muted-foreground">Avg Float (crit)</div><div className="text-2xl font-bold">{(crit.reduce((s,a)=>s+a.totalFloat,0)/Math.max(1,crit.length)).toFixed(1)}d</div></div><AlertTriangle className="h-6 w-6 text-muted-foreground" /></div>
@@ -48,7 +48,7 @@ export function CriticalPathView({ onNavigate }: { onNavigate: (v: View) => void
                     <TableCell className="font-mono text-[10px]">{a.project?.code}</TableCell>
                     <TableCell><Badge variant="outline" className="text-[9px]">{a.status}</Badge></TableCell>
                     <TableCell className="text-[10px] tabular-nums">{a.duration}d</TableCell>
-                    <TableCell className={cn('text-[10px] tabular-nums font-bold', a.totalFloat === 0 ? 'text-rose-600' : 'text-amber-600')}>{a.totalFloat}d</TableCell>
+                    <TableCell className={cn('text-[10px] tabular-nums font-bold', a.totalFloat === 0 ? 'text-rose-700' : 'text-amber-700')}>{a.totalFloat}d</TableCell>
                     <TableCell><div className="flex items-center gap-1"><div className="h-1.5 w-10 rounded-full bg-muted overflow-hidden"><div className="h-full bg-rose-500" style={{ width: `${a.progress}%` }} /></div><span className="text-[9px]">{a.progress.toFixed(0)}</span></div></TableCell>
                     <TableCell className="text-[10px]">{fmtDate(a.startDate)}</TableCell>
                     <TableCell className="text-[10px]">{fmtDate(a.finishDate)}</TableCell>
@@ -69,9 +69,9 @@ export function CriticalPathView({ onNavigate }: { onNavigate: (v: View) => void
               <div className="space-y-1.5">
                 {acts.slice(0, 6).map(a => (
                   <div key={a.id} className="flex items-center gap-2 rounded border p-2">
-                    <GitBranch className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                    <GitBranch className="h-3.5 w-3.5 text-rose-700 shrink-0" />
                     <div className="min-w-0 flex-1"><div className="truncate text-xs font-medium">{a.name}</div><div className="text-[10px] text-muted-foreground">{fmtDate(a.startDate)} → {fmtDate(a.finishDate)}</div></div>
-                    <Badge variant="outline" className="text-[9px] border-rose-200 text-rose-600">{a.progress.toFixed(0)}%</Badge>
+                    <Badge variant="outline" className="text-[9px] border-rose-200 text-rose-700">{a.progress.toFixed(0)}%</Badge>
                   </div>
                 ))}
               </div>

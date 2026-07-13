@@ -100,9 +100,9 @@ export function MilestonesView({ onNavigate }: { onNavigate: (v: View) => void }
         <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
           {[
             { l: 'Total Milestones', v: counts.total, i: Flag, t: 'text-foreground', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Completed', v: counts.completed, i: CheckCircle2, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Upcoming', v: counts.upcoming, i: Clock, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
-            { l: 'Overdue', v: counts.overdue, i: AlertCircle, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
+            { l: 'Completed', v: counts.completed, i: CheckCircle2, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Upcoming', v: counts.upcoming, i: Clock, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
+            { l: 'Overdue', v: counts.overdue, i: AlertCircle, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
@@ -205,9 +205,9 @@ export function MilestonesView({ onNavigate }: { onNavigate: (v: View) => void }
                 ) : filtered.map(m => (
                   <button key={m.id} onClick={() => openDrawer(m)} className="flex w-full items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors text-left">
                     <div className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-lg',
-                      m.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600'
-                      : m.status === 'overdue' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600'
-                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600')}>
+                      m.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700'
+                      : m.status === 'overdue' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700')}>
                       {m.status === 'completed' ? <CheckCircle2 className="h-4 w-4" /> : m.status === 'overdue' ? <AlertCircle className="h-4 w-4" /> : <Milestone className="h-4 w-4" />}
                     </div>
                     <div className="min-w-0 flex-1">

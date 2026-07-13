@@ -46,7 +46,7 @@ export function ProjectDrawer({
                     <Badge variant="outline" className="font-mono text-[10px]">{project.code}</Badge>
                     <Badge variant="outline" className={`text-[10px] ${statusColor(project.status)}`}>{project.status}</Badge>
                     <Badge variant="outline" className={`text-[10px] ${healthColor(project.health)}`}>{project.health}</Badge>
-                    {project.priority === 'Critical' && <Badge variant="outline" className="text-[10px] border-rose-300 text-rose-600">Critical Priority</Badge>}
+                    {project.priority === 'Critical' && <Badge variant="outline" className="text-[10px] border-rose-300 text-rose-700">Critical Priority</Badge>}
                   </div>
                   <SheetTitle className="text-base mt-1.5 leading-snug">{project.name}</SheetTitle>
                   <SheetDescription className="text-xs flex items-center gap-3 mt-1 flex-wrap">
@@ -59,10 +59,10 @@ export function ProjectDrawer({
               {/* Mini KPI row */}
               <div className="grid grid-cols-4 gap-2 mt-3">
                 {[
-                  { l: 'Progress', v: fmtPct(project.progress), tone: 'text-emerald-600' },
+                  { l: 'Progress', v: fmtPct(project.progress), tone: 'text-emerald-700' },
                   { l: 'Budget', v: fmtMoney(project.budget), tone: 'text-foreground' },
-                  { l: 'Spend', v: fmtMoney(project.actualCost), tone: 'text-amber-600' },
-                  { l: 'Forecast', v: fmtMoney(project.forecastCost), tone: 'text-rose-600' },
+                  { l: 'Spend', v: fmtMoney(project.actualCost), tone: 'text-amber-700' },
+                  { l: 'Forecast', v: fmtMoney(project.forecastCost), tone: 'text-rose-700' },
                 ].map(k => (
                   <div key={k.l} className="rounded-lg bg-muted/50 px-2.5 py-1.5">
                     <div className="text-[9px] uppercase text-muted-foreground">{k.l}</div>
@@ -103,7 +103,7 @@ export function ProjectDrawer({
                               <span className="text-muted-foreground">Finish variance</span>
                               {(() => {
                                 const slip = Math.round((+new Date(project.finishDate) - +new Date(project.baselineFinish)) / 86400000)
-                                return <Badge variant="outline" className={slip > 0 ? 'text-rose-600 border-rose-200' : 'text-emerald-600 border-emerald-200'}>{slip > 0 ? '+' : ''}{slip}d</Badge>
+                                return <Badge variant="outline" className={slip > 0 ? 'text-rose-700 border-rose-200' : 'text-emerald-700 border-emerald-200'}>{slip > 0 ? '+' : ''}{slip}d</Badge>
                               })()}
                             </div>
                           )}
@@ -124,7 +124,7 @@ export function ProjectDrawer({
                           </div>
                           <div className="rounded-lg border p-3">
                             <div className="flex items-center gap-1.5 text-[10px] uppercase text-muted-foreground mb-1"><Target className="h-3 w-3" />Margin Forecast</div>
-                            <div className="text-lg font-bold text-emerald-600">{fmtMoney(project.revenue - project.forecastCost)}</div>
+                            <div className="text-lg font-bold text-emerald-700">{fmtMoney(project.revenue - project.forecastCost)}</div>
                             <div className="text-[10px] text-muted-foreground">{project.revenue ? (((project.revenue - project.forecastCost) / project.revenue) * 100).toFixed(1) : 0}% margin</div>
                           </div>
                         </div>
@@ -142,8 +142,8 @@ export function ProjectDrawer({
                           <>
                             <div className="grid grid-cols-3 gap-2">
                               <Stat l="Total" v={fmtNum(detail.activities.length)} icon={ActivityIcon} />
-                              <Stat l="Critical" v={fmtNum(detail.activities.filter((a:any)=>a.isCritical).length)} icon={GitBranch} tone="text-rose-600" />
-                              <Stat l="In Progress" v={fmtNum(detail.activities.filter((a:any)=>a.status==='In Progress').length)} icon={Clock} tone="text-sky-600" />
+                              <Stat l="Critical" v={fmtNum(detail.activities.filter((a:any)=>a.isCritical).length)} icon={GitBranch} tone="text-rose-700" />
+                              <Stat l="In Progress" v={fmtNum(detail.activities.filter((a:any)=>a.status==='In Progress').length)} icon={Clock} tone="text-sky-700" />
                             </div>
                             <div className="rounded-lg border">
                               <div className="max-h-[280px] overflow-auto scroll-thin">
@@ -176,19 +176,19 @@ export function ProjectDrawer({
                           <>
                             <div className="grid grid-cols-4 gap-2">
                               <EvmStat l="PV" v={fmtMoney(detail.evm.PV)} />
-                              <EvmStat l="EV" v={fmtMoney(detail.evm.EV)} tone="text-emerald-600" />
-                              <EvmStat l="AC" v={fmtMoney(detail.evm.AC)} tone="text-amber-600" />
-                              <EvmStat l="EAC" v={fmtMoney(detail.evm.EAC)} tone="text-rose-600" />
+                              <EvmStat l="EV" v={fmtMoney(detail.evm.EV)} tone="text-emerald-700" />
+                              <EvmStat l="AC" v={fmtMoney(detail.evm.AC)} tone="text-amber-700" />
+                              <EvmStat l="EAC" v={fmtMoney(detail.evm.EAC)} tone="text-rose-700" />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div className="rounded-lg border p-3">
                                 <div className="text-[10px] uppercase text-muted-foreground mb-1">CPI (Cost Performance)</div>
-                                <div className="flex items-baseline gap-2"><span className={`text-2xl font-bold ${detail.evm.CPI >= 1 ? 'text-emerald-600' : detail.evm.CPI >= 0.9 ? 'text-amber-600' : 'text-rose-600'}`}>{detail.evm.CPI.toFixed(2)}</span><span className="text-[10px] text-muted-foreground">{detail.evm.CPI >= 1 ? 'under budget' : 'over budget'}</span></div>
+                                <div className="flex items-baseline gap-2"><span className={`text-2xl font-bold ${detail.evm.CPI >= 1 ? 'text-emerald-700' : detail.evm.CPI >= 0.9 ? 'text-amber-700' : 'text-rose-700'}`}>{detail.evm.CPI.toFixed(2)}</span><span className="text-[10px] text-muted-foreground">{detail.evm.CPI >= 1 ? 'under budget' : 'over budget'}</span></div>
                                 <Progress value={Math.min(100, detail.evm.CPI * 50)} className="h-1.5 mt-1.5" />
                               </div>
                               <div className="rounded-lg border p-3">
                                 <div className="text-[10px] uppercase text-muted-foreground mb-1">SPI (Schedule Performance)</div>
-                                <div className="flex items-baseline gap-2"><span className={`text-2xl font-bold ${detail.evm.SPI >= 1 ? 'text-emerald-600' : detail.evm.SPI >= 0.9 ? 'text-amber-600' : 'text-rose-600'}`}>{detail.evm.SPI.toFixed(2)}</span><span className="text-[10px] text-muted-foreground">{detail.evm.SPI >= 1 ? 'ahead' : 'behind'}</span></div>
+                                <div className="flex items-baseline gap-2"><span className={`text-2xl font-bold ${detail.evm.SPI >= 1 ? 'text-emerald-700' : detail.evm.SPI >= 0.9 ? 'text-amber-700' : 'text-rose-700'}`}>{detail.evm.SPI.toFixed(2)}</span><span className="text-[10px] text-muted-foreground">{detail.evm.SPI >= 1 ? 'ahead' : 'behind'}</span></div>
                                 <Progress value={Math.min(100, detail.evm.SPI * 50)} className="h-1.5 mt-1.5" />
                               </div>
                             </div>
@@ -237,7 +237,7 @@ export function ProjectDrawer({
                                           <div className="flex items-center gap-1.5"><span className="font-mono text-[9px] text-muted-foreground">{r.code}</span><Badge variant="outline" className={`text-[8px] ${statusColor(r.status)}`}>{r.status}</Badge></div>
                                           <div className="text-xs font-medium mt-0.5">{r.title}</div>
                                         </div>
-                                        <Badge variant="outline" className={`text-[9px] shrink-0 ${score >= 15 ? 'border-rose-300 text-rose-600' : score >= 9 ? 'border-amber-300 text-amber-600' : 'border-emerald-300 text-emerald-600'}`}>{score}</Badge>
+                                        <Badge variant="outline" className={`text-[9px] shrink-0 ${score >= 15 ? 'border-rose-300 text-rose-700' : score >= 9 ? 'border-amber-300 text-amber-700' : 'border-emerald-300 text-emerald-700'}`}>{score}</Badge>
                                       </div>
                                       {r.mitigation && <div className="text-[10px] text-muted-foreground mt-1">{r.mitigation}</div>}
                                     </div>

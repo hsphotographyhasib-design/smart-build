@@ -102,7 +102,7 @@ export default function MobileWorkOrders({ onNavigate }: { onNavigate: (v: View)
                 <span className="text-muted-foreground/50">·</span>
                 <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3.5 w-3.5" />{fmtWhen(c.createdAt)}</span>
                 {breaches > 0 && (
-                  <span className="flex items-center gap-1 font-semibold text-rose-600"><AlertTriangle className="h-3.5 w-3.5" />SLA</span>
+                  <span className="flex items-center gap-1 font-semibold text-rose-700"><AlertTriangle className="h-3.5 w-3.5" />SLA</span>
                 )}
               </div>
               <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5">

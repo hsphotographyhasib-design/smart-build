@@ -102,10 +102,10 @@ export function ProcurementView({ onNavigate }: { onNavigate: (v: View) => void 
         <div className="grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-6">
           {[
             { l: 'Total PR Value', v: fmtMoney(totalValue), i: Package, t: 'text-foreground', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Open Requests', v: fmtNum(pending.length), i: Clock, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
-            { l: 'On Order', v: fmtNum(ordered.length), i: Truck, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
-            { l: 'Delivered', v: fmtNum(delivered.length), i: CheckCircle2, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Delayed', v: fmtNum(delayed.length), i: AlertTriangle, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
+            { l: 'Open Requests', v: fmtNum(pending.length), i: Clock, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
+            { l: 'On Order', v: fmtNum(ordered.length), i: Truck, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
+            { l: 'Delivered', v: fmtNum(delivered.length), i: CheckCircle2, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Delayed', v: fmtNum(delayed.length), i: AlertTriangle, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
             { l: 'Active Suppliers', v: fmtNum(SUPPLIERS.length), i: Factory, t: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
@@ -159,8 +159,8 @@ export function ProcurementView({ onNavigate }: { onNavigate: (v: View) => void 
                             <TableCell className="text-right text-[11px] tabular-nums">{fmtNum(r.quantity)} <span className="text-[9px] text-muted-foreground">{r.unit}</span></TableCell>
                             <TableCell className="text-[11px] truncate max-w-[120px]">{r.supplier.split(' ')[0]}</TableCell>
                             <TableCell className="text-right text-[10px] tabular-nums">{r.leadTime}d</TableCell>
-                            <TableCell><Badge variant="outline" className={cn('text-[9px]', statusColor(r.status), overdue && r.status !== 'Delivered' && 'border-rose-300 text-rose-600')}>{r.status}</Badge></TableCell>
-                            <TableCell className={cn('text-[10px]', overdue && r.status !== 'Delivered' ? 'text-rose-600 font-medium' : 'text-muted-foreground')}>{fmtDate(r.deliveryDate)}</TableCell>
+                            <TableCell><Badge variant="outline" className={cn('text-[9px]', statusColor(r.status), overdue && r.status !== 'Delivered' && 'border-rose-300 text-rose-700')}>{r.status}</Badge></TableCell>
+                            <TableCell className={cn('text-[10px]', overdue && r.status !== 'Delivered' ? 'text-rose-700 font-medium' : 'text-muted-foreground')}>{fmtDate(r.deliveryDate)}</TableCell>
                             <TableCell className="text-right text-[11px] tabular-nums font-medium">{fmtMoney(r.cost, false)}</TableCell>
                           </TableRow>
                         )
@@ -191,7 +191,7 @@ export function ProcurementView({ onNavigate }: { onNavigate: (v: View) => void 
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div><div className="text-[10px] uppercase text-muted-foreground">On-time Rate</div><div className={cn('font-bold', s.onTime >= 90 ? 'text-emerald-600' : s.onTime >= 85 ? 'text-amber-600' : 'text-rose-600')}>{s.onTime}%</div></div>
+                        <div><div className="text-[10px] uppercase text-muted-foreground">On-time Rate</div><div className={cn('font-bold', s.onTime >= 90 ? 'text-emerald-700' : s.onTime >= 85 ? 'text-amber-700' : 'text-rose-700')}>{s.onTime}%</div></div>
                         <div><div className="text-[10px] uppercase text-muted-foreground">Open Orders</div><div className="font-bold">{prs.length}</div></div>
                       </div>
                       <div className="flex justify-between text-[10px] text-muted-foreground pt-1 border-t"><span>Order value</span><span className="font-medium tabular-nums">{fmtMoney(value)}</span></div>

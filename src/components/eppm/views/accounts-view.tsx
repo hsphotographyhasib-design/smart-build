@@ -72,10 +72,10 @@ export default function AccountsView({ focus = 'invoices' }: { onNavigate?: (v: 
   const overdue = invoices.filter((i) => i.status === 'Overdue')
 
   const invColor = (s: InvStatus) =>
-    s === 'Paid' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-    : s === 'Approved' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
-    : s === 'Overdue' ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
-    : s === 'Submitted' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+    s === 'Paid' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+    : s === 'Approved' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+    : s === 'Overdue' ? 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
+    : s === 'Submitted' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
     : 'text-muted-foreground bg-muted border-border'
 
   return (
@@ -96,10 +96,10 @@ export default function AccountsView({ focus = 'invoices' }: { onNavigate?: (v: 
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'AR Outstanding', value: `BND ${(arOutstanding / 1000).toFixed(0)}k`, icon: TrendingUp, tone: 'text-emerald-600' },
-            { label: 'AP Outstanding', value: `BND ${(apOutstanding / 1000).toFixed(0)}k`, icon: TrendingDown, tone: 'text-amber-600' },
-            { label: 'Overdue Invoices', value: overdue.length, icon: AlertTriangle, tone: 'text-rose-600' },
-            { label: 'Payments MTD', value: payments.filter((p) => p.date >= '2026-07-01').length, icon: Banknote, tone: 'text-sky-600' },
+            { label: 'AR Outstanding', value: `BND ${(arOutstanding / 1000).toFixed(0)}k`, icon: TrendingUp, tone: 'text-emerald-700' },
+            { label: 'AP Outstanding', value: `BND ${(apOutstanding / 1000).toFixed(0)}k`, icon: TrendingDown, tone: 'text-amber-700' },
+            { label: 'Overdue Invoices', value: overdue.length, icon: AlertTriangle, tone: 'text-rose-700' },
+            { label: 'Payments MTD', value: payments.filter((p) => p.date >= '2026-07-01').length, icon: Banknote, tone: 'text-sky-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />
@@ -142,9 +142,9 @@ export default function AccountsView({ focus = 'invoices' }: { onNavigate?: (v: 
                       <TableCell className="font-mono text-xs">{inv.id}</TableCell>
                       <TableCell><div className="font-medium">{inv.party}</div><div className="text-xs text-muted-foreground">{inv.project}</div></TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className={inv.direction === 'AR' ? 'border-emerald-200 text-emerald-600 dark:border-emerald-900 dark:text-emerald-400' : 'border-amber-200 text-amber-600 dark:border-amber-900 dark:text-amber-400'}>{inv.direction}</Badge>
+                        <Badge variant="outline" className={inv.direction === 'AR' ? 'border-emerald-200 text-emerald-700 dark:border-emerald-900 dark:text-emerald-400' : 'border-amber-200 text-amber-700 dark:border-amber-900 dark:text-amber-400'}>{inv.direction}</Badge>
                       </TableCell>
-                      <TableCell className={cn('hidden text-xs md:table-cell', inv.status === 'Overdue' && 'font-semibold text-rose-600')}>{fmtDate(inv.due)}</TableCell>
+                      <TableCell className={cn('hidden text-xs md:table-cell', inv.status === 'Overdue' && 'font-semibold text-rose-700')}>{fmtDate(inv.due)}</TableCell>
                       <TableCell className="text-sm font-semibold">BND {(inv.amountBnd / 1000).toFixed(1)}k</TableCell>
                       <TableCell><Badge variant="outline" className={invColor(inv.status)}>{inv.status}</Badge></TableCell>
                       <TableCell className="text-right">

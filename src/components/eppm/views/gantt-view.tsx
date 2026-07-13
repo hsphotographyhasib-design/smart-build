@@ -144,7 +144,7 @@ export function GanttView({ projectId, setProjectId, onNavigate }: {
                       <div className="text-[9px] text-muted-foreground">{a.type} · {a.status}</div>
                     </div>
                     <span className="text-right text-[10px] tabular-nums">{a.duration}d</span>
-                    <span className={cn('text-right text-[10px] tabular-nums', a.totalFloat === 0 ? 'text-rose-600 font-bold' : 'text-muted-foreground')}>{a.totalFloat}d</span>
+                    <span className={cn('text-right text-[10px] tabular-nums', a.totalFloat === 0 ? 'text-rose-700 font-bold' : 'text-muted-foreground')}>{a.totalFloat}d</span>
                   </div>
                 ))}
               </div>
@@ -254,7 +254,7 @@ export function GanttView({ projectId, setProjectId, onNavigate }: {
                                 <span>Finish: <b>{fmtDate(a.finishDate)}</b></span>
                                 <span>Duration: <b>{a.duration}d</b></span>
                                 <span>Progress: <b>{a.progress.toFixed(0)}%</b></span>
-                                <span>Float: <b className={a.totalFloat === 0 ? 'text-rose-600' : ''}>{a.totalFloat}d</b></span>
+                                <span>Float: <b className={a.totalFloat === 0 ? 'text-rose-700' : ''}>{a.totalFloat}d</b></span>
                                 <span>Critical: <b>{a.isCritical ? 'Yes' : 'No'}</b></span>
                               </div>
                             </TooltipContent>

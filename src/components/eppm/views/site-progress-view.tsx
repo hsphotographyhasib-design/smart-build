@@ -48,10 +48,10 @@ export function SiteProgressView({ onNavigate }: { onNavigate: (v: View) => void
         {/* KPI strip */}
         <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
           {[
-            { l: 'Active Sites', v: fmtNum(data.totals.activeSites), i: Construction, t: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
-            { l: 'Manpower Today', v: fmtNum(data.totals.totalManpowerToday), i: Users, t: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40' },
-            { l: 'Reports (14d)', v: fmtNum(data.totals.reports), i: CheckCircle2, t: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40' },
-            { l: 'Open Issues', v: fmtNum(data.reports.filter(r => r.delays && r.delays !== 'Nil').length), i: AlertTriangle, t: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40' },
+            { l: 'Active Sites', v: fmtNum(data.totals.activeSites), i: Construction, t: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40' },
+            { l: 'Manpower Today', v: fmtNum(data.totals.totalManpowerToday), i: Users, t: 'text-sky-700 bg-sky-50 dark:bg-sky-950/40' },
+            { l: 'Reports (14d)', v: fmtNum(data.totals.reports), i: CheckCircle2, t: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40' },
+            { l: 'Open Issues', v: fmtNum(data.reports.filter(r => r.delays && r.delays !== 'Nil').length), i: AlertTriangle, t: 'text-rose-700 bg-rose-50 dark:bg-rose-950/40' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
@@ -135,14 +135,14 @@ export function SiteProgressView({ onNavigate }: { onNavigate: (v: View) => void
                           <span className="font-mono text-[10px] text-muted-foreground">{r.project.code}</span>
                           <span className="truncate">{r.project.name}</span>
                         </div>
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-sky-600"><HardHat className="h-3 w-3" />{r.manpower}</span>
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-sky-700"><HardHat className="h-3 w-3" />{r.manpower}</span>
                       </div>
                     ))}
                   </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-primary/5 to-card">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-emerald-600" /><span className="text-sm font-semibold">Weekly Productivity</span></div>
+                    <div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-emerald-700" /><span className="text-sm font-semibold">Weekly Productivity</span></div>
                     <div className="text-2xl font-bold">87.3%</div>
                     <div className="text-[11px] text-muted-foreground mt-0.5">+2.1% vs last week · planned vs actual</div>
                     <div className="grid grid-cols-7 gap-1 mt-3">

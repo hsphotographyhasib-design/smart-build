@@ -93,19 +93,19 @@ const SUBMITTALS: Submittal[] = [
 
 const STATUS_BADGE: Record<SubmittalStatus, string> = {
   Draft: 'text-muted-foreground bg-muted border-border',
-  Submitted: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  'In Review': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Approved: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Approved as Noted': 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Revise & Resubmit': 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Rejected: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Submitted: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  'In Review': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Approved: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Approved as Noted': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Revise & Resubmit': 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Rejected: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
 }
 
 const TYPE_BADGE: Record<SubmittalType, string> = {
-  'Shop Drawing': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  'Material Sample': 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  'Shop Drawing': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  'Material Sample': 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
   'Technical Proposal': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
-  'Method Statement': 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Method Statement': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
   'Mock-up': 'text-slate-600 bg-slate-50 border-slate-200 dark:text-slate-300 dark:bg-slate-900/50 dark:border-slate-800',
 }
 
@@ -230,18 +230,18 @@ const TRANSMITTALS: Transmittal[] = [
 ]
 
 const TRANS_STATUS_BADGE: Record<TransmittalStatus, string> = {
-  Sent: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Acknowledged: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  Returned: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Sent: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Acknowledged: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Returned: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
 }
 
 const STAGE_DECISION_BADGE: Record<ApprovalStage['decision'], string> = {
   Pending: 'text-muted-foreground bg-muted border-border',
-  Completed: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Approved: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Approved as Noted': 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Revise & Resubmit': 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Rejected: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Completed: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Approved: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Approved as Noted': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Revise & Resubmit': 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Rejected: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
 }
 
 interface KpiDef {
@@ -295,10 +295,10 @@ export function SubmittalsView({ onNavigate }: { onNavigate: (v: View) => void }
 
   const kpis: KpiDef[] = [
     { label: 'Total Submittals', value: totalSubmittals, hint: 'across 4 projects', icon: FileSignature, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
-    { label: 'Pending Review', value: pendingReview, hint: 'submitted / in review', icon: Clock, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
-    { label: 'Approved', value: approved, hint: 'incl. approved as noted', icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
-    { label: 'Rejected / Revise', value: rejectedRevise, hint: 'requires resubmission', icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
-    { label: 'Overdue', value: overdueCount, hint: 'review SLA exceeded', icon: AlertTriangle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-amber-500' },
+    { label: 'Pending Review', value: pendingReview, hint: 'submitted / in review', icon: Clock, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+    { label: 'Approved', value: approved, hint: 'incl. approved as noted', icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+    { label: 'Rejected / Revise', value: rejectedRevise, hint: 'requires resubmission', icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+    { label: 'Overdue', value: overdueCount, hint: 'review SLA exceeded', icon: AlertTriangle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-amber-500' },
     { label: 'Avg Review Days', value: `${avgReviewDays}d`, hint: 'rolling 90-day mean', icon: Mail, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
   ]
 
@@ -448,7 +448,7 @@ export function SubmittalsView({ onNavigate }: { onNavigate: (v: View) => void }
                               <Badge variant="outline" className={cn('whitespace-nowrap text-[10px]', STATUS_BADGE[s.status])}>{s.status}</Badge>
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground">{fmtDate(s.submittedDate)}</TableCell>
-                            <TableCell className={cn('text-xs', s.overdue ? 'text-rose-600 font-semibold' : 'text-muted-foreground')}>
+                            <TableCell className={cn('text-xs', s.overdue ? 'text-rose-700 font-semibold' : 'text-muted-foreground')}>
                               {fmtDate(s.dueDate)}
                               {s.overdue && <span className="ml-1 text-[9px] uppercase">overdue</span>}
                             </TableCell>
@@ -616,12 +616,12 @@ export function SubmittalsView({ onNavigate }: { onNavigate: (v: View) => void }
                 <div className="mt-1 text-2xl font-bold">{totalDocsTransmitted}</div>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-emerald-600" /><span className="text-[11px] uppercase">Acknowledged</span></div>
-                <div className="mt-1 text-2xl font-bold text-emerald-600">{acknowledgedCount}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-emerald-700" /><span className="text-[11px] uppercase">Acknowledged</span></div>
+                <div className="mt-1 text-2xl font-bold text-emerald-700">{acknowledgedCount}</div>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground"><XCircle className="h-4 w-4 text-rose-600" /><span className="text-[11px] uppercase">Returned</span></div>
-                <div className="mt-1 text-2xl font-bold text-rose-600">{returnedCount}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><XCircle className="h-4 w-4 text-rose-700" /><span className="text-[11px] uppercase">Returned</span></div>
+                <div className="mt-1 text-2xl font-bold text-rose-700">{returnedCount}</div>
               </CardContent></Card>
             </div>
 

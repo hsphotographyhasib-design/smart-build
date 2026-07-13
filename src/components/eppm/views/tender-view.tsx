@@ -66,10 +66,10 @@ const FOCUS_TAB: Record<TenderFocus, string> = {
 }
 
 const pkgColor = (s: PkgStatus) =>
-  s === 'Awarded' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-  : s === 'Recommended' ? 'text-teal-600 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
+  s === 'Awarded' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+  : s === 'Recommended' ? 'text-teal-700 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
   : s === 'Evaluation' ? 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900'
-  : s === 'Tendering' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+  : s === 'Tendering' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
   : 'text-muted-foreground bg-muted border-border'
 
 export default function TenderView({ focus = 'tender-packages' }: { onNavigate?: (v: View) => void; focus?: TenderFocus }) {
@@ -122,10 +122,10 @@ export default function TenderView({ focus = 'tender-packages' }: { onNavigate?:
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Active Packages', value: packages.filter((p) => p.status !== 'Awarded').length, icon: ClipboardList, tone: 'text-sky-600' },
+            { label: 'Active Packages', value: packages.filter((p) => p.status !== 'Awarded').length, icon: ClipboardList, tone: 'text-sky-700' },
             { label: 'In Evaluation', value: packages.filter((p) => p.status === 'Evaluation').length, icon: Scale, tone: 'text-violet-600' },
-            { label: 'Awarded YTD', value: packages.filter((p) => p.status === 'Awarded').length, icon: Trophy, tone: 'text-emerald-600' },
-            { label: 'Approved Vendors', value: vendors.filter((v) => v.status === 'Approved').length, icon: Handshake, tone: 'text-amber-600' },
+            { label: 'Awarded YTD', value: packages.filter((p) => p.status === 'Awarded').length, icon: Trophy, tone: 'text-emerald-700' },
+            { label: 'Approved Vendors', value: vendors.filter((v) => v.status === 'Approved').length, icon: Handshake, tone: 'text-amber-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />
@@ -215,7 +215,7 @@ export default function TenderView({ focus = 'tender-packages' }: { onNavigate?:
                       <TableCell className="hidden md:table-cell"><div className="flex items-center gap-2"><Progress value={b.commercial} className="h-1.5 w-20" /><span className="text-xs">{b.commercial}</span></div></TableCell>
                       <TableCell className="text-sm font-bold">{b.total}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={b.compliant ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400' : 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'}>
+                        <Badge variant="outline" className={b.compliant ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400' : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'}>
                           {b.compliant ? 'Compliant' : 'Non-compliant'}
                         </Badge>
                       </TableCell>
@@ -288,9 +288,9 @@ export default function TenderView({ focus = 'tender-packages' }: { onNavigate?:
                       <TableCell className="hidden lg:table-cell"><div className="flex items-center gap-2"><Progress value={v.financialScore} className="h-1.5 w-16" /><span className="text-xs">{v.financialScore}</span></div></TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          v.status === 'Approved' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : v.status === 'Rejected' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-                          : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          v.status === 'Approved' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : v.status === 'Rejected' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                         }>{v.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">

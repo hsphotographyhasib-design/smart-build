@@ -107,8 +107,8 @@ export default function PortalsView({ focus = 'customer-portal' }: { onNavigate?
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <Badge variant="outline" className={p.status === 'On Track'
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                      : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'}>{p.status}</Badge>
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                      : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'}>{p.status}</Badge>
                     <span className="flex items-center gap-1 text-muted-foreground"><CalendarClock className="h-3 w-3" />Next visit {p.nextVisit}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">{p.openRequests} open service request{p.openRequests === 1 ? '' : 's'}</div>
@@ -144,7 +144,7 @@ export default function PortalsView({ focus = 'customer-portal' }: { onNavigate?
                   <div className="text-xs text-muted-foreground">Field view: technicians accept, arrive, document and complete their dispatched work orders</div>
                 </div>
               </div>
-              <Badge variant="outline" className="border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400">
+              <Badge variant="outline" className="border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400">
                 {jobs.filter((j) => j.status !== 'Done').length} active
               </Badge>
             </CardContent>
@@ -162,8 +162,8 @@ export default function PortalsView({ focus = 'customer-portal' }: { onNavigate?
                         <div className="text-sm font-semibold leading-snug">{j.title}</div>
                       </div>
                       <Badge variant="outline" className={
-                        j.priority === 'High' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-                        : j.priority === 'Medium' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                        j.priority === 'High' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                        : j.priority === 'Medium' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                         : 'border-border bg-muted text-muted-foreground'
                       }>{j.priority}</Badge>
                     </div>
@@ -174,10 +174,10 @@ export default function PortalsView({ focus = 'customer-portal' }: { onNavigate?
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <Badge variant="outline" className={
-                        j.status === 'Done' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                        : j.status === 'On Site' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                        j.status === 'Done' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                        : j.status === 'On Site' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
                         : j.status === 'Accepted' ? 'border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-900 dark:bg-violet-950/50 dark:text-violet-400'
-                        : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                        : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                       }>{j.status}</Badge>
                       <div className="flex gap-1.5">
                         {j.status === 'On Site' && <Button size="sm" variant="ghost" title="Attach site photo"><Camera className="h-3.5 w-3.5" /></Button>}

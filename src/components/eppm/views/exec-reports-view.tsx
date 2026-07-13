@@ -71,9 +71,9 @@ export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate
             <TableCell className="hidden text-xs sm:table-cell">{r.lastRun ?? '—'}</TableCell>
             <TableCell>
               <Badge variant="outline" className={
-                r.status === 'Ready' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                : r.status === 'Generating' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
-                : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                r.status === 'Ready' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                : r.status === 'Generating' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
               }>
                 {r.status === 'Generating' ? <Clock className="mr-1 h-3 w-3 animate-spin" /> : r.status === 'Ready' ? <CheckCircle2 className="mr-1 h-3 w-3" /> : null}
                 {r.status}
@@ -105,10 +105,10 @@ export default function ExecReportsView({ focus = 'exec-reports' }: { onNavigate
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Revenue YTD', value: 'BND 9.5M', icon: TrendingUp, tone: 'text-emerald-600' },
-            { label: 'Gross Margin', value: '18.2%', icon: Wallet, tone: 'text-sky-600' },
+            { label: 'Revenue YTD', value: 'BND 9.5M', icon: TrendingUp, tone: 'text-emerald-700' },
+            { label: 'Gross Margin', value: '18.2%', icon: Wallet, tone: 'text-sky-700' },
             { label: 'Report Packs', value: packs.exec.length + packs.fin.length, icon: FileBarChart, tone: 'text-violet-600' },
-            { label: 'Ready to Send', value: [...packs.exec, ...packs.fin].filter((r) => r.status === 'Ready').length, icon: CheckCircle2, tone: 'text-amber-600' },
+            { label: 'Ready to Send', value: [...packs.exec, ...packs.fin].filter((r) => r.status === 'Ready').length, icon: CheckCircle2, tone: 'text-amber-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />

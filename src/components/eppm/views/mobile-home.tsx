@@ -15,9 +15,9 @@ import { useAuth } from '@/components/auth/auth-context'
 import type { View } from '@/lib/eppm'
 
 const KPIS = [
-  { label: 'Projects', value: 12, icon: FolderKanban, view: 'projects' as View, tone: 'text-sky-600' },
+  { label: 'Projects', value: 12, icon: FolderKanban, view: 'projects' as View, tone: 'text-sky-700' },
   { label: 'Work Orders', value: 24, icon: Hammer, view: 'work-orders' as View, tone: 'text-primary' },
-  { label: 'Complaints', value: 8, icon: MessageSquareWarning, view: 'complaints' as View, tone: 'text-amber-600' },
+  { label: 'Complaints', value: 8, icon: MessageSquareWarning, view: 'complaints' as View, tone: 'text-amber-700' },
   { label: 'PM Tasks', value: 16, icon: CalendarClock, view: 'preventive' as View, tone: 'text-violet-600' },
 ]
 
@@ -38,9 +38,9 @@ const SCHEDULE = [
 ]
 
 const ACTIVITY = [
-  { text: 'WO-5122 marked Completed', when: '12 min ago', icon: CheckCircle2, tone: 'text-emerald-600' },
-  { text: 'New complaint CMP-1042 created', when: '38 min ago', icon: MessageSquareWarning, tone: 'text-amber-600' },
-  { text: 'PPM-014 chiller service due', when: '1 hr ago', icon: Wrench, tone: 'text-sky-600' },
+  { text: 'WO-5122 marked Completed', when: '12 min ago', icon: CheckCircle2, tone: 'text-emerald-700' },
+  { text: 'New complaint CMP-1042 created', when: '38 min ago', icon: MessageSquareWarning, tone: 'text-amber-700' },
+  { text: 'PPM-014 chiller service due', when: '1 hr ago', icon: Wrench, tone: 'text-sky-700' },
 ]
 
 export default function MobileHome({

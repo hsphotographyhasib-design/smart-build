@@ -172,7 +172,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3}>
-                  {healthData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  {healthData.map((e, i) => <Cell key={i} fill={e.color} aria-label={`${e.name}: ${e.value}`} />)}
                 </Pie>
                 <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
               </PieChart>
@@ -223,7 +223,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
                 <Pie data={resPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent! * 100).toFixed(0)}%`} labelLine={false} style={{ fontSize: 10 }}>
-                  {resPie.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  {resPie.map((e, i) => <Cell key={i} fill={e.color} aria-label={`${e.name}: ${e.value}`} />)}
                 </Pie>
                 <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
               </PieChart>
@@ -247,13 +247,13 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
                   return (
                   <button key={a.id} onClick={() => proj && (setDrawerProject(proj), setDrawerOpen(true))} className="flex w-full items-center gap-2 rounded-md border p-2 hover:bg-muted/50 hover:border-primary/40 transition-colors text-left">
                     <div className="grid h-7 w-7 shrink-0 place-items-center rounded bg-rose-50 dark:bg-rose-950/40">
-                      <GitBranch className="h-3.5 w-3.5 text-rose-600" />
+                      <GitBranch className="h-3.5 w-3.5 text-rose-700" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-medium">{a.name}</div>
                       <div className="truncate text-[10px] text-muted-foreground">{a.project?.code} · float {a.totalFloat}d · {a.progress}%</div>
                     </div>
-                    <Badge variant="outline" className="text-[9px] shrink-0 border-rose-200 text-rose-600">{a.remainingDur}d left</Badge>
+                    <Badge variant="outline" className="text-[9px] shrink-0 border-rose-200 text-rose-700">{a.remainingDur}d left</Badge>
                   </button>
                   )
                 })}
@@ -281,12 +281,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (v: any) => void }) 
                   const proj = data.projects.find(p => p.id === a.projectId)
                   return (
                     <button key={a.id} onClick={() => proj && (setDrawerProject(proj), setDrawerOpen(true))} className="flex w-full items-center gap-2 rounded-md border p-2 hover:bg-muted/50 hover:border-primary/40 transition-colors text-left">
-                      <CalendarClock className="h-4 w-4 text-amber-600 shrink-0" />
+                      <CalendarClock className="h-4 w-4 text-amber-700 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-xs font-medium">{a.name}</div>
                         <div className="truncate text-[10px] text-muted-foreground">{a.project?.code} · due {fmtDate(a.baselineFinish)}</div>
                       </div>
-                      <Badge variant="outline" className="text-[9px] border-amber-200 text-amber-600">+{slip}d slip</Badge>
+                      <Badge variant="outline" className="text-[9px] border-amber-200 text-amber-700">+{slip}d slip</Badge>
                     </button>
                   )
                 })}

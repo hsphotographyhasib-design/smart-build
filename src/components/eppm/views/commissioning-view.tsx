@@ -121,32 +121,32 @@ const CERTS: Certificate[] = [
 
 const SYSTEM_STATUS_BADGE: Record<SystemStatus, string> = {
   'Pre-Commissioning': 'text-muted-foreground bg-muted border-border',
-  'Testing': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  'Passed': 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Failed': 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  'Testing': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  'Passed': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Failed': 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
   'Handed Over': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
 }
 
 const TEST_RESULT_BADGE: Record<TestResult, string> = {
-  Pass: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  Fail: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Pending: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Pass: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Fail: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Pending: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
 }
 
 const TEST_TYPE_BADGE: Record<TestType, string> = {
   'Pre-Functional': 'text-slate-600 bg-slate-50 border-slate-200 dark:text-slate-300 dark:bg-slate-900/50 dark:border-slate-800',
-  'Functional': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  'Functional': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
   'Performance': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
-  'Integration': 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  'SAT': 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Integration': 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  'SAT': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const CERT_STATUS_BADGE: Record<CertStatus, string> = {
   Draft: 'text-muted-foreground bg-muted border-border',
-  Submitted: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Accepted: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Rejected: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Issued: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Submitted: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Accepted: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Rejected: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Issued: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const DISCIPLINE_COLOR: Record<Discipline, string> = {
@@ -229,11 +229,11 @@ export function CommissioningView({ onNavigate }: { onNavigate: (v: View) => voi
 
   const kpis: KpiDef[] = [
     { label: 'Total Systems', value: totalSystems, hint: 'across 4 projects', icon: Boxes, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
-    { label: 'Tested & Passed', value: testedPassed, hint: `${fmtPct((testedPassed / totalSystems) * 100)} of total`, icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
-    { label: 'Failed Tests', value: failedTests, hint: 'requires rectification', icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
-    { label: 'Pending Commissioning', value: pendingCommissioning, hint: 'pre-commissioning stage', icon: Clock, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+    { label: 'Tested & Passed', value: testedPassed, hint: `${fmtPct((testedPassed / totalSystems) * 100)} of total`, icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+    { label: 'Failed Tests', value: failedTests, hint: 'requires rectification', icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+    { label: 'Pending Commissioning', value: pendingCommissioning, hint: 'pre-commissioning stage', icon: Clock, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
     { label: 'Handover Certs Issued', value: certsIssued, hint: 'of 8 certificates', icon: Award, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
-    { label: 'Ready for Handover', value: readyForHandover, hint: 'awaiting certificate', icon: FileCheck, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
+    { label: 'Ready for Handover', value: readyForHandover, hint: 'awaiting certificate', icon: FileCheck, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-700', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
   ]
 
   // Charts data
@@ -454,7 +454,7 @@ export function CommissioningView({ onNavigate }: { onNavigate: (v: View) => voi
               <Card className="lg:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" /> Pass / Fail / Pending
+                    <ShieldCheck className="h-4 w-4 text-emerald-700" /> Pass / Fail / Pending
                   </CardTitle>
                   <CardDescription>Result distribution across {TESTS.length} test records</CardDescription>
                 </CardHeader>
@@ -548,7 +548,7 @@ export function CommissioningView({ onNavigate }: { onNavigate: (v: View) => voi
                       </div>
                       <div className={cn(
                         'flex items-center gap-1.5',
-                        t.defects > 0 ? 'font-medium text-rose-600 dark:text-rose-400' : 'text-muted-foreground',
+                        t.defects > 0 ? 'font-medium text-rose-700 dark:text-rose-400' : 'text-muted-foreground',
                       )}>
                         <AlertTriangle className="h-3 w-3" />
                         <span>{t.defects} defect{t.defects === 1 ? '' : 's'}</span>

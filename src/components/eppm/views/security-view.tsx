@@ -63,9 +63,9 @@ export default function SecurityView({ focus = 'sso' }: { onNavigate?: (v: View)
     (!q || [a.user, a.action, a.target, a.ip].join(' ').toLowerCase().includes(q)))
 
   const catColor = (c: AuditEntry['category']) =>
-    c === 'Security' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+    c === 'Security' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
     : c === 'Admin' ? 'border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-900 dark:bg-violet-950/50 dark:text-violet-400'
-    : c === 'Auth' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+    : c === 'Auth' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
     : 'border-border bg-muted text-muted-foreground'
 
   return (
@@ -86,9 +86,9 @@ export default function SecurityView({ focus = 'sso' }: { onNavigate?: (v: View)
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Sign-in Methods', value: providers.filter((p) => p.enabled).length, icon: KeyRound, tone: 'text-sky-600' },
-            { label: 'Active Sessions', value: SESSIONS.length, icon: Fingerprint, tone: 'text-emerald-600' },
-            { label: 'Security Events (7d)', value: AUDIT.filter((a) => a.category === 'Security').length, icon: AlertTriangle, tone: 'text-rose-600' },
+            { label: 'Sign-in Methods', value: providers.filter((p) => p.enabled).length, icon: KeyRound, tone: 'text-sky-700' },
+            { label: 'Active Sessions', value: SESSIONS.length, icon: Fingerprint, tone: 'text-emerald-700' },
+            { label: 'Security Events (7d)', value: AUDIT.filter((a) => a.category === 'Security').length, icon: AlertTriangle, tone: 'text-rose-700' },
             { label: 'Audit Entries (7d)', value: AUDIT.length, icon: ScrollText, tone: 'text-violet-600' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">

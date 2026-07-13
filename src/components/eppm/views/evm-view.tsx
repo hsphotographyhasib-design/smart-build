@@ -60,16 +60,16 @@ function projectEvm(p: ProjectLite): ProjectEvm {
   const vac = bac - eac
 
   let label = 'On Track'
-  let cls = 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/40 dark:border-emerald-900'
+  let cls = 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/40 dark:border-emerald-900'
   if (cpi < 0.95) {
     label = 'Over Budget'
-    cls = 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/40 dark:border-rose-900'
+    cls = 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/40 dark:border-rose-900'
   } else if (spi < 0.95) {
     label = 'Behind'
-    cls = 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/40 dark:border-amber-900'
+    cls = 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/40 dark:border-amber-900'
   } else if (spi >= 1.05) {
     label = 'Ahead'
-    cls = 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/40 dark:border-sky-900'
+    cls = 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/40 dark:border-sky-900'
   }
 
   return { project: p, pv, ev, ac, bac, cv, sv, cpi, spi, eac, etc, vac, status: { label, cls } }
@@ -244,7 +244,7 @@ export function EvmView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <div className="rounded-md border p-2 col-span-2">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground uppercase">VAC (BAC − EAC)</span>
-                  <span className={`font-bold tabular-nums ${portfolio.vac >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <span className={`font-bold tabular-nums ${portfolio.vac >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                     {portfolio.vac >= 0 ? '+' : ''}{fmtMoney(portfolio.vac)}
                   </span>
                 </div>
@@ -294,16 +294,16 @@ export function EvmView({ onNavigate }: { onNavigate: (v: View) => void }) {
                       <div className="text-[10px] text-muted-foreground truncate">{r.project.client ?? '—'} · {fmtMoney(r.bac, false)}</div>
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums">{fmtMoney(r.bac)}</TableCell>
-                    <TableCell className="text-right text-xs tabular-nums text-sky-600">{fmtMoney(r.ev)}</TableCell>
-                    <TableCell className="text-right text-xs tabular-nums text-amber-600">{fmtMoney(r.ac)}</TableCell>
-                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.cpi >= 1 ? 'text-emerald-600' : r.cpi >= 0.95 ? 'text-amber-600' : 'text-rose-600'}`}>
+                    <TableCell className="text-right text-xs tabular-nums text-sky-700">{fmtMoney(r.ev)}</TableCell>
+                    <TableCell className="text-right text-xs tabular-nums text-amber-700">{fmtMoney(r.ac)}</TableCell>
+                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.cpi >= 1 ? 'text-emerald-700' : r.cpi >= 0.95 ? 'text-amber-700' : 'text-rose-700'}`}>
                       {r.cpi.toFixed(2)}
                     </TableCell>
-                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.spi >= 1 ? 'text-emerald-600' : r.spi >= 0.95 ? 'text-amber-600' : 'text-rose-600'}`}>
+                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.spi >= 1 ? 'text-emerald-700' : r.spi >= 0.95 ? 'text-amber-700' : 'text-rose-700'}`}>
                       {r.spi.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums">{fmtMoney(r.eac)}</TableCell>
-                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.vac >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <TableCell className={`text-right text-xs tabular-nums font-medium ${r.vac >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                       {r.vac >= 0 ? '+' : ''}{fmtMoney(r.vac)}
                     </TableCell>
                     <TableCell>
@@ -316,16 +316,16 @@ export function EvmView({ onNavigate }: { onNavigate: (v: View) => void }) {
                 <tr className="bg-muted/30">
                   <td colSpan={2} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide">Portfolio Roll-up</td>
                   <td className="px-3 py-2 text-right text-xs font-bold tabular-nums">{fmtMoney(portfolio.bac)}</td>
-                  <td className="px-3 py-2 text-right text-xs font-bold tabular-nums text-sky-600">{fmtMoney(portfolio.ev)}</td>
-                  <td className="px-3 py-2 text-right text-xs font-bold tabular-nums text-amber-600">{fmtMoney(portfolio.ac)}</td>
-                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.cpi >= 1 ? 'text-emerald-600' : portfolio.cpi >= 0.95 ? 'text-amber-600' : 'text-rose-600'}`}>
+                  <td className="px-3 py-2 text-right text-xs font-bold tabular-nums text-sky-700">{fmtMoney(portfolio.ev)}</td>
+                  <td className="px-3 py-2 text-right text-xs font-bold tabular-nums text-amber-700">{fmtMoney(portfolio.ac)}</td>
+                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.cpi >= 1 ? 'text-emerald-700' : portfolio.cpi >= 0.95 ? 'text-amber-700' : 'text-rose-700'}`}>
                     {portfolio.cpi.toFixed(2)}
                   </td>
-                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.spi >= 1 ? 'text-emerald-600' : portfolio.spi >= 0.95 ? 'text-amber-600' : 'text-rose-600'}`}>
+                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.spi >= 1 ? 'text-emerald-700' : portfolio.spi >= 0.95 ? 'text-amber-700' : 'text-rose-700'}`}>
                     {portfolio.spi.toFixed(2)}
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-bold tabular-nums">{fmtMoney(portfolio.eac)}</td>
-                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.vac >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${portfolio.vac >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                     {portfolio.vac >= 0 ? '+' : ''}{fmtMoney(portfolio.vac)}
                   </td>
                   <td className="px-3 py-2 text-[10px] text-muted-foreground">{portfolio.rows.length} proj</td>

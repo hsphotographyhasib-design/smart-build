@@ -36,9 +36,14 @@ for (const view of ALL_VIEWS) {
     await gotoView(page, view)
 
     await expect(page.locator('main')).toBeVisible()
-    // The view must actually render content, not a blank shell.
-    const text = (await page.locator('main').innerText()).trim()
-    expect(text.length, 'main region should not be empty').toBeGreaterThan(0)
+    // The view must actually render content, not a blank shell. Poll: some
+    // views paint after the shared dashboard fetch resolves.
+    await expect
+      .poll(async () => (await page.locator('main').innerText()).trim().length, {
+        message: 'main region should not be empty',
+        timeout: 15_000,
+      })
+      .toBeGreaterThan(0)
 
     expect(errors, 'console errors').toEqual([])
     expect(bad, 'HTTP >=400 responses').toEqual([])

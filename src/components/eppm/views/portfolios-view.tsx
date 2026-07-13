@@ -32,7 +32,7 @@ export function PortfoliosView({ onNavigate }: { onNavigate: (v: View) => void }
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground"><Activity className="h-3.5 w-3.5" /> Spend to Date</div>
-          <div className="mt-1 text-2xl font-bold text-amber-600">{fmtMoney(totalActual)}</div>
+          <div className="mt-1 text-2xl font-bold text-amber-700">{fmtMoney(totalActual)}</div>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <div className="flex items-center gap-2 text-[11px] uppercase text-muted-foreground"><Users className="h-3.5 w-3.5" /> Active Projects</div>
@@ -79,15 +79,15 @@ export function PortfoliosView({ onNavigate }: { onNavigate: (v: View) => void }
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-md bg-muted/40 p-2 text-center">
-                    <div className="text-base font-bold text-emerald-600">{green}</div>
+                    <div className="text-base font-bold text-emerald-700">{green}</div>
                     <div className="text-[9px] uppercase text-muted-foreground">Green</div>
                   </div>
                   <div className="rounded-md bg-muted/40 p-2 text-center">
-                    <div className="text-base font-bold text-amber-600">{yellow}</div>
+                    <div className="text-base font-bold text-amber-700">{yellow}</div>
                     <div className="text-[9px] uppercase text-muted-foreground">Yellow</div>
                   </div>
                   <div className="rounded-md bg-muted/40 p-2 text-center">
-                    <div className="text-base font-bold text-rose-600">{red}</div>
+                    <div className="text-base font-bold text-rose-700">{red}</div>
                     <div className="text-[9px] uppercase text-muted-foreground">Red</div>
                   </div>
                 </div>

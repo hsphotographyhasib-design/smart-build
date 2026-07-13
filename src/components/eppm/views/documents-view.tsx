@@ -106,9 +106,9 @@ export function DocumentsView({ onNavigate }: { onNavigate: (v: View) => void })
     <div className="space-y-4">
       <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Total Documents</div><div className="text-2xl font-bold">{kpis.total}</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Approved</div><div className="text-2xl font-bold text-emerald-600">{kpis.approved}</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Under Review</div><div className="text-2xl font-bold text-sky-600">{kpis.review}</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">RFIs Open</div><div className="text-2xl font-bold text-amber-600">{kpis.rfiOpen}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Approved</div><div className="text-2xl font-bold text-emerald-700">{kpis.approved}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Under Review</div><div className="text-2xl font-bold text-sky-700">{kpis.review}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">RFIs Open</div><div className="text-2xl font-bold text-amber-700">{kpis.rfiOpen}</div></CardContent></Card>
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Submittals Pending</div><div className="text-2xl font-bold text-violet-600">{kpis.subPending}</div></CardContent></Card>
       </div>
 
@@ -185,7 +185,7 @@ export function DocumentsView({ onNavigate }: { onNavigate: (v: View) => void })
                   <CardTitle className="text-sm">RFI Workflow</CardTitle>
                   <CardDescription className="text-xs">{openRFIs.length} open RFIs awaiting response</CardDescription>
                 </div>
-                <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-600 bg-amber-50 dark:bg-amber-950/40">{openRFIs.length} Open</Badge>
+                <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-950/40">{openRFIs.length} Open</Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -194,14 +194,14 @@ export function DocumentsView({ onNavigate }: { onNavigate: (v: View) => void })
                   <div key={rfi.id} className="rounded-lg border p-3 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="grid h-8 w-8 place-items-center rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 shrink-0"><FileQuestion className="h-4 w-4" /></div>
+                        <div className="grid h-8 w-8 place-items-center rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 shrink-0"><FileQuestion className="h-4 w-4" /></div>
                         <div className="min-w-0">
                           <div className="text-xs font-medium truncate">{rfi.name}</div>
                           <div className="text-[10px] text-muted-foreground font-mono">{rfi.id} · {rfi.projectCode}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-bold text-amber-600">{rfi.daysOpen}d</div>
+                        <div className="text-sm font-bold text-amber-700">{rfi.daysOpen}d</div>
                         <div className="text-[9px] text-muted-foreground">open</div>
                       </div>
                     </div>
@@ -211,10 +211,10 @@ export function DocumentsView({ onNavigate }: { onNavigate: (v: View) => void })
                         return (
                           <div key={s.label} className="flex items-center flex-1 last:flex-none">
                             <div className="flex flex-col items-center gap-1">
-                              <div className={cn('grid h-6 w-6 place-items-center rounded-full border', s.done ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-600' : i === rfi.rfiTimeline!.findIndex(x => !x.done) ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 text-amber-600' : 'bg-muted border-border text-muted-foreground')}>
+                              <div className={cn('grid h-6 w-6 place-items-center rounded-full border', s.done ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-700' : i === rfi.rfiTimeline!.findIndex(x => !x.done) ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 text-amber-700' : 'bg-muted border-border text-muted-foreground')}>
                                 <Icon className="h-3 w-3" />
                               </div>
-                              <div className={cn('text-[9px]', s.done ? 'text-emerald-600' : 'text-muted-foreground')}>{s.label}</div>
+                              <div className={cn('text-[9px]', s.done ? 'text-emerald-700' : 'text-muted-foreground')}>{s.label}</div>
                             </div>
                             {i < (rfi.rfiTimeline!.length - 1) && <div className={cn('h-0.5 flex-1 mx-1 -mt-3', s.done ? 'bg-emerald-300' : 'bg-muted')} />}
                           </div>

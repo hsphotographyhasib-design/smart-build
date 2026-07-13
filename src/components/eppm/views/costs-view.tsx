@@ -180,7 +180,7 @@ export function CostsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                       </span>
                       <Badge
                         variant="outline"
-                        className={`text-[9px] ${overBudget ? 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-950/40' : 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40'}`}
+                        className={`text-[9px] ${overBudget ? 'text-rose-700 border-rose-200 bg-rose-50 dark:bg-rose-950/40' : 'text-emerald-700 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40'}`}
                       >
                         {c.variance >= 0 ? '+' : ''}{fmtMoney(c.variance)}
                       </Badge>
@@ -200,7 +200,7 @@ export function CostsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                 </div>
                 <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
                   <span>Spend {c.spendPct.toFixed(0)}% of budget</span>
-                  <span className={overBudget ? 'text-rose-600 font-medium' : 'text-emerald-600 font-medium'}>
+                  <span className={overBudget ? 'text-rose-700 font-medium' : 'text-emerald-700 font-medium'}>
                     {overBudget ? `+${(c.spendPct - 100).toFixed(0)}% over` : `${(100 - c.spendPct).toFixed(0)}% remaining`}
                   </span>
                 </div>
@@ -252,13 +252,13 @@ export function CostsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                       <TableCell className="text-right text-xs tabular-nums">{fmtMoney(p.actualCost)}</TableCell>
                       <TableCell className="text-right text-xs tabular-nums text-muted-foreground">{fmtMoney(p.committedCost)}</TableCell>
                       <TableCell className="text-right text-xs tabular-nums">{fmtMoney(p.forecastCost)}</TableCell>
-                      <TableCell className={`text-right text-xs tabular-nums font-medium ${variance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      <TableCell className={`text-right text-xs tabular-nums font-medium ${variance > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
                         {variance > 0 ? '+' : ''}{fmtMoney(variance)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <Progress value={Math.min(spendPct, 100)} className="h-1.5 w-14" />
-                          <span className={`text-[10px] tabular-nums w-10 ${spendPct > 100 ? 'text-rose-600 font-medium' : 'text-muted-foreground'}`}>
+                          <span className={`text-[10px] tabular-nums w-10 ${spendPct > 100 ? 'text-rose-700 font-medium' : 'text-muted-foreground'}`}>
                             {spendPct.toFixed(0)}%
                           </span>
                         </div>
@@ -278,7 +278,7 @@ export function CostsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <td className="px-3 py-2 text-right text-xs font-bold tabular-nums">{fmtMoney(totals.actual)}</td>
                   <td className="px-3 py-2 text-right text-xs font-bold tabular-nums">{fmtMoney(totals.committed)}</td>
                   <td className="px-3 py-2 text-right text-xs font-bold tabular-nums">{fmtMoney(totals.forecast)}</td>
-                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${totals.forecast - totals.budget > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  <td className={`px-3 py-2 text-right text-xs font-bold tabular-nums ${totals.forecast - totals.budget > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
                     {(totals.forecast - totals.budget) > 0 ? '+' : ''}{fmtMoney(totals.forecast - totals.budget)}
                   </td>
                   <td colSpan={2} className="px-3 py-2 text-[10px] text-muted-foreground">

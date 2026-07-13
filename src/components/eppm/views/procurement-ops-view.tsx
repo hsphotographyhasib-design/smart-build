@@ -103,13 +103,13 @@ export default function ProcurementOpsView({ focus = 'purchase-requests' }: { on
   const pendingPrs = prs.filter((p) => p.status === 'Pending Approval')
 
   const prColor = (s: PrStatus) =>
-    s === 'Approved' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-    : s === 'Rejected' ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
-    : 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+    s === 'Approved' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+    : s === 'Rejected' ? 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
+    : 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
   const poColor = (s: PoStatus) =>
-    s === 'Closed' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-    : s === 'Delivered' ? 'text-teal-600 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
-    : s === 'Acknowledged' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+    s === 'Closed' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+    : s === 'Delivered' ? 'text-teal-700 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
+    : s === 'Acknowledged' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
     : 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900'
   const poAction: Record<PoStatus, { label: string; icon: typeof Send } | null> = {
     Issued: { label: 'Acknowledge', icon: CheckCircle2 },
@@ -136,9 +136,9 @@ export default function ProcurementOpsView({ focus = 'purchase-requests' }: { on
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Pending Approvals', value: pendingPrs.length, icon: ClipboardList, tone: 'text-amber-600' },
-            { label: 'Open POs', value: pos.filter((p) => p.status !== 'Closed').length, icon: ShoppingCart, tone: 'text-sky-600' },
-            { label: 'GRNs This Month', value: grns.filter((g) => g.received >= '2026-07-01').length, icon: PackageCheck, tone: 'text-emerald-600' },
+            { label: 'Pending Approvals', value: pendingPrs.length, icon: ClipboardList, tone: 'text-amber-700' },
+            { label: 'Open POs', value: pos.filter((p) => p.status !== 'Closed').length, icon: ShoppingCart, tone: 'text-sky-700' },
+            { label: 'GRNs This Month', value: grns.filter((g) => g.received >= '2026-07-01').length, icon: PackageCheck, tone: 'text-emerald-700' },
             { label: 'Active Suppliers', value: SEED_SUPPLIERS.length, icon: Handshake, tone: 'text-violet-600' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
@@ -255,9 +255,9 @@ export default function ProcurementOpsView({ focus = 'purchase-requests' }: { on
                       <TableCell className="hidden text-xs sm:table-cell">{fmtDate(g.received)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          g.result === 'Accepted' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : g.result === 'Partial' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
-                          : 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          g.result === 'Accepted' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : g.result === 'Partial' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
                         }>{g.result}</Badge>
                       </TableCell>
                     </TableRow>
@@ -284,7 +284,7 @@ export default function ProcurementOpsView({ focus = 'purchase-requests' }: { on
                       <TableCell><div className="font-medium">{s.name}</div><div className="font-mono text-xs text-muted-foreground">{s.id}</div></TableCell>
                       <TableCell className="text-sm">{s.category}</TableCell>
                       <TableCell><span className="flex items-center gap-1 text-sm"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{s.rating}</span></TableCell>
-                      <TableCell className={cn('hidden text-sm font-semibold sm:table-cell', s.onTimePct >= 90 ? 'text-emerald-600' : s.onTimePct >= 80 ? 'text-amber-600' : 'text-rose-600')}>{s.onTimePct}%</TableCell>
+                      <TableCell className={cn('hidden text-sm font-semibold sm:table-cell', s.onTimePct >= 90 ? 'text-emerald-700' : s.onTimePct >= 80 ? 'text-amber-700' : 'text-rose-700')}>{s.onTimePct}%</TableCell>
                       <TableCell className="hidden text-sm md:table-cell">{s.openPos}</TableCell>
                       <TableCell className="text-sm font-semibold">BND {(s.spendYtdBnd / 1000).toFixed(0)}k</TableCell>
                     </TableRow>

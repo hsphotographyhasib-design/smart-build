@@ -64,7 +64,7 @@ export function GlobalSearch({
     data.activities.filter(a => `${a.activityId} ${a.name}`.toLowerCase().includes(q)).slice(0, 8).forEach(a => {
       out.push({
         id: `act-${a.id}`, type: 'activity', title: a.name, subtitle: `${a.activityId} · ${a.project?.code} · ${a.status} · ${a.progress}%`,
-        badge: a.isCritical ? 'Critical' : a.status, badgeTone: a.isCritical ? 'text-rose-600 bg-rose-50 border-rose-200' : statusColor(a.status),
+        badge: a.isCritical ? 'Critical' : a.status, badgeTone: a.isCritical ? 'text-rose-700 bg-rose-50 border-rose-200' : statusColor(a.status),
         icon: a.isCritical ? GitBranch : Activity,
         action: () => { onOpenChange(false); onOpenProject(a.projectId); onNavigate('activities') },
       })
@@ -73,7 +73,7 @@ export function GlobalSearch({
     data.risks.filter(r => `${r.code} ${r.title}`.toLowerCase().includes(q)).slice(0, 5).forEach(r => {
       out.push({
         id: `risk-${r.id}`, type: 'risk', title: r.title, subtitle: `${r.code} · ${r.project?.code} · Score ${r.score}`,
-        badge: `Score ${r.score}`, badgeTone: r.score >= 15 ? 'text-rose-600 bg-rose-50 border-rose-200' : r.score >= 9 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200',
+        badge: `Score ${r.score}`, badgeTone: r.score >= 15 ? 'text-rose-700 bg-rose-50 border-rose-200' : r.score >= 9 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200',
         icon: AlertTriangle,
         action: () => { onOpenChange(false); onNavigate('risks') },
       })
@@ -106,7 +106,7 @@ export function GlobalSearch({
           <div className="flex items-center gap-2 border-b px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <CommandInput placeholder="Search pages, projects, activities, risks…" value={query} onValueChange={setQuery} className="border-0 ring-0" />
-            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">ESC</kbd>
+            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] text-foreground/70">ESC</kbd>
           </div>
           <CommandList className="max-h-[420px]">
             <CommandEmpty>
@@ -169,8 +169,8 @@ export function GlobalSearch({
           </CommandList>
           <div className="border-t flex items-center justify-between px-3 py-1.5 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px]">↑↓</kbd> navigate</span>
-              <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px]">↵</kbd> select</span>
+              <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px] text-foreground/70">↑↓</kbd> navigate</span>
+              <span className="flex items-center gap-1"><kbd className="inline-flex h-4 items-center rounded border bg-muted px-1 font-mono text-[9px] text-foreground/70">↵</kbd> select</span>
             </div>
             <span>{pageResults.length + results.length} results</span>
           </div>

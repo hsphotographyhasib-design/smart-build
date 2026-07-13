@@ -203,25 +203,25 @@ const TODAY = new Date('2026-07-03T00:00:00Z')
 const isPast = (iso: string) => new Date(iso + 'T00:00:00Z') < TODAY
 
 const priorityColor = (p: Priority) =>
-  p === 'Critical' ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
-  : p === 'High' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
-  : p === 'Medium' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+  p === 'Critical' ? 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
+  : p === 'High' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+  : p === 'Medium' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
   : 'text-muted-foreground bg-muted border-border'
 
 const woStatusColor = (s: WoStatus) =>
-  s === 'Closed' || s === 'Verified' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-  : s === 'Completed' ? 'text-teal-600 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
-  : s === 'In Progress' || s === 'Dispatched' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+  s === 'Closed' || s === 'Verified' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+  : s === 'Completed' ? 'text-teal-700 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950/50 dark:border-teal-900'
+  : s === 'In Progress' || s === 'Dispatched' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
   : s === 'Assigned' ? 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900'
-  : s === 'On Hold' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+  : s === 'On Hold' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
   : s === 'Cancelled' ? 'text-muted-foreground bg-muted border-border line-through'
-  : 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900' // New
+  : 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900' // New
 
 const reqStatusColor = (s: RequestStatus) =>
-  s === 'Converted' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-  : s === 'Under Review' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+  s === 'Converted' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+  : s === 'Under Review' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
   : s === 'Rejected' ? 'text-muted-foreground bg-muted border-border'
-  : 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+  : 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
 
 /** Next action in the WO lifecycle, if any. */
 function nextTransition(s: WoStatus): { to: WoStatus; label: string; icon: typeof PlayCircle } | null {
@@ -466,12 +466,12 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           {[
-            { label: 'Open Work Orders', value: openWos.length, icon: Hammer, tone: 'text-sky-600' },
-            { label: 'Overdue', value: overdueWos.length, icon: AlertTriangle, tone: 'text-rose-600' },
-            { label: 'Pending Requests', value: pendingRequests.length, icon: ClipboardList, tone: 'text-amber-600' },
-            { label: 'SLA Compliance', value: `${slaCompliance}%`, icon: Gauge, tone: 'text-emerald-600' },
+            { label: 'Open Work Orders', value: openWos.length, icon: Hammer, tone: 'text-sky-700' },
+            { label: 'Overdue', value: overdueWos.length, icon: AlertTriangle, tone: 'text-rose-700' },
+            { label: 'Pending Requests', value: pendingRequests.length, icon: ClipboardList, tone: 'text-amber-700' },
+            { label: 'SLA Compliance', value: `${slaCompliance}%`, icon: Gauge, tone: 'text-emerald-700' },
             { label: 'PPM Due', value: duePpm.length, icon: CalendarClock, tone: 'text-violet-600' },
-            { label: 'Condition Alerts', value: alertMonitors.length, icon: Radar, tone: 'text-rose-600' },
+            { label: 'Condition Alerts', value: alertMonitors.length, icon: Radar, tone: 'text-rose-700' },
           ].map((kpi) => (
             <Card key={kpi.label}>
               <CardContent className="flex items-center gap-3 p-4">
@@ -641,7 +641,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                 <CardDescription>Triage intake: review, then approve into a work order or reject</CardDescription>
               </div>
               <Select value={reqTypeFilter} onValueChange={(v) => setReqTypeFilter(v as typeof reqTypeFilter)}>
-                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Filter by request type" className="w-44"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All types</SelectItem>
                   <SelectItem value="Complaint">Complaints</SelectItem>
@@ -681,7 +681,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                         </Badge>
                       </TableCell>
                       <TableCell><Badge variant="outline" className={priorityColor(r.priority)}>{r.priority}</Badge></TableCell>
-                      <TableCell className={cn('hidden text-xs sm:table-cell', isPast(r.slaDue) && r.status !== 'Converted' && r.status !== 'Rejected' && 'font-semibold text-rose-600')}>
+                      <TableCell className={cn('hidden text-xs sm:table-cell', isPast(r.slaDue) && r.status !== 'Converted' && r.status !== 'Rejected' && 'font-semibold text-rose-700')}>
                         {fmtDate(r.slaDue)}
                       </TableCell>
                       <TableCell>
@@ -725,7 +725,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
               </div>
               <div className="flex gap-2">
                 <Select value={woTypeFilter} onValueChange={(v) => setWoTypeFilter(v as typeof woTypeFilter)}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label="Filter by work order type" className="w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All types</SelectItem>
                     <SelectItem value="Corrective">Corrective</SelectItem>
@@ -734,7 +734,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                   </SelectContent>
                 </Select>
                 <Select value={woStatusFilter} onValueChange={(v) => setWoStatusFilter(v as typeof woStatusFilter)}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label="Filter by work order status" className="w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All statuses</SelectItem>
                     {[...PIPELINE, 'Cancelled' as const].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -774,7 +774,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                         </TableCell>
                         <TableCell className="hidden text-sm md:table-cell">{techName(w.technicianId)}</TableCell>
                         <TableCell><Badge variant="outline" className={priorityColor(w.priority)}>{w.priority}</Badge></TableCell>
-                        <TableCell className={cn('hidden text-xs sm:table-cell', isPast(w.due) && !['Closed', 'Verified', 'Completed', 'Cancelled'].includes(w.status) && 'font-semibold text-rose-600')}>
+                        <TableCell className={cn('hidden text-xs sm:table-cell', isPast(w.due) && !['Closed', 'Verified', 'Completed', 'Cancelled'].includes(w.status) && 'font-semibold text-rose-700')}>
                           {fmtDate(w.due)}
                         </TableCell>
                         <TableCell><Badge variant="outline" className={woStatusColor(w.status)}>{w.status}</Badge></TableCell>
@@ -782,7 +782,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                           <div className="flex justify-end gap-1.5">
                             {w.status === 'New' && (
                               <Select onValueChange={(techId) => assignWo(w.id, techId)}>
-                                <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Assign to..." /></SelectTrigger>
+                                <SelectTrigger aria-label="Assign technician" className="h-8 w-[130px] text-xs"><SelectValue placeholder="Assign to..." /></SelectTrigger>
                                 <SelectContent>
                                   {TECHNICIANS.filter((t) => !t.onLeave).map((t) => (
                                     <SelectItem key={t.id} value={t.id}>{t.name} · {t.trade}</SelectItem>
@@ -853,9 +853,9 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                         </TableCell>
                         <TableCell className="hidden md:table-cell"><Badge variant="outline" className="font-normal">{p.frequency}</Badge></TableCell>
                         <TableCell className="hidden text-xs sm:table-cell">{fmtDate(p.lastDone)}</TableCell>
-                        <TableCell className={cn('text-xs', due && 'font-semibold text-rose-600')}>
+                        <TableCell className={cn('text-xs', due && 'font-semibold text-rose-700')}>
                           {fmtDate(p.nextDue)}
-                          {due && <Badge variant="outline" className="ml-2 border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">Due</Badge>}
+                          {due && <Badge variant="outline" className="ml-2 border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">Due</Badge>}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <div className="flex items-center gap-2">
@@ -912,9 +912,9 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          m.condition === 'Alert' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-                          : m.condition === 'Watch' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
-                          : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          m.condition === 'Alert' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          : m.condition === 'Watch' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
                         }>
                           {m.condition}
                         </Badge>
@@ -963,7 +963,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                       <Badge variant="outline" className={priorityColor(w.priority)}>{w.priority}</Badge>
                     </div>
                     <Select onValueChange={(techId) => assignWo(w.id, techId)}>
-                      <SelectTrigger className="mt-2 h-8 text-xs"><SelectValue placeholder="Dispatch to technician..." /></SelectTrigger>
+                      <SelectTrigger aria-label="Dispatch to technician" className="mt-2 h-8 text-xs"><SelectValue placeholder="Dispatch to technician..." /></SelectTrigger>
                       <SelectContent>
                         {TECHNICIANS.filter((t) => !t.onLeave).map((t) => (
                           <SelectItem key={t.id} value={t.id}>
@@ -1000,8 +1000,8 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                             </div>
                           </div>
                           <Badge variant="outline" className={
-                            status === 'Available' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                            : status === 'On Job' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                            status === 'Available' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                            : status === 'On Job' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
                             : 'border-border bg-muted text-muted-foreground'
                           }>
                             {status}
@@ -1064,8 +1064,8 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                         <TableCell>
                           <Badge variant="outline" className={
                             t.onLeave ? 'border-border bg-muted text-muted-foreground'
-                            : load > 0 ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
-                            : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                            : load > 0 ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                            : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
                           }>
                             {t.onLeave ? 'On Leave' : load > 0 ? 'On Job' : 'Available'}
                           </Badge>
@@ -1124,9 +1124,9 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={
-                            status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                            : status === 'Expiring' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
-                            : 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                            status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                            : status === 'Expiring' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                            : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
                           }>
                             {status}
                           </Badge>
@@ -1165,7 +1165,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                   <div><div className="text-xs text-muted-foreground">Technician</div>{techName(wo.technicianId)}</div>
                   <div><div className="text-xs text-muted-foreground">Trade</div>{wo.trade}</div>
                   <div><div className="text-xs text-muted-foreground">Raised</div>{fmtDate(wo.raised)}</div>
-                  <div><div className="text-xs text-muted-foreground">Due</div><span className={cn(isPast(wo.due) && !['Closed', 'Verified', 'Cancelled'].includes(wo.status) && 'font-semibold text-rose-600')}>{fmtDate(wo.due)}</span></div>
+                  <div><div className="text-xs text-muted-foreground">Due</div><span className={cn(isPast(wo.due) && !['Closed', 'Verified', 'Cancelled'].includes(wo.status) && 'font-semibold text-rose-700')}>{fmtDate(wo.due)}</span></div>
                   <div><div className="text-xs text-muted-foreground">Estimate</div>{wo.estHours} h</div>
                   <div><div className="text-xs text-muted-foreground">Cost (labour + parts)</div>BND {(wo.laborCost + wo.partsCost).toLocaleString()}</div>
                   {wo.completedAt && <div><div className="text-xs text-muted-foreground">Completed</div>{fmtDate(wo.completedAt)}</div>}
@@ -1173,7 +1173,7 @@ export default function MaintenanceView({ focus = 'maintenance' }: { onNavigate?
                 <div className="flex flex-wrap justify-end gap-2 pt-2">
                   {wo.status === 'New' && (
                     <Select onValueChange={(techId) => assignWo(wo.id, techId)}>
-                      <SelectTrigger className="h-9 w-[170px] text-xs"><SelectValue placeholder="Assign technician..." /></SelectTrigger>
+                      <SelectTrigger aria-label="Assign technician" className="h-9 w-[170px] text-xs"><SelectValue placeholder="Assign technician..." /></SelectTrigger>
                       <SelectContent>
                         {TECHNICIANS.filter((t) => !t.onLeave).map((t) => (
                           <SelectItem key={t.id} value={t.id}>{t.name} · {t.trade}</SelectItem>

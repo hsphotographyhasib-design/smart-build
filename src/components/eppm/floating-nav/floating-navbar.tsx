@@ -170,7 +170,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <button className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
+              <button aria-label="HJSB EPPM — go to dashboard" className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
                   <Building2 className="h-5 w-5" />
                 </div>
@@ -250,7 +250,7 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                   <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Profile &amp; Preferences</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Security &amp; 2FA</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => { void logout() }} className="rounded-lg py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer">Sign out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { void logout() }} className="rounded-lg py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer">Sign out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

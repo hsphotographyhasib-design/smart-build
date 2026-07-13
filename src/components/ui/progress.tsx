@@ -13,6 +13,8 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
+      // Default accessible name; callers can override via their own aria-label.
+      aria-label="Progress"
       className={cn(
         "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
         className

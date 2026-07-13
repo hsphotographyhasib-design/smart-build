@@ -36,7 +36,7 @@ export function ProgramsView({ onNavigate }: { onNavigate: (v: View) => void }) 
             <CardContent className="space-y-2">
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div><div className="text-[10px] uppercase text-muted-foreground">Budget</div><div className="font-bold tabular-nums">{fmtMoney(pBudget)}</div></div>
-                <div><div className="text-[10px] uppercase text-muted-foreground">Spend</div><div className="font-bold tabular-nums text-amber-600">{fmtMoney(pActual)}</div></div>
+                <div><div className="text-[10px] uppercase text-muted-foreground">Spend</div><div className="font-bold tabular-nums text-amber-700">{fmtMoney(pActual)}</div></div>
               </div>
               <div>
                 <div className="flex justify-between text-[10px] text-muted-foreground mb-1"><span>Program progress</span><span>{fmtPct(pProg)}</span></div>

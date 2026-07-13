@@ -18,6 +18,8 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
+        // Scrollable regions must be keyboard-reachable (axe: scrollable-region-focusable).
+        tabIndex={0}
         className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
       >
         {children}

@@ -86,10 +86,10 @@ export default function HrView({}: { onNavigate?: (v: View) => void }) {
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Total Employees', value: 214, icon: Users, tone: 'text-sky-600' },
-            { label: 'Present Today', value: totalPresent, icon: UserCheck, tone: 'text-emerald-600' },
-            { label: 'Absent Today', value: totalAbsent, icon: XCircle, tone: 'text-rose-600' },
-            { label: 'Pending Leave', value: pendingLeave, icon: CalendarOff, tone: 'text-amber-600' },
+            { label: 'Total Employees', value: 214, icon: Users, tone: 'text-sky-700' },
+            { label: 'Present Today', value: totalPresent, icon: UserCheck, tone: 'text-emerald-700' },
+            { label: 'Absent Today', value: totalAbsent, icon: XCircle, tone: 'text-rose-700' },
+            { label: 'Pending Leave', value: pendingLeave, icon: CalendarOff, tone: 'text-amber-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />
@@ -146,8 +146,8 @@ export default function HrView({}: { onNavigate?: (v: View) => void }) {
                       <TableCell className="hidden text-xs lg:table-cell">{fmtDate(e.joined)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          e.status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : e.status === 'On Leave' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          e.status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : e.status === 'On Leave' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                           : 'border-border bg-muted text-muted-foreground'
                         }>{e.status}</Badge>
                       </TableCell>
@@ -174,8 +174,8 @@ export default function HrView({}: { onNavigate?: (v: View) => void }) {
                     return (
                       <TableRow key={s.site}>
                         <TableCell className="font-medium">{s.site}</TableCell>
-                        <TableCell className="text-emerald-600 font-semibold">{s.present}</TableCell>
-                        <TableCell className={cn(s.absent > 0 && 'text-rose-600 font-semibold')}>{s.absent}</TableCell>
+                        <TableCell className="text-emerald-700 font-semibold">{s.present}</TableCell>
+                        <TableCell className={cn(s.absent > 0 && 'text-rose-700 font-semibold')}>{s.absent}</TableCell>
                         <TableCell>{s.leave}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -212,9 +212,9 @@ export default function HrView({}: { onNavigate?: (v: View) => void }) {
                       <TableCell className="text-sm font-semibold">{l.days}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          l.status === 'Approved' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : l.status === 'Rejected' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-                          : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          l.status === 'Approved' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : l.status === 'Rejected' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                         }>{l.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">

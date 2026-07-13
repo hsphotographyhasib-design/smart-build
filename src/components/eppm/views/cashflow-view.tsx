@@ -65,12 +65,12 @@ export function CashflowView({ onNavigate }: { onNavigate: (v: View) => void }) 
         {/* KPI strip */}
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {[
-            { l: 'Total Inflow', v: fmtMoney(totalInflow), i: ArrowUpRight, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Total Outflow', v: fmtMoney(totalOutflow), i: ArrowDownRight, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
-            { l: 'Net Position', v: fmtMoney(totalNet), i: Wallet, t: totalNet >= 0 ? 'text-emerald-600' : 'text-rose-600', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Peak Funding', v: fmtMoney(Math.abs(peakFunding)), i: Banknote, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
-            { l: 'YTD Inflow', v: fmtMoney(ytdInflow), i: TrendingUp, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
-            { l: 'YTD Outflow', v: fmtMoney(ytdOutflow), i: TrendingDown, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
+            { l: 'Total Inflow', v: fmtMoney(totalInflow), i: ArrowUpRight, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Total Outflow', v: fmtMoney(totalOutflow), i: ArrowDownRight, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
+            { l: 'Net Position', v: fmtMoney(totalNet), i: Wallet, t: totalNet >= 0 ? 'text-emerald-700' : 'text-rose-700', bg: 'bg-muted/50 text-muted-foreground' },
+            { l: 'Peak Funding', v: fmtMoney(Math.abs(peakFunding)), i: Banknote, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
+            { l: 'YTD Inflow', v: fmtMoney(ytdInflow), i: TrendingUp, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
+            { l: 'YTD Outflow', v: fmtMoney(ytdOutflow), i: TrendingDown, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
@@ -132,11 +132,11 @@ export function CashflowView({ onNavigate }: { onNavigate: (v: View) => void }) 
                       {cumulative.map((m, i) => (
                         <TableRow key={m.label} className={cn('hover:bg-muted/40', i % 2 === 1 && 'bg-muted/10')}>
                           <TableCell className="text-xs font-medium">{m.label}</TableCell>
-                          <TableCell className="text-right text-xs tabular-nums text-emerald-600">{fmtMoney(m.inflow, false)}</TableCell>
-                          <TableCell className="text-right text-xs tabular-nums text-rose-600">{fmtMoney(m.outflow, false)}</TableCell>
-                          <TableCell className={cn('text-right text-xs tabular-nums font-medium', m.net >= 0 ? 'text-emerald-600' : 'text-rose-600')}>{m.net >= 0 ? '+' : ''}{fmtMoney(m.net, false)}</TableCell>
-                          <TableCell className={cn('text-right text-xs tabular-nums font-bold', m.cumulative >= 0 ? 'text-emerald-600' : 'text-amber-600')}>{fmtMoney(m.cumulative, false)}</TableCell>
-                          <TableCell><Badge variant="outline" className={cn('text-[9px]', m.isPast ? 'border-emerald-200 text-emerald-600' : 'border-sky-200 text-sky-600')}>{m.isPast ? 'Actual' : 'Forecast'}</Badge></TableCell>
+                          <TableCell className="text-right text-xs tabular-nums text-emerald-700">{fmtMoney(m.inflow, false)}</TableCell>
+                          <TableCell className="text-right text-xs tabular-nums text-rose-700">{fmtMoney(m.outflow, false)}</TableCell>
+                          <TableCell className={cn('text-right text-xs tabular-nums font-medium', m.net >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{m.net >= 0 ? '+' : ''}{fmtMoney(m.net, false)}</TableCell>
+                          <TableCell className={cn('text-right text-xs tabular-nums font-bold', m.cumulative >= 0 ? 'text-emerald-700' : 'text-amber-700')}>{fmtMoney(m.cumulative, false)}</TableCell>
+                          <TableCell><Badge variant="outline" className={cn('text-[9px]', m.isPast ? 'border-emerald-200 text-emerald-700' : 'border-sky-200 text-sky-700')}>{m.isPast ? 'Actual' : 'Forecast'}</Badge></TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -172,12 +172,12 @@ export function CashflowView({ onNavigate }: { onNavigate: (v: View) => void }) 
               <div className="space-y-4">
                 <Card className="bg-gradient-to-br from-primary/5 to-card">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2"><PiggyBank className="h-4 w-4 text-emerald-600" /><span className="text-sm font-semibold">Cash Health</span></div>
-                    <div className="text-3xl font-bold text-emerald-600">{fmtMoney(totalNet)}</div>
+                    <div className="flex items-center gap-2 mb-2"><PiggyBank className="h-4 w-4 text-emerald-700" /><span className="text-sm font-semibold">Cash Health</span></div>
+                    <div className="text-3xl font-bold text-emerald-700">{fmtMoney(totalNet)}</div>
                     <div className="text-[11px] text-muted-foreground mt-0.5">Net cash position over portfolio lifecycle</div>
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                      <div className="rounded-md bg-muted/50 p-2"><div className="text-[9px] uppercase text-muted-foreground">Margin</div><div className="font-bold text-emerald-600">{fmtPct(totalInflow ? (totalNet / totalInflow) * 100 : 0)}</div></div>
-                      <div className="rounded-md bg-muted/50 p-2"><div className="text-[9px] uppercase text-muted-foreground">Peak Funding</div><div className="font-bold text-amber-600">{fmtMoney(Math.abs(peakFunding))}</div></div>
+                      <div className="rounded-md bg-muted/50 p-2"><div className="text-[9px] uppercase text-muted-foreground">Margin</div><div className="font-bold text-emerald-700">{fmtPct(totalInflow ? (totalNet / totalInflow) * 100 : 0)}</div></div>
+                      <div className="rounded-md bg-muted/50 p-2"><div className="text-[9px] uppercase text-muted-foreground">Peak Funding</div><div className="font-bold text-amber-700">{fmtMoney(Math.abs(peakFunding))}</div></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -187,7 +187,7 @@ export function CashflowView({ onNavigate }: { onNavigate: (v: View) => void }) 
                     {cumulative.filter(m => m.cumulative < 0).slice(0, 6).map(m => (
                       <div key={m.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{m.label}</span>
-                        <Badge variant="outline" className="text-[9px] border-amber-300 text-amber-600">{fmtMoney(Math.abs(m.cumulative), false)}</Badge>
+                        <Badge variant="outline" className="text-[9px] border-amber-300 text-amber-700">{fmtMoney(Math.abs(m.cumulative), false)}</Badge>
                       </div>
                     ))}
                     {cumulative.filter(m => m.cumulative < 0).length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No funding gaps projected</div>}

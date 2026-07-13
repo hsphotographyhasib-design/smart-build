@@ -150,7 +150,7 @@ export default function MobileCreateComplaint({ onNavigate }: { onNavigate: (v: 
             </button>
           </div>
           {photos.length > 0 && (
-            <p className="mt-2 flex items-center gap-1 text-[11px] text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" />{photos.length} photo{photos.length > 1 ? 's' : ''} attached</p>
+            <p className="mt-2 flex items-center gap-1 text-[11px] text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" />{photos.length} photo{photos.length > 1 ? 's' : ''} attached</p>
           )}
         </Field>
       </div>

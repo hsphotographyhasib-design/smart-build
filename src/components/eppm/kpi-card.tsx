@@ -15,10 +15,10 @@ export function KpiCard({
 }) {
   const toneCls = {
     default: 'text-muted-foreground bg-muted/50',
-    emerald: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400',
-    amber: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400',
-    rose: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400',
-    sky: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40 dark:text-sky-400',
+    emerald: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400',
+    amber: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400',
+    rose: 'text-rose-700 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400',
+    sky: 'text-sky-700 bg-sky-50 dark:bg-sky-950/40 dark:text-sky-400',
   }[tone]
   const toneBar = {
     default: 'from-muted-foreground/40',
@@ -55,7 +55,7 @@ export function KpiCard({
             </motion.div>
           </div>
           {trend && (
-            <div className={cn('mt-2 inline-flex items-center gap-1 text-[11px] font-medium', trend.up ? 'text-emerald-600' : 'text-rose-600')}>
+            <div className={cn('mt-2 inline-flex items-center gap-1 text-[11px] font-medium', trend.up ? 'text-emerald-700' : 'text-rose-700')}>
               {trend.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {Math.abs(trend.value).toFixed(1)}% vs last period
             </div>

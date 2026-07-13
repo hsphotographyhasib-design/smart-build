@@ -108,9 +108,9 @@ const PUNCHES: Punch[] = [
 ]
 
 const INSPECTION_STATUS_CLASS: Record<InspStatus, string> = {
-  Passed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  Failed: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Pending: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Passed: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Failed: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Pending: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
   'Re-Inspect': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
 }
 
@@ -121,28 +121,28 @@ const NCR_SEVERITY_CLASS: Record<NCRSeverity, string> = {
 }
 
 const NCR_SEVERITY_BADGE: Record<NCRSeverity, string> = {
-  Critical: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Major: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Minor: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Critical: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Major: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Minor: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
 }
 
 const NCR_STATUS_BADGE: Record<NCRStatus, string> = {
-  Open: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Investigating: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Open: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Investigating: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
   Resolved: 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
-  Closed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Closed: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const PUNCH_STATUS_BADGE: Record<PunchStatus, string> = {
-  Open: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  'In Progress': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Closed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Open: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  'In Progress': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Closed: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  High: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  Med: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Low: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  High: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Med: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Low: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
 }
 
 interface KpiDef {
@@ -191,11 +191,11 @@ export function QualityView({ onNavigate }: { onNavigate: (v: View) => void }) {
 
   const kpis: KpiDef[] = [
     { label: 'Total Inspections', value: INSPECTIONS.length, icon: ClipboardCheck, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
-    { label: 'Passed', value: INSPECTIONS.filter(i => i.status === 'Passed').length, icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
-    { label: 'Failed', value: INSPECTIONS.filter(i => i.status === 'Failed').length, icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
-    { label: 'Open NCRs', value: NCRS.filter(n => n.status === 'Open' || n.status === 'Investigating').length, icon: AlertOctagon, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+    { label: 'Passed', value: INSPECTIONS.filter(i => i.status === 'Passed').length, icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+    { label: 'Failed', value: INSPECTIONS.filter(i => i.status === 'Failed').length, icon: XCircle, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+    { label: 'Open NCRs', value: NCRS.filter(n => n.status === 'Open' || n.status === 'Investigating').length, icon: AlertOctagon, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
     { label: 'Open Punch Items', value: PUNCHES.filter(p => p.status !== 'Closed').length, icon: ListChecks, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
-    { label: 'RFI Open', value: 7, icon: FileQuestion, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
+    { label: 'RFI Open', value: 7, icon: FileQuestion, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-700', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
   ]
 
   const filteredInspections = useMemo(() => {
@@ -304,7 +304,7 @@ export function QualityView({ onNavigate }: { onNavigate: (v: View) => void }) {
                           <TableCell><Badge variant="outline" className={cn('text-[9px]', INSPECTION_STATUS_CLASS[i.status])}>{i.status}</Badge></TableCell>
                           <TableCell className="text-right">
                             {i.score > 0 ? (
-                              <span className={cn('text-xs font-bold tabular-nums', i.score >= 85 ? 'text-emerald-600' : i.score >= 70 ? 'text-amber-600' : 'text-rose-600')}>{i.score}%</span>
+                              <span className={cn('text-xs font-bold tabular-nums', i.score >= 85 ? 'text-emerald-700' : i.score >= 70 ? 'text-amber-700' : 'text-rose-700')}>{i.score}%</span>
                             ) : <span className="text-[10px] text-muted-foreground">—</span>}
                           </TableCell>
                         </TableRow>
@@ -493,7 +493,7 @@ export function QualityView({ onNavigate }: { onNavigate: (v: View) => void }) {
                     ))}
                   </div>
                   <div className="mt-3 pt-3 border-t flex items-center gap-2 text-[11px]">
-                    <ShieldAlert className="h-3.5 w-3.5 text-amber-600" />
+                    <ShieldAlert className="h-3.5 w-3.5 text-amber-700" />
                     <span className="text-muted-foreground">Closure rate:</span>
                     <span className="font-semibold tabular-nums">
                       {Math.round((PUNCHES.filter(p => p.status === 'Closed').length / PUNCHES.length) * 100)}%

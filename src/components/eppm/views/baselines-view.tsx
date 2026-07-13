@@ -68,9 +68,9 @@ export function BaselinesView({ onNavigate }: { onNavigate: (v: View) => void })
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         {[
           { l: 'Total Baselines', v: baselines.length, i: Layers, t: 'text-foreground' },
-          { l: 'Current Baselines', v: currentCount, i: CheckCircle2, t: 'text-emerald-600' },
+          { l: 'Current Baselines', v: currentCount, i: CheckCircle2, t: 'text-emerald-700' },
           { l: 'Projects w/ Baseline', v: projectsWithBaseline, i: FolderGit2, t: 'text-foreground' },
-          { l: 'Avg Variance', v: `${avgVariance >= 0 ? '+' : ''}${avgVariance.toFixed(1)}%`, i: TrendingUp, t: avgVariance > 0 ? 'text-rose-600' : 'text-emerald-600' },
+          { l: 'Avg Variance', v: `${avgVariance >= 0 ? '+' : ''}${avgVariance.toFixed(1)}%`, i: TrendingUp, t: avgVariance > 0 ? 'text-rose-700' : 'text-emerald-700' },
         ].map(s => (
           <Card key={s.l}><CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -114,10 +114,10 @@ export function BaselinesView({ onNavigate }: { onNavigate: (v: View) => void })
                       <div className="text-[10px] text-muted-foreground">Baseline: {v.baselineName}</div>
                     </div>
                     <div className="shrink-0 text-right text-[10px] tabular-nums">
-                      <div className={cn('font-semibold', v.slipDays > 0 ? 'text-rose-600' : v.slipDays < 0 ? 'text-emerald-600' : 'text-muted-foreground')}>
+                      <div className={cn('font-semibold', v.slipDays > 0 ? 'text-rose-700' : v.slipDays < 0 ? 'text-emerald-700' : 'text-muted-foreground')}>
                         Slip {v.slipDays > 0 ? '+' : ''}{v.slipDays}d
                       </div>
-                      <div className={cn('font-semibold', v.costVar > 0 ? 'text-rose-600' : v.costVar < 0 ? 'text-emerald-600' : 'text-muted-foreground')}>
+                      <div className={cn('font-semibold', v.costVar > 0 ? 'text-rose-700' : v.costVar < 0 ? 'text-emerald-700' : 'text-muted-foreground')}>
                         Δ {fmtMoney(v.costVar, false)}
                       </div>
                     </div>

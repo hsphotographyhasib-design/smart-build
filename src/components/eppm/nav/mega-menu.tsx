@@ -57,7 +57,7 @@ function MegaItem({
       </div>
       <div className="flex shrink-0 items-center gap-1 self-center">
         {leaf.shortcut && (
-          <kbd className="hidden rounded border bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground xl:inline-block">{leaf.shortcut}</kbd>
+          <kbd className="hidden rounded border bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-foreground/70 xl:inline-block">{leaf.shortcut}</kbd>
         )}
         {leaf.view && (
           <button

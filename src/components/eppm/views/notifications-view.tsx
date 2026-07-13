@@ -22,8 +22,8 @@ interface Notif {
 // Non-workflow feeds (inventory / finance / mentions) — static demo entries.
 const SEED: Notif[] = [
   { id: 'n6', at: Date.now() - 2 * 3600_000, icon: MessageSquareWarning, tone: 'text-primary bg-primary/10', text: '@you were mentioned on PR-0912 approval thread.', when: '2 hours ago', cat: 'Mentions', unread: true, target: 'purchase-requests' },
-  { id: 'n7', at: Date.now() - 3 * 3600_000, icon: Package, tone: 'text-amber-600 bg-amber-50 dark:bg-amber-950/50', text: 'Sprinkler heads stock fell below reorder point.', when: '3 hours ago', cat: 'Inventory', unread: false, target: 'stock' },
-  { id: 'n8', at: Date.now() - 26 * 3600_000, icon: Wallet, tone: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50', text: 'Payment received for INV-AR-0335 (BND 94k).', when: 'Yesterday', cat: 'Finance', unread: false, target: 'payments' },
+  { id: 'n7', at: Date.now() - 3 * 3600_000, icon: Package, tone: 'text-amber-700 bg-amber-50 dark:bg-amber-950/50', text: 'Sprinkler heads stock fell below reorder point.', when: '3 hours ago', cat: 'Inventory', unread: false, target: 'stock' },
+  { id: 'n8', at: Date.now() - 26 * 3600_000, icon: Wallet, tone: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50', text: 'Payment received for INV-AR-0335 (BND 94k).', when: 'Yesterday', cat: 'Finance', unread: false, target: 'payments' },
 ]
 
 const TABS = ['All', 'Unread', 'Mentions'] as const
@@ -51,9 +51,9 @@ export default function NotificationsView({ onNavigate }: { onNavigate: (v: View
           id: `${c.id}:${i}`,
           at: n.at,
           icon: escalation ? AlertTriangle : finance ? Wallet : n.event.includes('Complete') || n.event.includes('Closed') ? CheckCircle2 : ClipboardList,
-          tone: escalation ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/50'
-            : finance ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50'
-            : 'text-sky-600 bg-sky-50 dark:bg-sky-950/50',
+          tone: escalation ? 'text-rose-700 bg-rose-50 dark:bg-rose-950/50'
+            : finance ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50'
+            : 'text-sky-700 bg-sky-50 dark:bg-sky-950/50',
           text: `${n.event} — ${c.woId ?? c.id} · ${c.title}`,
           when: relTime(n.at),
           cat: (finance ? 'Finance' : 'Maintenance') as Cat,

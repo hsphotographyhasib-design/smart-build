@@ -33,16 +33,16 @@ interface Integration {
 }
 
 const INTEGRATIONS: Integration[] = [
-  { id: '1', name: 'Maintenance Management (CMMS)', category: 'Operations', description: 'Work orders, asset maintenance, equipment downtime', status: 'connected', lastSync: '2 min ago', syncInterval: '5 min', recordsSynced: 12480, health: 98, icon: Settings, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://api.hjsb-eppm.io/cmms/v2', enabled: true },
-  { id: '2', name: 'Tender Management', category: 'Pre-construction', description: 'Bid management, tender evaluation, contract awards', status: 'connected', lastSync: '8 min ago', syncInterval: '15 min', recordsSynced: 3420, health: 95, icon: Database, color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40', endpoint: 'https://tenders.hjsb-eppm.io/api', enabled: true },
-  { id: '3', name: 'Finance & Accounting', category: 'Finance', description: 'GL postings, AP/AR, cost ledger, invoice matching', status: 'connected', lastSync: '1 min ago', syncInterval: '2 min', recordsSynced: 89200, health: 99, icon: Database, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://erp.hjsb-eppm.io/finance', enabled: true },
-  { id: '4', name: 'HR & Payroll', category: 'People', description: 'Employee master, payroll, time attendance, leave', status: 'syncing', lastSync: 'syncing now', syncInterval: '10 min', recordsSynced: 1860, health: 87, icon: Activity, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40', endpoint: 'https://hr.hjsb-eppm.io/payroll', enabled: true },
-  { id: '5', name: 'Inventory & Warehousing', category: 'Supply Chain', description: 'Stock levels, material reservations, warehouse transfers', status: 'connected', lastSync: '3 min ago', syncInterval: '5 min', recordsSynced: 24310, health: 96, icon: Database, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://wms.hjsb-eppm.io/inventory', enabled: true },
-  { id: '6', name: 'Procurement & Purchasing', category: 'Supply Chain', description: 'PO creation, supplier master, GRN matching', status: 'connected', lastSync: '5 min ago', syncInterval: '5 min', recordsSynced: 8740, health: 94, icon: Database, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://procure.hjsb-eppm.io/po', enabled: true },
-  { id: '7', name: 'CRM & Customer Portal', category: 'Clients', description: 'Customer master, project portal access, satisfaction surveys', status: 'error', lastSync: '45 min ago', syncInterval: '15 min', recordsSynced: 420, health: 42, icon: AlertTriangle, color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40', endpoint: 'https://crm.hjsb-eppm.io/v3', enabled: true },
-  { id: '8', name: 'Google Maps & Geolocation', category: 'External', description: 'Site locations, asset tracking, route optimisation', status: 'connected', lastSync: '12 min ago', syncInterval: '30 min', recordsSynced: 156, health: 100, icon: Cloud, color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40', endpoint: 'https://maps.googleapis.com', enabled: true },
-  { id: '9', name: 'WhatsApp Business API', category: 'Communication', description: 'Site notifications, alert broadcasts, field updates', status: 'connected', lastSync: '1 min ago', syncInterval: '1 min', recordsSynced: 3840, health: 97, icon: Webhook, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://api.whatsapp.com/business', enabled: true },
-  { id: '10', name: 'Email & SMTP Gateway', category: 'Communication', description: 'Transactional emails, report distribution, approvals', status: 'connected', lastSync: '30 sec ago', syncInterval: '1 min', recordsSynced: 12450, health: 99, icon: Webhook, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'smtp://mail.hjsb-eppm.io', enabled: true },
+  { id: '1', name: 'Maintenance Management (CMMS)', category: 'Operations', description: 'Work orders, asset maintenance, equipment downtime', status: 'connected', lastSync: '2 min ago', syncInterval: '5 min', recordsSynced: 12480, health: 98, icon: Settings, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://api.hjsb-eppm.io/cmms/v2', enabled: true },
+  { id: '2', name: 'Tender Management', category: 'Pre-construction', description: 'Bid management, tender evaluation, contract awards', status: 'connected', lastSync: '8 min ago', syncInterval: '15 min', recordsSynced: 3420, health: 95, icon: Database, color: 'text-sky-700 bg-sky-50 dark:bg-sky-950/40', endpoint: 'https://tenders.hjsb-eppm.io/api', enabled: true },
+  { id: '3', name: 'Finance & Accounting', category: 'Finance', description: 'GL postings, AP/AR, cost ledger, invoice matching', status: 'connected', lastSync: '1 min ago', syncInterval: '2 min', recordsSynced: 89200, health: 99, icon: Database, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://erp.hjsb-eppm.io/finance', enabled: true },
+  { id: '4', name: 'HR & Payroll', category: 'People', description: 'Employee master, payroll, time attendance, leave', status: 'syncing', lastSync: 'syncing now', syncInterval: '10 min', recordsSynced: 1860, health: 87, icon: Activity, color: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40', endpoint: 'https://hr.hjsb-eppm.io/payroll', enabled: true },
+  { id: '5', name: 'Inventory & Warehousing', category: 'Supply Chain', description: 'Stock levels, material reservations, warehouse transfers', status: 'connected', lastSync: '3 min ago', syncInterval: '5 min', recordsSynced: 24310, health: 96, icon: Database, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://wms.hjsb-eppm.io/inventory', enabled: true },
+  { id: '6', name: 'Procurement & Purchasing', category: 'Supply Chain', description: 'PO creation, supplier master, GRN matching', status: 'connected', lastSync: '5 min ago', syncInterval: '5 min', recordsSynced: 8740, health: 94, icon: Database, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://procure.hjsb-eppm.io/po', enabled: true },
+  { id: '7', name: 'CRM & Customer Portal', category: 'Clients', description: 'Customer master, project portal access, satisfaction surveys', status: 'error', lastSync: '45 min ago', syncInterval: '15 min', recordsSynced: 420, health: 42, icon: AlertTriangle, color: 'text-rose-700 bg-rose-50 dark:bg-rose-950/40', endpoint: 'https://crm.hjsb-eppm.io/v3', enabled: true },
+  { id: '8', name: 'Google Maps & Geolocation', category: 'External', description: 'Site locations, asset tracking, route optimisation', status: 'connected', lastSync: '12 min ago', syncInterval: '30 min', recordsSynced: 156, health: 100, icon: Cloud, color: 'text-sky-700 bg-sky-50 dark:bg-sky-950/40', endpoint: 'https://maps.googleapis.com', enabled: true },
+  { id: '9', name: 'WhatsApp Business API', category: 'Communication', description: 'Site notifications, alert broadcasts, field updates', status: 'connected', lastSync: '1 min ago', syncInterval: '1 min', recordsSynced: 3840, health: 97, icon: Webhook, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'https://api.whatsapp.com/business', enabled: true },
+  { id: '10', name: 'Email & SMTP Gateway', category: 'Communication', description: 'Transactional emails, report distribution, approvals', status: 'connected', lastSync: '30 sec ago', syncInterval: '1 min', recordsSynced: 12450, health: 99, icon: Webhook, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40', endpoint: 'smtp://mail.hjsb-eppm.io', enabled: true },
   { id: '11', name: 'QR Code Management', category: 'Operations', description: 'Asset QR tagging, scan-to-inspect, equipment identification', status: 'connected', lastSync: '4 min ago', syncInterval: '10 min', recordsSynced: 680, health: 93, icon: KeyRound, color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/40', endpoint: 'https://qr.hjsb-eppm.io/api', enabled: true },
   { id: '12', name: 'Technician Portal', category: 'Field', description: 'Mobile field app, work order execution, status updates', status: 'disconnected', lastSync: '3 hours ago', syncInterval: '5 min', recordsSynced: 0, health: 0, icon: XCircle, color: 'text-muted-foreground bg-muted/50', endpoint: 'https://field.hjsb-eppm.io/tech', enabled: false },
 ]
@@ -68,9 +68,9 @@ export function IntegrationsView({ onNavigate }: { onNavigate: (v: View) => void
 
   const statusBadge = (s: string) => {
     const map: Record<string, string> = {
-      connected: 'border-emerald-200 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40',
-      syncing: 'border-amber-200 text-amber-600 bg-amber-50 dark:bg-amber-950/40',
-      error: 'border-rose-200 text-rose-600 bg-rose-50 dark:bg-rose-950/40',
+      connected: 'border-emerald-200 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40',
+      syncing: 'border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-950/40',
+      error: 'border-rose-200 text-rose-700 bg-rose-50 dark:bg-rose-950/40',
       disconnected: 'border-muted text-muted-foreground bg-muted/50',
     }
     return map[s] || map.disconnected
@@ -83,10 +83,10 @@ export function IntegrationsView({ onNavigate }: { onNavigate: (v: View) => void
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {[
             { l: 'Total Connectors', v: integrations.length, i: Plug, t: 'text-foreground', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Connected', v: connected, i: CheckCircle2, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Syncing', v: syncing, i: RefreshCw, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
-            { l: 'Errors', v: error, i: AlertTriangle, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
-            { l: 'Avg Health', v: `${avgHealth}%`, i: Activity, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
+            { l: 'Connected', v: connected, i: CheckCircle2, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Syncing', v: syncing, i: RefreshCw, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
+            { l: 'Errors', v: error, i: AlertTriangle, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
+            { l: 'Avg Health', v: `${avgHealth}%`, i: Activity, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
             { l: 'Records Synced', v: fmtNum(totalRecords), i: Database, t: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
@@ -139,7 +139,7 @@ export function IntegrationsView({ onNavigate }: { onNavigate: (v: View) => void
                       </div>
                       {int.enabled && (
                         <div>
-                          <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5"><span>Health</span><span className={cn('font-medium', int.health >= 90 ? 'text-emerald-600' : int.health >= 70 ? 'text-amber-600' : 'text-rose-600')}>{int.health}%</span></div>
+                          <div className="flex justify-between text-[9px] text-muted-foreground mb-0.5"><span>Health</span><span className={cn('font-medium', int.health >= 90 ? 'text-emerald-700' : int.health >= 70 ? 'text-amber-700' : 'text-rose-700')}>{int.health}%</span></div>
                           <Progress value={int.health} className="h-1" />
                         </div>
                       )}
@@ -180,10 +180,10 @@ export function IntegrationsView({ onNavigate }: { onNavigate: (v: View) => void
                 <Card className="bg-gradient-to-br from-primary/5 to-card">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2"><Zap className="h-4 w-4 text-amber-500" /><span className="text-sm font-semibold">Integration Status</span></div>
-                    <div className="text-3xl font-bold text-emerald-600">{connected + syncing}/{integrations.length}</div>
+                    <div className="text-3xl font-bold text-emerald-700">{connected + syncing}/{integrations.length}</div>
                     <div className="text-[11px] text-muted-foreground mt-0.5">connectors operational</div>
                     <div className="mt-3 space-y-1.5">
-                      <div className="flex items-center justify-between text-[10px]"><span className="text-muted-foreground">Uptime (30d)</span><span className="font-medium text-emerald-600">99.7%</span></div>
+                      <div className="flex items-center justify-between text-[10px]"><span className="text-muted-foreground">Uptime (30d)</span><span className="font-medium text-emerald-700">99.7%</span></div>
                       <div className="flex items-center justify-between text-[10px]"><span className="text-muted-foreground">Avg latency</span><span className="font-medium">142ms</span></div>
                       <div className="flex items-center justify-between text-[10px]"><span className="text-muted-foreground">Data transferred (24h)</span><span className="font-medium">2.4 GB</span></div>
                     </div>
@@ -222,7 +222,7 @@ export function IntegrationsView({ onNavigate }: { onNavigate: (v: View) => void
                       { time: '08:15', integration: 'Finance & Accounting', error: 'Duplicate GL entry detected — skipped record #4892', severity: 'medium', code: 'DUPLICATE' },
                     ].map((e, i) => (
                       <div key={i} className={cn('flex items-start gap-3 rounded-lg border p-3', e.severity === 'high' ? 'border-rose-200 bg-rose-50/30 dark:bg-rose-950/10' : e.severity === 'medium' ? 'border-amber-200 bg-amber-50/30 dark:bg-amber-950/10' : '')}>
-                        <div className={cn('grid h-7 w-7 shrink-0 place-items-center rounded', e.severity === 'high' ? 'bg-rose-100 text-rose-600 dark:bg-rose-950/50' : e.severity === 'medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50' : 'bg-muted text-muted-foreground')}>
+                        <div className={cn('grid h-7 w-7 shrink-0 place-items-center rounded', e.severity === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50' : e.severity === 'medium' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50' : 'bg-muted text-muted-foreground')}>
                           {e.severity === 'high' ? <XCircle className="h-3.5 w-3.5" /> : e.severity === 'medium' ? <AlertTriangle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                         </div>
                         <div className="min-w-0 flex-1">

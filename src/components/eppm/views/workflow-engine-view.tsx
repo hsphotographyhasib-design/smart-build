@@ -37,18 +37,18 @@ const fmtDT = (ms: number) => new Date(ms).toLocaleString('en-GB', { day: '2-dig
 const mins = (ms: number) => Math.round(ms / 60000)
 
 function statusTone(s: WfCase['status']) {
-  if (['CLOSED', 'PAID', 'CUSTOMER_APPROVED', 'WORK_ORDER_CLOSED'].includes(s)) return 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-  if (['IN_PROGRESS', 'EN_ROUTE', 'ARRIVED', 'CHECK_IN', 'SCHEDULED', 'ACCEPTED'].includes(s)) return 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
-  if (['WAITING_PARTS', 'WAITING_APPROVAL', 'ON_HOLD', 'PAYMENT_PENDING', 'INVOICE_DRAFT', 'INVOICE_APPROVED', 'INVOICE_SENT'].includes(s)) return 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+  if (['CLOSED', 'PAID', 'CUSTOMER_APPROVED', 'WORK_ORDER_CLOSED'].includes(s)) return 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+  if (['IN_PROGRESS', 'EN_ROUTE', 'ARRIVED', 'CHECK_IN', 'SCHEDULED', 'ACCEPTED'].includes(s)) return 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+  if (['WAITING_PARTS', 'WAITING_APPROVAL', 'ON_HOLD', 'PAYMENT_PENDING', 'INVOICE_DRAFT', 'INVOICE_APPROVED', 'INVOICE_SENT'].includes(s)) return 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
   if (['CANCELLED', 'REJECTED'].includes(s)) return 'border-border bg-muted text-muted-foreground'
   if (['SUPERVISOR_REVIEW', 'CUSTOMER_REVIEW', 'WORK_COMPLETED'].includes(s)) return 'border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-900 dark:bg-violet-950/50 dark:text-violet-400'
-  return 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+  return 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
 }
 
 const prioTone = (p: WfCase['priority']) =>
-  p === 'Emergency' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-  : p === 'High' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
-  : p === 'Medium' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+  p === 'Emergency' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+  : p === 'High' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+  : p === 'Medium' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
   : 'border-border bg-muted text-muted-foreground'
 
 const TRADES = ['Electrical', 'HVAC', 'Plumbing', 'Civil', 'Fire Protection', 'Lifts']
@@ -111,14 +111,14 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
     const resolved = cases.filter((c) => c.resolvedAt)
     const avgRes = resolved.length ? mins(resolved.reduce((a, c) => a + ((c.resolvedAt ?? 0) - c.createdAt), 0) / resolved.length) : 0
     return [
-      { label: 'New / Submitted', value: by(['NEW', 'SUBMITTED']), icon: Bell, tone: 'text-rose-600' },
+      { label: 'New / Submitted', value: by(['NEW', 'SUBMITTED']), icon: Bell, tone: 'text-rose-700' },
       { label: 'Assigned / Accepted', value: by(['ASSIGNED', 'ACCEPTED', 'SCHEDULED']), icon: User, tone: 'text-violet-600' },
-      { label: 'Field Active', value: by(['EN_ROUTE', 'ARRIVED', 'CHECK_IN', 'IN_PROGRESS']), icon: Hammer, tone: 'text-sky-600' },
-      { label: 'Waiting (Parts/Appr.)', value: by(['WAITING_PARTS', 'WAITING_APPROVAL', 'ON_HOLD']), icon: Clock, tone: 'text-amber-600' },
-      { label: 'Review & Invoicing', value: by(['WORK_COMPLETED', 'SUPERVISOR_REVIEW', 'CUSTOMER_REVIEW', 'INVOICE_DRAFT', 'INVOICE_APPROVED', 'INVOICE_SENT', 'PAYMENT_PENDING']), icon: ReceiptText, tone: 'text-teal-600' },
-      { label: 'SLA Breaches', value: breaches, icon: AlertTriangle, tone: 'text-rose-600' },
-      { label: 'Avg Resolution', value: avgRes ? `${Math.floor(avgRes / 60)}h ${avgRes % 60}m` : '—', icon: Gauge, tone: 'text-emerald-600' },
-      { label: 'Closed / Paid', value: by(['PAID', 'CLOSED']), icon: CheckCircle2, tone: 'text-emerald-600' },
+      { label: 'Field Active', value: by(['EN_ROUTE', 'ARRIVED', 'CHECK_IN', 'IN_PROGRESS']), icon: Hammer, tone: 'text-sky-700' },
+      { label: 'Waiting (Parts/Appr.)', value: by(['WAITING_PARTS', 'WAITING_APPROVAL', 'ON_HOLD']), icon: Clock, tone: 'text-amber-700' },
+      { label: 'Review & Invoicing', value: by(['WORK_COMPLETED', 'SUPERVISOR_REVIEW', 'CUSTOMER_REVIEW', 'INVOICE_DRAFT', 'INVOICE_APPROVED', 'INVOICE_SENT', 'PAYMENT_PENDING']), icon: ReceiptText, tone: 'text-teal-700' },
+      { label: 'SLA Breaches', value: breaches, icon: AlertTriangle, tone: 'text-rose-700' },
+      { label: 'Avg Resolution', value: avgRes ? `${Math.floor(avgRes / 60)}h ${avgRes % 60}m` : '—', icon: Gauge, tone: 'text-emerald-700' },
+      { label: 'Closed / Paid', value: by(['PAID', 'CLOSED']), icon: CheckCircle2, tone: 'text-emerald-700' },
     ]
   }, [cases])
 
@@ -185,7 +185,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     <Badge variant="outline" className={statusTone(c.status)}>{STATUS_LABEL[c.status]}</Badge>
                     {s.breached.length > 0 && (
-                      <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">
+                      <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">
                         <AlertTriangle className="mr-1 h-3 w-3" />{s.breached.length} SLA breach
                       </Badge>
                     )}
@@ -205,10 +205,10 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
           {sla && sla.breached.length > 0 && (
             <Card className="border-rose-300 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/30">
               <CardContent className="flex items-start gap-3 p-4">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
                 <div>
                   <div className="text-sm font-semibold text-rose-700 dark:text-rose-400">Escalation engine triggered</div>
-                  {sla.breached.map((b) => <div key={b} className="text-xs text-rose-600/90 dark:text-rose-400/80">{b}</div>)}
+                  {sla.breached.map((b) => <div key={b} className="text-xs text-rose-700/90 dark:text-rose-400/80">{b}</div>)}
                 </div>
               </CardContent>
             </Card>
@@ -285,7 +285,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
                     {actions.map(({ action, blockedReason }) => (
                       <div key={action.id} className="flex flex-col items-start gap-0.5">
                         <Button size="sm" variant={action.danger ? 'ghost' : 'default'} disabled={!!blockedReason} onClick={() => run(action.id)}
-                          className={cn(action.danger && 'text-rose-600 hover:text-rose-700')}>
+                          className={cn(action.danger && 'text-rose-700 hover:text-rose-700')}>
                           {action.label}
                         </Button>
                         {blockedReason && <span className="pl-1 text-[10px] text-rose-500">⛔ {blockedReason}</span>}
@@ -342,7 +342,7 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
                           <div className="text-[11px] text-muted-foreground">{selected.signature ? 'Captured on device' : 'Required before completion'}</div>
                         </div>
                         {selected.signature
-                          ? <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400"><CheckCircle2 className="mr-1 h-3 w-3" />Signed</Badge>
+                          ? <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400"><CheckCircle2 className="mr-1 h-3 w-3" />Signed</Badge>
                           : <Button size="sm" variant="outline" disabled={role !== 'Customer' && role !== 'Technician'} onClick={captureSignature}><PenLine className="mr-1 h-3.5 w-3.5" />Capture</Button>}
                       </div>
                       {selected.parts && (
@@ -352,8 +352,8 @@ export default function WorkflowEngineView({}: { onNavigate?: (v: View) => void 
                             <div className="text-[11px] text-muted-foreground">{selected.parts.items}</div>
                           </div>
                           <Badge variant="outline" className={selected.parts.status === 'Issued'
-                            ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                            : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'}>{selected.parts.status}</Badge>
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                            : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'}>{selected.parts.status}</Badge>
                         </div>
                       )}
                     </div>

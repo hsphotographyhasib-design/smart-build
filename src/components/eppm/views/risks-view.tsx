@@ -93,9 +93,9 @@ export function RisksView({ onNavigate }: { onNavigate: (v: View) => void }) {
       <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
         {[
           { l: 'Total Risks', v: risks.length, i: ShieldAlert, t: 'text-foreground' },
-          { l: 'Open', v: open, i: FolderOpen, t: 'text-amber-600' },
-          { l: 'High (≥15)', v: high, i: AlertTriangle, t: 'text-rose-600' },
-          { l: 'Mitigated', v: mitigated, i: ShieldCheck, t: 'text-emerald-600' },
+          { l: 'Open', v: open, i: FolderOpen, t: 'text-amber-700' },
+          { l: 'High (≥15)', v: high, i: AlertTriangle, t: 'text-rose-700' },
+          { l: 'Mitigated', v: mitigated, i: ShieldCheck, t: 'text-emerald-700' },
           { l: 'Response Cost', v: fmtMoney(totalResp), i: DollarSign, t: 'text-foreground' },
         ].map(s => (
           <Card key={s.l}><CardContent className="p-4">

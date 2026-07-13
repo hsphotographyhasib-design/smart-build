@@ -141,16 +141,16 @@ const CATEGORY_COLOR: Record<LessonCategory, string> = {
 
 const CATEGORY_BADGE: Record<LessonCategory, string> = {
   Technical: 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
-  Procurement: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Schedule: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Quality: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  Safety: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Procurement: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Schedule: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Quality: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Safety: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
   Contract: 'text-slate-600 bg-slate-50 border-slate-200 dark:text-slate-300 dark:bg-slate-900/50 dark:border-slate-800',
 }
 
 const ITEM_STATE_META: Record<ItemState, { icon: any; color: string; label: string }> = {
-  Done: { icon: CheckCircle2, color: 'text-emerald-600', label: 'Done' },
-  Pending: { icon: Clock, color: 'text-amber-600', label: 'Pending' },
+  Done: { icon: CheckCircle2, color: 'text-emerald-700', label: 'Done' },
+  Pending: { icon: Clock, color: 'text-amber-700', label: 'Pending' },
   'N/A': { icon: MinusCircle, color: 'text-muted-foreground', label: 'N/A' },
 }
 
@@ -182,15 +182,15 @@ const RETENTION_RECORDS: RetentionRecord[] = [
 ]
 
 const RETENTION_STATUS_BADGE: Record<RetentionStatus, string> = {
-  Held: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  'Partially Released': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Released: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Held: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  'Partially Released': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Released: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const BOND_STATUS_BADGE: Record<BondStatus, string> = {
-  Active: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Active: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
   Released: 'text-slate-600 bg-slate-50 border-slate-200 dark:text-slate-300 dark:bg-slate-900/50 dark:border-slate-800',
-  Forfeited: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Forfeited: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
 }
 
 interface KpiDef {
@@ -242,11 +242,11 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
 
   const kpis: KpiDef[] = [
     { label: 'Projects in Closeout', value: projectsInCloseout, hint: 'active closeout phase', icon: BookOpenCheck, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
-    { label: 'Closeout Complete', value: closeoutComplete, hint: 'checklist 100%', icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
-    { label: 'Pending Certificates', value: pendingCerts, hint: 'awaiting issuance', icon: Award, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+    { label: 'Closeout Complete', value: closeoutComplete, hint: 'checklist 100%', icon: CheckCircle2, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+    { label: 'Pending Certificates', value: pendingCerts, hint: 'awaiting issuance', icon: Award, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
     { label: 'Retention Held', value: fmtMoney(retentionHeld), hint: 'across active projects', icon: ShieldCheck, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
-    { label: 'Lessons Captured', value: lessonsCaptured, hint: 'across 6 categories', icon: BookOpenCheck, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
-    { label: 'Avg Closeout Days', value: `${avgCloseoutDays}d`, hint: 'from practical completion', icon: Clock, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+    { label: 'Lessons Captured', value: lessonsCaptured, hint: 'across 6 categories', icon: BookOpenCheck, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-700', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
+    { label: 'Avg Closeout Days', value: `${avgCloseoutDays}d`, hint: 'from practical completion', icon: Clock, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
   ]
 
   const filteredLessons = useMemo(() => {
@@ -286,7 +286,7 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-              <BookOpenCheck className="h-5 w-5 text-emerald-600" />
+              <BookOpenCheck className="h-5 w-5 text-emerald-700" />
               Project Closeout &amp; Lessons Learned
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -332,10 +332,10 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
                           className={cn(
                             'text-[10px]',
                             pct === 100
-                              ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+                              ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
                               : pct >= 75
-                                ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
-                                : 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+                                ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+                                : 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
                           )}
                         >
                           {pct}% complete
@@ -364,8 +364,8 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
                                 )}
                               </div>
                               <Badge variant="outline" className={cn('text-[9px] shrink-0',
-                                item.state === 'Done' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-                                : item.state === 'Pending' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+                                item.state === 'Done' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+                                : item.state === 'Pending' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
                                 : 'text-muted-foreground bg-muted border-border',
                               )}>{item.state}</Badge>
                             </div>
@@ -438,7 +438,7 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
                         </div>
                         <div className="flex items-center justify-between pt-1 text-[10px] text-muted-foreground">
                           <span>{l.submittedBy} · {fmtDate(l.date)} · <span className="font-mono">{l.project}</span></span>
-                          <span className="inline-flex items-center gap-1 text-amber-600"><ThumbsUp className="h-3 w-3" />{l.rating}</span>
+                          <span className="inline-flex items-center gap-1 text-amber-700"><ThumbsUp className="h-3 w-3" />{l.rating}</span>
                         </div>
                       </div>
                     ))}
@@ -503,13 +503,13 @@ export function CloseoutView({ onNavigate }: { onNavigate: (v: View) => void }) 
                 <div className="mt-0.5 text-[11px] text-muted-foreground">across active projects</div>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-emerald-600" /><span className="text-[11px] uppercase">Retention Released</span></div>
-                <div className="mt-1 text-2xl font-bold text-emerald-600">{fmtMoney(totalRetentionReleased)}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-emerald-700" /><span className="text-[11px] uppercase">Retention Released</span></div>
+                <div className="mt-1 text-2xl font-bold text-emerald-700">{fmtMoney(totalRetentionReleased)}</div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">closed projects</div>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground"><Award className="h-4 w-4 text-sky-600" /><span className="text-[11px] uppercase">Active Warranties</span></div>
-                <div className="mt-1 text-2xl font-bold text-sky-600">{activeWarranties}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Award className="h-4 w-4 text-sky-700" /><span className="text-[11px] uppercase">Active Warranties</span></div>
+                <div className="mt-1 text-2xl font-bold text-sky-700">{activeWarranties}</div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">bonds currently active</div>
               </CardContent></Card>
             </div>

@@ -99,7 +99,7 @@ export function NotificationsBell({ onNavigate }: { onNavigate: (v: View) => voi
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="text-sm font-semibold">Alerts &amp; Notifications</span>
-            {high > 0 && <Badge variant="outline" className="text-[9px] border-rose-300 text-rose-600 bg-rose-50">{high} high</Badge>}
+            {high > 0 && <Badge variant="outline" className="text-[9px] border-rose-300 text-rose-700 bg-rose-50">{high} high</Badge>}
           </div>
           <span className="text-[10px] text-muted-foreground">{alerts.length} total</span>
         </div>
@@ -153,9 +153,9 @@ function AlertRow({ alert, onNavigate }: { alert: Alert; onNavigate: (v: View) =
   const icon = { delay: CalendarClock, risk: ShieldAlert, approval: FileEdit, critical: GitBranch, budget: AlertTriangle }[alert.type]
   const Icon = icon
   const tone = {
-    high: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
-    medium: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-    low: 'bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400',
+    high: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400',
+    medium: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+    low: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400',
   }[alert.severity]
   const navTarget: View = alert.type === 'risk' ? 'risks' : alert.type === 'approval' ? 'changes' : alert.type === 'delay' || alert.type === 'critical' ? 'critical-path' : 'costs'
   return (
@@ -171,7 +171,7 @@ function AlertRow({ alert, onNavigate }: { alert: Alert; onNavigate: (v: View) =
         <div className="truncate text-[10px] text-muted-foreground mt-0.5">{alert.detail}</div>
         <div className="flex items-center gap-2 mt-1">
           {alert.date && <span className="text-[9px] text-muted-foreground">{fmtDate(alert.date)}</span>}
-          {alert.meta && <Badge variant="outline" className={cn('text-[8px] h-4', alert.severity === 'high' ? 'border-rose-200 text-rose-600' : 'border-amber-200 text-amber-600')}>{alert.meta}</Badge>}
+          {alert.meta && <Badge variant="outline" className={cn('text-[8px] h-4', alert.severity === 'high' ? 'border-rose-200 text-rose-700' : 'border-amber-200 text-amber-700')}>{alert.meta}</Badge>}
         </div>
       </div>
     </button>

@@ -259,7 +259,7 @@ export default function LoginPage() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-emerald-600" /> WhatsApp sign-in
+              <MessageCircle className="h-5 w-5 text-emerald-700" /> WhatsApp sign-in
             </DialogTitle>
             <DialogDescription>
               {waStep === 'phone'

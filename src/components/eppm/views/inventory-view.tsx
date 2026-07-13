@@ -96,10 +96,10 @@ export default function InventoryView({ focus = 'stock' }: { onNavigate?: (v: Vi
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Stock Lines', value: stock.length, icon: Package, tone: 'text-sky-600' },
-            { label: 'Below Reorder Point', value: lowStock.length, icon: AlertTriangle, tone: 'text-rose-600' },
+            { label: 'Stock Lines', value: stock.length, icon: Package, tone: 'text-sky-700' },
+            { label: 'Below Reorder Point', value: lowStock.length, icon: AlertTriangle, tone: 'text-rose-700' },
             { label: 'Warehouses', value: WAREHOUSES.length, icon: Warehouse, tone: 'text-violet-600' },
-            { label: 'Stock Value', value: `BND ${(stockValue / 1000).toFixed(0)}k`, icon: DollarSign, tone: 'text-emerald-600' },
+            { label: 'Stock Value', value: `BND ${(stockValue / 1000).toFixed(0)}k`, icon: DollarSign, tone: 'text-emerald-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />
@@ -139,13 +139,13 @@ export default function InventoryView({ focus = 'stock' }: { onNavigate?: (v: Vi
                         <TableCell><div className="font-medium">{s.name}</div><div className="font-mono text-xs text-muted-foreground">{s.id}</div></TableCell>
                         <TableCell className="hidden md:table-cell"><Badge variant="outline" className="font-normal">{s.category}</Badge></TableCell>
                         <TableCell className="hidden text-sm sm:table-cell">{s.warehouse}</TableCell>
-                        <TableCell className={cn('font-semibold', low && 'text-rose-600')}>{s.onHand} {s.uom}</TableCell>
+                        <TableCell className={cn('font-semibold', low && 'text-rose-700')}>{s.onHand} {s.uom}</TableCell>
                         <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">{s.reorderPoint} {s.uom}</TableCell>
                         <TableCell className="hidden text-sm lg:table-cell">BND {(s.onHand * s.unitCostBnd / 1000).toFixed(1)}k</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Progress value={pct} className={cn('h-1.5 w-16', low && '[&>div]:bg-rose-500')} />
-                            {low && <Badge variant="outline" className="border-rose-200 bg-rose-50 text-[10px] text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">Low</Badge>}
+                            {low && <Badge variant="outline" className="border-rose-200 bg-rose-50 text-[10px] text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400">Low</Badge>}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -211,9 +211,9 @@ export default function InventoryView({ focus = 'stock' }: { onNavigate?: (v: Vi
                       <TableCell className="text-sm font-medium">{m.item}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          m.type === 'Receipt' || m.type === 'Return' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : m.type === 'Transfer' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
-                          : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          m.type === 'Receipt' || m.type === 'Return' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : m.type === 'Transfer' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                          : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                         }>{m.type}</Badge>
                       </TableCell>
                       <TableCell className="text-sm font-semibold">{m.qty}</TableCell>

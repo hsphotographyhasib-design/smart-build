@@ -9,12 +9,13 @@ interface NotificationBadgeProps {
   className?: string
 }
 
+// 700-level fills keep white 10px text at >=4.5:1 contrast (WCAG AA).
 const TONES: Record<string, string> = {
   primary: 'bg-primary text-primary-foreground',
-  rose: 'bg-rose-500 text-white',
-  amber: 'bg-amber-500 text-white',
-  emerald: 'bg-emerald-500 text-white',
-  sky: 'bg-sky-500 text-white',
+  rose: 'bg-rose-700 text-white',
+  amber: 'bg-amber-700 text-white',
+  emerald: 'bg-emerald-700 text-white',
+  sky: 'bg-sky-700 text-white',
 }
 
 /** Small realtime count/dot badge — attaches to icons or menu rows. */

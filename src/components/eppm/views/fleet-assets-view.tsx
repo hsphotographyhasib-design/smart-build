@@ -76,7 +76,7 @@ export default function FleetAssetsView({ focus = 'vehicles' }: { onNavigate?: (
     setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, status: 'Retired' } : a)))
 
   const docBadge = (iso: string) => (
-    <span className={cn('text-xs', isPast(iso) ? 'font-semibold text-rose-600' : soon(iso) ? 'font-semibold text-amber-600' : 'text-muted-foreground')}>
+    <span className={cn('text-xs', isPast(iso) ? 'font-semibold text-rose-700' : soon(iso) ? 'font-semibold text-amber-700' : 'text-muted-foreground')}>
       {fmtDate(iso)}{isPast(iso) ? ' · expired' : soon(iso) ? ' · soon' : ''}
     </span>
   )
@@ -99,10 +99,10 @@ export default function FleetAssetsView({ focus = 'vehicles' }: { onNavigate?: (
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Fleet Vehicles', value: vehicles.length, icon: Truck, tone: 'text-sky-600' },
-            { label: 'Docs Expiring', value: expiringDocs, icon: AlertTriangle, tone: 'text-amber-600' },
+            { label: 'Fleet Vehicles', value: vehicles.length, icon: Truck, tone: 'text-sky-700' },
+            { label: 'Docs Expiring', value: expiringDocs, icon: AlertTriangle, tone: 'text-amber-700' },
             { label: 'Registered Assets', value: assets.filter((a) => a.status === 'Active').length, icon: QrCode, tone: 'text-violet-600' },
-            { label: 'Service Overdue', value: serviceDue, icon: Wrench, tone: 'text-rose-600' },
+            { label: 'Service Overdue', value: serviceDue, icon: Wrench, tone: 'text-rose-700' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
               <k.icon className={cn('h-8 w-8 shrink-0 rounded-lg bg-muted p-1.5', k.tone)} />
@@ -143,8 +143,8 @@ export default function FleetAssetsView({ focus = 'vehicles' }: { onNavigate?: (
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          v.status === 'In Service' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : v.status === 'Workshop' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          v.status === 'In Service' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : v.status === 'Workshop' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                           : 'border-border bg-muted text-muted-foreground'
                         }>{v.status}</Badge>
                       </TableCell>
@@ -182,15 +182,15 @@ export default function FleetAssetsView({ focus = 'vehicles' }: { onNavigate?: (
                       <TableCell className="hidden text-sm lg:table-cell">BND {(a.valueBnd / 1000).toFixed(0)}k</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          a.condition === 'Good' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : a.condition === 'Fair' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
-                          : 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          a.condition === 'Good' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : a.condition === 'Fair' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
                         }>{a.condition}</Badge>
                       </TableCell>
-                      <TableCell className={cn('text-xs', a.nextService !== '—' && isPast(a.nextService) && a.status === 'Active' && 'font-semibold text-rose-600')}>
+                      <TableCell className={cn('text-xs', a.nextService !== '—' && isPast(a.nextService) && a.status === 'Active' && 'font-semibold text-rose-700')}>
                         {a.nextService === '—' ? '—' : fmtDate(a.nextService)}
                       </TableCell>
-                      <TableCell><Badge variant="outline" className={a.status === 'Active' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400' : 'border-border bg-muted text-muted-foreground'}>{a.status}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className={a.status === 'Active' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400' : 'border-border bg-muted text-muted-foreground'}>{a.status}</Badge></TableCell>
                       <TableCell className="text-right">
                         {a.status === 'Active' && (
                           <div className="flex justify-end gap-1.5">

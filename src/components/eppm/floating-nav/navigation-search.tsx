@@ -47,7 +47,7 @@ export function NavigationSearch({
           {variant === 'full' ? 'Search equipment, customers, work orders…' : 'Search…'}
         </span>
         <kbd className={cn(
-          'items-center gap-0.5 rounded-md border bg-background/70 px-1.5 font-mono text-muted-foreground/70',
+          'items-center gap-0.5 rounded-md border bg-background/70 px-1.5 font-mono text-foreground/70',
           variant === 'full' ? 'hidden md:inline-flex h-5 text-[10px]' : 'hidden lg:inline-flex h-4 text-[9px]',
         )}>
           ⌘K

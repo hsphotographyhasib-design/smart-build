@@ -76,9 +76,9 @@ export default function SupportView({ focus = 'docs' }: { onNavigate?: (v: View)
       <FadeIn delay={0.05}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'KB Articles', value: ARTICLES.length, icon: BookOpenCheck, tone: 'text-sky-600' },
-            { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, tone: 'text-amber-600' },
-            { label: 'Resolved (30d)', value: tickets.filter((t) => t.status === 'Resolved').length, icon: CheckCircle2, tone: 'text-emerald-600' },
+            { label: 'KB Articles', value: ARTICLES.length, icon: BookOpenCheck, tone: 'text-sky-700' },
+            { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, tone: 'text-amber-700' },
+            { label: 'Resolved (30d)', value: tickets.filter((t) => t.status === 'Resolved').length, icon: CheckCircle2, tone: 'text-emerald-700' },
             { label: 'Avg First Response', value: '2.4h', icon: Clock, tone: 'text-violet-600' },
           ].map((k) => (
             <Card key={k.label}><CardContent className="flex items-center gap-3 p-4">
@@ -140,16 +140,16 @@ export default function SupportView({ focus = 'docs' }: { onNavigate?: (v: View)
                       <TableCell className="hidden sm:table-cell"><Badge variant="outline" className="font-normal">{t.module}</Badge></TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          t.priority === 'High' ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
-                          : t.priority === 'Medium' ? 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          t.priority === 'High' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-400'
+                          : t.priority === 'Medium' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                           : 'border-border bg-muted text-muted-foreground'
                         }>{t.priority}</Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={
-                          t.status === 'Resolved' ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
-                          : t.status === 'In Progress' ? 'border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
-                          : 'border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
+                          t.status === 'Resolved' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400'
+                          : t.status === 'In Progress' ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-400'
+                          : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-400'
                         }>{t.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">

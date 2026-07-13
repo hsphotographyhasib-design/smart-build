@@ -91,9 +91,9 @@ const FAILED_LOGINS = [
 ]
 
 const actionColor = (a: string) =>
-  a === 'Login' || a === 'Created' || a === 'Approved' || a === 'Uploaded' || a === 'Generated' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-  : a === 'Updated' || a === 'Scheduled' ? 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
-  : a === 'Deleted' ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
+  a === 'Login' || a === 'Created' || a === 'Approved' || a === 'Uploaded' || a === 'Generated' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+  : a === 'Updated' || a === 'Scheduled' ? 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900'
+  : a === 'Deleted' ? 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900'
   : 'text-muted-foreground bg-muted border-border'
 
 const SECURITY_CARDS = [
@@ -144,7 +144,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[600px] overflow-auto scroll-thin">
+              <div tabIndex={0} className="max-h-[600px] overflow-auto scroll-thin">
                 <Table>
                   <TableHeader className="sticky top-0 bg-card"><TableRow className="bg-muted/40 hover:bg-muted/40">
                     <TableHead className="w-[80px]">ID</TableHead>
@@ -169,7 +169,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
                         <TableCell className="text-[11px] text-muted-foreground">{u.email}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{u.role}</Badge></TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn('text-[9px]', u.status === 'Active' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900' : 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900')}>{u.status}</Badge>
+                          <Badge variant="outline" className={cn('text-[9px]', u.status === 'Active' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900' : 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900')}>{u.status}</Badge>
                         </TableCell>
                         <TableCell className="text-[10px] text-muted-foreground">{fmtDate(u.lastActive)}</TableCell>
                       </TableRow>
@@ -186,7 +186,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <CardDescription className="text-xs">Module access by role · {ROLES.length} roles × {MODULES.length} modules</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[600px] overflow-auto scroll-thin">
+              <div tabIndex={0} className="max-h-[600px] overflow-auto scroll-thin">
                 <Table>
                   <TableHeader className="sticky top-0 bg-card"><TableRow className="bg-muted/40 hover:bg-muted/40">
                     <TableHead className="sticky left-0 bg-card min-w-[180px] z-10">Role</TableHead>
@@ -200,7 +200,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
                           const has = PERMISSIONS[r][m]
                           return (
                             <TableCell key={m} className="text-center p-2">
-                              {has ? <CheckCircle2 className="h-4 w-4 text-emerald-600 inline" /> : <XCircle className="h-4 w-4 text-muted-foreground/30 inline" />}
+                              {has ? <CheckCircle2 className="h-4 w-4 text-emerald-700 inline" /> : <XCircle className="h-4 w-4 text-muted-foreground/30 inline" />}
                             </TableCell>
                           )
                         })}
@@ -220,7 +220,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <CardDescription className="text-xs">Immutable record of all user & system actions</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[600px] overflow-auto scroll-thin">
+              <div tabIndex={0} className="max-h-[600px] overflow-auto scroll-thin">
                 <Table>
                   <TableHeader className="sticky top-0 bg-card"><TableRow className="bg-muted/40 hover:bg-muted/40">
                     <TableHead className="w-[80px]">ID</TableHead>
@@ -257,13 +257,13 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 shrink-0"><Icon className="h-4 w-4" /></div>
+                        <div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 shrink-0"><Icon className="h-4 w-4" /></div>
                         <div className="min-w-0">
                           <div className="text-xs font-semibold truncate">{s.title}</div>
                           <div className="text-[10px] text-muted-foreground line-clamp-2">{s.desc}</div>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900 shrink-0">{s.status}</Badge>
+                      <Badge variant="outline" className="text-[9px] text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900 shrink-0">{s.status}</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -274,7 +274,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-rose-600" />Failed Login Attempts</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-rose-700" />Failed Login Attempts</CardTitle>
                 <CardDescription className="text-xs">Last 7 days · auto-locked after 5 attempts</CardDescription>
               </CardHeader>
               <CardContent>
@@ -295,7 +295,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
               <CardContent className="space-y-2.5">
                 <div className="flex items-center justify-between rounded-md border p-2.5">
                   <span className="text-xs">Password Policy</span>
-                  <Badge variant="outline" className="text-[9px] text-emerald-600 bg-emerald-50 border-emerald-200">Strong</Badge>
+                  <Badge variant="outline" className="text-[9px] text-emerald-700 bg-emerald-50 border-emerald-200">Strong</Badge>
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-2.5">
                   <span className="text-xs">Session Timeout</span>
@@ -321,7 +321,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
         <TabsContent value="config" className="mt-3 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Calendar className="h-4 w-4 text-sky-600" />Calendar Defaults</CardTitle><CardDescription className="text-xs">Standard project calendar & work week</CardDescription></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Calendar className="h-4 w-4 text-sky-700" />Calendar Defaults</CardTitle><CardDescription className="text-xs">Standard project calendar & work week</CardDescription></CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div><Label className="text-[11px] text-muted-foreground">Working Hours</Label><Input defaultValue="08:00 – 17:00" className="h-8 text-xs mt-0.5" readOnly /></div>
@@ -333,7 +333,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Coins className="h-4 w-4 text-amber-600" />Currency & Locale</CardTitle><CardDescription className="text-xs">Default display & formatting</CardDescription></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Coins className="h-4 w-4 text-amber-700" />Currency & Locale</CardTitle><CardDescription className="text-xs">Default display & formatting</CardDescription></CardHeader>
               <CardContent className="space-y-3">
                 <div><Label className="text-[11px] text-muted-foreground">Base Currency</Label>
                   <Select value={currency} onValueChange={setCurrency}><SelectTrigger className="h-8 text-xs mt-0.5"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="USD">USD ($)</SelectItem><SelectItem value="EUR">EUR (€)</SelectItem><SelectItem value="GBP">GBP (£)</SelectItem><SelectItem value="AED">AED (د.إ)</SelectItem></SelectContent></Select>
@@ -358,7 +358,7 @@ export function AdminView({ onNavigate }: { onNavigate: (v: View) => void }) {
             </Card>
 
             <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Globe className="h-4 w-4 text-emerald-600" />System</CardTitle><CardDescription className="text-xs">Maintenance & backup</CardDescription></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Globe className="h-4 w-4 text-emerald-700" />System</CardTitle><CardDescription className="text-xs">Maintenance & backup</CardDescription></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between"><Label htmlFor="ab" className="text-xs">Auto-backup (daily)</Label><Switch id="ab" checked={autoBackup} onCheckedChange={setAutoBackup} /></div>
                 <div className="flex items-center justify-between"><Label htmlFor="mt" className="text-xs">Maintenance mode</Label><Switch id="mt" checked={maintenance} onCheckedChange={setMaintenance} /></div>

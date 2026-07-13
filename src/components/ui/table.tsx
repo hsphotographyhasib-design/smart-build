@@ -8,6 +8,9 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
+      // Horizontally scrollable region must be keyboard-reachable (axe:
+      // scrollable-region-focusable) — narrow viewports clip wide tables.
+      tabIndex={0}
       className="relative w-full overflow-x-auto"
     >
       <table

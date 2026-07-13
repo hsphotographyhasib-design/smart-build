@@ -70,9 +70,9 @@ export function ChangesView({ onNavigate }: { onNavigate: (v: View) => void }) {
       <div className="grid gap-3 grid-cols-2 md:grid-cols-6">
         {[
           { l: 'Total Changes', v: changes.length, i: FileEdit, t: 'text-foreground' },
-          { l: 'Pending', v: pendingCount, i: Clock, t: 'text-amber-600' },
-          { l: 'Approved', v: approved, i: CheckCircle2, t: 'text-emerald-600' },
-          { l: 'Rejected', v: rejected, i: XCircle, t: 'text-rose-600' },
+          { l: 'Pending', v: pendingCount, i: Clock, t: 'text-amber-700' },
+          { l: 'Approved', v: approved, i: CheckCircle2, t: 'text-emerald-700' },
+          { l: 'Rejected', v: rejected, i: XCircle, t: 'text-rose-700' },
           { l: 'Cost Impact', v: fmtMoney(totalCost), i: DollarSign, t: 'text-foreground' },
           { l: 'Time Impact', v: `${totalTime}d`, i: CalendarClock, t: 'text-foreground' },
         ].map(s => (

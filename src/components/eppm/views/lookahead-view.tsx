@@ -16,10 +16,10 @@ const CHART = { emerald: 'oklch(0.55 0.12 162)', amber: 'oklch(0.7 0.16 80)', ro
 type Constraint = 'Pending Material' | 'Pending RFI' | 'Pending Inspection' | 'Awaiting Approval' | 'None'
 
 const CONSTRAINT_META: Record<Constraint, { color: string; icon: any; label: string }> = {
-  'Pending Material': { color: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900', icon: Package, label: 'Pending Material' },
+  'Pending Material': { color: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900', icon: Package, label: 'Pending Material' },
   'Pending RFI': { color: 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900', icon: FileQuestion, label: 'Pending RFI' },
-  'Pending Inspection': { color: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900', icon: ClipboardCheck, label: 'Pending Inspection' },
-  'Awaiting Approval': { color: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900', icon: FileSignature, label: 'Awaiting Approval' },
+  'Pending Inspection': { color: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900', icon: ClipboardCheck, label: 'Pending Inspection' },
+  'Awaiting Approval': { color: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900', icon: FileSignature, label: 'Awaiting Approval' },
   'None': { color: 'text-muted-foreground bg-muted border-border', icon: CheckCircle2, label: 'None' },
 }
 
@@ -92,8 +92,8 @@ export function LookaheadView({ onNavigate }: { onNavigate: (v: View) => void })
     <div className="space-y-4">
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Window</div><div className="text-2xl font-bold">{weeks} wks</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Activities in Window</div><div className="text-2xl font-bold text-sky-600">{fmtNum(windowActs.length, 0)}</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Constraints Open</div><div className="text-2xl font-bold text-amber-600">{fmtNum(windowActs.filter(a => a.constraint !== 'None').length, 0)}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Activities in Window</div><div className="text-2xl font-bold text-sky-700">{fmtNum(windowActs.length, 0)}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Constraints Open</div><div className="text-2xl font-bold text-amber-700">{fmtNum(windowActs.filter(a => a.constraint !== 'None').length, 0)}</div></CardContent></Card>
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Activities Finishing</div><div className="text-2xl font-bold text-violet-600">{fmtNum(windowActs.length, 0)}</div></CardContent></Card>
       </div>
 
@@ -165,7 +165,7 @@ export function LookaheadView({ onNavigate }: { onNavigate: (v: View) => void })
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertOctagon className="h-4 w-4 text-amber-600" />Constraint Tracking</CardTitle><CardDescription className="text-xs">Pending items by type — must be cleared to keep schedule</CardDescription></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertOctagon className="h-4 w-4 text-amber-700" />Constraint Tracking</CardTitle><CardDescription className="text-xs">Pending items by type — must be cleared to keep schedule</CardDescription></CardHeader>
           <CardContent>
             <div className="space-y-2.5">
               {CONSTRAINTS.filter(c => c !== 'None').map(c => {
@@ -192,7 +192,7 @@ export function LookaheadView({ onNavigate }: { onNavigate: (v: View) => void })
                 )
               })}
               <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 p-2.5 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-700" />
                 <div className="text-xs"><b className="text-emerald-700 dark:text-emerald-400">{constraintCounts['None']} activities</b> have no constraints — clear to execute</div>
               </div>
             </div>
@@ -200,7 +200,7 @@ export function LookaheadView({ onNavigate }: { onNavigate: (v: View) => void })
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ActivityIcon className="h-4 w-4 text-sky-600" />Weekly Buckets</CardTitle><CardDescription className="text-xs">Activities starting vs finishing per week</CardDescription></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><ActivityIcon className="h-4 w-4 text-sky-700" />Weekly Buckets</CardTitle><CardDescription className="text-xs">Activities starting vs finishing per week</CardDescription></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={weeklyBuckets} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -215,11 +215,11 @@ export function LookaheadView({ onNavigate }: { onNavigate: (v: View) => void })
             </ResponsiveContainer>
             <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
               <div className="rounded-md border p-2 flex items-center justify-between">
-                <span className="flex items-center gap-1.5"><Flag className="h-3 w-3 text-emerald-600" />Total Starts</span>
+                <span className="flex items-center gap-1.5"><Flag className="h-3 w-3 text-emerald-700" />Total Starts</span>
                 <span className="font-bold tabular-nums">{weeklyBuckets.reduce((s, b) => s + b.start, 0)}</span>
               </div>
               <div className="rounded-md border p-2 flex items-center justify-between">
-                <span className="flex items-center gap-1.5"><Flag className="h-3 w-3 text-amber-600" />Total Finishes</span>
+                <span className="flex items-center gap-1.5"><Flag className="h-3 w-3 text-amber-700" />Total Finishes</span>
                 <span className="font-bold tabular-nums">{weeklyBuckets.reduce((s, b) => s + b.finish, 0)}</span>
               </div>
             </div>

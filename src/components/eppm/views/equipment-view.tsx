@@ -95,11 +95,11 @@ export function EquipmentView({ onNavigate }: { onNavigate: (v: View) => void })
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {[
             { l: 'Total Fleet', v: fmtNum(EQUIPMENT.length), i: Wrench, t: 'text-foreground', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Operating', v: fmtNum(operating.length), i: Activity, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Avg Utilisation', v: `${avgUtil}%`, i: TrendingUp, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
-            { l: 'Idle', v: fmtNum(idle.length), i: Clock, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
-            { l: 'In Service/Break', v: fmtNum(maintenance.length), i: Settings, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
-            { l: 'Service Due ≤7d', v: fmtNum(serviceDue), i: AlertTriangle, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
+            { l: 'Operating', v: fmtNum(operating.length), i: Activity, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Avg Utilisation', v: `${avgUtil}%`, i: TrendingUp, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
+            { l: 'Idle', v: fmtNum(idle.length), i: Clock, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
+            { l: 'In Service/Break', v: fmtNum(maintenance.length), i: Settings, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
+            { l: 'Service Due ≤7d', v: fmtNum(serviceDue), i: AlertTriangle, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
@@ -149,8 +149,8 @@ export function EquipmentView({ onNavigate }: { onNavigate: (v: View) => void })
                           <TableCell><Badge variant="outline" className={cn('text-[9px]', statusColor(e.status))}>{e.status}</Badge></TableCell>
                           <TableCell><div className="flex items-center gap-1"><div className="h-1.5 w-10 rounded-full bg-muted overflow-hidden"><div className={cn('h-full', e.utilisation >= 80 ? 'bg-emerald-500' : e.utilisation >= 50 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${e.utilisation}%` }} /></div><span className="text-[9px] tabular-nums">{e.utilisation}</span></div></TableCell>
                           <TableCell className="text-right text-[10px] tabular-nums">{e.hoursToday}</TableCell>
-                          <TableCell><div className="flex items-center gap-1"><Fuel className="h-2.5 w-2.5 text-muted-foreground" /><span className={cn('text-[9px] tabular-nums', e.fuelLevel < 40 ? 'text-rose-600 font-medium' : '')}>{e.fuelLevel}%</span></div></TableCell>
-                          <TableCell className={cn('text-[10px]', e.serviceDays <= 3 ? 'text-rose-600 font-medium' : e.serviceDays <= 7 ? 'text-amber-600 font-medium' : 'text-muted-foreground')}>{fmtDate(e.nextService)}</TableCell>
+                          <TableCell><div className="flex items-center gap-1"><Fuel className="h-2.5 w-2.5 text-muted-foreground" /><span className={cn('text-[9px] tabular-nums', e.fuelLevel < 40 ? 'text-rose-700 font-medium' : '')}>{e.fuelLevel}%</span></div></TableCell>
+                          <TableCell className={cn('text-[10px]', e.serviceDays <= 3 ? 'text-rose-700 font-medium' : e.serviceDays <= 7 ? 'text-amber-700 font-medium' : 'text-muted-foreground')}>{fmtDate(e.nextService)}</TableCell>
                           <TableCell className="text-[10px] text-muted-foreground">{e.operator}</TableCell>
                           <TableCell><Button variant="ghost" size="sm" className="h-6 w-6 p-0"><QrCode className="h-3.5 w-3.5" /></Button></TableCell>
                         </TableRow>
@@ -175,13 +175,13 @@ export function EquipmentView({ onNavigate }: { onNavigate: (v: View) => void })
                         const soon = e.serviceDays <= 7
                         return (
                           <div key={e.id} className={cn('flex items-center gap-3 rounded-lg border p-3', urgent ? 'border-rose-200 bg-rose-50/30 dark:bg-rose-950/10' : soon ? 'border-amber-200 bg-amber-50/30 dark:bg-amber-950/10' : '')}>
-                            <div className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', urgent ? 'bg-rose-100 text-rose-600 dark:bg-rose-950/50' : soon ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50' : 'bg-muted text-muted-foreground')}><Settings className="h-4 w-4" /></div>
+                            <div className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg', urgent ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/50' : soon ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50' : 'bg-muted text-muted-foreground')}><Settings className="h-4 w-4" /></div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5"><span className="font-mono text-[10px] text-muted-foreground">{e.code}</span><span className="truncate text-xs font-medium">{e.name}</span></div>
                               <div className="text-[10px] text-muted-foreground">{e.project} · {e.operator}</div>
                             </div>
                             <div className="text-right shrink-0">
-                              <div className={cn('text-xs font-bold', urgent ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-foreground')}>{e.serviceDays}d</div>
+                              <div className={cn('text-xs font-bold', urgent ? 'text-rose-700' : soon ? 'text-amber-700' : 'text-foreground')}>{e.serviceDays}d</div>
                               <div className="text-[10px] text-muted-foreground">{fmtDate(e.nextService)}</div>
                             </div>
                           </div>
@@ -194,7 +194,7 @@ export function EquipmentView({ onNavigate }: { onNavigate: (v: View) => void })
               <div className="space-y-4">
                 <Card className="bg-gradient-to-br from-rose/5 to-card">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2"><AlertTriangle className="h-4 w-4 text-rose-600" /><span className="text-sm font-semibold">Critical Alerts</span></div>
+                    <div className="flex items-center gap-2 mb-2"><AlertTriangle className="h-4 w-4 text-rose-700" /><span className="text-sm font-semibold">Critical Alerts</span></div>
                     <div className="space-y-2">
                       {EQUIPMENT.filter(e => e.status === 'Breakdown').map(e => (
                         <div key={e.id} className="rounded-md border border-rose-200 bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs"><div className="font-medium">{e.name}</div><div className="text-[10px] text-muted-foreground mt-0.5">Breakdown — requires immediate repair</div></div>

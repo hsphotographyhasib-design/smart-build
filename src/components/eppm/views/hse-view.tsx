@@ -76,24 +76,24 @@ const TOOLBOX: ToolboxTalk[] = [
 ]
 
 const TYPE_BADGE: Record<IncidentType, string> = {
-  LTI: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  'First Aid': 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  'Near Miss': 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  LTI: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  'First Aid': 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  'Near Miss': 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
   'Property Damage': 'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50 dark:border-violet-900',
-  Environmental: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Environmental: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const SEVERITY_BADGE: Record<Severity, string> = {
-  Critical: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
-  High: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Medium: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Low: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Critical: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  High: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Medium: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Low: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 const STATUS_BADGE: Record<IncidentStatus, string> = {
-  Open: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Investigating: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Closed: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  Open: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Investigating: 'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Closed: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
 }
 
 interface KpiDef {
@@ -172,10 +172,10 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
 
   const kpis: KpiDef[] = [
     { label: 'Total Incidents (YTD)', value: totalIncidents, icon: AlertTriangle, tile: 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300', bar: 'bg-gradient-to-r from-slate-400 to-slate-500' },
-    { label: 'Lost Time Injuries', value: lti, icon: Activity, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
-    { label: 'Recordable Cases', value: recordable, icon: Stethoscope, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
-    { label: 'Near Misses', value: nearMiss, icon: Eye, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-600', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
-    { label: 'Days Since Last LTI', value: daysSinceLTI, icon: CalendarClock, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
+    { label: 'Lost Time Injuries', value: lti, icon: Activity, tile: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700', bar: 'bg-gradient-to-r from-rose-400 to-rose-600' },
+    { label: 'Recordable Cases', value: recordable, icon: Stethoscope, tile: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700', bar: 'bg-gradient-to-r from-amber-400 to-amber-600' },
+    { label: 'Near Misses', value: nearMiss, icon: Eye, tile: 'bg-sky-50 dark:bg-sky-950/50 text-sky-700', bar: 'bg-gradient-to-r from-sky-400 to-sky-600' },
+    { label: 'Days Since Last LTI', value: daysSinceLTI, icon: CalendarClock, tile: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700', bar: 'bg-gradient-to-r from-emerald-400 to-emerald-600' },
     { label: 'TRIR', value: trir.toFixed(2), icon: Gauge, tile: 'bg-violet-50 dark:bg-violet-950/50 text-violet-600', bar: 'bg-gradient-to-r from-violet-400 to-violet-600' },
   ]
 
@@ -318,7 +318,7 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
                     <div className="text-[10px] text-muted-foreground">out of 100</div>
                   </div>
                   <div className="mt-1 flex items-center justify-center gap-1.5 text-[11px]">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                    <CheckCircle2 className="h-3 w-3 text-emerald-700" />
                     <span className="text-muted-foreground">Excellent — above 85 target</span>
                   </div>
                 </CardContent>
@@ -327,14 +327,14 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
 
             <div className="grid gap-3 sm:grid-cols-3">
               <Card><CardContent className="p-4 flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600"><Megaphone className="h-5 w-5" /></div>
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700"><Megaphone className="h-5 w-5" /></div>
                 <div>
                   <div className="text-[11px] uppercase text-muted-foreground">Toolbox Talks (YTD)</div>
                   <div className="text-2xl font-bold tabular-nums">186</div>
                 </div>
               </CardContent></Card>
               <Card><CardContent className="p-4 flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600"><ClipboardList className="h-5 w-5" /></div>
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-700"><ClipboardList className="h-5 w-5" /></div>
                 <div>
                   <div className="text-[11px] uppercase text-muted-foreground">Safety Inspections</div>
                   <div className="text-2xl font-bold tabular-nums">312</div>
@@ -370,7 +370,7 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <div className="grid h-7 w-7 place-items-center rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 shrink-0"><Megaphone className="h-3.5 w-3.5" /></div>
+                              <div className="grid h-7 w-7 place-items-center rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 shrink-0"><Megaphone className="h-3.5 w-3.5" /></div>
                               <span className="text-xs font-semibold truncate">{t.topic}</span>
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
@@ -379,7 +379,7 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
                               <span>by {t.presenter}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0 text-emerald-600">
+                          <div className="flex items-center gap-1.5 shrink-0 text-emerald-700">
                             <Users className="h-3.5 w-3.5" />
                             <span className="text-sm font-bold tabular-nums">{t.attendees}</span>
                           </div>
@@ -387,7 +387,7 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {t.points.map((p, i) => (
                             <span key={i} className="inline-flex items-center gap-1 rounded-md border bg-muted/40 px-1.5 py-0.5 text-[9px] text-muted-foreground">
-                              <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />{p}
+                              <CheckCircle2 className="h-2.5 w-2.5 text-emerald-700" />{p}
                             </span>
                           ))}
                         </div>
@@ -416,16 +416,16 @@ export function HseView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   </ResponsiveContainer>
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center justify-between rounded-md border p-2">
-                      <div className="flex items-center gap-2"><HardHat className="h-3.5 w-3.5 text-amber-600" /><span className="text-[11px] text-muted-foreground">Active workforce</span></div>
+                      <div className="flex items-center gap-2"><HardHat className="h-3.5 w-3.5 text-amber-700" /><span className="text-[11px] text-muted-foreground">Active workforce</span></div>
                       <span className="text-xs font-bold tabular-nums">142</span>
                     </div>
                     <div className="flex items-center justify-between rounded-md border p-2">
-                      <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 text-sky-600" /><span className="text-[11px] text-muted-foreground">Avg attendance</span></div>
+                      <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 text-sky-700" /><span className="text-[11px] text-muted-foreground">Avg attendance</span></div>
                       <span className="text-xs font-bold tabular-nums">{avgAttendees}</span>
                     </div>
                     <div className="flex items-center justify-between rounded-md border p-2">
-                      <div className="flex items-center gap-2"><Megaphone className="h-3.5 w-3.5 text-emerald-600" /><span className="text-[11px] text-muted-foreground">Coverage rate</span></div>
-                      <span className="text-xs font-bold tabular-nums text-emerald-600">
+                      <div className="flex items-center gap-2"><Megaphone className="h-3.5 w-3.5 text-emerald-700" /><span className="text-[11px] text-muted-foreground">Coverage rate</span></div>
+                      <span className="text-xs font-bold tabular-nums text-emerald-700">
                         {Math.round((avgAttendees / 142) * 100)}%
                       </span>
                     </div>

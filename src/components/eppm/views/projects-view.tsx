@@ -41,10 +41,10 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
       {/* Summary strip */}
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         {[
-          { label: 'Active Projects', value: projects.length, tone: 'text-emerald-600' },
+          { label: 'Active Projects', value: projects.length, tone: 'text-emerald-700' },
           { label: 'Total Budget', value: fmtMoney(totalBudget), tone: 'text-foreground' },
-          { label: 'Spend to Date', value: fmtMoney(totalActual), tone: 'text-amber-600' },
-          { label: 'Avg Progress', value: fmtPct(projects.length ? projects.reduce((s,p)=>s+p.progress,0)/projects.length : 0), tone: 'text-sky-600' },
+          { label: 'Spend to Date', value: fmtMoney(totalActual), tone: 'text-amber-700' },
+          { label: 'Avg Progress', value: fmtPct(projects.length ? projects.reduce((s,p)=>s+p.progress,0)/projects.length : 0), tone: 'text-sky-700' },
         ].map(s => (
           <Card key={s.label}>
             <CardContent className="p-4">
@@ -68,7 +68,7 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
                 <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="pl-8 h-9 w-56" />
               </div>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectTrigger aria-label="Filter by status" className="h-9 w-36"><SelectValue placeholder="Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="Planning">Planning</SelectItem>
@@ -78,7 +78,7 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
                 </SelectContent>
               </Select>
               <Select value={health} onValueChange={setHealth}>
-                <SelectTrigger className="h-9 w-32"><SelectValue placeholder="Health" /></SelectTrigger>
+                <SelectTrigger aria-label="Filter by health" className="h-9 w-32"><SelectValue placeholder="Health" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Health</SelectItem>
                   <SelectItem value="Green">Green</SelectItem>
@@ -128,7 +128,7 @@ export function ProjectsView({ onNavigate, onOpenProject }: { onNavigate: (v: Vi
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-xs font-medium">{fmtMoney(p.budget)}</TableCell>
                     <TableCell className="text-right tabular-nums text-xs">
-                      <div className="text-amber-600">{fmtMoney(p.actualCost)}</div>
+                      <div className="text-amber-700">{fmtMoney(p.actualCost)}</div>
                       <div className="text-[9px] text-muted-foreground">{p.budget ? ((p.actualCost/p.budget)*100).toFixed(0) : 0}%</div>
                     </TableCell>
                     <TableCell className="text-[11px]">{fmtDate(p.finishDate)}</TableCell>

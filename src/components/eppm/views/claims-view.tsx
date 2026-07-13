@@ -37,25 +37,25 @@ const CAT_COLORS = [
 ]
 
 const STATUS_COLOR: Record<string, string> = {
-  Approved:         'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
-  'Under Review':   'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
-  Submitted:        'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
-  Rejected:         'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
+  Approved:         'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900',
+  'Under Review':   'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50 dark:border-sky-900',
+  Submitted:        'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900',
+  Rejected:         'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-900',
   Withdrawn:        'text-slate-500 bg-muted border-border',
 }
 const DISPUTE_STATUS: Record<string, string> = {
-  Active:    'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50',
-  Resolved:  'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50',
-  Settled:   'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50',
-  Escalated: 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50',
+  Active:    'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50',
+  Resolved:  'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50',
+  Settled:   'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50',
+  Escalated: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50',
   Withdrawn: 'text-slate-500 bg-muted border-border',
 }
 const FORUM_COLOR: Record<string, string> = {
   DRB:          'text-violet-600 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-950/50',
-  Adjudication: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50',
-  Arbitration:  'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50',
-  Mediation:    'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50',
-  Negotiation:  'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50',
+  Adjudication: 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50',
+  Arbitration:  'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/50',
+  Mediation:    'text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-950/50',
+  Negotiation:  'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50',
 }
 
 interface Dispute {
@@ -194,7 +194,7 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="flex items-center gap-2 text-xl font-bold">
-              <Gavel className="h-5 w-5 text-amber-600" /> Claims &amp; Disputes
+              <Gavel className="h-5 w-5 text-amber-700" /> Claims &amp; Disputes
             </h1>
             <p className="mt-0.5 text-xs text-muted-foreground">Extensions of Time, Commercial Claims &amp; Dispute Resolution</p>
           </div>
@@ -271,9 +271,9 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                             <TableCell className="max-w-[180px] text-[11px]"><div className="truncate" title={e.title}>{e.title}</div></TableCell>
                             <TableCell className="text-[11px]"><Badge variant="outline" className="text-[9px]">{e.project?.code ?? e.project}</Badge></TableCell>
                             <TableCell className="text-[11px]">{e.type}</TableCell>
-                            <TableCell className="text-right text-[11px] font-bold tabular-nums">{e.timeImpact > 0 ? <span className="text-amber-600">{e.timeImpact}d</span> : <span className="text-muted-foreground">-</span>}</TableCell>
+                            <TableCell className="text-right text-[11px] font-bold tabular-nums">{e.timeImpact > 0 ? <span className="text-amber-700">{e.timeImpact}d</span> : <span className="text-muted-foreground">-</span>}</TableCell>
                             <TableCell className="text-[11px] text-muted-foreground">{e.cause ?? '-'}</TableCell>
-                            <TableCell className="text-[11px]">{e.criticalPath ? <span className="font-semibold text-rose-600">CP</span> : <span className="text-muted-foreground">-</span>}</TableCell>
+                            <TableCell className="text-[11px]">{e.criticalPath ? <span className="font-semibold text-rose-700">CP</span> : <span className="text-muted-foreground">-</span>}</TableCell>
                             <TableCell className="text-[11px] text-muted-foreground">{fmtDate(e.raisedDate)}</TableCell>
                             <TableCell><Badge variant="outline" className={cn('text-[9px]', STATUS_COLOR[e.status] ?? '')}>{e.status}</Badge></TableCell>
                           </TableRow>
@@ -305,9 +305,9 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                     <div className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">EOT Summary</div>
                     {[
                       { label: 'Total Requested', value: `${allEot.reduce((s: number, e: any) => s + (e.timeImpact || 0), 0)}d`, color: 'text-foreground' },
-                      { label: 'Days Approved',   value: `${daysApproved}d`,  color: 'text-emerald-600' },
-                      { label: 'Days Pending',    value: `${daysPending}d`,   color: 'text-amber-600' },
-                      { label: 'Critical Path',   value: `${allEot.filter((e: any) => e.criticalPath).length} requests`, color: 'text-rose-600' },
+                      { label: 'Days Approved',   value: `${daysApproved}d`,  color: 'text-emerald-700' },
+                      { label: 'Days Pending',    value: `${daysPending}d`,   color: 'text-amber-700' },
+                      { label: 'Critical Path',   value: `${allEot.filter((e: any) => e.criticalPath).length} requests`, color: 'text-rose-700' },
                     ].map(s => (
                       <div key={s.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{s.label}</span>
@@ -412,9 +412,9 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                     <div className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Claims Summary</div>
                     {[
                       { label: 'Total Lodged',   value: fmtMoney(totalClaimValue),    color: 'text-foreground' },
-                      { label: 'Approved Value', value: fmtMoney(approvedClaimValue), color: 'text-emerald-600' },
-                      { label: 'Pending Review', value: `${allClaims.filter((c: any) => c.status === 'Submitted' || c.status === 'Under Review').length} claims`, color: 'text-amber-600' },
-                      { label: 'Recovery Rate',  value: totalClaimValue > 0 ? `${((approvedClaimValue / totalClaimValue) * 100).toFixed(0)}%` : '-', color: 'text-sky-600' },
+                      { label: 'Approved Value', value: fmtMoney(approvedClaimValue), color: 'text-emerald-700' },
+                      { label: 'Pending Review', value: `${allClaims.filter((c: any) => c.status === 'Submitted' || c.status === 'Under Review').length} claims`, color: 'text-amber-700' },
+                      { label: 'Recovery Rate',  value: totalClaimValue > 0 ? `${((approvedClaimValue / totalClaimValue) * 100).toFixed(0)}%` : '-', color: 'text-sky-700' },
                     ].map(s => (
                       <div key={s.label} className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{s.label}</span>
@@ -487,8 +487,8 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
                         <span>Raised: <strong className="text-foreground">{fmtDate(d.raisedDate)}</strong></span>
-                        {d.hearingDate && <span>Hearing: <strong className="text-amber-600">{fmtDate(d.hearingDate)}</strong></span>}
-                        {d.resolvedDate && <span>Resolved: <strong className="text-emerald-600">{fmtDate(d.resolvedDate)}</strong></span>}
+                        {d.hearingDate && <span>Hearing: <strong className="text-amber-700">{fmtDate(d.hearingDate)}</strong></span>}
+                        {d.resolvedDate && <span>Resolved: <strong className="text-emerald-700">{fmtDate(d.resolvedDate)}</strong></span>}
                         <span className="col-span-2">Panel: <strong className="text-foreground">{d.panelMembers[0]}{d.panelMembers.length > 1 ? ` +${d.panelMembers.length - 1} more` : ''}</strong></span>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
@@ -505,7 +505,7 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   <CardHeader className="border-b pb-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="flex items-center gap-2 text-sm"><Gavel className="h-4 w-4 text-amber-600" /> {selectedDispute.id}</CardTitle>
+                        <CardTitle className="flex items-center gap-2 text-sm"><Gavel className="h-4 w-4 text-amber-700" /> {selectedDispute.id}</CardTitle>
                         <CardDescription className="mt-0.5 text-xs">{selectedDispute.forum} proceeding</CardDescription>
                       </div>
                       <div className="flex gap-1.5">
@@ -552,10 +552,10 @@ export function ClaimsView({ onNavigate }: { onNavigate: (v: View) => void }) {
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                   {[
                     { label: 'Total Referred',      value: DISPUTES.length,                                                                 color: 'text-foreground' },
-                    { label: 'Active / Escalated',  value: activeDisputes.length,                                                            color: 'text-amber-600' },
-                    { label: 'Settled / Resolved',  value: DISPUTES.filter(d => d.status === 'Settled' || d.status === 'Resolved').length,  color: 'text-emerald-600' },
+                    { label: 'Active / Escalated',  value: activeDisputes.length,                                                            color: 'text-amber-700' },
+                    { label: 'Settled / Resolved',  value: DISPUTES.filter(d => d.status === 'Settled' || d.status === 'Resolved').length,  color: 'text-emerald-700' },
                     { label: 'Value in Dispute',    value: fmtMoney(totalDisputeValue),                                                     color: 'text-violet-600' },
-                    { label: 'Avg Resolution',      value: '48d',                                                                           color: 'text-sky-600' },
+                    { label: 'Avg Resolution',      value: '48d',                                                                           color: 'text-sky-700' },
                   ].map(s => (
                     <div key={s.label} className="text-center">
                       <div className={cn('text-xl font-bold tabular-nums', s.color)}>{s.value}</div>

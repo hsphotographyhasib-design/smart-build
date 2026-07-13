@@ -91,11 +91,11 @@ export function WorkforceView({ onNavigate }: { onNavigate: (v: View) => void })
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {[
             { l: 'Total Workforce', v: fmtNum(totalWorkforce), i: Users, t: 'text-foreground', bg: 'bg-muted/50 text-muted-foreground' },
-            { l: 'Allocated', v: fmtNum(allocated), i: HardHat, t: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
-            { l: 'Available', v: fmtNum(available), i: CheckCircle2, t: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600' },
+            { l: 'Allocated', v: fmtNum(allocated), i: HardHat, t: 'text-emerald-700', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700' },
+            { l: 'Available', v: fmtNum(available), i: CheckCircle2, t: 'text-sky-700', bg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700' },
             { l: 'Active Crews', v: fmtNum(CREWS.filter(c => c.status === 'Active').length), i: TrendingUp, t: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600' },
-            { l: 'Avg Competency', v: `${avgComp}%`, i: Award, t: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600' },
-            { l: 'Overtime Hrs/wk', v: fmtNum(overtime), i: AlertTriangle, t: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
+            { l: 'Avg Competency', v: `${avgComp}%`, i: Award, t: 'text-amber-700', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700' },
+            { l: 'Overtime Hrs/wk', v: fmtNum(overtime), i: AlertTriangle, t: 'text-rose-700', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700' },
           ].map(s => (
             <Card key={s.l} className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
@@ -143,10 +143,10 @@ export function WorkforceView({ onNavigate }: { onNavigate: (v: View) => void })
                           <TableCell><Badge variant="secondary" className="text-[9px]">{c.type}</Badge></TableCell>
                           <TableCell className="font-mono text-[10px] text-muted-foreground">{c.projectCode === '—' ? '—' : c.projectCode.replace('PRJ-','')}</TableCell>
                           <TableCell className="text-right text-[11px] tabular-nums font-medium">{c.size}</TableCell>
-                          <TableCell className="text-right text-[11px] tabular-nums"><span className={c.allocated === c.size ? 'text-emerald-600 font-medium' : ''}>{c.allocated}</span></TableCell>
+                          <TableCell className="text-right text-[11px] tabular-nums"><span className={c.allocated === c.size ? 'text-emerald-700 font-medium' : ''}>{c.allocated}</span></TableCell>
                           <TableCell><Badge variant="outline" className="text-[9px]">{c.shift}</Badge></TableCell>
                           <TableCell><div className="flex items-center gap-1"><div className="h-1.5 w-8 rounded-full bg-muted overflow-hidden"><div className={cn('h-full', c.competency >= 90 ? 'bg-emerald-500' : c.competency >= 80 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${c.competency}%` }} /></div><span className="text-[9px] tabular-nums">{c.competency}</span></div></TableCell>
-                          <TableCell className={cn('text-right text-[10px] tabular-nums', c.overtime > 10 ? 'text-rose-600 font-medium' : c.overtime > 0 ? 'text-amber-600' : 'text-muted-foreground')}>{c.overtime}</TableCell>
+                          <TableCell className={cn('text-right text-[10px] tabular-nums', c.overtime > 10 ? 'text-rose-700 font-medium' : c.overtime > 0 ? 'text-amber-700' : 'text-muted-foreground')}>{c.overtime}</TableCell>
                           <TableCell><Badge variant="outline" className={cn('text-[9px]', statusColor(c.status))}>{c.status}</Badge></TableCell>
                           <TableCell className="text-[10px] text-muted-foreground">{c.foreman}</TableCell>
                         </TableRow>
@@ -178,7 +178,7 @@ export function WorkforceView({ onNavigate }: { onNavigate: (v: View) => void })
                             <CompCell v={r.technical} />
                             <CompCell v={r.quality} />
                             <CompCell v={r.productivity} />
-                            <TableCell className="text-right"><Badge variant="outline" className={cn('text-[10px] font-bold', overall >= 90 ? 'border-emerald-300 text-emerald-600' : overall >= 85 ? 'border-amber-300 text-amber-600' : 'border-rose-300 text-rose-600')}>{overall}</Badge></TableCell>
+                            <TableCell className="text-right"><Badge variant="outline" className={cn('text-[10px] font-bold', overall >= 90 ? 'border-emerald-300 text-emerald-700' : overall >= 85 ? 'border-amber-300 text-amber-700' : 'border-rose-300 text-rose-700')}>{overall}</Badge></TableCell>
                           </TableRow>
                         )
                       })}
@@ -234,7 +234,7 @@ export function WorkforceView({ onNavigate }: { onNavigate: (v: View) => void })
               <div className="space-y-4">
                 <Card className="bg-gradient-to-br from-primary/5 to-card">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-emerald-600" /><span className="text-sm font-semibold">Utilisation Health</span></div>
+                    <div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-emerald-700" /><span className="text-sm font-semibold">Utilisation Health</span></div>
                     <div className="text-3xl font-bold">{Math.round((allocated / totalWorkforce) * 100)}%</div>
                     <div className="text-[11px] text-muted-foreground mt-0.5">{allocated} of {totalWorkforce} workers deployed</div>
                     <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: `${(allocated / totalWorkforce) * 100}%` }} /></div>
@@ -246,7 +246,7 @@ export function WorkforceView({ onNavigate }: { onNavigate: (v: View) => void })
                     {CREWS.filter(c => c.overtime > 5).sort((a,b) => b.overtime - a.overtime).map(c => (
                       <div key={c.id} className="flex items-center justify-between text-xs">
                         <span className="truncate flex-1">{c.name}</span>
-                        <Badge variant="outline" className={cn('text-[9px] ml-2', c.overtime > 10 ? 'border-rose-300 text-rose-600' : 'border-amber-300 text-amber-600')}>+{c.overtime}h</Badge>
+                        <Badge variant="outline" className={cn('text-[9px] ml-2', c.overtime > 10 ? 'border-rose-300 text-rose-700' : 'border-amber-300 text-amber-700')}>+{c.overtime}h</Badge>
                       </div>
                     ))}
                   </CardContent>

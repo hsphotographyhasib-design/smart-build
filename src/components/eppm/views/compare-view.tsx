@@ -59,15 +59,15 @@ export function CompareView({ onNavigate }: { onNavigate: (v: View) => void }) {
     { label: 'Health', key: 'health', render: p => <Badge variant="outline" className={`text-[10px] ${healthColor(p.health)}`}>{p.health}</Badge>, best: () => selectedProjects[0], better: 'high' },
     { label: 'Progress', key: 'progress', render: p => fmtPct(p.progress), best: ps => ps.reduce((a, b) => a.progress > b.progress ? a : b), better: 'high' },
     { label: 'Budget', key: 'budget', render: p => fmtMoney(p.budget), best: ps => ps.reduce((a, b) => a.budget > b.budget ? a : b), better: 'high' },
-    { label: 'Actual Cost', key: 'actualCost', render: p => <span className="text-amber-600">{fmtMoney(p.actualCost)}</span>, best: ps => ps.reduce((a, b) => a.actualCost < b.actualCost ? a : b), better: 'low' },
+    { label: 'Actual Cost', key: 'actualCost', render: p => <span className="text-amber-700">{fmtMoney(p.actualCost)}</span>, best: ps => ps.reduce((a, b) => a.actualCost < b.actualCost ? a : b), better: 'low' },
     { label: 'Committed', key: 'committedCost', render: p => fmtMoney(p.committedCost), best: ps => ps.reduce((a, b) => a.committedCost < b.committedCost ? a : b), better: 'low' },
-    { label: 'Forecast (EAC)', key: 'forecastCost', render: p => <span className="text-rose-600">{fmtMoney(p.forecastCost)}</span>, best: ps => ps.reduce((a, b) => a.forecastCost < b.forecastCost ? a : b), better: 'low' },
-    { label: 'Cost Variance', key: 'cv', render: p => { const cv = p.budget - p.forecastCost; return <span className={cv >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{cv >= 0 ? '+' : ''}{fmtMoney(cv)}</span> }, best: ps => ps.reduce((a, b) => (a.budget - a.forecastCost) > (b.budget - b.forecastCost) ? a : b), better: 'high' },
+    { label: 'Forecast (EAC)', key: 'forecastCost', render: p => <span className="text-rose-700">{fmtMoney(p.forecastCost)}</span>, best: ps => ps.reduce((a, b) => a.forecastCost < b.forecastCost ? a : b), better: 'low' },
+    { label: 'Cost Variance', key: 'cv', render: p => { const cv = p.budget - p.forecastCost; return <span className={cv >= 0 ? 'text-emerald-700' : 'text-rose-700'}>{cv >= 0 ? '+' : ''}{fmtMoney(cv)}</span> }, best: ps => ps.reduce((a, b) => (a.budget - a.forecastCost) > (b.budget - b.forecastCost) ? a : b), better: 'high' },
     { label: 'Revenue', key: 'revenue', render: p => fmtMoney(p.revenue), best: ps => ps.reduce((a, b) => a.revenue > b.revenue ? a : b), better: 'high' },
-    { label: 'Gross Profit', key: 'profit', render: p => { const gp = p.revenue - p.forecastCost; return <span className={gp >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{fmtMoney(gp)}</span> }, best: ps => ps.reduce((a, b) => (a.revenue - a.forecastCost) > (b.revenue - b.forecastCost) ? a : b), better: 'high' },
+    { label: 'Gross Profit', key: 'profit', render: p => { const gp = p.revenue - p.forecastCost; return <span className={gp >= 0 ? 'text-emerald-700' : 'text-rose-700'}>{fmtMoney(gp)}</span> }, best: ps => ps.reduce((a, b) => (a.revenue - a.forecastCost) > (b.revenue - b.forecastCost) ? a : b), better: 'high' },
     { label: 'Margin %', key: 'margin', render: p => <span className="font-medium">{p.revenue ? (((p.revenue - p.forecastCost) / p.revenue) * 100).toFixed(1) : '0'}%</span>, best: ps => ps.reduce((a, b) => marginPct(a) > marginPct(b) ? a : b), better: 'high' },
     { label: 'Spend %', key: 'spendPct', render: p => <span>{p.budget ? ((p.actualCost / p.budget) * 100).toFixed(0) : 0}%</span>, best: ps => ps.reduce((a, b) => spendPct(a) < spendPct(b) ? a : b), better: 'low' },
-    { label: 'Finish Slip', key: 'slip', render: p => { const s = slipDays(p); return <Badge variant="outline" className={s > 0 ? 'text-[9px] text-rose-600 border-rose-200' : 'text-[9px] text-emerald-600 border-emerald-200'}>{s > 0 ? '+' : ''}{s}d</Badge> }, best: ps => ps.reduce((a, b) => slipDays(a) < slipDays(b) ? a : b), better: 'low' },
+    { label: 'Finish Slip', key: 'slip', render: p => { const s = slipDays(p); return <Badge variant="outline" className={s > 0 ? 'text-[9px] text-rose-700 border-rose-200' : 'text-[9px] text-emerald-700 border-emerald-200'}>{s > 0 ? '+' : ''}{s}d</Badge> }, best: ps => ps.reduce((a, b) => slipDays(a) < slipDays(b) ? a : b), better: 'low' },
     { label: 'Start', key: 'start', render: p => <span className="text-xs">{fmtDate(p.startDate)}</span>, best: () => selectedProjects[0], better: 'high' },
     { label: 'Finish', key: 'finish', render: p => <span className="text-xs">{fmtDate(p.finishDate)}</span>, best: () => selectedProjects[0], better: 'high' },
   ]
@@ -233,7 +233,7 @@ export function CompareView({ onNavigate }: { onNavigate: (v: View) => void }) {
                               {selectedProjects.map(p => (
                                 <td key={p.id} className={cn('px-4 py-2 text-right text-xs tabular-nums', p.id === best.id && 'bg-primary/5 font-semibold')}>
                                   <div className="inline-flex items-center gap-1 justify-end">
-                                    {p.id === best.id && <ArrowUpDown className="h-3 w-3 text-emerald-600" style={{ transform: row.better === 'high' ? 'none' : 'scaleY(-1)' }} />}
+                                    {p.id === best.id && <ArrowUpDown className="h-3 w-3 text-emerald-700" style={{ transform: row.better === 'high' ? 'none' : 'scaleY(-1)' }} />}
                                     {row.render(p)}
                                   </div>
                                 </td>
@@ -255,10 +255,10 @@ export function CompareView({ onNavigate }: { onNavigate: (v: View) => void }) {
                   const byCostCtrl = [...selectedProjects].sort((a, b) => spendPct(a) - spendPct(b))
                   const bySchedule = [...selectedProjects].sort((a, b) => slipDays(a) - slipDays(b))
                   const cards = [
-                    { label: 'Highest Margin', project: byProfit[0], value: fmtMoney(byProfit[0].revenue - byProfit[0].forecastCost), tone: 'text-emerald-600', icon: TrendingUp },
-                    { label: 'Most Progress', project: byProgress[0], value: fmtPct(byProgress[0].progress), tone: 'text-sky-600', icon: TrendingUp },
-                    { label: 'Best Cost Control', project: byCostCtrl[0], value: `${spendPct(byCostCtrl[0]).toFixed(0)}% spent`, tone: 'text-emerald-600', icon: TrendingDown },
-                    { label: 'Best Schedule', project: bySchedule[0], value: `${slipDays(bySchedule[0]) >= 0 ? '+' : ''}${slipDays(bySchedule[0])}d slip`, tone: slipDays(bySchedule[0]) <= 0 ? 'text-emerald-600' : 'text-amber-600', icon: slipDays(bySchedule[0]) <= 0 ? TrendingUp : Minus },
+                    { label: 'Highest Margin', project: byProfit[0], value: fmtMoney(byProfit[0].revenue - byProfit[0].forecastCost), tone: 'text-emerald-700', icon: TrendingUp },
+                    { label: 'Most Progress', project: byProgress[0], value: fmtPct(byProgress[0].progress), tone: 'text-sky-700', icon: TrendingUp },
+                    { label: 'Best Cost Control', project: byCostCtrl[0], value: `${spendPct(byCostCtrl[0]).toFixed(0)}% spent`, tone: 'text-emerald-700', icon: TrendingDown },
+                    { label: 'Best Schedule', project: bySchedule[0], value: `${slipDays(bySchedule[0]) >= 0 ? '+' : ''}${slipDays(bySchedule[0])}d slip`, tone: slipDays(bySchedule[0]) <= 0 ? 'text-emerald-700' : 'text-amber-700', icon: slipDays(bySchedule[0]) <= 0 ? TrendingUp : Minus },
                   ]
                   return cards.map(c => (
                     <Card key={c.label} className="relative overflow-hidden">

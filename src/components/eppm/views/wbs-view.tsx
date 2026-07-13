@@ -101,7 +101,7 @@ export function WbsView({ projectId, onNavigate }: { projectId: string | null; o
                       <span className="text-right text-[10px] tabular-nums text-muted-foreground">{node.weight.toFixed(0)}%</span>
                       <div className="flex items-center gap-1.5"><Progress value={node.progress} className="h-1.5 flex-1" /><span className="text-[9px] tabular-nums w-7 text-right">{node.progress.toFixed(0)}</span></div>
                       <span className="text-right text-[10px] tabular-nums font-medium">{fmtMoney(node.budget)}</span>
-                      <span className="text-right text-[10px] tabular-nums text-amber-600">{fmtMoney(node.actualCost)}</span>
+                      <span className="text-right text-[10px] tabular-nums text-amber-700">{fmtMoney(node.actualCost)}</span>
                       <span className="text-[10px] text-muted-foreground">{fmtDate(node.startDate)}</span>
                       <span className="text-[10px] text-muted-foreground">{fmtDate(node.finishDate)}</span>
                     </div>

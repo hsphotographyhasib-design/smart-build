@@ -131,10 +131,10 @@ export function AiPlannerView({ onNavigate }: { onNavigate: (v: View) => void })
           <CardHeader className="pb-2"><CardTitle className="text-sm">AI Capabilities</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {[
-              { icon: GitBranch, title: 'Schedule Optimiser', desc: 'Re-sequencing & float analysis', color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40' },
-              { icon: AlertTriangle, title: 'Delay Prediction', desc: 'Early warning on slipping tasks', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40' },
-              { icon: TrendingUp, title: 'Cost Forecast', desc: 'EAC & cash-flow projection', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
-              { icon: Zap, title: 'Resource Optimisation', desc: 'Leveling & crew balancing', color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40' },
+              { icon: GitBranch, title: 'Schedule Optimiser', desc: 'Re-sequencing & float analysis', color: 'text-rose-700 bg-rose-50 dark:bg-rose-950/40' },
+              { icon: AlertTriangle, title: 'Delay Prediction', desc: 'Early warning on slipping tasks', color: 'text-amber-700 bg-amber-50 dark:bg-amber-950/40' },
+              { icon: TrendingUp, title: 'Cost Forecast', desc: 'EAC & cash-flow projection', color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40' },
+              { icon: Zap, title: 'Resource Optimisation', desc: 'Leveling & crew balancing', color: 'text-sky-700 bg-sky-50 dark:bg-sky-950/40' },
               { icon: Sparkles, title: 'Auto Recovery Plan', desc: 'Generate crash/recovery schedules', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/40' },
             ].map(c => (
               <div key={c.title} className="flex items-center gap-2.5 rounded-lg border p-2.5">
@@ -151,8 +151,8 @@ export function AiPlannerView({ onNavigate }: { onNavigate: (v: View) => void })
             {dash ? <>
               <div className="flex justify-between"><span className="text-muted-foreground">Projects</span><span className="font-semibold">{dash.kpis.projects}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Activities</span><span className="font-semibold">{dash.kpis.activities}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Critical path</span><span className="font-semibold text-rose-600">{dash.kpis.criticalActivities}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Open risks</span><span className="font-semibold text-amber-600">{dash.kpis.openRisks}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Critical path</span><span className="font-semibold text-rose-700">{dash.kpis.criticalActivities}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Open risks</span><span className="font-semibold text-amber-700">{dash.kpis.openRisks}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Portfolio budget</span><span className="font-semibold">${(dash.kpis.totalBudget/1e6).toFixed(0)}M</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Avg progress</span><span className="font-semibold">{dash.kpis.avgProgress.toFixed(1)}%</span></div>
             </> : <div className="text-muted-foreground">Loading…</div>}

@@ -39,10 +39,10 @@ const TEMPLATES: (Template & { exportType?: 'projects' | 'activities' | 'risks' 
 
 const FORMAT_ICON: Record<string, any> = { PDF: FileText, Excel: FileSpreadsheet, CSV: FileChartColumn, PPT: Presentation }
 const COLOR_MAP: Record<string, string> = {
-  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border-emerald-200 dark:border-emerald-900',
-  amber: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border-amber-200 dark:border-amber-900',
-  rose: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 border-rose-200 dark:border-rose-900',
-  sky: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 border-sky-200 dark:border-sky-900',
+  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 border-emerald-200 dark:border-emerald-900',
+  amber: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 border-amber-200 dark:border-amber-900',
+  rose: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 border-rose-200 dark:border-rose-900',
+  sky: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 border-sky-200 dark:border-sky-900',
   violet: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600 border-violet-200 dark:border-violet-900',
 }
 
@@ -68,8 +68,8 @@ const RECENT: RecentReport[] = [
 ]
 
 const fmtBadge = (s: string) =>
-  s === 'Ready' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
-  : s === 'Generating' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
+  s === 'Ready' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/50 dark:border-emerald-900'
+  : s === 'Generating' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/50 dark:border-amber-900'
   : 'text-muted-foreground bg-muted border-border'
 
 export function ReportsView({ onNavigate }: { onNavigate: (v: View) => void }) {
@@ -274,7 +274,7 @@ export function ReportsView({ onNavigate }: { onNavigate: (v: View) => void }) {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Total Reports Generated</div><div className="text-2xl font-bold">{fmtNum(148, 0)}</div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Scheduled Reports</div><div className="text-2xl font-bold text-sky-600">{fmtNum(12, 0)}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Scheduled Reports</div><div className="text-2xl font-bold text-sky-700">{fmtNum(12, 0)}</div></CardContent></Card>
         <Card><CardContent className="p-4"><div className="text-[11px] uppercase text-muted-foreground">Storage Used</div><div className="text-2xl font-bold text-violet-600">{fmtNum(2.4, 1)} GB</div></CardContent></Card>
       </div>
     </div>

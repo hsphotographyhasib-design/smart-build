@@ -39,10 +39,10 @@ export function ActivitiesView({ onNavigate }: { onNavigate: (v: View) => void }
       <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
         {[
           { l: 'Total Activities', v: data.activities.length, i: Clock, t: 'text-foreground' },
-          { l: 'Critical', v: data.criticalActivities.length, i: GitBranch, t: 'text-rose-600' },
-          { l: 'Delayed', v: data.delayedActivities.length, i: AlertTriangle, t: 'text-amber-600' },
-          { l: 'In Progress', v: data.activities.filter(a => a.status === 'In Progress').length, i: Clock, t: 'text-sky-600' },
-          { l: 'Completed', v: data.activities.filter(a => a.status === 'Completed').length, i: Clock, t: 'text-emerald-600' },
+          { l: 'Critical', v: data.criticalActivities.length, i: GitBranch, t: 'text-rose-700' },
+          { l: 'Delayed', v: data.delayedActivities.length, i: AlertTriangle, t: 'text-amber-700' },
+          { l: 'In Progress', v: data.activities.filter(a => a.status === 'In Progress').length, i: Clock, t: 'text-sky-700' },
+          { l: 'Completed', v: data.activities.filter(a => a.status === 'Completed').length, i: Clock, t: 'text-emerald-700' },
         ].map(s => (
           <Card key={s.l}><CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -97,9 +97,9 @@ export function ActivitiesView({ onNavigate }: { onNavigate: (v: View) => void }
                     <TableCell><span className="text-[10px]">{a.type}</span></TableCell>
                     <TableCell><Badge variant="outline" className={`text-[9px] ${statusColor(a.status)}`}>{a.status}</Badge></TableCell>
                     <TableCell className="text-[10px] tabular-nums">{a.duration}d</TableCell>
-                    <TableCell className="text-[10px] tabular-nums text-amber-600">{a.remainingDur}d</TableCell>
+                    <TableCell className="text-[10px] tabular-nums text-amber-700">{a.remainingDur}d</TableCell>
                     <TableCell><div className="flex items-center gap-1"><div className="h-1.5 w-10 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary" style={{ width: `${a.progress}%` }} /></div><span className="text-[9px] tabular-nums">{a.progress.toFixed(0)}</span></div></TableCell>
-                    <TableCell className={cn('text-[10px] tabular-nums font-medium', a.totalFloat === 0 ? 'text-rose-600' : 'text-muted-foreground')}>{a.totalFloat}d</TableCell>
+                    <TableCell className={cn('text-[10px] tabular-nums font-medium', a.totalFloat === 0 ? 'text-rose-700' : 'text-muted-foreground')}>{a.totalFloat}d</TableCell>
                     <TableCell className="text-[10px]">{fmtDate(a.startDate)}</TableCell>
                     <TableCell className="text-[10px]">{fmtDate(a.finishDate)}</TableCell>
                     <TableCell className="text-[10px] text-muted-foreground">{a.responsible ?? '—'}</TableCell>
