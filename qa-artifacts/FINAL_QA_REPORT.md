@@ -19,7 +19,7 @@ behind canonical-registry-only networks (lockfile pinned `registry.npmjs.com`).
 | Bug | Fix | Commit |
 |---|---|---|
 | Sonner toasts never rendered — no `<Toaster/>` for sonner was mounted; login/register/OTP errors and all workflow feedback across 8 files were invisible | Mount sonner Toaster in root layout | `63e11e5` |
-| `bun run start` could never work: no `output: "standalone"` in next.config while start script + `.zscripts/build.sh` both expect `.next/standalone/server.js` | Emit standalone output; start script stages static assets | `2bb4a5a`* |
+| `bun run start` could never work: no `output: "standalone"` in next.config while start script + `.zscripts/build.sh` both expect `.next/standalone/server.js` | Emit standalone output; start script stages static assets | `7ce2859` |
 | `manifest.json`, `icon.svg` and all icons were auth-gated by middleware (redirected to `/login`) — broken PWA install/crawlers | Middleware matcher exempts static-file extensions | `63e11e5` |
 | `/favicon.ico` + every icon referenced by layout metadata/manifest was missing (404 on every page load) | Generated full icon set + og-image from `icon.svg` | `63e11e5` |
 | `bun.lock` pinned tarballs to non-canonical `registry.npmjs.com` — installs fail on canonical-only egress | Rewritten to `registry.npmjs.org` | `c46133b` |
@@ -39,8 +39,6 @@ behind canonical-registry-only networks (lockfile pinned `registry.npmjs.com`).
 | `aria-progressbar-name` | every `<Progress/>` | default aria-label in ui primitive | `63e11e5` |
 | `scrollable-region-focusable` | tables, scroll areas, admin lists | `tabIndex={0}` in ui primitives + flagged divs | `63e11e5` |
 | `svg-img-alt` | dashboard pie charts | aria-label per `<Cell>` | `63e11e5` |
-
-\* final commit hash — see `git log` on the branch.
 
 ## 3. Final test results
 
