@@ -708,26 +708,60 @@ model MilestonePayment {
 }
 
 model Notification {
-  id          String    @id @default(uuid())
-  userId      String
-  type        String
-  title       String
-  message     String    @db.Text
-  data        String?   @db.Text
-  link        String?
-  category    String?
-  priority    String    @default("normal")
-  isRead      Boolean   @default(false)
-  deliveredAt DateTime?
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String             @id @default(uuid())
+  userId        String
+  type          String
+  title         String
+  message       String             @db.Text
+  data          String?            @db.Text
+  link          String?
+  category      String?
+  priority      String             @default("normal")
+  companyId     String?
+  branchId      String?
+  module        String?
+  referenceType String?
+  referenceId   String?
+  createdBy     String?
+  isRead        Boolean            @default(false)
+  readAt        DateTime?
+  clickedAt     DateTime?
+  dismissedAt   DateTime?
+  deliveredAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt @default(now())
+  deletedAt     DateTime?
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reads         NotificationRead[]
 
   @@index([createdAt])
   @@index([isRead])
   @@index([userId])
   @@index([category])
   @@index([priority])
+  @@index([userId, isRead, deletedAt])
+  @@index([userId, deletedAt, createdAt])
+}
+
+model NotificationRead {
+  id             String       @id @default(uuid())
+  notificationId String
+  userId         String
+  read           Boolean      @default(true)
+  readAt         DateTime     @default(now())
+  clickedAt      DateTime?
+  dismissedAt    DateTime?
+  deviceId       String?
+  browser        String?
+  ipAddress      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId, userId])
+  @@index([userId, read])
 }
 
 model NotificationPreference {
@@ -1331,6 +1365,7 @@ model User {
   LeaveRequest_LeaveRequest_userIdToUser             LeaveRequest[]          @relation("LeaveRequest_userIdToUser")
   notification                                       Notification[]
   notificationPreference                             NotificationPreference?
+  notificationRead                                   NotificationRead[]
   OpenItem_OpenItem_createdByIdToUser                OpenItem[]              @relation("OpenItem_createdByIdToUser")
   projectMember                                      ProjectMember[]
   projectTask                                        ProjectTask[]

@@ -752,7 +752,13 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   }},
 
   // ============ NOTIFICATIONS ============
-  { pattern: '/api/notifications', methods: { GET: ['*'] }},
+  { pattern: '/api/notifications', methods: { GET: ['*'], POST: ['*'], PATCH: ['*'], DELETE: ['*'] }},
+  { pattern: '/api/v1/notifications', methods: { GET: ['*'], POST: ['*'], PATCH: ['*'], DELETE: ['*'] }},
+  { pattern: '/api/v1/notifications/unread-count', methods: { GET: ['*'] }},
+  { pattern: '/api/v1/notifications/read-all', methods: { PATCH: ['*'], POST: ['*'] }},
+  { pattern: '/api/v1/notifications/:id/read', methods: { PATCH: ['*'], POST: ['*'] }},
+  { pattern: '/api/v1/notifications/:id/unread', methods: { PATCH: ['*'], POST: ['*'] }},
+  { pattern: '/api/v1/notifications/:id', methods: { GET: ['*'], PATCH: ['*'], DELETE: ['*'] }},
 ]
 
 /**
