@@ -1,0 +1,329 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-inter: var(--font-inter);
+  --font-poppins: var(--font-poppins);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Corporate brand tokens */
+  --color-corp-green: #1B5E20;
+  --color-corp-green-light: #2E7D32;
+  --color-corp-gold: #C8962E;
+  --color-corp-gold-light: #D4A843;
+  --color-corp-charcoal: #1A1A2E;
+  --color-corp-charcoal-light: #2D2D44;
+  --color-corp-white: #FAFAFA;
+  --color-corp-offwhite: #F5F5F0;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* ── App-shell layout tokens (single source of truth) ──────────────
+     Header and floating nav are separate sticky layers; content offset
+     is derived from these — never hardcode page-level top spacing. */
+  --header-h: 4rem;            /* 64px mobile */
+  --nav-gap: 1rem;             /* 16px gap between header and floating nav */
+  --content-gap: 1.5rem;       /* 24px gap between floating nav and content */
+  --subnav-h: 3.25rem;         /* 52px floating category strip (desktop) */
+
+  /* ── Z-index scale — the ONLY sanctioned layer values ──────────────
+     content(0) < cards(10) < sticky-table(20) < floating-nav(30)
+     < header(40) < bottom-nav(45) < overlay/dropdown/modal(50)
+     < toast(100) */
+  --z-content: 0;
+  --z-card: 10;
+  --z-sticky: 20;
+  --z-nav: 30;
+  --z-header: 40;
+  --z-bottom-nav: 45;
+  --z-overlay: 50;
+  --z-toast: 100;
+  /* Light — warm neutral surface with deep slate ink */
+  --background: oklch(0.985 0.004 120);
+  --foreground: oklch(0.18 0.02 165);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 165);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 165);
+  /* Primary: deep emerald-slate enterprise accent */
+  --primary: oklch(0.45 0.09 165);
+  --primary-foreground: oklch(0.985 0.005 165);
+  --secondary: oklch(0.96 0.008 150);
+  --secondary-foreground: oklch(0.28 0.03 165);
+  --muted: oklch(0.965 0.006 150);
+  --muted-foreground: oklch(0.5 0.015 165);
+  --accent: oklch(0.94 0.03 145);
+  --accent-foreground: oklch(0.3 0.05 165);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.91 0.008 150);
+  --input: oklch(0.93 0.008 150);
+  --ring: oklch(0.45 0.09 165);
+  /* Chart palette: emerald, amber, rose, teal, violet-warm */
+  --chart-1: oklch(0.55 0.12 162);
+  --chart-2: oklch(0.7 0.16 80);
+  --chart-3: oklch(0.6 0.2 25);
+  --chart-4: oklch(0.62 0.1 195);
+  --chart-5: oklch(0.65 0.18 305);
+  /* Sidebar: dark slate-emerald (enterprise command center) */
+  --sidebar: oklch(0.21 0.02 175);
+  --sidebar-foreground: oklch(0.93 0.01 165);
+  --sidebar-primary: oklch(0.6 0.13 162);
+  --sidebar-primary-foreground: oklch(0.985 0.005 165);
+  --sidebar-accent: oklch(0.27 0.025 175);
+  --sidebar-accent-foreground: oklch(0.95 0.01 165);
+  --sidebar-border: oklch(0.3 0.02 175);
+  --sidebar-ring: oklch(0.6 0.13 162);
+}
+
+.dark {
+  --background: oklch(0.16 0.015 175);
+  --foreground: oklch(0.96 0.005 165);
+  --card: oklch(0.21 0.02 175);
+  --card-foreground: oklch(0.96 0.005 165);
+  --popover: oklch(0.22 0.02 175);
+  --popover-foreground: oklch(0.96 0.005 165);
+  --primary: oklch(0.7 0.13 162);
+  --primary-foreground: oklch(0.16 0.02 175);
+  --secondary: oklch(0.27 0.02 175);
+  --secondary-foreground: oklch(0.96 0.005 165);
+  --muted: oklch(0.25 0.015 175);
+  --muted-foreground: oklch(0.7 0.015 165);
+  --accent: oklch(0.3 0.025 175);
+  --accent-foreground: oklch(0.96 0.005 165);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.7 0.13 162);
+  --chart-1: oklch(0.65 0.14 162);
+  --chart-2: oklch(0.72 0.16 80);
+  --chart-3: oklch(0.65 0.21 25);
+  --chart-4: oklch(0.66 0.11 195);
+  --chart-5: oklch(0.68 0.18 305);
+  --sidebar: oklch(0.18 0.02 175);
+  --sidebar-foreground: oklch(0.93 0.01 165);
+  --sidebar-primary: oklch(0.7 0.13 162);
+  --sidebar-primary-foreground: oklch(0.985 0.005 165);
+  --sidebar-accent: oklch(0.26 0.025 175);
+  --sidebar-accent-foreground: oklch(0.95 0.01 165);
+  --sidebar-border: oklch(0.3 0.02 175);
+  --sidebar-ring: oklch(0.7 0.13 162);
+}
+
+/* Taller two-row header from the laptop breakpoint up */
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.5rem; /* 72px desktop — enterprise header band */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    /* Anchored scrolls land below the sticky header + floating nav */
+    scroll-padding-top: calc(var(--header-h) + var(--nav-gap) + var(--subnav-h) + var(--content-gap));
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    /* Hard stop for stray horizontal overflow on any page */
+    overflow-x: clip;
+  }
+}
+
+@layer utilities {
+  /* Custom thin scrollbar for data-dense panels */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--muted-foreground) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--muted-foreground) 8%, transparent) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Fluid typography — page titles scale with viewport, no breakpoint jumps */
+  .text-fluid-title {
+    font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+    line-height: 1.2;
+  }
+  .text-fluid-subtitle {
+    font-size: clamp(0.8125rem, 0.76rem + 0.25vw, 0.9375rem);
+  }
+  /* WCAG 2.5.5 minimum touch target (44×44px) */
+  .tap-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* =============================================
+   Corporate Brand Styles — Hasanur Jaya
+   ============================================= */
+
+@layer base {
+  :root {
+    --corp-green: #1B5E20;
+    --corp-green-dark: #0D3B10;
+    --corp-green-light: #2E7D32;
+    --corp-gold: #C8962E;
+    --corp-gold-light: #D4A843;
+    --corp-charcoal: #1A1A2E;
+    --corp-charcoal-light: #2D2D44;
+    --corp-white: #FAFAFA;
+    --corp-offwhite: #F5F5F0;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-poppins), sans-serif;
+  }
+  .font-body {
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .glass-dark {
+    background: rgba(26, 26, 46, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--corp-gold), var(--corp-gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gold accent underline */
+  .gold-underline {
+    position: relative;
+  }
+  .gold-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--corp-gold);
+    border-radius: 2px;
+  }
+  .gold-underline-center::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Hero overlay */
+  .hero-overlay {
+    background: linear-gradient(
+      135deg,
+      rgba(13, 59, 16, 0.92) 0%,
+      rgba(26, 26, 46, 0.85) 50%,
+      rgba(13, 59, 16, 0.7) 100%
+    );
+  }
+
+  /* Image overlay for cards */
+  .card-overlay {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.85) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Section spacing */
+  .section-padding {
+    padding: 6rem 1rem;
+  }
+  @media (min-width: 1024px) {
+    .section-padding {
+      padding: 8rem 2rem;
+    }
+  }
+
+  /* Container */
+  .container-corp {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    .container-corp {
+      padding: 0 2rem;
+    }
+  }
+}
