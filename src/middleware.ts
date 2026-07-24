@@ -73,13 +73,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Root — redirect based on auth status
+  // Root — landing page for guests, redirect auth'd users to their dashboard
   if (pathname === '/') {
     if (session) {
       const dest = isSuperAdminRole(session.role) ? '/platform' : '/app'
       return NextResponse.redirect(new URL(dest, req.url))
     }
-    return NextResponse.redirect(new URL('/login', req.url))
+    return NextResponse.next()
   }
 
   // /app routes — require tenant user session
