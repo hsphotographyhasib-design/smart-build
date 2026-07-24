@@ -1,9 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,10 +13,10 @@ model AIInsight {
   projectId        String?
   insightType      String
   title            String
-  description      String
+  description      String     @db.Text
   confidence       Float     @default(0)
   severity         String    @default("info")
-  recommendations  String
+  recommendations  String     @db.Text
   affectedEntities String?
   status           String    @default("new")
   createdById      String?
@@ -35,10 +36,10 @@ model AdvancePayment {
   labourId  String
   amount    Float
   date      DateTime
-  reason    String?
+  reason    String? @db.Text
   status    String   @default("pending")
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   labour    Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -48,7 +49,7 @@ model AdvancePayment {
 model Announcement {
   id          String    @id @default(uuid())
   title       String
-  content     String
+  content     String @db.Text
   category    String
   priority    String    @default("normal")
   targetScope String    @default("all")
@@ -56,7 +57,7 @@ model Announcement {
   createdById String
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   project     Project?  @relation(fields: [projectId], references: [id])
   user        User      @relation("Announcement_createdByIdToUser", fields: [createdById], references: [id])
 
@@ -79,8 +80,8 @@ model Asset {
   location         String?
   qrCode           String?
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
-  assetIssue       AssetIssue[]
+  updatedAt        DateTime @updatedAt
+  issues           AssetIssue[]
   assetMaintenance AssetMaintenance[]
   maintenanceTickets MaintenanceTicket[]
 
@@ -97,9 +98,9 @@ model AssetIssue {
   issuedDate DateTime
   returnDate DateTime?
   status     String    @default("issued")
-  notes      String?
+  notes      String? @db.Text
   createdAt  DateTime  @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   user       User @relation(fields: [issuedById], references: [id])
   asset      Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
@@ -112,14 +113,14 @@ model AssetMaintenance {
   id            String    @id @default(uuid())
   assetId       String
   type          String
-  description   String
+  description   String @db.Text
   cost          Float     @default(0)
   date          DateTime
   vendor        String?
   status        String    @default("pending")
   completedDate DateTime?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   asset         Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -136,7 +137,7 @@ model Attendance {
   overtime    Float?
   verifiedBy  String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   labour      Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, labourId, date])
@@ -151,9 +152,8 @@ model AuditLog {
   action    String
   entity    String
   entityId  String?
-  oldValues String?
-  newValues String?
-  ipAddress String?
+  oldValues String? @db.Text
+  newValues String? @db.Text
   createdAt DateTime @default(now())
   user      User?    @relation(fields: [userId], references: [id])
 
@@ -168,9 +168,9 @@ model BOQ {
   version   Int       @default(1)
   total     Float     @default(0)
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  boqItem   BOQItem[]
+  items     BOQItem[]
 
   @@index([projectId])
 }
@@ -179,12 +179,8 @@ model BOQItem {
   id          String @id @default(uuid())
   boqId       String
   itemNo      String
-  description String
-  unit        String
-  quantity    Float
-  unitRate    Float
-  amount      Float
-  boq         BOQ @relation(fields: [boqId], references: [id], onDelete: Cascade)
+  description String @db.Text
+  boq         BOQ    @relation(fields: [boqId], references: [id], onDelete: Cascade)
 
   @@index([boqId])
 }
@@ -203,9 +199,9 @@ model Budget {
   approvedById                   String?
   approvedAt                     DateTime?
   createdAt                      DateTime            @default(now())
-  updatedAt                      DateTime
-  User_Budget_approvedByIdToUser User?               @relation("Budget_approvedByIdToUser", fields: [approvedById], references: [id])
-  User_Budget_createdByIdToUser  User                @relation("Budget_createdByIdToUser", fields: [createdById], references: [id])
+  updatedAt                      DateTime @updatedAt
+  approvedBy                     User?               @relation("Budget_approvedByIdToUser", fields: [approvedById], references: [id])
+  createdBy                      User                @relation("Budget_createdByIdToUser", fields: [createdById], references: [id])
   project                        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   budgetChangeOrder              BudgetChangeOrder[]
   budgetLineItem                 BudgetLineItem[]
@@ -220,9 +216,8 @@ model BudgetChangeOrder {
   budgetId             String
   bcoNo                String
   title                String
-  description          String?
-  reason               String?
-  originalBudget       Float                  @default(0)
+  description          String? @db.Text
+  reason               String? @db.Text
   changeAmount         Float                  @default(0)
   newBudget            Float                  @default(0)
   status               String                 @default("draft")
@@ -233,9 +228,9 @@ model BudgetChangeOrder {
   approvedAt           DateTime?
   appliedAt            DateTime?
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   budget               Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  budgetLineItemUpdate BudgetLineItemUpdate[]
+  lineItemUpdates      BudgetLineItemUpdate[]
 
   @@index([status])
   @@index([budgetId])
@@ -254,11 +249,12 @@ model BudgetLineItem {
   percentComplete       Float    @default(0)
   earnedRevenue         Float    @default(0)
   billedRevenue         Float    @default(0)
-  notes                 String?
+  notes                 String? @db.Text
   createdAt             DateTime @default(now())
-  updatedAt             DateTime
+  updatedAt             DateTime @updatedAt
   costCode              CostCode @relation(fields: [costCodeId], references: [id])
   budget                Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  lineItemUpdates       BudgetLineItemUpdate[]
 
   @@index([costCodeId])
   @@index([budgetId])
@@ -272,6 +268,7 @@ model BudgetLineItemUpdate {
   newAmount           Float             @default(0)
   changeAmount        Float             @default(0)
   budgetChangeOrder   BudgetChangeOrder @relation(fields: [budgetChangeOrderId], references: [id], onDelete: Cascade)
+  budgetLineItem      BudgetLineItem    @relation(fields: [budgetLineItemId], references: [id], onDelete: Cascade)
 
   @@index([budgetLineItemId])
   @@index([budgetChangeOrderId])
@@ -288,7 +285,7 @@ model BudgetSnapshot {
   totalForecast  Float    @default(0)
   totalEarned    Float    @default(0)
   totalBilled    Float    @default(0)
-  snapshotData   String
+  snapshotData   String @db.Text
   createdById    String
   createdAt      DateTime @default(now())
   user           User     @relation("BudgetSnapshot_createdByIdToUser", fields: [createdById], references: [id])
@@ -304,7 +301,7 @@ model ChangeEvent {
   projectId               String
   eventNo                 String
   title                   String
-  description             String?
+  description             String? @db.Text
   category                String
   impactType              String
   potentialCostImpact     Float         @default(0)
@@ -314,7 +311,7 @@ model ChangeEvent {
   reviewedById            String?
   approvedById            String?
   createdAt               DateTime      @default(now())
-  updatedAt               DateTime
+  updatedAt               DateTime @updatedAt
   project                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   changeOrder             ChangeOrder[]
 
@@ -328,7 +325,7 @@ model ChangeOrder {
   changeEventId  String?
   coNo           String
   title          String
-  description    String?
+  description    String? @db.Text
   costAdjustment Float        @default(0)
   timeAdjustment String?
   originalBudget Float        @default(0)
@@ -337,7 +334,7 @@ model ChangeOrder {
   submittedById  String
   approvedById   String?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   changeEvent    ChangeEvent? @relation(fields: [changeEventId], references: [id])
   project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -346,28 +343,40 @@ model ChangeOrder {
 }
 
 model ClientComplaint {
-  id             String    @id @default(uuid())
-  projectId      String
-  clientName     String
-  subject        String
-  description    String
-  category       String
-  severity       String    @default("medium")
-  status         String    @default("open")
-  assignedTo     String?
-  resolvedById   String?
-  resolution     String?
-  resolutionDate DateTime?
-  createdById    String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime
-  user           User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
-  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(uuid())
+  ticketNumber       String?   @unique
+  projectId          String
+  clientName         String
+  subject            String
+  description        String    @db.Text
+  category           String
+  severity           String    @default("medium")
+  status             String    @default("open")
+  workflowStage      String    @default("received")
+  source             String    @default("portal")
+  assignedTo         String?
+  resolvedById       String?
+  resolution         String?   @db.Text
+  resolutionDate     DateTime?
+  responseDeadline   DateTime?
+  resolutionDeadline DateTime?
+  slaBreached        Boolean   @default(false)
+  lastActivityAt     DateTime  @default(now())
+  idempotencyKey     String?   @unique
+  createdById        String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation("ClientComplaint_createdByIdToUser", fields: [createdById], references: [id])
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([severity])
   @@index([category])
   @@index([status])
   @@index([projectId])
+  @@index([workflowStage])
+  @@index([slaBreached])
+  @@index([source])
+  @@index([lastActivityAt])
 }
 
 model CostCode {
@@ -376,15 +385,15 @@ model CostCode {
   name           String
   level          Int              @default(1)
   parentId       String?
-  description    String?
+  description    String? @db.Text
   unitType       String?
   isActive       Boolean          @default(true)
   sortOrder      Int              @default(0)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  budgetLineItem BudgetLineItem[]
-  costCode       CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
-  other_CostCode CostCode[]       @relation("CostCodeToCostCode")
+  updatedAt      DateTime @updatedAt
+  budgetItems    BudgetLineItem[]
+  parent         CostCode?        @relation("CostCodeToCostCode", fields: [parentId], references: [id], onDelete: Cascade)
+  children       CostCode[]       @relation("CostCodeToCostCode")
 
   @@index([sortOrder])
   @@index([isActive])
@@ -397,16 +406,21 @@ model Customer {
   name           String
   email          String?
   phone          String?
-  address        String?
+  address        String? @db.Text
   gstNo          String?
   balance        Float            @default(0)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   salesInvoice   SalesInvoice[]
   salesQuotation SalesQuotation[]
   maintenanceTickets MaintenanceTicket[]
   maintenanceWorkOrders MaintenanceWorkOrder[]
+  whatsappContacts   WhatsAppContact[]
+  maintenanceSites   MaintenanceSite[]
+  pmSchedules        PMSchedule[]
+  maintenanceInvoices MaintenanceInvoice[]
+  amcContracts       AMCContract[]
 
   @@index([isActive])
 }
@@ -417,12 +431,11 @@ model DailyNote {
   date         DateTime
   weather      String?
   temperature  Float?
-  workDone     String?
-  issues       String?
-  labourCount  Int      @default(0)
+  workDone     String? @db.Text
+  issues       String? @db.Text
   supervisorId String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   user         User @relation(fields: [supervisorId], references: [id])
   project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -433,14 +446,13 @@ model DailyNote {
 model DayBookEntry {
   id          String   @id @default(uuid())
   date        DateTime
-  description String
+  description String @db.Text
   category    String
   type        String
   amount      Float
   reference   String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-
+  updatedAt   DateTime @updatedAt
   @@index([category])
   @@index([type])
   @@index([date])
@@ -450,7 +462,7 @@ model DirectCost {
   id           String   @id @default(uuid())
   projectId    String
   category     String
-  description  String
+  description  String @db.Text
   amount       Float
   date         DateTime
   approvedById String?
@@ -458,7 +470,7 @@ model DirectCost {
   status       String   @default("pending")
   createdById  String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   user         User     @relation("DirectCost_createdByIdToUser", fields: [createdById], references: [id])
   project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -471,7 +483,7 @@ model Discussion {
   id                String              @id @default(uuid())
   projectId         String
   title             String
-  description       String?
+  description       String? @db.Text
   category          String
   status            String              @default("open")
   priority          String              @default("medium")
@@ -480,7 +492,7 @@ model Discussion {
   dueDate           DateTime?
   resolvedAt        DateTime?
   createdAt         DateTime            @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   user              User                @relation("Discussion_createdByIdToUser", fields: [createdById], references: [id])
   project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   discussionComment DiscussionComment[]
@@ -494,9 +506,8 @@ model DiscussionComment {
   id           String     @id @default(uuid())
   discussionId String
   userId       String
-  content      String
+  content      String     @db.Text
   createdAt    DateTime   @default(now())
-  updatedAt    DateTime
   discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
 
   @@index([discussionId])
@@ -515,8 +526,8 @@ model Employee {
   basicSalary  Float
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  leaveRequest LeaveRequest[]
+  updatedAt    DateTime @updatedAt
+  leaveRequests LeaveRequest[]
   loan         Loan[]
   technicianProfiles TechnicianProfile[]
 
@@ -527,7 +538,7 @@ model Expense {
   id          String   @id @default(uuid())
   projectId   String
   category    String
-  description String
+  description String @db.Text
   amount      Float
   date        DateTime
   approvedBy  String?
@@ -535,7 +546,7 @@ model Expense {
   receipt     String?
   status      String   @default("pending")
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   user        User @relation(fields: [createdById], references: [id])
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -549,13 +560,13 @@ model FeatureFlag {
   id          String   @id @default(uuid())
   key         String   @unique
   name        String
-  description String?
+  description String? @db.Text
   module      String
   enabled     Boolean  @default(true)
   isBeta      Boolean  @default(false)
-  config      String?
+  config      String? @db.Text
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
 }
 
 model Invoice {
@@ -573,10 +584,8 @@ model Invoice {
   total       Float         @default(0)
   paidAmount  Float         @default(0)
   retention   Float         @default(0)
-  notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  notes       String?       @db.Text
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   invoiceItem InvoiceItem[]
   payment     Payment[]
 
@@ -588,12 +597,7 @@ model Invoice {
 model InvoiceItem {
   id          String  @id @default(uuid())
   invoiceId   String
-  description String
-  quantity    Float
-  unit        String
-  unitPrice   Float
-  amount      Float
-  boqItemId   String?
+  description String  @db.Text
   invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
@@ -608,10 +612,10 @@ model Labour {
   dailyRate      Float
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt
   advancePayment AdvancePayment[]
   attendance     Attendance[]
-  labourGroup    LabourGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group          LabourGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   payroll        Payroll[]
 
   @@index([isActive])
@@ -624,8 +628,8 @@ model LabourGroup {
   rate      Float    @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
-  labour    Labour[]
+  updatedAt DateTime @updatedAt
+  labours   Labour[]
 
   @@index([isActive])
 }
@@ -638,12 +642,12 @@ model LeaveRequest {
   startDate                            DateTime
   endDate                              DateTime
   days                                 Float
-  reason                               String?
+  reason                               String? @db.Text
   status                               String   @default("pending")
   approvedById                         String?
   createdAt                            DateTime @default(now())
-  updatedAt                            DateTime
-  User_LeaveRequest_approvedByIdToUser User?    @relation("LeaveRequest_approvedByIdToUser", fields: [approvedById], references: [id])
+  updatedAt                            DateTime @updatedAt
+  approvedBy                           User?    @relation("LeaveRequest_approvedByIdToUser", fields: [approvedById], references: [id])
   User_LeaveRequest_userIdToUser       User?    @relation("LeaveRequest_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
   employee                             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -661,7 +665,7 @@ model Loan {
   startDate    DateTime
   status       String   @default("active")
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -674,12 +678,12 @@ model Material {
   code          String          @unique
   unit          String
   category      String?
-  description   String?
+  description   String? @db.Text
   currentStock  Float           @default(0)
   minStock      Float           @default(0)
   unitPrice     Float           @default(0)
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   stockMovement StockMovement[]
 
   @@index([name])
@@ -688,7 +692,7 @@ model Material {
 model MilestonePayment {
   id          String    @id @default(uuid())
   workOrderId String
-  description String
+  description String @db.Text
   amount      Float
   retention   Float     @default(0)
   netAmount   Float
@@ -696,7 +700,7 @@ model MilestonePayment {
   paidDate    DateTime?
   status      String    @default("pending")
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -704,19 +708,60 @@ model MilestonePayment {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  type      String
-  title     String
-  message   String
-  data      String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String             @id @default(uuid())
+  userId        String
+  type          String
+  title         String
+  message       String             @db.Text
+  data          String?            @db.Text
+  link          String?
+  category      String?
+  priority      String             @default("normal")
+  companyId     String?
+  branchId      String?
+  module        String?
+  referenceType String?
+  referenceId   String?
+  createdBy     String?
+  isRead        Boolean            @default(false)
+  readAt        DateTime?
+  clickedAt     DateTime?
+  dismissedAt   DateTime?
+  deliveredAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt @default(now())
+  deletedAt     DateTime?
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reads         NotificationRead[]
 
   @@index([createdAt])
   @@index([isRead])
   @@index([userId])
+  @@index([category])
+  @@index([priority])
+  @@index([userId, isRead, deletedAt])
+  @@index([userId, deletedAt, createdAt])
+}
+
+model NotificationRead {
+  id             String       @id @default(uuid())
+  notificationId String
+  userId         String
+  read           Boolean      @default(true)
+  readAt         DateTime     @default(now())
+  clickedAt      DateTime?
+  dismissedAt    DateTime?
+  deviceId       String?
+  browser        String?
+  ipAddress      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId, userId])
+  @@index([userId, read])
 }
 
 model NotificationPreference {
@@ -726,7 +771,7 @@ model NotificationPreference {
   email     Boolean  @default(true)
   sms       Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -737,7 +782,7 @@ model OpenItem {
   projectId    String
   itemNo       String
   title        String
-  description  String?
+  description  String? @db.Text
   category     String
   priority     String    @default("medium")
   status       String    @default("open")
@@ -747,7 +792,7 @@ model OpenItem {
   resolvedById String?
   createdById  String
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   user         User      @relation("OpenItem_createdByIdToUser", fields: [createdById], references: [id])
   project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -768,9 +813,9 @@ model Payment {
   reference  String?
   date       DateTime
   receivedBy String?
-  notes      String?
+  notes      String? @db.Text
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   invoice    Invoice? @relation(fields: [invoiceId], references: [id])
   project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -795,7 +840,7 @@ model Payroll {
   status            String    @default("pending")
   paidDate          DateTime?
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   labour            Labour @relation(fields: [labourId], references: [id], onDelete: Cascade)
 
   @@index([periodStart])
@@ -816,7 +861,7 @@ model PrimeContract {
   startDate       DateTime?
   endDate         DateTime?
   createdAt       DateTime  @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -829,16 +874,15 @@ model Product {
   name            String
   sku             String          @unique
   brand           String?
-  description     String?
-  unit            String          @default("pcs")
+  description     String? @db.Text
   costPrice       Float           @default(0)
   sellingPrice    Float           @default(0)
   currentStock    Float           @default(0)
   minStock        Float           @default(0)
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
-  productCategory ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  updatedAt       DateTime @updatedAt
+  category        ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([isActive])
   @@index([categoryId])
@@ -849,7 +893,7 @@ model ProductCategory {
   name      String
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   product   Product[]
 
   @@index([isActive])
@@ -859,18 +903,17 @@ model Project {
   id                   String                 @id @default(uuid())
   name                 String
   code                 String                 @unique
-  description          String?
+  description          String? @db.Text
   status               String                 @default("planning")
   startDate            DateTime?
   endDate              DateTime?
   budget               Float                  @default(0)
-  address              String?
-  latitude             Float?
+  address              String? @db.Text
   longitude            Float?
   clientId             String?
   progress             Float                  @default(0)
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   aiInsight            AIInsight[]
   announcement         Announcement[]
   BOQ                  BOQ?
@@ -915,8 +958,8 @@ model ProjectComment {
   userId     String
   entityType String
   entityId   String?
-  content    String
-  mentions   String?
+  content    String @db.Text
+  mentions   String? @db.Text
   createdAt  DateTime @default(now())
   project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -931,15 +974,12 @@ model ProjectCommitment {
   projectId     String
   type          String
   vendor        String
-  description   String?
-  contractValue Float     @default(0)
-  committedCost Float     @default(0)
-  remainingCost Float     @default(0)
+  description   String? @db.Text
   status        String    @default("draft")
   startDate     DateTime?
   endDate       DateTime?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -956,7 +996,7 @@ model ProjectDocument {
   mimeType   String?
   uploadedBy String?
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([type])
@@ -981,11 +1021,9 @@ model ProjectMilestone {
   id          String    @id @default(uuid())
   projectId   String
   name        String
-  description String?
+  description String? @db.Text
   dueDate     DateTime?
-  status      String    @default("pending")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
@@ -995,7 +1033,7 @@ model ProjectTask {
   id                String        @id @default(uuid())
   projectId         String
   title             String
-  description       String?
+  description       String? @db.Text
   status            String        @default("todo")
   priority          String        @default("medium")
   startDate         DateTime?
@@ -1005,7 +1043,7 @@ model ProjectTask {
   parentTaskId      String?
   order             Int           @default(0)
   createdAt         DateTime      @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   projectTask       ProjectTask?  @relation("ProjectTaskToProjectTask", fields: [parentTaskId], references: [id])
   other_ProjectTask ProjectTask[] @relation("ProjectTaskToProjectTask")
   user              User?         @relation(fields: [assigneeId], references: [id])
@@ -1027,7 +1065,7 @@ model ProjectTeamMember {
   photo     String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
@@ -1045,13 +1083,13 @@ model PurchaseOrder {
   subtotal          Float               @default(0)
   tax               Float               @default(0)
   total             Float               @default(0)
-  notes             String?
+  notes             String? @db.Text
   createdAt         DateTime            @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   purchaseRequest   PurchaseRequest?    @relation(fields: [purchaseRequestId], references: [id])
   supplier          Supplier @relation(fields: [supplierId], references: [id])
   project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  purchaseOrderItem PurchaseOrderItem[]
+  items             PurchaseOrderItem[]
 
   @@index([status])
   @@index([supplierId])
@@ -1062,9 +1100,7 @@ model PurchaseOrderItem {
   id              String        @id @default(uuid())
   purchaseOrderId String
   materialId      String?
-  description     String
-  quantity        Float
-  receivedQty     Float         @default(0)
+  description     String @db.Text
   unit            String
   unitPrice       Float
   amount          Float
@@ -1079,16 +1115,16 @@ model PurchaseRequest {
   requestNo                               String                @unique
   status                                  String                @default("draft")
   requiredBy                              DateTime?
-  notes                                   String?
+  notes                                   String? @db.Text
   createdById                             String
   approvedById                            String?
   createdAt                               DateTime              @default(now())
-  updatedAt                               DateTime
+  updatedAt                               DateTime @updatedAt
   purchaseOrder                           PurchaseOrder?
-  User_PurchaseRequest_approvedByIdToUser User?                 @relation("PurchaseRequest_approvedByIdToUser", fields: [approvedById], references: [id])
-  User_PurchaseRequest_createdByIdToUser  User                  @relation("PurchaseRequest_createdByIdToUser", fields: [createdById], references: [id])
+  approvedBy                              User?                 @relation("PurchaseRequest_approvedByIdToUser", fields: [approvedById], references: [id])
+  createdBy                               User                  @relation("PurchaseRequest_createdByIdToUser", fields: [createdById], references: [id])
   project                                 Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  purchaseRequestItem                     PurchaseRequestItem[]
+  items                                   PurchaseRequestItem[]
 
   @@index([status])
   @@index([projectId])
@@ -1098,7 +1134,7 @@ model PurchaseRequestItem {
   id                String          @id @default(uuid())
   purchaseRequestId String
   materialId        String?
-  description       String
+  description       String @db.Text
   quantity          Float
   unit              String
   estimatedPrice    Float?
@@ -1112,7 +1148,7 @@ model RFI {
   projectId     String
   rfiNo         String
   title         String
-  description   String
+  description   String @db.Text
   category      String
   priority      String       @default("medium")
   status        String       @default("draft")
@@ -1123,7 +1159,7 @@ model RFI {
   answeredAt    DateTime?
   closedAt      DateTime?
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   rfiComment    RFIComment[]
 
@@ -1136,7 +1172,7 @@ model RFIComment {
   id        String   @id @default(uuid())
   rfiId     String
   userId    String
-  content   String
+  content   String @db.Text
   createdAt DateTime @default(now())
   rfi       RFI @relation(fields: [rfiId], references: [id], onDelete: Cascade)
 
@@ -1156,11 +1192,10 @@ model SalesInvoice {
   total       Float     @default(0)
   paidAmount  Float     @default(0)
   status      String    @default("draft")
-  notes       String?
+  notes       String?   @db.Text
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  user        User?     @relation(fields: [userId], references: [id])
   customer    Customer? @relation(fields: [customerId], references: [id])
+  user        User?     @relation(fields: [userId], references: [id])
 
   @@index([status])
   @@index([customerId])
@@ -1176,10 +1211,9 @@ model SalesQuotation {
   tax        Float    @default(0)
   total      Float    @default(0)
   status     String   @default("draft")
-  notes      String?
+  notes      String? @db.Text
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
-
+  updatedAt  DateTime @updatedAt
   @@index([status])
   @@index([customerId])
 }
@@ -1195,6 +1229,13 @@ model Session {
   expiresAt    DateTime
   createdAt    DateTime  @default(now())
   revokedAt    DateTime?
+  status       String?
+  lastActivityAt DateTime?
+  browser      String?
+  operatingSystem String?
+  deviceType   String?
+  country      String?
+  city         String?
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
@@ -1209,7 +1250,7 @@ model StockMovement {
   quantity   Float
   unitPrice  Float?
   reference  String?
-  notes      String?
+  notes      String? @db.Text
   date       DateTime @default(now())
   createdAt  DateTime @default(now())
   project    Project? @relation(fields: [projectId], references: [id])
@@ -1227,12 +1268,12 @@ model SubContractor {
   contact   String?
   email     String?
   phone     String?
-  address   String?
+  address   String? @db.Text
   gstNo     String?
   balance   Float       @default(0)
   isActive  Boolean     @default(true)
   createdAt DateTime    @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   workOrder WorkOrder[]
 
   @@index([isActive])
@@ -1243,7 +1284,7 @@ model Submittal {
   projectId     String
   submittalNo   String
   title         String
-  specification String?
+  specification String?   @db.Text
   category      String
   priority      String    @default("medium")
   revision      String    @default("0")
@@ -1253,10 +1294,10 @@ model Submittal {
   dueDate       DateTime?
   reviewedAt    DateTime?
   approvedAt    DateTime?
-  notes         String?
+  notes         String?   @db.Text
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime
-  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedAt     DateTime  @default(now()) @updatedAt
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([category])
   @@index([status])
@@ -1270,12 +1311,12 @@ model Supplier {
   contact       String?
   email         String?
   phone         String?
-  address       String?
+  address       String? @db.Text
   gstNo         String?
   balance       Float           @default(0)
   isActive      Boolean         @default(true)
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   purchaseOrder PurchaseOrder[]
 
   @@index([name])
@@ -1286,7 +1327,7 @@ model SystemVersion {
   id           String   @id @default(uuid())
   version      String   @unique
   title        String
-  releaseNotes String
+  releaseNotes String @db.Text
   releasedAt   DateTime @default(now())
   releasedBy   String?
 }
@@ -1307,7 +1348,7 @@ model User {
   totpSecret                                         String?
   totpEnabled                                        Boolean                 @default(false)
   createdAt                                          DateTime                @default(now())
-  updatedAt                                          DateTime
+  updatedAt                                          DateTime @updatedAt
   assetIssue                                         AssetIssue[]
   AIInsight_AIInsight_createdByIdToUser              AIInsight[]             @relation("AIInsight_createdByIdToUser")
   Announcement_Announcement_createdByIdToUser        Announcement[]          @relation("Announcement_createdByIdToUser")
@@ -1324,6 +1365,7 @@ model User {
   LeaveRequest_LeaveRequest_userIdToUser             LeaveRequest[]          @relation("LeaveRequest_userIdToUser")
   notification                                       Notification[]
   notificationPreference                             NotificationPreference?
+  notificationRead                                   NotificationRead[]
   OpenItem_OpenItem_createdByIdToUser                OpenItem[]              @relation("OpenItem_createdByIdToUser")
   projectMember                                      ProjectMember[]
   projectTask                                        ProjectTask[]
@@ -1336,11 +1378,21 @@ model User {
   searchHistory                                       SearchHistory[]
   searchAnalytics                                     SearchAnalytics[]
   MaintenanceTickets                                   MaintenanceTicket[]  @relation("MaintenanceTickets")
+  MaintenanceTicketsClosedBy                           MaintenanceTicket[]  @relation("MaintenanceTicketsClosedBy")
   MaintenanceTimelineUser                             MaintenanceTimeline[] @relation("MaintenanceTimelineUser")
   WorkOrdersCreatedBy                                  MaintenanceWorkOrder[] @relation("WorkOrdersCreatedBy")
   MaterialRequests                                     MaterialRequest[]    @relation("MaterialRequests")
   MaterialApprovedBy                                   MaterialRequest[]    @relation("MaterialApprovedBy")
+  MaterialSupervisorApproved                           MaterialRequest[]    @relation("MaterialSupervisorApproved")
+  MaterialIssuedBy                                     MaterialRequest[]    @relation("MaterialIssuedBy")
+  amcContractsCreated                                  AMCContract[]        @relation("AMCCreatedBy")
+  pmSchedulesCreated                                   PMSchedule[]         @relation("PMScheduleCreatedBy")
+  maintenanceInvoicesIssued                            MaintenanceInvoice[] @relation("MaintenanceInvoiceIssuedBy")
   technicianProfile                                   TechnicianProfile?
+  qrScanLogs                                          QRScanLog[]
+  qrCodesGenerated                                    QRCode[]
+  qrPrintJobs                                         QRPrintJob[]
+  qrTemplates                                         QRTemplate[]
 
   @@index([name])
 }
@@ -1350,14 +1402,12 @@ model WorkOrder {
   projectId        String
   subContractorId  String
   orderNo          String
-  description      String
-  totalAmount      Float
-  retentionPercent Float              @default(10)
+  description      String @db.Text
   status           String             @default("draft")
   startDate        DateTime?
   endDate          DateTime?
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime @updatedAt
   milestonePayment MilestonePayment[]
   subContractor    SubContractor @relation(fields: [subContractorId], references: [id], onDelete: Cascade)
   project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -1389,10 +1439,10 @@ model crews {
   leaderName   String?
   leaderId     String?
   leaderType   String?
-  description  String?
+  description  String? @db.Text
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   crew_members crew_members[]
 }
 
@@ -1410,10 +1460,8 @@ model productivity_logs {
   hoursWorked  Float    @default(0)
   cost         Float    @default(0)
   quality      String?
-  notes        String?
-  createdById  String
-  createdAt    DateTime @default(now())
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  notes        String?  @db.Text
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([resourceType])
   @@index([projectId, date])
@@ -1433,10 +1481,10 @@ model resource_assignments {
   status       String    @default("active")
   dailyCost    Float     @default(0)
   hourlyCost   Float     @default(0)
-  notes        String?
+  notes        String? @db.Text
   createdById  String
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([startDate])
@@ -1458,28 +1506,27 @@ model resource_requests {
   endDate                DateTime?
   shift                  String    @default("day")
   priority               String    @default("medium")
-  reason                 String?
+  reason                 String? @db.Text
   status                 String    @default("pending")
   requestedById          String
   supervisorApprovedById String?
   supervisorApprovedAt   DateTime?
   pmApprovedById         String?
   pmApprovedAt           DateTime?
-  notes                  String?
+  notes                  String?   @db.Text
   createdAt              DateTime  @default(now())
-  updatedAt              DateTime
-  project                Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedAt             DateTime  @default(now()) @updatedAt
+  project                Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([projectId])
 }
 
 model skills {
-  id            String          @id @default(uuid())
-  name          String          @unique
+  id            String         @id @default(uuid())
+  name          String         @unique
   category      String?
-  description   String?
-  createdAt     DateTime        @default(now())
+  description   String?        @db.Text
   worker_skills worker_skills[]
 }
 
@@ -1521,12 +1568,14 @@ model WhatsAppAccount {
   qrCode            String?             // Base64 QR code for scanning
   lastSyncAt        DateTime?
   isActive          Boolean  @default(true)
+  isEnabled         Boolean  @default(true)
+  accessToken       String?             // Meta Cloud API token (optional; OpenWA uses sessionId)
+  phoneNumberId     String?             // Meta Cloud API phone number id (optional)
   maxDailyMessages  Int      @default(1000)
   businessName      String?
   pushName          String?
   createdAt         DateTime @default(now())
-  updatedAt         DateTime
-
+  updatedAt         DateTime @updatedAt
   conversations    WhatsAppConversation[]
   sentMessages      WhatsAppMessage[]     @relation("SentMessages")
   receivedMessages  WhatsAppMessage[]     @relation("ReceivedMessages")
@@ -1544,14 +1593,17 @@ model WhatsAppContact {
   isBusiness      Boolean  @default(false)
   isBlocked       Boolean  @default(false)
   tags            String?                            // JSON array of tags
-  notes           String?
+  notes           String? @db.Text
+  customerId      String?
   lastSeenAt      DateTime?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @default(now()) @updatedAt
+  customer              Customer?              @relation(fields: [customerId], references: [id])
+  messages              WhatsAppMessage[]      @relation("ContactMessages")
+  ticket                MaintenanceTicket?     @relation("TicketContact")
+  conversations         WhatsAppConversation[]
 
-  conversations  WhatsAppConversation[]
-  messages       WhatsAppMessage[]     @relation("ContactMessages")
-  ticket          MaintenanceTicket? @relation("TicketContact")
+  @@index([customerId])
 }
 
 model WhatsAppConversation {
@@ -1570,9 +1622,11 @@ model WhatsAppConversation {
   isGroup         Boolean  @default(false)
   groupName       String?
   isArchived      Boolean  @default(false)
+  internalNotes   String? @db.Text
+  tags            String?                          // JSON array of tags
+  ticketId        String?                          // denormalized link to MaintenanceTicket
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
-
+  updatedAt       DateTime @updatedAt
   contact         WhatsAppContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
   account         WhatsAppAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
   assignedTo      User?            @relation("AssignedConversations", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -1592,13 +1646,12 @@ model WhatsAppMessage {
   id              String   @id @default(uuid())
   waMessageId     String?
   conversationId  String
-  contactId       String
+  contactId       String?
   sentByAccountId     String?
   receivedByAccountId String?
   direction       String                          // incoming, outgoing
   messageType     String   @default("text")       // text, image, video, audio, document, location, contact, sticker, interactive, template, system, deleted
-  content         String?
-  mediaUrl        String?
+  content         String? @db.Text
   mediaType       String?                         // image/jpeg, video/mp4, etc.
   fileName        String?
   fileSize        Int?
@@ -1606,6 +1659,10 @@ model WhatsAppMessage {
   thumbnailUrl    String?
   location        String?                         // JSON { lat, lng, address }
   contactVcard    String?
+  mediaUrl        String?
+  senderType      String?                         // customer, agent, system, bot
+  sentById        String?
+  isDelivered     Boolean  @default(false)
   isStarred       Boolean  @default(false)
   isDeleted       Boolean  @default(false)
   isRead          Boolean  @default(false)
@@ -1618,7 +1675,7 @@ model WhatsAppMessage {
   createdAt       DateTime @default(now())
 
   conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  contact         WhatsAppContact  @relation("ContactMessages", fields: [contactId], references: [id])
+  contact         WhatsAppContact?  @relation("ContactMessages", fields: [contactId], references: [id])
   sentByAccount   WhatsAppAccount?  @relation("SentMessages", fields: [sentByAccountId], references: [id])
   receivedByAccount WhatsAppAccount? @relation("ReceivedMessages", fields: [receivedByAccountId], references: [id])
 
@@ -1632,7 +1689,13 @@ model WhatsAppMessage {
 model WhatsAppMessageTemplate {
   id              String   @id @default(uuid())
   name            String
-  content         String                           // Template text with {{variables}}
+  displayName     String?
+  headerType      String?
+  headerText      String? @db.Text
+  footerText      String? @db.Text
+  buttons         String? @db.Text                          // JSON array of buttons
+  bodyText        String? @db.Text
+  content         String? @db.Text                          // Template text with {{variables}}
   category        String   @default("utility")     // utility, marketing, authentication
   language        String   @default("en")
   variables       String?                         // JSON array of variable names
@@ -1649,13 +1712,18 @@ model WhatsAppMessageTemplate {
 
 model ComplaintWhatsAppLink {
   id              String   @id @default(uuid())
-  complaintId     String
+  complaintId     String?
+  ticketId        String?
   conversationId  String   @unique
+  linkedById      String?
+  autoCreated     Boolean  @default(false)
   linkedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
 
   conversation    WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  @@unique([complaintId])
+  @@index([ticketId])
+  @@index([complaintId])
 }
 
 model SearchHistory {
@@ -1667,6 +1735,7 @@ model SearchHistory {
   createdAt   DateTime @default(now())
   User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, query])
   @@index([userId])
   @@index([createdAt])
   @@index([query])
@@ -1687,9 +1756,9 @@ model SearchAnalytics {
   @@index([userId])
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// MENU SYSTEM — Hierarchical Navigation Configuration
-// ═══════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// MENU SYSTEM â€” Hierarchical Navigation Configuration
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 model MenuGroup {
   id        String     @id @default(uuid())
@@ -1737,9 +1806,9 @@ model RoleAccess {
   @@index([groupId])
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MAINTENANCE MODULE
-// ═══════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 model MaintenanceTicket {
   id                      String    @id @default(uuid())
@@ -1748,7 +1817,7 @@ model MaintenanceTicket {
   category                String    @default("general_maintenance")  // air_conditioning, electrical, plumbing, fire_protection, mechanical, civil, cleaning, security, it, general_maintenance, other
   priority                String    @default("medium")       // emergency, high, medium, low, preventive
   subject                 String
-  description             String
+  description             String @db.Text
   status                  String    @default("new")          // new, under_review, assigned, accepted, in_progress, pending_parts, pending_customer, completed, customer_verification, closed
   source                  String    @default("manual")       // manual, whatsapp, email, portal, phone
   customerId              String?
@@ -1776,21 +1845,35 @@ model MaintenanceTicket {
   resolutionDeadline      DateTime?
   slaBreached             Boolean   @default(false)
   actualResponseMinutes  Float?                               // minutes from creation to first response
-  cancelledReason         String?
+  actualResolutionMinutes Float?                              // minutes from creation to resolution/close
+  labourHours             Float     @default(0)
+  materialCost            Float     @default(0)
+  serviceCost             Float     @default(0)
+  transportCost           Float     @default(0)
+  totalCost               Float     @default(0)
+  closedById              String?
+  assignedTeamId          String?
+  customerApproved        Boolean   @default(false)
+  customerApprovedAt      DateTime?
+  customerRating          Int?
+  customerFeedback        String?   @db.Text
+  customerSignature       String?   @db.Text
+  cancelledReason         String? @db.Text
   whatsappConversationId  String?  @unique
   whatsappContactId       String?  @unique
   createdById             String
   createdAt               DateTime  @default(now())
-  updatedAt               DateTime
-
+  updatedAt               DateTime @updatedAt
   customer                Customer? @relation(fields: [customerId], references: [id])
   site                    MaintenanceSite? @relation(fields: [siteId], references: [id])
   equipment               Asset? @relation(fields: [equipmentId], references: [id])
   project                 Project? @relation(fields: [projectId], references: [id])
   assignedTechnician      TechnicianProfile?  @relation(fields: [assignedTechnicianId], references: [id])
   createdBy               User                @relation("MaintenanceTickets", fields: [createdById], references: [id])
+  closedBy                User?               @relation("MaintenanceTicketsClosedBy", fields: [closedById], references: [id])
   timeline                MaintenanceTimeline[]
   workOrders              MaintenanceWorkOrder[]
+  invoices                MaintenanceInvoice[]
   materialRequests        MaterialRequest[]
   whatsappConversation    WhatsAppConversation? @relation("TicketConversation", fields: [whatsappConversationId], references: [id])
   whatsappContact         WhatsAppContact?    @relation("TicketContact", fields: [whatsappContactId], references: [id])
@@ -1814,7 +1897,7 @@ model MaintenanceTimeline {
   id             String   @id @default(uuid())
   ticketId       String
   action         String                                       // new, under_review, assigned, accepted, in_progress, pending_parts, pending_customer, completed, customer_verification, closed, comment, status_change, escalation, sla_breach
-  description    String
+  description    String @db.Text
   performedById  String?
   metadata       String?                                       // JSON for extra context
   createdAt      DateTime @default(now())
@@ -1835,19 +1918,25 @@ model TechnicianProfile {
   rating              Float     @default(0)
   totalJobsCompleted  Int       @default(0)
   totalJobsActive     Int       @default(0)
+  totalCompletedJobs  Int       @default(0)
+  totalActiveJobs     Int       @default(0)
+  specializations     String?                                 // JSON array of category strings (alias of specialties)
+  certifications      String?                                 // JSON array of certifications
+  latitude            Float?
+  longitude           Float?
   currentLocation     String?                                 // JSON { lat, lng, address }
   maxJobsPerDay       Int       @default(5)
   phone               String?
   emergencyContact    String?
-  bio                 String?
-  certifications      String?                                 // JSON array
+  bio                 String? @db.Text
   createdAt           DateTime  @default(now())
-  updatedAt           DateTime
-
+  updatedAt           DateTime @updatedAt
   user                User                   @relation(fields: [userId], references: [id])
   employee            Employee?              @relation(fields: [employeeId], references: [id])
   tickets             MaintenanceTicket[]
   workOrders          MaintenanceWorkOrder[]
+  serviceRatings      ServiceRating[]
+  pmSchedules         PMSchedule[]
 
   @@index([userId])
   @@index([availabilityStatus])
@@ -1866,22 +1955,25 @@ model MaintenanceWorkOrder {
   actualStartDate       DateTime?
   actualCompletionDate  DateTime?
   status                String    @default("pending")         // pending, in_progress, paused, completed, cancelled
-  serviceNotes          String?
-  completionNotes       String?
-  partsUsed             String?                                 // JSON array of parts
+  serviceNotes          String? @db.Text
+  completionNotes       String? @db.Text
   labourHours           Float?
   costEstimate          Float?
   actualCost            Float?
+  materialCost          Float     @default(0)
+  serviceCost           Float     @default(0)
+  totalCost             Float     @default(0)
+  photos                String?                                 // JSON array of photo URLs
   customerSignature     String?                                 // base64 signature
   createdById           String
   createdAt             DateTime  @default(now())
-  updatedAt             DateTime
-
+  updatedAt             DateTime @updatedAt
   ticket                MaintenanceTicket  @relation(fields: [ticketId], references: [id])
   customer              Customer? @relation(fields: [customerId], references: [id])
   assignedTechnician    TechnicianProfile? @relation(fields: [assignedTechnicianId], references: [id])
   createdBy             User                @relation("WorkOrdersCreatedBy", fields: [createdById], references: [id])
   materialRequests      MaterialRequest[]
+  invoice               MaintenanceInvoice?
 
   @@index([workOrderNo])
   @@index([ticketId])
@@ -1895,11 +1987,14 @@ model MaintenanceSite {
   id          String   @id @default(uuid())
   name        String
   code        String   @unique
-  address     String?
-  city        String?
+  customerId  String?
+  description String? @db.Text
+  address     String? @db.Text
   district    String?
   phone       String?
   email       String?
+  contactPerson String?
+  contactPhone String?
   managerName String?
   managerPhone String?
   latitude    Float?
@@ -1908,16 +2003,21 @@ model MaintenanceSite {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  customer    Customer? @relation(fields: [customerId], references: [id])
   tickets     MaintenanceTicket[]
+  pmSchedules PMSchedule[]
 
   @@index([code])
   @@index([isActive])
+  @@index([customerId])
 }
 
 model SLATemplate {
   id                    String   @id @default(uuid())
   priority              String   @unique                        // emergency, high, medium, low
-  label                 String
+  name                  String?
+  description           String?  @db.Text
+  label                 String?
   responseTimeMinutes   Int      @default(240)                  // minutes to first response
   resolutionTimeMinutes Int      @default(1440)                 // minutes to resolution
   escalationAfterMinutes Int    @default(120)                  // minutes before escalation
@@ -1938,16 +2038,21 @@ model MaterialRequest {
   items           String                                  // JSON array of {name, quantity, unit, specification}
   status          String    @default("pending")          // pending, approved, ordered, delivered, cancelled
   urgencyLevel    String    @default("normal")            // normal, urgent, emergency
-  notes           String?
+  notes           String? @db.Text
+  totalCost       Float?
   approvedById    String?
   approvedAt      DateTime?
+  supervisorApprovedById String?
+  supervisorApprovedAt   DateTime?
+  issuedById      String?
   createdAt       DateTime  @default(now())
-  updatedAt       DateTime
-
+  updatedAt       DateTime @updatedAt
   ticket          MaintenanceTicket?   @relation(fields: [ticketId], references: [id])
   workOrder       MaintenanceWorkOrder? @relation(fields: [workOrderId], references: [id])
   requestedBy     User                 @relation("MaterialRequests", fields: [requestedById], references: [id])
   approvedBy      User?                @relation("MaterialApprovedBy", fields: [approvedById], references: [id])
+  supervisorApprovedBy User?           @relation("MaterialSupervisorApproved", fields: [supervisorApprovedById], references: [id])
+  issuedBy        User?                @relation("MaterialIssuedBy", fields: [issuedById], references: [id])
 
   @@index([requestNo])
   @@index([ticketId])
@@ -1959,19 +2064,29 @@ model MaterialRequest {
 model AMCContract {
   id              String    @id @default(uuid())
   contractNo      String    @unique
+  name            String?
+  description     String?   @db.Text
   customerId      String
   siteId          String?
+  createdById     String?
   startDate       DateTime
   endDate         DateTime
   status          String    @default("active")              // active, expired, cancelled
-  contractValue   Float
-  coveredServices String                                   // JSON array of service categories
+  contractValue   Float     @default(0)
+  annualValue     Float?
+  coveredEquipment String? @db.Text
+  slaPriority     String?
+  renewalDate     DateTime?
+  autoRenew       Boolean   @default(false)
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  createdBy       User?     @relation("AMCCreatedBy", fields: [createdById], references: [id])
+  coveredServices String?                                  // JSON array of service categories
   visitFrequency  String    @default("monthly")             // weekly, biweekly, monthly, quarterly
   totalVisits     Int       @default(12)
   usedVisits      Int       @default(0)
   responseSla     String    @default("medium")              // emergency, high, medium, low
   priorityLevel   String    @default("high")               // emergency, high, medium, low
-  notes           String?
+  notes           String? @db.Text
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -1982,9 +2097,9 @@ model AMCContract {
   @@index([endDate])
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // WHATSAPP EXTENDED MODELS
-// ═══════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 model WhatsAppBotLog {
   id              String    @id @default(uuid())
@@ -1992,8 +2107,8 @@ model WhatsAppBotLog {
   conversationId  String?
   contactId       String?
   command         String                                     // STATUS, MY_REQUESTS, HELP, etc.
-  inputMessage    String?
-  responseMessage String?
+  inputMessage    String? @db.Text
+  responseMessage String? @db.Text
   processingTimeMs Int?
   createdAt       DateTime  @default(now())
 
@@ -2017,3 +2132,267 @@ model WhatsAppDepartment {
   @@index([department])
   @@index([isActive])
 }
+
+// ============ QR CODE MANAGEMENT SYSTEM ============
+
+model QRCode {
+  id            String   @id @default(uuid())
+  qrId          String   @unique
+  moduleType    String
+  recordId      String
+  referenceNo   String?
+  title         String?
+  token         String
+  securityHash  String
+  metadata      String?  @db.Text
+  isActive      Boolean  @default(true)
+  expiresAt     DateTime?
+  generatedById String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  generatedBy   User             @relation(fields: [generatedById], references: [id])
+  scanLogs      QRScanLog[]
+  verifications QRVerification[]
+
+  @@index([moduleType])
+  @@index([recordId])
+  @@index([moduleType, recordId])
+  @@index([token])
+  @@index([qrId])
+  @@index([generatedById])
+}
+
+model QRScanLog {
+  id          String    @id @default(uuid())
+  qrCodeId    String
+  scannedById String?
+  scanType    String    @default("scan")
+  deviceInfo  String?   @db.Text
+  ipAddress   String?
+  userAgent   String?
+  location    String?   @db.Text
+  latitude    Float?
+  longitude   Float?
+  verified    Boolean   @default(false)
+  result      String?   @db.Text
+  scannedAt   DateTime  @default(now())
+  qrCode      QRCode    @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  scannedBy   User?     @relation(fields: [scannedById], references: [id])
+
+  @@index([qrCodeId])
+  @@index([scannedById])
+  @@index([scannedAt])
+  @@index([verified])
+}
+
+model QRVerification {
+  id          String   @id @default(uuid())
+  qrCodeId    String
+  attemptedAt DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+  success     Boolean
+  failReason  String?
+  moduleType  String?
+  recordId    String?
+  qrCode      QRCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+
+  @@index([qrCodeId])
+  @@index([ipAddress])
+  @@index([attemptedAt])
+  @@index([success])
+}
+
+model QRPrintJob {
+  id          String    @id @default(uuid())
+  jobName     String
+  moduleType  String
+  template    String    @default("standard")
+  qrCodeIds   String    @db.Text
+  totalItems  Int
+  status      String    @default("pending")
+  createdById String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  createdBy   User      @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model QRAuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  qrId        String?
+  moduleType  String?
+  recordId    String?
+  performedBy String?
+  ipAddress   String?
+  userAgent   String?
+  details     String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([moduleType])
+  @@index([performedBy])
+  @@index([createdAt])
+}
+
+model QRTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  moduleType  String
+  template    String   @db.Text
+  isDefault   Boolean  @default(false)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([moduleType])
+  @@index([isDefault])
+}
+
+// ── Enterprise Job Queue ─────────────────────────────────────────────
+model JobQueue {
+  id          String    @id @default(uuid())
+  type        String
+  payload     String    @db.Text
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  error       String?   @db.Text
+  nextRunAt   DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, nextRunAt])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ── Guaranteed Complaint Inbox (zero-loss buffer) ────────────────────
+model ComplaintInbox {
+  id          String    @id @default(uuid())
+  source      String
+  rawData     String    @db.Text
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  processedAt DateTime?
+  error       String?   @db.Text
+  complaintId String?
+  createdAt   DateTime  @default(now())
+
+  @@index([status])
+  @@index([source])
+  @@index([createdAt])
+}
+
+// ── System Event Log ─────────────────────────────────────────────────
+model SystemEvent {
+  id         String   @id @default(uuid())
+  eventType  String
+  entityType String?
+  entityId   String?
+  userId     String?
+  payload    String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([eventType])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ── Maintenance Invoice (generated on work-order completion) ──────────
+model MaintenanceInvoice {
+  id             String    @id @default(uuid())
+  invoiceNo      String    @unique
+  ticketId       String?
+  workOrderId    String?   @unique
+  customerId     String
+  labourCost     Float     @default(0)
+  materialCost   Float     @default(0)
+  transportCost  Float     @default(0)
+  serviceCharges Float     @default(0)
+  tax            Float     @default(0)
+  discount       Float     @default(0)
+  total          Float     @default(0)
+  paidAmount     Float     @default(0)
+  status         String    @default("draft")   // draft, sent, paid, partial, cancelled
+  notes          String?   @db.Text
+  issuedById     String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  ticket         MaintenanceTicket?    @relation(fields: [ticketId], references: [id])
+  workOrder      MaintenanceWorkOrder? @relation(fields: [workOrderId], references: [id])
+  customer       Customer              @relation(fields: [customerId], references: [id])
+  issuedBy       User                  @relation("MaintenanceInvoiceIssuedBy", fields: [issuedById], references: [id])
+
+  @@index([invoiceNo])
+  @@index([ticketId])
+  @@index([workOrderId])
+  @@index([customerId])
+  @@index([status])
+}
+
+// ── Preventive Maintenance Schedule ──────────────────────────────────
+model PMSchedule {
+  id                    String    @id @default(uuid())
+  scheduleNo            String    @unique
+  customerId            String?
+  siteId                String?
+  equipmentId           String?
+  assetId               String?
+  scheduleType          String                       // monthly, quarterly, semi_annual, annual
+  frequencyMonths       Int       @default(1)
+  assignedTechnicianId  String?
+  description           String?   @db.Text
+  lastVisitDate         DateTime?
+  nextVisitDate         DateTime?
+  totalVisits           Int       @default(12)
+  completedVisits       Int       @default(0)
+  autoGenerateWorkOrder Boolean   @default(true)
+  isActive              Boolean   @default(true)
+  createdById           String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  customer              Customer?          @relation(fields: [customerId], references: [id])
+  site                  MaintenanceSite?   @relation(fields: [siteId], references: [id])
+  assignedTechnician    TechnicianProfile? @relation(fields: [assignedTechnicianId], references: [id])
+  createdBy             User               @relation("PMScheduleCreatedBy", fields: [createdById], references: [id])
+
+  @@index([scheduleNo])
+  @@index([customerId])
+  @@index([siteId])
+  @@index([assignedTechnicianId])
+  @@index([nextVisitDate])
+  @@index([isActive])
+}
+
+// ── Service Rating (customer feedback on completed jobs) ──────────────
+model ServiceRating {
+  id                   String    @id @default(uuid())
+  ticketId             String?
+  workOrderId          String?
+  technicianProfileId  String?
+  customerId           String?
+  rating               Int       @default(0)        // 1-5
+  category             String?
+  comment              String?   @db.Text
+  createdAt            DateTime  @default(now())
+
+  technicianProfile    TechnicianProfile? @relation(fields: [technicianProfileId], references: [id])
+
+  @@index([ticketId])
+  @@index([technicianProfileId])
+  @@index([category])
+  @@index([createdAt])
+}
+
