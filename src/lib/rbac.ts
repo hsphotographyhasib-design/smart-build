@@ -236,6 +236,7 @@ export interface RoutePermission {
     GET?: string[]    // Roles that can read
     POST?: string[]   // Roles that can create
     PUT?: string[]    // Roles that can update
+    PATCH?: string[]  // Roles that can partial update
     DELETE?: string[]  // Roles that can delete
   }
   description?: string
