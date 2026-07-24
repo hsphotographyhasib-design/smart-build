@@ -230,7 +230,7 @@ model Role {
   updatedAt   DateTime @updatedAt
 
   permissions Permission[]
-  users       AppUser[]
+  users       AppUser[] @relation("UserRole")
   tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, name])
@@ -262,9 +262,10 @@ model AppUser {
   branch       Branch?   @relation(fields: [branchId], references: [id])
   departmentId String?
   roleId       String?
-  role         Role?     @relation(fields: [roleId], references: [id])
+  userRole     Role?     @relation("UserRole", fields: [roleId], references: [id])
   name         String
   email        String
+  role         String    @default("Customer")
   roleLevel    Int       @default(10)
   avatar       String?
   phone        String?

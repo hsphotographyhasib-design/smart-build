@@ -18,7 +18,7 @@ export async function GET() {
       tenant: user.tenant,
       branch: user.branch,
       roleId: user.roleId,
-      permissions: user.role?.permissions?.map(p => `${p.resource}.${p.action}`) ?? [],
+      permissions: user.userRole?.permissions?.map(p => `${p.resource}.${p.action}`) ?? [],
     },
   })
 }

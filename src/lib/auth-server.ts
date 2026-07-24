@@ -2,13 +2,14 @@
 import { cookies, headers } from 'next/headers'  
 import bcrypt from 'bcryptjs'  
 import { db } from '@/lib/db'  
-import {   
-  SESSION_COOKIE,   
-  SESSION_MAX_AGE,   
-  verifySession,   
-  signSession,   
-  isSuperAdminRole,   
-  type SessionPayload,  
+import {
+  SESSION_COOKIE,
+  SESSION_MAX_AGE,
+  verifySession,
+  signSession,
+  isAdminRole,
+  isSuperAdminRole,
+  type SessionPayload,
 } from '@/lib/auth'  
 import { createAuditLog } from '@/lib/tenant'  
   
@@ -75,7 +76,7 @@ export async function getSessionUser() {
     include: {   
       tenant: { select: { id: true, slug: true, name: true, status: true, tier: true } },   
       branch: { select: { id: true, name: true, code: true } },   
-      role: { select: { id: true, name: true, level: true, permissions: true } },   
+      userRole: { select: { id: true, name: true, level: true, permissions: true } },   
     },   
   })  
   if (!user || !user.active) return null   
@@ -83,6 +84,16 @@ export async function getSessionUser() {
   return user  
 }  
   
+/** Returns admin or super-admin user. */  
+export async function getAdminUser() {   
+  const payload = await getSessionPayload()   
+  if (!payload?.sub) return null   
+  const user = await db.appUser.findUnique({ where: { id: payload.sub } })   
+  if (!user || !user.active) return null   
+  if (!isAdminRole(user.role)) return null   
+  return user   
+}  
+
 /** Returns the Super Admin user, or null. */  
 export async function getSuperAdminUser() {   
   const payload = await getSessionPayload()   

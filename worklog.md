@@ -1,97 +1,98 @@
-# SmartBuild EPPM - Build Log
+# SmartBuild Multi-Tenant SaaS Architecture — Work Log
 
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Pull SmartBuild EPPM from GitHub and build the app
+Agent: Main Architect
+Task: Design and implement complete multi-tenant SaaS database schema
 
 Work Log:
-- Cloned https://github.com/hsphotographyhasib-design/smart-build.git
-- Analyzed repository: 151 TypeScript/TSX files, 67 EPPM views
-- Converted Prisma schema from PostgreSQL to SQLite
-- Seeded database with 12 projects, 24 resources, 85 activities, 14 risks
-- Created Super Admin: admin@hjsb.com / admin123
+- Redesigned Prisma schema from single-tenant EPPM to multi-tenant SaaS
+- Added 8 new platform tables: Tenant, TenantSettings, TenantDomain, TenantBranding, SubscriptionPlan, TenantSubscription, TenantFeature, AuditLog
+- Added organizational hierarchy: Branch, Department, Role, Permission (RBAC)
+- Added tenantId + branchId to ALL 13 business tables (Portfolio, Program, Project, Wbs, Activity, Dependency, Resource, ResourceAssignment, Risk, Baseline, ChangeOrder, Document, DailyReport)
+- Kept AppUser model with both `role` string field (denormalized) and `userRole` relation to Role model
+- Added named relations to avoid Prisma ambiguity errors
 
 Stage Summary:
-- SmartBuild EPPM built and running on Next.js 16 with SQLite
-- All 50+ EPPM views integrated
-- JWT auth system working
+- Complete schema with 25 models total
+- All business data scoped by tenantId
+- RBAC with granular permissions (resource.action.scope)
+- Subscription plans with feature flags per module
+- Audit logging at tenant level
 
 ---
 Task ID: 2
-Agent: Brand SVG Agent
-Task: Create SmartBuild SVG logo asset variants
+Agent: Main Architect
+Task: Build tenant-aware authentication and authorization system
 
 Work Log:
-- Created 6 SVG brand assets in /public/brand/
-- Primary logo, dark app, light app, circle, seal, favicon icon
-- Consistent building/crane icon + interlocking SB monogram
+- Rewrote `/src/lib/auth.ts` (edge-safe): Added tenantId, tenantSlug, branchId, roleLevel to JWT SessionPayload; Added role hierarchy (Super Admin 100, Tenant Admin 80, Manager 60, Supervisor 40, Employee 20, Customer 10, Vendor 5)
+- Rewrote `/src/lib/auth-server.ts` (Node-only): Updated issueSession, getSessionUser, getAdminUser, getSuperAdminUser to handle tenant context; Added logLogin/logLogout with audit trail
+- Created `/src/lib/tenant.ts`: Core tenant utility library with 20+ functions for tenant resolution, feature checking, subscription validation, audit logging, and tenant-scoped queries
+- Updated login API to resolve tenant from email, verify subscription, issue tenant-aware JWT
+- Updated /api/auth/me to return tenant info and permissions
 
 Stage Summary:
-- 6 production-ready SVG logo variants created
+- JWT contains full tenant context (tenantId, tenantSlug, branchId, role, roleLevel)
+- Login auto-detects Super Admin vs Tenant User
+- Tenant subscription checked before login
+- Audit logging on every login/logout
 
 ---
 Task ID: 3
-Agent: Main Agent
-Task: Implement complete SmartBuild Enterprise Brand Identity System
+Agent: Main Architect
+Task: Build tenant-aware middleware with RBAC enforcement
 
 Work Log:
-- Created brand component library at /src/components/brand/ (10 files)
-  - app-logo.tsx: Theme-aware logo with auto dark/light switching
-  - brand-tokens.ts: All brand constants (colors, fonts, names, copyright)
-  - brand-header.tsx: Navy branded header with logo, env badge, version
-  - brand-footer.tsx: Branded footer with live clock, system status, gold indicator
-  - module-icon.tsx: 10 module icons (Projects, Maintenance, Tasks, etc.) with squircle containers
-  - company-seal.tsx: Watermark seal for PDF exports
-  - brand-card.tsx: Card with navy/gold accent borders
-  - brand-badge.tsx: Badge with navy/gold/success/warning/danger variants
-  - brand-avatar.tsx: Circular brand avatar
-  - index.ts: Barrel export
-- Replaced globals.css brand system:
-  - Primary: Navy #0B2345 (replaced emerald green)
-  - Accent: Gold #F5A623
-  - Chart palette: navy, gold, emerald, rose, violet
-  - Light theme: #F8FAFC background, #0B2345 foreground
-  - Dark theme: #070F1C background, #F8FAFC foreground, gold primary
-  - Added brand utilities: glass, glass-dark, glass-gold, bg-navy-gradient, text-gradient, squircle
-  - Font: Poppins as primary, Inter as body
-- Redesigned login page:
-  - Full navy gradient background with gold radial highlights
-  - Large centered Dark App Logo with glow effect
-  - Glassmorphism auth card (backdrop-blur, border-white/10)
-  - Gold accent line at top of card
-  - Navy primary buttons
-  - Desktop: left brand panel with Primary Logo, tagline
-  - Mobile: centered logo with glassmorphism card
-- Updated app shell (app-shell.tsx):
-  - Uses BrandFooter component
-- Updated floating navbar header:
-  - Replaced Building2 icon with SmartBuild light app logo (squircle)
-  - Changed 'HJSB EPPM' → 'SmartBuild' + 'EPPM Platform'
-  - QR scanner uses gold (#F5A623) accent color
-  - 'HJSB QR Scanner' → 'SmartBuild QR Scanner'
-- Updated navigation drawer:
-  - Replaced Building2 icon with SmartBuild dark app logo
-  - Changed 'HJSB' → 'SmartBuild' + 'EPPM'
-- Updated layout.tsx metadata:
-  - Title: 'SmartBuild EPPM — Enterprise Project Portfolio Management'
-  - Theme color: #0B2345
-  - Icons point to /brand/ directory
-  - Removed Geist Sans font (using Poppins + Inter)
-- Updated PWA manifest:
-  - Name: 'SmartBuild EPPM'
-  - Theme color: #0B2345
-  - Background color: #F8FAFC
-  - Icons point to /brand/ SVGs
+- Rewrote `/src/middleware.ts` with multi-layer routing:
+  - Public paths: /api/auth/*, /register, /pricing
+  - Platform routes (/platform/*): Super Admin only
+  - API routes: Auth + tenant validation + header injection (x-tenant-id, x-branch-id, x-user-role)
+  - /app routes: Require tenant user session
+  - Auto-redirect: Super Admin → /platform, Tenant User → /app
 
 Stage Summary:
-- Complete SmartBuild brand identity implemented across the platform
-- Brand colors: Navy #0B2345, Gold #F5A623 consistently applied
-- 6 SVG logo variants created and correctly placed per brand guide
-- Login page: glassmorphism, dark app logo, navy gradient, gold accents
-- App header: SmartBuild light app logo, brand text
-- App footer: SmartBuild light logo, gold status indicator
-- Mobile drawer: SmartBuild dark app logo
-- Theme-aware logo switching via AppLogo component
-- Reusable brand component library for all views
-- All views inherit brand colors through CSS variables
+- Route-level tenant isolation in middleware
+- Super Admin and Tenant User have completely separate areas
+- Tenant context headers injected into all API requests
+
+---
+Task ID: 4-7
+Agent: Main Architect
+Task: Build subscription system, Super Admin Console, tenant registration, update app shell
+
+Work Log:
+- Created 5 subscription plans (Free Trial, Starter, Professional, Enterprise, Custom) in seed
+- Built Super Admin Platform Console (`/platform/page.tsx`) with:
+  - Overview tab with KPIs, tenant distribution, recent activity
+  - Tenant Management tab with CRUD, search, status control, detail view
+  - Audit Logs tab with filtered view
+  - Settings tab (general, security, SMTP, payment gateway)
+  - Responsive sidebar with collapsible mobile drawer
+- Built Platform API routes:
+  - `/api/platform/tenants` (GET list, POST create)
+  - `/api/platform/tenants/[id]` (GET, PATCH, DELETE)
+  - `/api/platform/plans` (GET)
+  - `/api/platform/analytics` (GET)
+  - `/api/platform/audit` (GET)
+- Created public tenant registration API (`/api/register`)
+- Updated login page for multi-tenant with demo credentials shown
+- Updated floating navbar to show tenant name and role badge
+- Updated dashboard API to return tenant-scoped data
+- Updated all auth API routes for multi-tenant compatibility
+
+Stage Summary:
+- Full Super Admin Platform Console with 4 tabs
+- Tenant CRUD with status lifecycle (Active, Suspended, Trial, Expired, Archived)
+- Public self-service tenant registration
+- Tenant badge visible in app header
+- Login page shows both Super Admin and Tenant Admin demo credentials
+
+---
+Seed Data:
+- Super Admin: admin@smartbuild.app / admin123
+- Tenant: Hasanur Jaya Sdn. Bhd. (slug: hasanur-jaya, tier: Professional)
+- Tenant Admin: admin@hasanurjaya.com / tenant123
+- 5 roles with full RBAC permissions
+- 34 features enabled
+- 3 portfolios, 2 programs, 6 projects

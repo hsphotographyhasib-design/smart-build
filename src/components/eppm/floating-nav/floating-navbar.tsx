@@ -6,10 +6,11 @@ import { useTheme } from 'next-themes'
 import type { LucideIcon } from 'lucide-react'
 import {
   Menu, ChevronDown, QrCode, Globe, Sun, Moon, Check,
-  Star, Clock, Camera, RefreshCw, CheckCircle,
+  Star, Clock, Camera, RefreshCw, CheckCircle, Building2,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -175,9 +176,17 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                 <Image src="/brand/smartbuild-app-light.svg" alt="SmartBuild" width={36} height={36} className="h-9 w-9 shrink-0 rounded-[22%]" />
                 <div className="hidden text-left leading-tight sm:block">
                   <div className="text-sm font-extrabold tracking-tight">SmartBuild</div>
-                  <div className="text-[10px] font-medium text-muted-foreground">EPPM Platform</div>
+                  <div className="text-[10px] font-medium text-muted-foreground">Multi-Tenant SaaS</div>
                 </div>
               </button>
+              {/* Tenant badge */}
+              {user?.tenant && (
+                <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#F5A623]/30 bg-[#F5A623]/5 px-2.5 py-1">
+                  <Building2 className="h-3 w-3 text-[#F5A623]" />
+                  <span className="text-[10px] font-semibold text-[#F5A623] max-w-[120px] truncate">{user.tenant.name}</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 border-[#F5A623]/20 text-[#F5A623]/70 font-medium">{user.role}</Badge>
+                </div>
+              )}
             </div>
 
             {/* CENTER — search (full pill ≥sm; 44px icon → overlay on mobile) */}
