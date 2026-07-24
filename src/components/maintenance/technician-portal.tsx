@@ -565,13 +565,13 @@ export function TechnicianPortal() {
                         <div className="flex gap-1.5">
                           {item.status === 'assigned' || item.status === 'accepted' ? (
                             <Button size="sm" className="h-8 gap-1 text-xs bg-rose-600 hover:bg-rose-700" onClick={() => {
-                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as TechTicket, 'start')
+                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as unknown as TechTicket, 'start')
                             }}>
                               <LogIn className="h-3 w-3" /> Check In
                             </Button>
                           ) : item.status === 'in_progress' ? (
                             <Button size="sm" variant="outline" className="h-8 gap-1 text-xs" onClick={() => {
-                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as TechTicket, 'complete')
+                              if (item.ticketId) handleJobAction({ ...item, id: item.ticketId, workOrder: undefined, workOrderId: undefined, customer: null, site: null, isOverdue: false } as unknown as TechTicket, 'complete')
                             }}>
                               <LogOut className="h-3 w-3" /> Check Out
                             </Button>

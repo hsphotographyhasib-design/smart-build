@@ -1,0 +1,24 @@
+{
+  "name": "smartbuild-workers",
+  "version": "1.0.0",
+  "description": "BullMQ background-job workers for SmartBuild ERP",
+  "private": true,
+  "scripts": {
+    "start": "tsx workers/index.ts",
+    "start:node": "node --import tsx/esm workers/index.ts",
+    "dev": "tsx watch workers/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "*",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

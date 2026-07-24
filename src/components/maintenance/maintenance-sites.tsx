@@ -291,7 +291,7 @@ export function MaintenanceSites() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <MapPin className="h-4 w-4 text-rose-600" />
-            Sites ({sitesData?.total ?? sites.length})
+            Sites ({(sitesData as { total?: number } | undefined)?.total ?? sites.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

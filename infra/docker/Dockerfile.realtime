@@ -1,0 +1,84 @@
+# =============================================================================
+# SmartBuild — WhatsApp Realtime Mini-Service — Docker Build
+#
+# Service: mini-services/whatsapp-realtime/
+# Runtime: Bun (matches the dev script "bun --hot index.ts")
+#   - Port 3006: Socket.IO WebSocket server
+#   - Port 3096: HTTP bridge server (POST /api/events)
+#
+# Stages:
+#   1. deps    — install dependencies with bun
+#   2. runner  — minimal image
+#
+# Build (from repo root):
+#   docker build -f infra/docker/Dockerfile.realtime \
+#                -t smartbuild-realtime:latest \
+#                mini-services/whatsapp-realtime/
+#
+# Run:
+#   docker run -p 3006:3006 -p 3096:3096 smartbuild-realtime:latest
+# =============================================================================
+
+# --------------------------------------------------------------------------
+# Stage 1: deps — install production dependencies with Bun
+# --------------------------------------------------------------------------
+FROM oven/bun:1-alpine AS deps
+
+WORKDIR /app
+
+# Copy only manifests first for layer caching
+COPY mini-services/whatsapp-realtime/package.json ./
+COPY mini-services/whatsapp-realtime/bun.lock*     ./
+
+# Install production dependencies only
+# --frozen-lockfile ensures reproducible builds
+RUN bun install --frozen-lockfile --production
+
+# --------------------------------------------------------------------------
+# Stage 2: runner — minimal production image
+# --------------------------------------------------------------------------
+FROM oven/bun:1-alpine AS runner
+
+RUN apk add --no-cache \
+    curl \
+    dumb-init
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser  --system --uid 1001 bunuser
+
+# Copy dependencies from deps stage
+COPY --from=deps --chown=bunuser:nodejs /app/node_modules ./node_modules
+
+# Copy service source
+COPY --chown=bunuser:nodejs mini-services/whatsapp-realtime/index.ts ./index.ts
+COPY --chown=bunuser:nodejs mini-services/whatsapp-realtime/package.json ./package.json
+
+# Expose both ports
+# 3006 — Socket.IO WebSocket connections (from Nginx /socket.io/ proxy)
+# 3096 — Internal HTTP bridge (POST /api/events from Next.js backend only)
+EXPOSE 3006 3096
+
+# Switch to non-root user
+USER bunuser
+
+# Environment defaults (override via docker-compose env)
+ENV NODE_ENV=production
+
+# Health check — verify both ports respond
+# The Socket.IO server returns 404 on GET / by design (no HTTP handler),
+# so we check the HTTP bridge port which returns a proper 404 JSON body.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -fsS -X POST http://localhost:3096/api/events \
+        -H "Content-Type: application/json" \
+        -d '{"room":"__health__","event":"ping"}' \
+        -o /dev/null || \
+        curl -fsS http://localhost:3006/ -o /dev/null; \
+        exit 0
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Run the service with Bun (TypeScript executed directly — no transpile step)
+CMD ["bun", "run", "index.ts"]

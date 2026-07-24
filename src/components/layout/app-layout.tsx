@@ -2,8 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import {
-  ChevronLeft, ChevronRight, HardHat, LogOut, Bell,
-  ChevronDown
+  ChevronLeft, ChevronRight, HardHat, LogOut, ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore, type AppPage } from '@/lib/store'
@@ -24,7 +23,8 @@ import {
   type MenuTreeItem,
 } from '@/hooks/use-menu-data'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
+import { NotificationBellDropdown } from '@/components/notifications/notification-bell-dropdown'
 
 // ═══════════════════════════════════════════════════════════════════
 // Animation Variants — smooth expand/collapse
@@ -41,7 +41,7 @@ const expandVariants = {
     opacity: 1,
     overflow: 'hidden',
     transition: {
-      height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+      height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const },
       opacity: { duration: 0.2, delay: 0.03, ease: 'easeOut' },
     },
   },
@@ -50,11 +50,11 @@ const expandVariants = {
     opacity: 0,
     overflow: 'hidden',
     transition: {
-      height: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+      height: { duration: 0.25, ease: [0.4, 0, 1, 1] as const },
       opacity: { duration: 0.15, ease: 'easeIn' },
     },
   },
-}
+} satisfies Variants
 
 // ═══════════════════════════════════════════════════════════════════
 // Sidebar Skeleton — loading state
@@ -160,22 +160,29 @@ function MenuGroupItem({
 }) {
   const { currentPage, navigate, expandedMenuId, setExpandedMenuId, setExpandedSubItemId } = useAppStore()
 
-  const isSingleItem = group.items.length === 1 && !group.items[0].hasChildren && !group.items[0].isCategory
-  const hasActiveChild = group.items.some(
-    (item) =>
-      (item.page === currentPage && !item.isCategory) ||
-      item.children.some((c) => c.page === currentPage)
+  // ── Enforce MAX DEPTH 2 (Main Menu → Sub Menu) ──
+  // Flatten any legacy 3rd-level "category" items: a category contributes its
+  // children directly as sub-menu items; a leaf item contributes itself.
+  // No grandchildren are ever rendered.
+  const leafItems = group.items.flatMap((item) =>
+    item.hasChildren
+      ? item.children
+      : item.isCategory
+        ? []
+        : [item]
   )
-  // Accordion: if user explicitly selected a menu, use that exclusively.
-  // If no manual selection, auto-expand based on active route.
-  const expanded = expandedMenuId
-    ? expandedMenuId === group.id
-    : hasActiveChild
+
+  const isSingleItem = leafItems.length === 1
+  const hasActiveChild = leafItems.some((item) => item.page === currentPage)
+  // Accordion: exactly ONE group open at a time, driven solely by expandedMenuId.
+  // The active route's group is expanded via the auto-expand effect in AppSidebar,
+  // so an explicit collapse (expandedMenuId = '') stays collapsed — no auto re-open.
+  const expanded = expandedMenuId === group.id
 
   // ── Collapsed mode: icon button or icon stack ──
   if (collapsed) {
     if (isSingleItem) {
-      const item = group.items[0]
+      const item = leafItems[0]
       const isActive = currentPage === item.page
       return (
         <TooltipProvider delayDuration={0}>
@@ -221,7 +228,7 @@ function MenuGroupItem({
   // ── Expanded mode: full collapsible group ──
   const handleToggle = () => {
     if (isSingleItem) {
-      navigate(group.items[0].page as AppPage)
+      navigate(leafItems[0].page as AppPage)
     } else {
       // Accordion: toggle this group, auto-close others
       if (expandedMenuId === group.id) {
@@ -284,21 +291,10 @@ function MenuGroupItem({
               exit="exit"
             >
               <div className="pl-3 pr-1 py-0.5 space-y-0.5">
-                {group.items.map((item) => {
-                  // Leaf item — directly navigable
-                  if (!item.isCategory && !item.hasChildren) {
-                    return (
-                      <SubMenuItem
-                        key={item.id}
-                        item={item}
-                        collapsed={false}
-                      />
-                    )
-                  }
-
-                  // Category/folder item with sub-children
-                  return <CategoryItem key={item.id} item={item} />
-                })}
+                {/* Strict 2-level: every entry here is a direct, navigable sub-menu */}
+                {leafItems.map((item) => (
+                  <SubMenuItem key={item.id} item={item} collapsed={false} />
+                ))}
               </div>
             </motion.div>
           )}
@@ -307,81 +303,6 @@ function MenuGroupItem({
 
       {/* Separator between groups */}
       <div className="h-px bg-border/30 my-1 mx-3" />
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// Category Item — expandable sub-folder inside a group
-// ═══════════════════════════════════════════════════════════════════
-
-function CategoryItem({ item }: { item: MenuTreeItem }) {
-  const { currentPage, expandedSubItemId, setExpandedSubItemId } = useAppStore()
-
-  const hasActiveChild = item.children.some((c) => c.page === currentPage)
-  // Sub-accordion: if user explicitly selected a sub-item, use that exclusively
-  const expanded = expandedSubItemId
-    ? expandedSubItemId === item.id
-    : hasActiveChild
-
-  const handleToggle = () => {
-    if (expandedSubItemId === item.id) {
-      setExpandedSubItemId('')
-    } else {
-      setExpandedSubItemId(item.id)
-    }
-  }
-
-  return (
-    <div>
-      <button
-        onClick={handleToggle}
-        className={cn(
-          'flex items-center gap-2.5 w-full h-8 px-3 rounded-md text-[13px] transition-colors',
-          'hover:bg-accent/50 active:bg-accent/80',
-          hasActiveChild ? 'text-amber-900 dark:text-amber-200' : 'text-muted-foreground'
-        )}
-        aria-expanded={expanded}
-        aria-label={item.label}
-      >
-        <IconByName
-          name={item.icon}
-          className={cn(
-            'h-3.5 w-3.5 shrink-0',
-            hasActiveChild ? 'text-amber-600' : ''
-          )}
-        />
-        <span className="flex-1 text-left truncate">{item.label}</span>
-        <motion.div
-          animate={{ rotate: expanded ? 0 : -90 }}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
-        >
-          <ChevronDown
-            className={cn(
-              'h-3 w-3 shrink-0',
-              hasActiveChild ? 'text-amber-600' : 'text-muted-foreground'
-            )}
-          />
-        </motion.div>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            key={`${item.id}-sub`}
-            variants={expandVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="pl-5 pr-1 py-0.5 space-y-0.5">
-              {item.children.map((child) => (
-                <SubMenuItem key={child.id} item={child} collapsed={false} />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
@@ -626,15 +547,7 @@ export function AppHeader() {
         </div>
         <div className="flex items-center gap-2">
           <SearchTrigger />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => navigate('notifications')}
-            aria-label="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
+          <NotificationBellDropdown />
         </div>
       </header>
     </>

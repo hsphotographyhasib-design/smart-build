@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           orderBy: { createdAt: 'asc' },
         },
         budgetChangeOrder: {
-          include: { budgetLineItemUpdate: true },
+          include: { lineItemUpdates: true },
           orderBy: { createdAt: 'desc' },
         },
         budgetSnapshot: { orderBy: { createdAt: 'desc' } },

@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { useMenuData, IconByName, findActiveInfo } from '@/hooks/use-menu-data'
 
 // ─────────────────────────────────────────────────────────────────────
@@ -35,13 +35,13 @@ const expandVariants = {
   hidden: { height: 0, opacity: 0, overflow: 'hidden' },
   visible: {
     height: 'auto', opacity: 1, overflow: 'hidden',
-    transition: { height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] }, opacity: { duration: 0.2, delay: 0.05, ease: 'easeOut' } },
+    transition: { height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const }, opacity: { duration: 0.2, delay: 0.05, ease: 'easeOut' } },
   },
   exit: {
     height: 0, opacity: 0, overflow: 'hidden',
-    transition: { height: { duration: 0.2, ease: [0.4, 0, 1, 1] }, opacity: { duration: 0.15, ease: 'easeIn' } },
+    transition: { height: { duration: 0.25, ease: [0.4, 0, 1, 1] as const }, opacity: { duration: 0.15, ease: 'easeIn' } },
   },
-}
+} satisfies Variants
 
 // ─────────────────────────────────────────────────────────────────────
 // মোবাইল স্কেলিটন
@@ -144,19 +144,19 @@ export function MobileMoreDrawer() {
           ) : (
             <div className="space-y-0.5">
               {menuGroups.map((group) => {
-                const isSingleItem = group.items.length === 1 && !group.items[0].hasChildren && !group.items[0].isCategory
-                const hasActiveChild = group.items.some((item) => {
-                  if (item.page === currentPage && !item.isCategory) return true
-                  if (item.hasChildren && item.children.some((c) => c.page === currentPage)) return true
-                  return false
-                })
+                // Enforce MAX DEPTH 2: flatten any legacy 3rd-level categories
+                const leafItems = group.items.flatMap((item) =>
+                  item.hasChildren ? item.children : item.isCategory ? [] : [item]
+                )
+                const isSingleItem = leafItems.length === 1
+                const hasActiveChild = leafItems.some((item) => item.page === currentPage)
                 const isGroupExpanded = effectiveExpandedMenuId === group.id
 
                 return (
                   <div key={group.id}>
                     <button
                       onClick={() => {
-                        if (isSingleItem) handleNav(group.items[0].page)
+                        if (isSingleItem) handleNav(leafItems[0].page)
                         else toggleGroup(group.id)
                       }}
                       className={cn(
@@ -181,80 +181,24 @@ export function MobileMoreDrawer() {
                         {isGroupExpanded && (
                           <motion.div key={`${group.id}-children`} variants={expandVariants} initial="hidden" animate="visible" exit="exit">
                             <div className="pl-4 pr-1 py-1 space-y-0.5">
-                              {group.items.map((item) => {
-                                const isItemFolder = item.isCategory || item.hasChildren
-                                const isItemActive = item.page === currentPage && !item.isCategory
-                                const hasActiveDesc = item.hasChildren && item.children.some((c) => c.page === currentPage)
-                                const isItemExpanded = effectiveExpandedSubItemId === item.id
-
-                                // পাতা আইটেম
-                                if (!isItemFolder) {
-                                  return (
-                                    <button
-                                      key={item.id}
-                                      onClick={() => handleNav(item.page)}
-                                      className={cn(
-                                        'flex items-center gap-2.5 w-full h-11 px-3 rounded-lg text-[13px] transition-colors',
-                                        'hover:bg-accent/50 active:bg-accent/80',
-                                        isItemActive
-                                          ? 'font-medium bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
-                                          : 'text-muted-foreground'
-                                      )}
-                                    >
-                                      <IconByName name={item.icon} className={cn('h-4 w-4 shrink-0', isItemActive && 'text-amber-600 dark:text-amber-400')} />
-                                      <span className="truncate">{item.label}</span>
-                                    </button>
-                                  )
-                                }
-
-                                // ফোল্ডার আইটেম — প্রসারণযোগ্য
+                              {/* Strict 2-level: every entry is a direct, navigable sub-menu */}
+                              {leafItems.map((item) => {
+                                const isItemActive = item.page === currentPage
                                 return (
-                                  <div key={item.id}>
-                                    <button
-                                      onClick={() => toggleItem(item.id)}
-                                      className={cn(
-                                        'flex items-center gap-2.5 w-full h-11 px-3 rounded-lg text-[13px] transition-colors',
-                                        'hover:bg-accent/50 active:bg-accent/80',
-                                        hasActiveDesc
-                                          ? 'text-amber-900 dark:text-amber-200'
-                                          : 'text-muted-foreground'
-                                      )}
-                                    >
-                                      <IconByName name={item.icon} className={cn('h-4 w-4 shrink-0', hasActiveDesc ? 'text-amber-600 dark:text-amber-400' : '')} />
-                                      <span className="flex-1 text-left truncate">{item.label}</span>
-                                      <motion.div animate={{ rotate: isItemExpanded ? 0 : -90 }} transition={{ duration: 0.2, ease: 'easeInOut' }}>
-                                        <ChevronDown className={cn('h-3.5 w-3.5 shrink-0', hasActiveDesc ? 'text-amber-600' : 'text-muted-foreground')} />
-                                      </motion.div>
-                                    </button>
-
-                                    <AnimatePresence initial={false}>
-                                      {isItemExpanded && (
-                                        <motion.div key={`${item.id}-sub`} variants={expandVariants} initial="hidden" animate="visible" exit="exit">
-                                          <div className="pl-6 pr-1 py-0.5 space-y-0.5">
-                                            {item.children.map((child) => {
-                                              const isChildActive = child.page === currentPage
-                                              return (
-                                                <button
-                                                  key={child.id}
-                                                  onClick={() => handleNav(child.page)}
-                                                  className={cn(
-                                                    'flex items-center gap-2.5 w-full h-11 px-3 rounded-lg text-[12px] transition-colors',
-                                                    'hover:bg-accent/50 active:bg-accent/80',
-                                                    isChildActive
-                                                      ? 'font-medium bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
-                                                      : 'text-muted-foreground'
-                                                  )}
-                                                >
-                                                  <IconByName name={child.icon} className={cn('h-3.5 w-3.5 shrink-0', isChildActive && 'text-amber-600 dark:text-amber-400')} />
-                                                  <span className="truncate">{child.label}</span>
-                                                </button>
-                                              )
-                                            })}
-                                          </div>
-                                        </motion.div>
-                                      )}
-                                    </AnimatePresence>
-                                  </div>
+                                  <button
+                                    key={item.id}
+                                    onClick={() => handleNav(item.page)}
+                                    className={cn(
+                                      'flex items-center gap-2.5 w-full h-11 px-3 rounded-lg text-[13px] transition-colors',
+                                      'hover:bg-accent/50 active:bg-accent/80',
+                                      isItemActive
+                                        ? 'font-medium bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
+                                        : 'text-muted-foreground'
+                                    )}
+                                  >
+                                    <IconByName name={item.icon} className={cn('h-4 w-4 shrink-0', isItemActive && 'text-amber-600 dark:text-amber-400')} />
+                                    <span className="truncate">{item.label}</span>
+                                  </button>
                                 )
                               })}
                             </div>
