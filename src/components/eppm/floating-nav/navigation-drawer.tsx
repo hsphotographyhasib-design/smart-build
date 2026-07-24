@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronDown, Search, Star, Clock, Building2 } from 'lucide-react'
+import { X, ChevronDown, Search, Star, Clock } from 'lucide-react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
@@ -63,10 +64,10 @@ export function NavigationDrawer({ open, onClose, currentView, onNavigate }: Nav
             {/* Header */}
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground"><Building2 className="h-4 w-4" /></div>
+                <Image src="/brand/smartbuild-app-dark.svg" alt="SmartBuild" width={32} height={32} className="h-8 w-8 rounded-[22%]" />
                 <div className="leading-none">
-                  <div className="text-sm font-extrabold">HJSB</div>
-                  <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</div>
+                  <div className="text-sm font-extrabold">SmartBuild</div>
+                  <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">EPPM</div>
                 </div>
               </div>
               <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" aria-label="Close menu"><X className="h-4.5 w-4.5" /></button>

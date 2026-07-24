@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Building2, Menu, ChevronDown, QrCode, Globe, Sun, Moon, Check,
+  Menu, ChevronDown, QrCode, Globe, Sun, Moon, Check,
   Star, Clock, Camera, RefreshCw, CheckCircle,
 } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
@@ -170,13 +171,11 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <button aria-label="HJSB EPPM — go to dashboard" className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                  <Building2 className="h-5 w-5" />
-                </div>
+              <button aria-label="SmartBuild — go to dashboard" className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
+                <Image src="/brand/smartbuild-app-light.svg" alt="SmartBuild" width={36} height={36} className="h-9 w-9 shrink-0 rounded-[22%]" />
                 <div className="hidden text-left leading-tight sm:block">
-                  <div className="text-sm font-extrabold tracking-tight">HJSB EPPM</div>
-                  <div className="text-[10px] font-medium text-muted-foreground">Enterprise Platform</div>
+                  <div className="text-sm font-extrabold tracking-tight">SmartBuild</div>
+                  <div className="text-[10px] font-medium text-muted-foreground">EPPM Platform</div>
                 </div>
               </button>
             </div>
@@ -316,20 +315,20 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
         <DialogContent className="sm:max-w-md rounded-3xl p-6 border border-border/80 bg-background/90 backdrop-blur-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2.5 text-base font-bold">
-              <QrCode className="h-5 w-5 text-primary" /> <span>HJSB QR Scanner</span>
+              <QrCode className="h-5 w-5 text-primary" /> <span>SmartBuild QR Scanner</span>
             </DialogTitle>
             <DialogDescription className="text-xs">Scan project tags, employee cards, or equipment badges for instant lookup.</DialogDescription>
           </DialogHeader>
           <div className="relative mt-4 overflow-hidden rounded-2xl border border-border bg-black aspect-video flex items-center justify-center">
-            <motion.div animate={{ y: [-60, 60, -60] }} transition={{ repeat: Infinity, duration: 3.5, ease: 'linear' }} className="absolute left-0 right-0 h-0.5 bg-emerald-500 shadow-[0_0_8px_#10b981] z-10" />
+            <motion.div animate={{ y: [-60, 60, -60] }} transition={{ repeat: Infinity, duration: 3.5, ease: 'linear' }} className="absolute left-0 right-0 h-0.5 bg-[#F5A623] shadow-[0_0_8px_#F5A623] z-10" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 text-zinc-400 bg-zinc-950/80">
               <Camera className="h-10 w-10 text-zinc-500 animate-pulse" />
               <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500"><RefreshCw className="h-3 w-3 animate-spin" /> Camera Feed Online</div>
             </div>
-            <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-emerald-500 rounded-tl-sm" />
-            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-emerald-500 rounded-tr-sm" />
-            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-emerald-500 rounded-bl-sm" />
-            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-emerald-500 rounded-br-sm" />
+            <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#F5A623] rounded-tl-sm" />
+            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#F5A623] rounded-tr-sm" />
+            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#F5A623] rounded-bl-sm" />
+            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#F5A623] rounded-br-sm" />
           </div>
           <div className="grid gap-2.5 mt-5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mock Scans (Simulated)</span>

@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-inter: var(--font-inter);
   --font-poppins: var(--font-poppins);
@@ -44,32 +44,26 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Corporate brand tokens */
-  --color-corp-green: #1B5E20;
-  --color-corp-green-light: #2E7D32;
-  --color-corp-gold: #C8962E;
-  --color-corp-gold-light: #D4A843;
-  --color-corp-charcoal: #1A1A2E;
-  --color-corp-charcoal-light: #2D2D44;
-  --color-corp-white: #FAFAFA;
-  --color-corp-offwhite: #F5F5F0;
+  /* SmartBuild Brand Tokens */
+  --color-brand-navy: #0B2345;
+  --color-brand-gold: #F5A623;
+  --color-brand-gray: #6B7280;
+  --color-brand-white: #FFFFFF;
+  --color-brand-light: #F8FAFC;
+  --color-brand-navy-light: #132D52;
+  --color-brand-gold-light: #F7B84E;
 }
 
 :root {
   --radius: 0.625rem;
 
-  /* ── App-shell layout tokens (single source of truth) ──────────────
-     Header and floating nav are separate sticky layers; content offset
-     is derived from these — never hardcode page-level top spacing. */
-  --header-h: 4rem;            /* 64px mobile */
-  --nav-gap: 1rem;             /* 16px gap between header and floating nav */
-  --content-gap: 1.5rem;       /* 24px gap between floating nav and content */
-  --subnav-h: 3.25rem;         /* 52px floating category strip (desktop) */
+  /* App-shell layout tokens */
+  --header-h: 4rem;
+  --nav-gap: 1rem;
+  --content-gap: 1.5rem;
+  --subnav-h: 3.25rem;
 
-  /* ── Z-index scale — the ONLY sanctioned layer values ──────────────
-     content(0) < cards(10) < sticky-table(20) < floating-nav(30)
-     < header(40) < bottom-nav(45) < overlay/dropdown/modal(50)
-     < toast(100) */
+  /* Z-index scale */
   --z-content: 0;
   --z-card: 10;
   --z-sticky: 20;
@@ -78,82 +72,79 @@
   --z-bottom-nav: 45;
   --z-overlay: 50;
   --z-toast: 100;
-  /* Light — warm neutral surface with deep slate ink */
-  --background: oklch(0.985 0.004 120);
-  --foreground: oklch(0.18 0.02 165);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 165);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 165);
-  /* Primary: deep emerald-slate enterprise accent */
-  --primary: oklch(0.45 0.09 165);
-  --primary-foreground: oklch(0.985 0.005 165);
-  --secondary: oklch(0.96 0.008 150);
-  --secondary-foreground: oklch(0.28 0.03 165);
-  --muted: oklch(0.965 0.006 150);
-  --muted-foreground: oklch(0.5 0.015 165);
-  --accent: oklch(0.94 0.03 145);
-  --accent-foreground: oklch(0.3 0.05 165);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.008 150);
-  --input: oklch(0.93 0.008 150);
-  --ring: oklch(0.45 0.09 165);
-  /* Chart palette: emerald, amber, rose, teal, violet-warm */
-  --chart-1: oklch(0.55 0.12 162);
-  --chart-2: oklch(0.7 0.16 80);
-  --chart-3: oklch(0.6 0.2 25);
-  --chart-4: oklch(0.62 0.1 195);
-  --chart-5: oklch(0.65 0.18 305);
-  /* Sidebar: dark slate-emerald (enterprise command center) */
-  --sidebar: oklch(0.21 0.02 175);
-  --sidebar-foreground: oklch(0.93 0.01 165);
-  --sidebar-primary: oklch(0.6 0.13 162);
-  --sidebar-primary-foreground: oklch(0.985 0.005 165);
-  --sidebar-accent: oklch(0.27 0.025 175);
-  --sidebar-accent-foreground: oklch(0.95 0.01 165);
-  --sidebar-border: oklch(0.3 0.02 175);
-  --sidebar-ring: oklch(0.6 0.13 162);
+
+  /* Light Theme — SmartBuild Navy/Gold enterprise palette */
+  --background: #F8FAFC;
+  --foreground: #0B2345;
+  --card: #FFFFFF;
+  --card-foreground: #0B2345;
+  --popover: #FFFFFF;
+  --popover-foreground: #0B2345;
+  --primary: #0B2345;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0B2345;
+  --muted: #F1F5F9;
+  --muted-foreground: #6B7280;
+  --accent: #F5A623;
+  --accent-foreground: #0B2345;
+  --destructive: #DC2626;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #0B2345;
+  /* Chart palette: navy, gold, emerald, rose, violet */
+  --chart-1: #0B2345;
+  --chart-2: #F5A623;
+  --chart-3: #059669;
+  --chart-4: #E11D48;
+  --chart-5: #7C3AED;
+  /* Sidebar: navy enterprise command center */
+  --sidebar: #0B2345;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #F5A623;
+  --sidebar-primary-foreground: #0B2345;
+  --sidebar-accent: #132D52;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255,255,255,0.1);
+  --sidebar-ring: #F5A623;
 }
 
 .dark {
-  --background: oklch(0.16 0.015 175);
-  --foreground: oklch(0.96 0.005 165);
-  --card: oklch(0.21 0.02 175);
-  --card-foreground: oklch(0.96 0.005 165);
-  --popover: oklch(0.22 0.02 175);
-  --popover-foreground: oklch(0.96 0.005 165);
-  --primary: oklch(0.7 0.13 162);
-  --primary-foreground: oklch(0.16 0.02 175);
-  --secondary: oklch(0.27 0.02 175);
-  --secondary-foreground: oklch(0.96 0.005 165);
-  --muted: oklch(0.25 0.015 175);
-  --muted-foreground: oklch(0.7 0.015 165);
-  --accent: oklch(0.3 0.025 175);
-  --accent-foreground: oklch(0.96 0.005 165);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.13 162);
-  --chart-1: oklch(0.65 0.14 162);
-  --chart-2: oklch(0.72 0.16 80);
-  --chart-3: oklch(0.65 0.21 25);
-  --chart-4: oklch(0.66 0.11 195);
-  --chart-5: oklch(0.68 0.18 305);
-  --sidebar: oklch(0.18 0.02 175);
-  --sidebar-foreground: oklch(0.93 0.01 165);
-  --sidebar-primary: oklch(0.7 0.13 162);
-  --sidebar-primary-foreground: oklch(0.985 0.005 165);
-  --sidebar-accent: oklch(0.26 0.025 175);
-  --sidebar-accent-foreground: oklch(0.95 0.01 165);
-  --sidebar-border: oklch(0.3 0.02 175);
-  --sidebar-ring: oklch(0.7 0.13 162);
+  --background: #070F1C;
+  --foreground: #F8FAFC;
+  --card: #0D1B30;
+  --card-foreground: #F8FAFC;
+  --popover: #0D1B30;
+  --popover-foreground: #F8FAFC;
+  --primary: #F5A623;
+  --primary-foreground: #0B2345;
+  --secondary: #132D52;
+  --secondary-foreground: #F8FAFC;
+  --muted: #132D52;
+  --muted-foreground: #94A3B8;
+  --accent: #F5A623;
+  --accent-foreground: #0B2345;
+  --destructive: #EF4444;
+  --border: rgba(255,255,255,0.1);
+  --input: rgba(255,255,255,0.12);
+  --ring: #F5A623;
+  --chart-1: #F5A623;
+  --chart-2: #3B82F6;
+  --chart-3: #10B981;
+  --chart-4: #F43F5E;
+  --chart-5: #A78BFA;
+  --sidebar: #060D18;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #F5A623;
+  --sidebar-primary-foreground: #0B2345;
+  --sidebar-accent: #0D1B30;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-ring: #F5A623;
 }
 
-/* Taller two-row header from the laptop breakpoint up */
 @media (min-width: 1024px) {
-  :root {
-    --header-h: 4.5rem; /* 72px desktop — enterprise header band */
-  }
+  :root { --header-h: 4.5rem; }
 }
 
 @layer base {
@@ -161,49 +152,37 @@
     @apply border-border outline-ring/50;
   }
   html {
-    /* Anchored scrolls land below the sticky header + floating nav */
     scroll-padding-top: calc(var(--header-h) + var(--nav-gap) + var(--subnav-h) + var(--content-gap));
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "cv11", "ss01";
-    /* Hard stop for stray horizontal overflow on any page */
     overflow-x: clip;
   }
 }
 
 @layer utilities {
-  /* Custom thin scrollbar for data-dense panels */
+  /* Thin scrollbar */
   .scroll-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
   }
-  .scroll-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  .scroll-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-thin::-webkit-scrollbar-track { background: transparent; }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background-color: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+    background-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
   .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+    background-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
   }
-  .grid-bg {
-    background-image:
-      linear-gradient(to right, color-mix(in oklch, var(--muted-foreground) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklch, var(--muted-foreground) 8%, transparent) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-  .text-balance {
-    text-wrap: balance;
-  }
-  /* Fluid typography — page titles scale with viewport, no breakpoint jumps */
+
+  .text-balance { text-wrap: balance; }
+
+  /* Fluid typography */
   .text-fluid-title {
     font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
     line-height: 1.2;
@@ -211,38 +190,13 @@
   .text-fluid-subtitle {
     font-size: clamp(0.8125rem, 0.76rem + 0.25vw, 0.9375rem);
   }
-  /* WCAG 2.5.5 minimum touch target (44×44px) */
-  .tap-target {
-    min-height: 2.75rem;
-    min-width: 2.75rem;
-  }
-}
 
-/* =============================================
-   Corporate Brand Styles — Hasanur Jaya
-   ============================================= */
+  /* WCAG 2.5.5 touch target */
+  .tap-target { min-height: 2.75rem; min-width: 2.75rem; }
 
-@layer base {
-  :root {
-    --corp-green: #1B5E20;
-    --corp-green-dark: #0D3B10;
-    --corp-green-light: #2E7D32;
-    --corp-gold: #C8962E;
-    --corp-gold-light: #D4A843;
-    --corp-charcoal: #1A1A2E;
-    --corp-charcoal-light: #2D2D44;
-    --corp-white: #FAFAFA;
-    --corp-offwhite: #F5F5F0;
-  }
-}
-
-@layer utilities {
-  .font-heading {
-    font-family: var(--font-poppins), sans-serif;
-  }
-  .font-body {
-    font-family: var(--font-inter), sans-serif;
-  }
+  /* Brand utilities */
+  .font-heading { font-family: var(--font-poppins), sans-serif; }
+  .font-body { font-family: var(--font-inter), sans-serif; }
 
   /* Glassmorphism */
   .glass {
@@ -252,78 +206,59 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
   .glass-dark {
-    background: rgba(26, 26, 46, 0.85);
+    background: rgba(11, 35, 69, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
+  .glass-gold {
+    background: rgba(245, 166, 35, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 166, 35, 0.15);
+  }
 
   /* Gradient text */
   .text-gradient {
-    background: linear-gradient(135deg, var(--corp-gold), var(--corp-gold-light));
+    background: linear-gradient(135deg, #F5A623, #F7B84E);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   /* Gold accent underline */
-  .gold-underline {
-    position: relative;
-  }
+  .gold-underline { position: relative; }
   .gold-underline::after {
     content: '';
     position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: var(--corp-gold);
+    bottom: -4px; left: 0;
+    width: 60px; height: 3px;
+    background: #F5A623;
     border-radius: 2px;
   }
-  .gold-underline-center::after {
-    left: 50%;
-    transform: translateX(-50%);
-  }
+  .gold-underline-center::after { left: 50%; transform: translateX(-50%); }
 
-  /* Hero overlay */
-  .hero-overlay {
+  /* Navy gradient backgrounds */
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, #0B2345 0%, #132D52 50%, #0B2345 100%);
+  }
+  .bg-brand-hero {
     background: linear-gradient(
       135deg,
-      rgba(13, 59, 16, 0.92) 0%,
-      rgba(26, 26, 46, 0.85) 50%,
-      rgba(13, 59, 16, 0.7) 100%
+      rgba(11, 35, 69, 0.95) 0%,
+      rgba(19, 45, 82, 0.85) 50%,
+      rgba(11, 35, 69, 0.9) 100%
     );
   }
 
-  /* Image overlay for cards */
-  .card-overlay {
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.3) 50%,
-      transparent 100%
-    );
-  }
+  /* Brand section spacing */
+  .section-padding { padding: 6rem 1rem; }
+  @media (min-width: 1024px) { .section-padding { padding: 8rem 2rem; } }
 
-  /* Section spacing */
-  .section-padding {
-    padding: 6rem 1rem;
-  }
-  @media (min-width: 1024px) {
-    .section-padding {
-      padding: 8rem 2rem;
-    }
-  }
+  /* Brand container */
+  .container-brand { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+  @media (min-width: 1024px) { .container-brand { padding: 0 2rem; } }
 
-  /* Container */
-  .container-corp {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-  @media (min-width: 1024px) {
-    .container-corp {
-      padding: 0 2rem;
-    }
-  }
+  /* Squircle shape for module icons */
+  .squircle { border-radius: 22%; }
 }

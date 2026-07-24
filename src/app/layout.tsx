@@ -1,14 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Inter, Poppins } from "next/font/google";
+import { Geist_Mono, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -27,79 +22,58 @@ const poppins = Poppins({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#1B5E20",
+  themeColor: "#0B2345",
   colorScheme: "light",
 };
 
 export const metadata: Metadata = {
   title: {
-    default: "HJSB EPPM — Enterprise Project Portfolio Management",
-    template: "%s | HJSB EPPM",
+    default: "SmartBuild EPPM — Enterprise Project Portfolio Management",
+    template: "%s | SmartBuild EPPM",
   },
   description:
-    "HJSB EPPM is an Enterprise Project Portfolio Management, Construction Management, Maintenance Management, and Facility Management Platform developed for Hasanur Jaya Sdn. Bhd.",
-  applicationName: "HJSB EPPM",
-  authors: [{ name: "Hasanur Jaya Sdn. Bhd." }],
+    "SmartBuild EPPM is an Enterprise Project Portfolio Management platform for construction, maintenance, and facility management.",
+  applicationName: "SmartBuild EPPM",
+  authors: [{ name: "SmartBuild" }],
   generator: "Next.js",
   keywords: [
-    "HJSB", "EPPM", "enterprise project portfolio management",
-    "construction management", "project management", "Brunei",
-    "Hasanur Jaya", "facility management", "maintenance management",
+    "SmartBuild", "EPPM", "enterprise project portfolio management",
+    "construction management", "project management",
+    "facility management", "maintenance management", "Primavera",
   ],
   referrer: "origin-when-cross-origin",
-  creator: "Hasanur Jaya Sdn. Bhd.",
-  publisher: "Hasanur Jaya Sdn. Bhd.",
-  metadataBase: new URL("https://hasanurjaya.com"),
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "HJSB EPPM",
-    title: "HJSB EPPM — Enterprise Project Portfolio Management",
+    siteName: "SmartBuild EPPM",
+    title: "SmartBuild EPPM — Enterprise Project Portfolio Management",
     description:
-      "Enterprise Project Portfolio Management, Construction Management, Maintenance Management, and Facility Management Platform developed for Hasanur Jaya Sdn. Bhd.",
-    url: "https://hasanurjaya.com",
+      "Enterprise Project Portfolio Management, Construction, Maintenance, and Facility Management Platform.",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "HJSB EPPM",
+        url: "/brand/smartbuild-primary-logo.svg",
+        width: 400,
+        height: 200,
+        alt: "SmartBuild EPPM",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HJSB EPPM",
-    description:
-      "Enterprise Project Portfolio Management Platform for Hasanur Jaya Sdn. Bhd.",
-    images: ["/og-image.png"],
+    title: "SmartBuild EPPM",
+    description: "Enterprise Project Portfolio Management Platform.",
   },
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: { index: false, follow: false },
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/brand/icon.svg", type: "image/svg+xml" },
+      { url: "/brand/smartbuild-circle.svg", sizes: "any", type: "image/svg+xml" },
     ],
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    shortcut: "/favicon.ico",
   },
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "HJSB EPPM",
+    title: "SmartBuild EPPM",
     statusBarStyle: "default",
-  },
-  formatDetection: {
-    telephone: true,
-    email: true,
-    address: true,
   },
   category: "technology",
   classification: "Enterprise Software",
@@ -111,10 +85,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/brand/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/brand/smartbuild-circle.svg" sizes="192x192" type="image/svg+xml" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${poppins.variable} antialiased bg-background text-foreground`}
+        className={`${geistMono.variable} ${inter.variable} ${poppins.variable} antialiased bg-background text-foreground`}
       >
         <Providers>{children}</Providers>
         <Toaster />
