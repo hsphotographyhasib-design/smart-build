@@ -1,5 +1,6 @@
-// SmartBuild EPPM — Enterprise Project Portfolio Management
-// Primavera P6-style data model (SQLite)
+// =============================================================
+// SmartBuild Enterprise Multi-Tenant SaaS Platform
+// =============================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -10,34 +11,352 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// -----------------------------------------------------------
-// ORGANISATIONAL HIERARCHY
-// -----------------------------------------------------------
+// =============================================================
+// PLATFORM — TENANTS
+// =============================================================
+
+model Tenant {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  domain      String?  @unique
+  email       String
+  phone       String?
+  address     String?
+  logoUrl     String?
+  faviconUrl  String?
+  status      String   @default("Active")
+  tier        String   @default("Trial")
+  maxUsers    Int      @default(5)
+  maxProjects Int      @default(3)
+  maxStorage  Int      @default(500)
+  maxBranches Int      @default(1)
+  currentUsers   Int   @default(0)
+  currentProjects Int @default(0)
+  currentStorage  Int @default(0)
+  trialEndsAt DateTime?
+  expiresAt   DateTime?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  settings    TenantSettings?
+  subscription TenantSubscription?
+  branding    TenantBranding?
+  domains     TenantDomain[]
+  features    TenantFeature[]
+  branches    Branch[]
+  users       AppUser[]
+  roles       Role[]
+  auditLogs   AuditLog[]
+}
+
+model TenantSettings {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  defaultLanguage String   @default("en")
+  defaultTimezone String   @default("Asia/Singapore")
+  dateFormat      String   @default("DD/MM/YYYY")
+  currency        String   @default("MYR")
+  fiscalYearStart Int      @default(1)
+  smtpHost        String?
+  smtpPort        Int?
+  smtpUser        String?
+  smtpPass        String?
+  smtpFrom        String?
+  whatsappApiUrl  String?
+  whatsappApiToken String?
+  paymentGateway  String?
+  paymentConfig   String?
+  enableRegistration Boolean @default(false)
+  requireApproval   Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TenantDomain {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  domain    String   @unique
+  primary   Boolean  @default(false)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model TenantBranding {
+  id            String   @id @default(cuid())
+  tenantId      String   @unique
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  primaryColor  String   @default("#0B2345")
+  accentColor   String   @default("#F5A623")
+  textColor     String?  @default("#FFFFFF")
+  sidebarColor  String?  @default("#0B2345")
+  loginBgImage  String?
+  loginBgColor  String?  @default("#0B2345")
+  fontFamily    String?  @default("Inter")
+  logoUrl       String?
+  logoDarkUrl   String?
+  logoLightUrl  String?
+  iconUrl       String?
+  emailHeader   String?
+  emailFooter   String?
+  invoiceTemplate String?
+  reportHeader  String?
+  reportFooter  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// =============================================================
+// PLATFORM — SUBSCRIPTIONS & PLANS
+// =============================================================
+
+model SubscriptionPlan {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  description    String?
+  priceMonthly   Float    @default(0)
+  priceAnnual    Float    @default(0)
+  maxUsers       Int      @default(5)
+  maxProjects    Int      @default(3)
+  maxStorage     Int      @default(500)
+  maxBranches    Int      @default(1)
+  maxApiCalls    Int      @default(1000)
+  aiCredits      Int      @default(0)
+  mobileAccess   Boolean  @default(false)
+  apiAccess      Boolean  @default(false)
+  integrations   Boolean  @default(false)
+  customDomain   Boolean  @default(false)
+  prioritySupport Boolean @default(false)
+  features       String   @default("[]")
+  sortOrder      Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  subscriptions  TenantSubscription[]
+}
+
+model TenantSubscription {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  status          String   @default("Active")
+  billingCycle    String   @default("monthly")
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  trialStart     DateTime?
+  trialEnd       DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  paymentMethodId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TenantFeature {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  module    String
+  enabled   Boolean  @default(true)
+  config    String?
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, module])
+  @@index([tenantId])
+}
+
+// =============================================================
+// TENANT — ORGANIZATIONAL HIERARCHY
+// =============================================================
+
+model Branch {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  code      String
+  address   String?
+  phone     String?
+  email     String?
+  managerId String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  departments Department[]
+  users       AppUser[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  tenantId  String
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  name      String
+  code      String?
+  managerId String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, branchId, name])
+  @@index([tenantId])
+  @@index([branchId])
+}
+
+// =============================================================
+// TENANT — ROLES & PERMISSIONS (RBAC)
+// =============================================================
+
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  name        String
+  description String?
+  level       Int      @default(0)
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions Permission[]
+  users       AppUser[]
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Permission {
+  id        String   @id @default(cuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource  String
+  action    String
+  scope     String   @default("own")
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+}
+
+// =============================================================
+// TENANT — USERS
+// =============================================================
+
+model AppUser {
+  id           String    @id @default(cuid())
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  branchId     String?
+  branch       Branch?   @relation(fields: [branchId], references: [id])
+  departmentId String?
+  roleId       String?
+  role         Role?     @relation(fields: [roleId], references: [id])
+  name         String
+  email        String
+  roleLevel    Int       @default(10)
+  avatar       String?
+  phone        String?
+  active       Boolean   @default(true)
+  passwordHash String?
+  provider     String    @default("email")
+  googleId     String?   @unique
+  lastLoginAt  DateTime?
+  createdBy    String?
+  updatedBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, email])
+}
+
+model OtpChallenge {
+  id        String   @id @default(cuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  consumed  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+// =============================================================
+// TENANT — AUDIT LOGS
+// =============================================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  userId      String?
+  userName    String?
+  action      String
+  resource    String
+  resourceId  String?
+  details     String?
+  ipAddress   String?
+  userAgent   String?
+  level       String   @default("info")
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+// =============================================================
+// TENANT — BUSINESS DATA (all scoped by tenantId + branchId)
+// =============================================================
 
 model Portfolio {
   id          String   @id @default(cuid())
-  code        String   @unique
+  tenantId    String
+  branchId    String?
+  code        String
   name        String
   businessUnit String?
   department  String?
   client      String?
   description String?
-  status      String   @default("Active") // Active | On Hold | Closed
-  health      String   @default("Green")  // Green | Yellow | Red
+  status      String   @default("Active")
+  health      String   @default("Green")
   budget      Float    @default(0)
   startDate   DateTime?
   endDate     DateTime?
   managerId   String?
+  createdBy   String?
+  updatedBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   programs    Program[]
   projects    Project[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([branchId])
 }
 
 model Program {
   id          String   @id @default(cuid())
-  code        String   @unique
+  tenantId    String
+  branchId    String?
+  code        String
   name        String
   description String?
   status      String   @default("Active")
@@ -48,27 +367,35 @@ model Program {
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   startDate   DateTime?
   endDate     DateTime?
+  createdBy   String?
+  updatedBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   projects    Project[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([branchId])
 }
 
 model Project {
   id            String   @id @default(cuid())
-  code          String   @unique
+  tenantId      String
+  branchId      String?
+  code          String
   name          String
   description   String?
-  status        String   @default("Active") // Active | Planning | On Hold | Completed | Cancelled
-  health        String   @default("Green")   // Green | Yellow | Red
-  category      String?  // Building | Infrastructure | Industrial | MEP | Fit-Out
-  priority      String   @default("Medium")  // Low | Medium | High | Critical
+  status        String   @default("Active")
+  health        String   @default("Green")
+  category      String?
+  priority      String   @default("Medium")
   budget        Float    @default(0)
   actualCost    Float    @default(0)
   committedCost Float    @default(0)
   forecastCost  Float    @default(0)
   revenue       Float    @default(0)
-  progress      Float    @default(0) // 0-100
+  progress      Float    @default(0)
   startDate     DateTime?
   finishDate    DateTime?
   baselineStart DateTime?
@@ -80,8 +407,10 @@ model Project {
   managerId     String?
   client        String?
   location      String?
+  createdBy     String?
+  updatedBy     String?
   createdAt     DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt     DateTime @updatedAt
 
   wbs           Wbs[]
   activities    Activity[]
@@ -90,15 +419,18 @@ model Project {
   changes       ChangeOrder[]
   documents     Document[]
   reports       DailyReport[]
-}
 
-// -----------------------------------------------------------
-// WORK BREAKDOWN STRUCTURE
-// -----------------------------------------------------------
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([branchId])
+}
 
 model Wbs {
   id          String   @id @default(cuid())
+  tenantId    String
+  branchId    String?
   code        String
+  name        String
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   parentId    String?
@@ -112,28 +444,30 @@ model Wbs {
   budget      Float    @default(0)
   actualCost  Float    @default(0)
   isMilestone Boolean  @default(false)
+  createdBy   String?
+  updatedBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   activities  Activity[]
-  name        String
-}
 
-// -----------------------------------------------------------
-// ACTIVITIES & SCHEDULING
-// -----------------------------------------------------------
+  @@index([tenantId])
+  @@index([projectId])
+}
 
 model Activity {
   id            String   @id @default(cuid())
+  tenantId      String
+  branchId      String?
   activityId    String
   name          String
   projectId     String
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   wbsId         String?
   wbs           Wbs?     @relation(fields: [wbsId], references: [id])
-  type          String   @default("Task Activity") // Task | LOE | Start Milestone | Finish Milestone | WBS Summary
-  status        String   @default("Not Started") // Not Started | In Progress | Completed
-  duration      Float    @default(0) // original duration (days)
+  type          String   @default("Task Activity")
+  status        String   @default("Not Started")
+  duration      Float    @default(0)
   remainingDur  Float    @default(0)
   actualDur     Float    @default(0)
   startDate     DateTime?
@@ -144,60 +478,72 @@ model Activity {
   lateFinish    DateTime?
   baselineStart DateTime?
   baselineFinish DateTime?
-  progress      Float    @default(0) // 0-100
+  progress      Float    @default(0)
   totalFloat    Float    @default(0)
   freeFloat     Float    @default(0)
   isCritical    Boolean  @default(false)
-  constraint    String?  // As Late As Possible | Must Start On | etc
+  constraint    String?
   constraintDate DateTime?
   calendar      String   @default("Standard 5d")
   responsible   String?
   cost          Float    @default(0)
   actualCost    Float    @default(0)
+  createdBy     String?
+  updatedBy     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   predecessors  Dependency[] @relation("Successor")
   successors    Dependency[] @relation("Predecessor")
   assignments   ResourceAssignment[]
+
+  @@index([tenantId])
+  @@index([projectId])
 }
 
 model Dependency {
   id            String @id @default(cuid())
+  tenantId      String
   predecessorId String
   successorId   String
-  type          String @default("FS") // FS | SS | FF | SF
+  type          String @default("FS")
   lag           Float  @default(0)
   predecessor   Activity @relation("Predecessor", fields: [predecessorId], references: [id], onDelete: Cascade)
   successor     Activity @relation("Successor", fields: [successorId], references: [id], onDelete: Cascade)
-}
 
-// -----------------------------------------------------------
-// RESOURCES
-// -----------------------------------------------------------
+  @@index([tenantId])
+}
 
 model Resource {
   id         String   @id @default(cuid())
-  code       String   @unique
+  tenantId   String
+  branchId   String?
+  code       String
   name       String
-  type       String   @default("Labour") // Labour | Equipment | Material | Vehicle | Tool | Subcontractor | Crew
+  type       String   @default("Labour")
   role       String?
-  unit       String   @default("day") // day | hour | m3 | ton | lump
+  unit       String   @default("day")
   rate       Float    @default(0)
-  maxUnits   Float    @default(8) // availability per day
+  maxUnits   Float    @default(8)
   calendar   String   @default("Standard 5d")
   department String?
   phone      String?
   email      String?
   status     String   @default("Active")
+  createdBy  String?
+  updatedBy  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   assignments ResourceAssignment[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
 }
 
 model ResourceAssignment {
   id          String  @id @default(cuid())
+  tenantId    String
   activityId  String
   resourceId  String
   activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
@@ -207,44 +553,46 @@ model ResourceAssignment {
   remainingUnits Float @default(0)
   cost        Float   @default(0)
   unitsPerDay Float   @default(1)
-}
 
-// -----------------------------------------------------------
-// RISK MANAGEMENT
-// -----------------------------------------------------------
+  @@index([tenantId])
+}
 
 model Risk {
   id          String   @id @default(cuid())
+  tenantId    String
+  branchId    String?
   code        String
   title       String
   description String?
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  category    String   @default("Schedule") // Schedule | Cost | Technical | External | Resource | Quality
-  probability Int      @default(3) // 1-5
-  impact      Int      @default(3) // 1-5
+  category    String   @default("Schedule")
+  probability Int      @default(3)
+  impact      Int      @default(3)
   score       Int      @default(9)
-  status      String   @default("Open") // Open | Mitigated | Closed | Realized
-  strategy    String?  // Avoid | Mitigate | Transfer | Accept
+  status      String   @default("Open")
+  strategy    String?
   mitigation  String?
   owner       String?
   responseCost Float   @default(0)
   raisedDate  DateTime @default(now())
   dueDate     DateTime?
+  createdBy   String?
+  updatedBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
 
-// -----------------------------------------------------------
-// BASELINE MANAGEMENT
-// -----------------------------------------------------------
+  @@index([tenantId])
+  @@index([projectId])
+}
 
 model Baseline {
   id          String   @id @default(cuid())
+  tenantId    String
   name        String
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  type        String   @default("Project") // Project | Primary | Secondary
+  type        String   @default("Project")
   isCurrent   Boolean  @default(false)
   startDate   DateTime?
   finishDate  DateTime?
@@ -253,50 +601,60 @@ model Baseline {
   notes       String?
   createdBy   String?
   createdAt   DateTime @default(now())
-}
 
-// -----------------------------------------------------------
-// CHANGE MANAGEMENT
-// -----------------------------------------------------------
+  @@index([tenantId])
+  @@index([projectId])
+}
 
 model ChangeOrder {
   id          String   @id @default(cuid())
+  tenantId    String
+  branchId    String?
   code        String
   title       String
   description String?
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  type        String   @default("Variation") // Variation | Delay Notice | Claim | EOT | Schedule Revision
-  status      String   @default("Submitted") // Submitted | Under Review | Approved | Rejected
+  type        String   @default("Variation")
+  status      String   @default("Submitted")
   costImpact  Float    @default(0)
-  timeImpact  Float    @default(0) // days
+  timeImpact  Float    @default(0)
   raisedBy    String?
   raisedDate  DateTime @default(now())
   approvedDate DateTime?
+  createdBy   String?
+  updatedBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
 
-// -----------------------------------------------------------
-// DOCUMENTS & DAILY REPORTS
-// -----------------------------------------------------------
+  @@index([tenantId])
+  @@index([projectId])
+}
 
 model Document {
   id         String   @id @default(cuid())
+  tenantId   String
+  branchId   String?
   name       String
   projectId  String
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  type       String   @default("Drawing") // Drawing | Spec | Method Statement | Contract | RFI | Submittal | Photo | Report
+  type       String   @default("Drawing")
   category   String?
   version    String   @default("1.0")
-  status     String   @default("Draft") // Draft | Under Review | Approved | Superseded
+  status     String   @default("Draft")
   uploadedBy String?
   fileUrl    String?
+  createdBy  String?
   createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([projectId])
 }
 
 model DailyReport {
   id         String   @id @default(cuid())
+  tenantId   String
+  branchId   String?
   projectId  String
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   reportDate DateTime
@@ -306,36 +664,9 @@ model DailyReport {
   notes      String?
   delays     String?
   supervisor String?
+  createdBy  String?
   createdAt  DateTime @default(now())
-}
 
-// -----------------------------------------------------------
-// USERS / SYSTEM
-// -----------------------------------------------------------
-
-model AppUser {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  role         String   @default("Customer") // Customer | Admin | Super Admin
-  avatar       String?
-  active       Boolean  @default(true)
-  passwordHash String?  // null for OAuth / OTP-only accounts
-  phone        String?  @unique
-  provider     String   @default("email")    // email | google | whatsapp
-  googleId     String?  @unique
-  createdAt    DateTime @default(now())
-}
-
-// One-time codes for WhatsApp / phone OTP sign-in
-model OtpChallenge {
-  id        String   @id @default(cuid())
-  phone     String
-  codeHash  String
-  expiresAt DateTime
-  consumed  Boolean  @default(false)
-  attempts  Int      @default(0)
-  createdAt DateTime @default(now())
-
-  @@index([phone])
+  @@index([tenantId])
+  @@index([projectId])
 }

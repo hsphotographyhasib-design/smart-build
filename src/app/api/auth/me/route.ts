@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-server'
-import { publicUser } from '@/lib/user'
 
 export async function GET() {
   const user = await getSessionUser()
-  if (!user) return NextResponse.json({ user: null }, { status: 200 })
-  return NextResponse.json({ user: publicUser(user) })
+  if (!user) return NextResponse.json({ user: null })
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      roleLevel: user.roleLevel,
+      avatar: user.avatar,
+      phone: user.phone,
+      tenantId: user.tenantId,
+      branchId: user.branchId,
+      tenant: user.tenant,
+      branch: user.branch,
+      roleId: user.roleId,
+      permissions: user.role?.permissions?.map(p => `${p.resource}.${p.action}`) ?? [],
+    },
+  })
 }

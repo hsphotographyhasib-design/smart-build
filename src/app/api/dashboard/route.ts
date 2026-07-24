@@ -1,117 +1,62 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { getSessionUser } from '@/lib/auth-server'
 import { db } from '@/lib/db'
+import { isSuperAdminRole } from '@/lib/auth'
 
-export const dynamic = 'force-dynamic'
+export async function GET() {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-export async function GET(req: NextRequest) {
-  const port = req.nextUrl.searchParams.get('XTransformPort')
-  void port
-  const [portfolios, programs, projects, risks, activities, resources, changes, baselines] = await Promise.all([
-    db.portfolio.findMany({ include: { programs: true, projects: true } }),
-    db.program.findMany({ include: { projects: true } }),
-    db.project.findMany({ orderBy: { code: 'asc' } }),
-    db.risk.findMany({ include: { project: true } }),
-    db.activity.findMany({ include: { project: true } }),
-    db.resource.findMany(),
-    db.changeOrder.findMany({ include: { project: true } }),
-    db.baseline.findMany({ include: { project: true } }),
-  ])
-
-  const totalBudget = projects.reduce((s, p) => s + p.budget, 0)
-  const totalActual = projects.reduce((s, p) => s + p.actualCost, 0)
-  const totalForecast = projects.reduce((s, p) => s + p.forecastCost, 0)
-  const totalRevenue = projects.reduce((s, p) => s + p.revenue, 0)
-  const totalCommitted = projects.reduce((s, p) => s + p.committedCost, 0)
-  const avgProgress = projects.length ? projects.reduce((s, p) => s + p.progress, 0) / projects.length : 0
-  const delayed = activities.filter(a => a.baselineFinish && a.finishDate && a.finishDate > a.baselineFinish && a.progress < 100)
-  const critical = activities.filter(a => a.isCritical && a.progress < 100)
-  const openRisks = risks.filter(r => r.status === 'Open')
-  const highRisks = openRisks.filter(r => r.probability * r.impact >= 15)
-  const avgFloat = critical.length ? critical.reduce((s, a) => s + a.totalFloat, 0) / critical.length : 0
-
-  const health = {
-    Green: projects.filter(p => p.health === 'Green').length,
-    Yellow: projects.filter(p => p.health === 'Yellow').length,
-    Red: projects.filter(p => p.health === 'Red').length,
-  }
-
-  // Cash flow S-curve (monthly buckets across the portfolio horizon)
-  const startMs = Math.min(...projects.map(p => p.startDate?.getTime() ?? Date.now()))
-  const endMs = Math.max(...projects.map(p => p.finishDate?.getTime() ?? Date.now()))
-  const months: { label: string; planned: number; actual: number; forecast: number }[] = []
-  const cur = new Date(startMs)
-  cur.setUTCDate(1)
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const monthIdx = (label: string) => monthNames.indexOf(label.split(' ')[0])
-  const startOfMonth = (d: Date) => { const x = new Date(d); x.setUTCDate(1); x.setUTCHours(0,0,0,0); return x }
-  const endOfMonth = (d: Date) => { const x = startOfMonth(d); x.setUTCMonth(x.getUTCMonth() + 1); x.setUTCDate(0); return x }
-  while (cur.getTime() <= endMs) {
-    const label = cur.toLocaleString('en', { month: 'short', year: '2-digit', timeZone: 'UTC' })
-    months.push({ label, planned: 0, actual: 0, forecast: 0 })
-    cur.setUTCMonth(cur.getUTCMonth() + 1)
-  }
-  for (const p of projects) {
-    if (!p.startDate || !p.finishDate) continue
-    const pStart = p.startDate.getTime()
-    const pEnd = p.finishDate.getTime()
-    const dur = Math.max(1, pEnd - pStart)
-    const now = Date.now()
-    months.forEach(m => {
-      const parts = m.label.split(' ')
-      const yy = 2000 + parseInt(parts[1])
-      const d = new Date(Date.UTC(yy, monthIdx(m.label), 15))
-      if (d.getTime() >= pStart && d.getTime() <= pEnd) {
-        const span = Math.min(pEnd, endOfMonth(d).getTime()) - Math.max(pStart, startOfMonth(d).getTime())
-        const ratio = Math.max(0, span / dur)
-        m.planned += p.budget * ratio
-        m.forecast += p.forecastCost * ratio
-        // actual: distribute actualCost across elapsed months proportionally to planned ratio
-        if (d.getTime() <= now) m.actual += p.actualCost * ratio
-      }
+  // Super Admin sees platform analytics
+  if (isSuperAdminRole(user.role)) {
+    const [totalTenants, totalUsers, totalProjects] = await Promise.all([
+      db.tenant.count({ where: { status: 'Active' } }),
+      db.appUser.count({ where: { active: true, tenantId: { not: null } } }),
+      db.project.count(),
+    ])
+    return NextResponse.json({
+      mode: 'platform',
+      kpis: {
+        totalTenants, totalUsers, totalProjects,
+        monthlyRevenue: 0, // calculated from subscriptions
+        activeUsers: totalUsers,
+        storageUsed: 0,
+      },
     })
   }
 
-  const resByType: Record<string, number> = {}
-  const resCount: Record<string, number> = {}
-  for (const r of resources) {
-    resByType[r.type] = (resByType[r.type] ?? 0) + r.maxUnits
-    resCount[r.type] = (resCount[r.type] ?? 0) + 1
+  // Tenant user sees their tenant's data
+  const tenantId = user.tenantId
+  if (!tenantId) return NextResponse.json({ error: 'No tenant context' }, { status: 403 })
+
+  const [portfolioCount, projectCount, projectData, resourceCount, riskCount, activeUsers, activityCount] = await Promise.all([
+    db.portfolio.count({ where: { tenantId } }),
+    db.project.count({ where: { tenantId } }),
+    db.project.findMany({ where: { tenantId }, select: { status: true, health: true, budget: true, actualCost: true, progress: true } }),
+    db.resource.count({ where: { tenantId } }),
+    db.risk.count({ where: { tenantId, status: 'Open' } }),
+    db.appUser.count({ where: { tenantId, active: true } }),
+    db.activity.count({ where: { tenantId } }),
+  ])
+
+  const totalBudget = projectData.reduce((s, p) => s + (p.budget || 0), 0)
+  const totalActual = projectData.reduce((s, p) => s + (p.actualCost || 0), 0)
+  const avgProgress = projectData.length ? projectData.reduce((s, p) => s + (p.progress || 0), 0) / projectData.length : 0
+  const healthDist: Record<string, number> = { Green: 0, Yellow: 0, Red: 0 }
+  const statusDist: Record<string, number> = { Active: 0, 'On Hold': 0, Completed: 0, Cancelled: 0 }
+  for (const p of projectData) {
+    healthDist[p.health] = (healthDist[p.health] || 0) + 1
+    statusDist[p.status] = (statusDist[p.status] || 0) + 1
   }
 
   return NextResponse.json({
+    mode: 'tenant',
+    tenant: { id: tenantId, name: user.tenant?.name || '', slug: user.tenant?.slug || '' },
     kpis: {
-      portfolios: portfolios.length,
-      programs: programs.length,
-      projects: projects.length,
-      activities: activities.length,
-      resources: resources.length,
-      risks: risks.length,
-      openRisks: openRisks.length,
-      highRisks: highRisks.length,
-      totalBudget,
-      totalActual,
-      totalForecast,
-      totalRevenue,
-      totalCommitted,
-      grossProfit: totalRevenue - totalForecast,
-      avgProgress,
-      delayedActivities: delayed.length,
-      criticalActivities: critical.length,
-      avgFloat,
-      pendingChanges: changes.filter(c => c.status === 'Submitted' || c.status === 'Under Review').length,
+      portfolioCount, projectCount, resourceCount, riskCount, activeUsers, activityCount,
+      totalBudget, totalActual, avgProgress: Math.round(avgProgress),
     },
-    health,
-    portfolios,
-    programs,
-    projects,
-    risks: risks.map(r => ({ ...r, score: r.probability * r.impact })),
-    activities: activities.slice(0, 600),
-    criticalActivities: critical,
-    delayedActivities: delayed,
-    cashFlow: months,
-    resourceByType: resByType,
-    resourceCount: resCount,
-    changes,
-    baselines,
+    projectHealth: healthDist,
+    projectStatus: statusDist,
   })
 }
