@@ -9,7 +9,7 @@ export function FadeIn({ children, delay = 0, className }: { children: React.Rea
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.28, delay, ease: [0.22, 1, 0.36, 1] as const }}
       className={className}
     >
       {children}
@@ -33,7 +33,7 @@ export function StaggerGroup({ children, className }: { children: React.ReactNod
 
 export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const } },
 }
 
 export function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {

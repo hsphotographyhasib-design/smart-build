@@ -53,7 +53,7 @@ function SectionFadeIn({
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] as const }}
       className={className}
     >
       {children}
@@ -86,7 +86,7 @@ function StaggerContainer({
 
 const staggerChild = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
 }
 
 function StaggerItem({
@@ -464,7 +464,7 @@ export default function LandingPage() {
                             initial={{ width: 0 }}
                             whileInView={{ width: `${bar.value}%` }}
                             viewport={{ once: true }}
-                            transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: 1.2, delay: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
                           />
                         </div>
                       </div>
