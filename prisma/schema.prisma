@@ -667,7 +667,378 @@ model DailyReport {
   supervisor String?
   createdBy  String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([projectId])
+}
+
+// =============================================================
+// CMS — PAGES & SECTIONS
+// =============================================================
+
+model CmsPage {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  path          String   @unique
+  description   String?
+  status        String   @default("draft")
+  seoTitle      String?
+  seoDescription String?
+  seoKeywords   String?
+  ogImage       String?
+  canonicalUrl  String?
+  schemaMarkup  String?
+  locale        String   @default("en")
+  isHomePage    Boolean  @default(false)
+  publishedAt   DateTime?
+  scheduledAt   DateTime?
+  version       Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sections      CmsSection[]
+  versions      CmsPageVersion[]
+
+  @@index([status])
+  @@index([locale])
+}
+
+model CmsSection {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String
+  name      String
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  config    Json
+  styles    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page      CmsPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, order])
+  @@index([type])
+}
+
+model CmsPageVersion {
+  id        String   @id @default(cuid())
+  pageId    String
+  version   Int
+  data      Json
+  note      String?
+  createdAt DateTime @default(now())
+
+  page      CmsPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, version])
+  @@index([pageId])
+}
+
+// =============================================================
+// CMS — MEDIA
+// =============================================================
+
+model CmsMedia {
+  id        String   @id @default(cuid())
+  name      String
+  alt       String?
+  type      String
+  mimeType  String?
+  size      Int      @default(0)
+  width     Int?
+  height    Int?
+  url       String
+  thumbUrl  String?
+  folder    String   @default("/")
+  tags      String[] @default([])
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([folder])
+}
+
+// =============================================================
+// CMS — BLOG
+// =============================================================
+
+model CmsBlogCategory {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+  description String?
+  color       String?
+  order       Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       CmsBlogPost[]
+}
+
+model CmsBlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String?
+  content         String
+  coverImage      String?
+  coverAlt        String?
+  status          String    @default("draft")
+  featured        Boolean   @default(false)
+  locale          String    @default("en")
+  seoTitle        String?
+  seoDescription  String?
+  seoKeywords     String?
+  ogImage         String?
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  authorName      String?
+  authorAvatar    String?
+  readingTime     Int       @default(5)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  categories      CmsBlogPostCategory[]
+  tags            CmsBlogTag[]
+  comments         CmsBlogComment[]
+
+  @@index([status, publishedAt])
+  @@index([locale])
+  @@index([featured])
+}
+
+model CmsBlogPostCategory {
+  postId     String
+  categoryId String
+
+  post       CmsBlogPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   CmsBlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, categoryId])
+}
+
+model CmsBlogTag {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  posts CmsBlogPostTag[]
+}
+
+model CmsBlogPostTag {
+  postId String
+  tagId   String
+
+  post  CmsBlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag   CmsBlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+}
+
+model CmsBlogComment {
+  id        String   @id @default(cuid())
+  postId    String
+  author    String
+  email     String?
+  content   String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  post      CmsBlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, status])
+}
+
+// =============================================================
+// CMS — FORMS & LEADS
+// =============================================================
+
+model CmsForm {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  config      Json
+  successMsg  String?
+  errorMsg    String?
+  notifyEmail String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions  CmsFormSubmission[]
+}
+
+model CmsFormSubmission {
+  id          String   @id @default(cuid())
+  formId      String
+  data        Json
+  status      String   @default("new")
+  source      String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm    String?
+  utmContent  String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  form        CmsForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId, status])
+  @@index([createdAt])
+}
+
+// =============================================================
+// CMS — TESTIMONIALS & CASE STUDIES
+// =============================================================
+
+model CmsTestimonial {
+  id          String   @id @default(cuid())
+  name        String
+  position    String?
+  company     String?
+  companyLogo String?
+  avatar      String?
+  content     String   @db.Text
+  rating      Int      @default(5)
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  status      String   @default("published")
+  locale      String   @default("en")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([featured])
+  @@index([status, order])
+}
+
+model CmsCaseStudy {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  client      String?
+  industry    String?
+  summary     String?
+  content     String   @db.Text
+  coverImage  String?
+  results     Json?
+  featured    Boolean  @default(false)
+  status      String   @default("published")
+  locale      String   @default("en")
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([industry])
+  @@index([featured])
+}
+
+// =============================================================
+// CMS — PARTNERS & FAQ
+// =============================================================
+
+model CmsPartner {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String
+  url       String?
+  category  String   @default("client")
+  order     Int      @default(0)
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, order])
+}
+
+model CmsFaq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  category  String?
+  order     Int      @default(0)
+  locale    String   @default("en")
+  status    String   @default("published")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, order])
+  @@index([locale])
+}
+
+// =============================================================
+// CMS — ANALYTICS & NEWSLETTER
+// =============================================================
+
+model CmsAnalyticsConfig {
+  id                        String   @id @default(cuid())
+  googleAnalytics            String?
+  googleTagManager         String?
+  microsoftClarity         String?
+  metaPixel                 String?
+  linkedinInsight           String?
+  facebookDomainVerification String?
+  headScripts              String?
+  bodyScripts              String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model CmsNewsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  source    String?
+  status    String   @default("subscribed")
+  createdAt DateTime @default(now())
+}
+
+// =============================================================
+// CMS — I18N
+// =============================================================
+
+model CmsTranslation {
+  id        String @id @default(cuid())
+  key       String
+  locale    String
+  value     String @db.Text
+  context   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, locale])
+  @@index([locale])
+  @@index([context])
+}
+
+// =============================================================
+// CMS — MENUS
+// =============================================================
+
+model CmsMenuItem {
+  id        String   @id @default(cuid())
+  label     String
+  url       String?
+  type      String   @default("link")
+  parentId   String?
+  icon      String?
+  target    String   @default("_self")
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  locale    String   @default("en")
+  menu      String   @default("main")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  parent    CmsMenuItem?  @relation("MenuItems", fields: [parentId], references: [id], onDelete: SetNull)
+  children  CmsMenuItem[]  @relation("MenuItems")
+
+  @@index([menu, order])
+  @@index([parentId])
 }
