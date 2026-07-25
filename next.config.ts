@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // The start script and .zscripts/build.sh both serve .next/standalone/server.js;
-  // without this the standalone bundle is never emitted and `bun run start` fails.
-  output: "standalone",
+  // output: "standalone" is removed for Vercel compatibility.
+  // For local self-hosted deployment, add it back.
+  // output: "standalone",
   images: {
     remotePatterns: [
       {
