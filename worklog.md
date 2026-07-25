@@ -434,3 +434,40 @@ Stage Summary:
 - All public pages now consistent: landing, pricing, register, login
 - App dashboard and EPPM modules already used original design
 - Lint clean, all pages render correctly in browser
+
+---
+Task ID: VERCEL-DEPLOY
+Agent: Main Orchestrator
+Task: Connect to Vercel and fix deployment issues
+
+Work Log:
+- Analyzed existing Vercel configuration (vercel.json, next.config.ts, package.json)
+- Verified project has package-lock.json for npm compatibility (from previous commit 868139a)
+- Verified db.ts supports both file: (local) and libsql:// (Turso) database URLs
+- Identified 30+ dev artifacts tracked in git: screenshots, db/custom.db, tool-results/, upload/, download/, examples/
+- Updated .gitignore to exclude: db/*.db, tool-results/, upload/, download/, examples/, mini-services/, *-screenshot.png, !.env.example
+- Removed all 30+ dev artifacts from git tracking (git rm --cached)
+- Updated vercel.json: added --legacy-peer-deps to installCommand
+- Updated next.config.ts: added serverExternalPackages for bcryptjs, @libsql/client, sharp
+- Created .env.example with DATABASE_URL, DATABASE_AUTH_TOKEN, AUTH_SECRET documentation
+- Verified npm dependency tree: no missing/peer dependency errors
+- Verified lint: 0 errors, 0 warnings
+- Verified dev server: all pages return 200
+- Attempted Vercel API project creation (v8, v9, v13, import, CLI) — token lacks 'Create Projects' permission
+- Confirmed token can authenticate (got user info) and list projects, but cannot create
+- Pushed all fixes to GitHub (commit 596a6e3)
+
+Vercel API Analysis:
+- Token: vck_ prefix (new Vercel token format)
+- User: playboysojib96@gmail.com (team_rsMqdmitWCtpKvNufos3fEcL)
+- Account: limited (Hobby/Free plan)
+- Token permissions: Read projects, but NOT Create projects
+- Endpoints tried: v9/projects POST, v8/projects POST, v13/deployments, v9/projects/import, Vercel CLI — all blocked
+- The token was likely created with 'Read' scope only, not 'Full Account'
+
+Stage Summary:
+- Code is fully prepared for Vercel deployment
+- All dev artifacts cleaned from git repository
+- GitHub repo is clean and ready for Vercel import
+- User needs to create project on Vercel dashboard (token lacks permission)
+- Required env vars documented in .env.example: DATABASE_URL (Turso), AUTH_SECRET
