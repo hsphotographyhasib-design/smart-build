@@ -176,6 +176,12 @@ export default function PageBuilder() {
 
   const formFields = editing ? configToFormFields(editing.config, editing.type) : []
 
+  const handleEditOpen = (section: Section, open: boolean) => {
+    if (!open) { setEditing(null); return }
+    setEditing(section)
+    setEditConfig({ ...section.config, _name: section.name })
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -221,7 +227,7 @@ export default function PageBuilder() {
               </div>
               <Badge variant="outline" className="text-xs">{section.type}</Badge>
               <Switch checked={section.visible} onCheckedChange={() => toggleVisibility(section)} />
-              <Dialog open={editing?.id === section.id} onOpenChange={(open) => { if (!open) setEditing(null) else { setEditing(section); setEditConfig({ ...section.config, _name: section.name }) } }}>
+              <Dialog open={editing?.id === section.id} onOpenChange={(open) => handleEditOpen(section, open)}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm"><Settings2 className="w-4 h-4" /></Button>
                 </DialogTrigger>

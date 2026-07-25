@@ -55,11 +55,20 @@ export function GenericCrud({ title, description, apiPath, fields, itemName, sta
     try { const res = await fetch(`${apiPath}/${id}`, { method: 'DELETE' }); if (res.ok) { toast.success('Deleted'); load() } else toast.error('Failed') } catch { toast.error('Failed') }
   }
 
+  const handleCreateOpen = (open: boolean) => {
+    if (!open) { setIsCreating(false); return }
+    openCreate()
+  }
+
+  const handleEditOpen = (open: boolean) => {
+    if (!open) { setEditing(null); return }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold font-heading">{title}</h1><p className="text-muted-foreground mt-1">{description}</p></div>
-        <Dialog open={isCreating} onOpenChange={open => { if (!open) setIsCreating(false) else openCreate() }}>
+        <Dialog open={isCreating} onOpenChange={handleCreateOpen}>
           <DialogTrigger asChild><Button className="bg-[#F5A623] hover:bg-[#e6961a] text-[#0B2345]"><Plus className="w-4 h-4 mr-2" />Add {itemName}</Button></DialogTrigger>
           <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Add {itemName}</DialogTitle></DialogHeader>
@@ -94,7 +103,7 @@ export function GenericCrud({ title, description, apiPath, fields, itemName, sta
         ))}
         {items.length === 0 && <div className="text-center py-12 text-muted-foreground">No {itemName.toLowerCase()}s yet.</div>}
       </div>
-      <Dialog open={!!editing && !isCreating} onOpenChange={open => { if (!open) setEditing(null) }}>
+      <Dialog open={!!editing && !isCreating} onOpenChange={handleEditOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit {itemName}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
