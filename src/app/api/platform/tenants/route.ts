@@ -103,8 +103,8 @@ export async function POST(req: NextRequest) {
     userId: admin.id, userName: admin.name,
     action: 'create', resource: 'tenant', resourceId: tenant.id,
     details: JSON.stringify({ name, slug, plan: plan.name }),
-    ipAddress: hdrs.get('x-forwarded-for') ?? null,
-    userAgent: hdrs.get('user-agent') ?? null,
+    ipAddress: hdrs.get('x-forwarded-for') ?? undefined,
+    userAgent: hdrs.get('user-agent') ?? undefined,
     level: 'security',
   })
 

@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     // 3. Upsert: link by googleId, else by email, else create a first-time Customer.
     let user =
       (await db.appUser.findUnique({ where: { googleId: profile.id } })) ||
-      (await db.appUser.findUnique({ where: { email } }))
+      (await db.appUser.findFirst({ where: { email } }))
 
     if (!user) {
       user = await db.appUser.create({
@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
           avatar: profile.picture ?? null,
           provider: 'google',
           role: ROLES.CUSTOMER,
+          roleLevel: 10,
         },
       })
     } else if (!user.googleId) {
@@ -76,7 +77,17 @@ export async function GET(req: NextRequest) {
 
     if (!user.active) return fail('account_disabled')
 
-    await issueSession(user)
+    await issueSession({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      roleLevel: user.roleLevel,
+      provider: user.provider,
+      tenantId: user.tenantId,
+      tenantSlug: null,
+      branchId: user.branchId,
+    })
     const res = NextResponse.redirect(new URL('/app', origin))
     res.cookies.set('g_state', '', { path: '/', maxAge: 0 })
     return res

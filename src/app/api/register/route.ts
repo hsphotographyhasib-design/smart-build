@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   await db.tenant.update({ where: { id: tenant.id }, data: { currentUsers: 1 } })
   await issueSession({ id: user.id, email, name, role: 'Tenant Admin', roleLevel: 80, provider: 'email', tenantId: tenant.id, tenantSlug: slug, branchId: tenant.branches[0].id })
   await logLogin({ id: user.id, name, tenantId: tenant.id })
-  await createAuditLog({ tenantId: tenant.id, userId: user.id, userName: name, action: 'create', resource: 'tenant', resourceId: tenant.id, details: JSON.stringify({ name: companyName, slug, plan: plan.name }), ipAddress: hdrs.get('x-forwarded-for') ?? null, userAgent: hdrs.get('user-agent') ?? null, level: 'security' })
+  await createAuditLog({ tenantId: tenant.id, userId: user.id, userName: name, action: 'create', resource: 'tenant', resourceId: tenant.id, details: JSON.stringify({ name: companyName, slug, plan: plan.name }), ipAddress: hdrs.get('x-forwarded-for') ?? undefined, userAgent: hdrs.get('user-agent') ?? undefined, level: 'security' })
 
   return NextResponse.json({ message: 'Tenant created', tenant: { id: tenant.id, name: companyName, slug }, redirect: '/app' }, { status: 201 })
 }

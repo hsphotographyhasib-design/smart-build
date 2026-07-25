@@ -1,0 +1,737 @@
+     1→'use client'
+     2→
+     3→import Image from 'next/image'
+     4→import Link from 'next/link'
+     5→import { motion } from 'framer-motion'
+     6→import {
+     7→  Menu,
+     8→  Layers,
+     9→  GanttChart,
+    10→  Users,
+    11→  DollarSign,
+    12→  FileCheck,
+    13→  ShieldCheck,
+    14→  ArrowRight,
+    15→  CheckCircle2,
+    16→  Server,
+    17→  Lock,
+    18→  CreditCard,
+    19→  Code2,
+    20→  ChevronRight,
+    21→  Linkedin,
+    22→  Twitter,
+    23→  Github,
+    24→  Building2,
+    25→  BarChart3,
+    26→  Zap,
+    27→} from 'lucide-react'
+    28→import { Button } from '@/components/ui/button'
+    29→import {
+    30→  Card,
+    31→  CardContent,
+    32→  CardHeader,
+    33→  CardTitle,
+    34→} from '@/components/ui/card'
+    35→import { Badge } from '@/components/ui/badge'
+    36→import { Separator } from '@/components/ui/separator'
+    37→import {
+    38→  Sheet,
+    39→  SheetTrigger,
+    40→  SheetContent,
+    41→  SheetHeader,
+    42→  SheetTitle,
+    43→  SheetClose,
+    44→} from '@/components/ui/sheet'
+    45→
+    46→/* ------------------------------------------------------------------ */
+    47→/*  Animation variants                                                */
+    48→/* ------------------------------------------------------------------ */
+    49→const fadeUp = {
+    50→  hidden: { opacity: 0, y: 30 },
+    51→  visible: (i: number = 0) => ({
+    52→    opacity: 1,
+    53→    y: 0,
+    54→    transition: { duration: 0.6, delay: i * 0.1, ease: 'easeOut' },
+    55→  }),
+    56→}
+    57→
+    58→const fadeIn = {
+    59→  hidden: { opacity: 0 },
+    60→  visible: { opacity: 1, transition: { duration: 0.7 } },
+    61→}
+    62→
+    63→const scaleIn = {
+    64→  hidden: { opacity: 0, scale: 0.92 },
+    65→  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+    66→}
+    67→
+    68→/* ------------------------------------------------------------------ */
+    69→/*  Data                                                              */
+    70→/* ------------------------------------------------------------------ */
+    71→const NAV_LINKS = [
+    72→  { label: 'Features', href: '#features' },
+    73→  { label: 'Pricing', href: '#pricing' },
+    74→  { label: 'About', href: '#about' },
+    75→]
+    76→
+    77→const TRUSTED_COMPANIES = ['Gamuda', 'IJM', 'YTL', 'Sunway', 'UEM']
+    78→
+    79→const FEATURES = [
+    80→  {
+    81→    icon: Layers,
+    82→    title: 'Portfolio & Program Management',
+    83→    description:
+    84→      'Align projects with strategic objectives. Manage portfolios, programs, and projects in a unified hierarchy with real-time KPI tracking.',
+    85→  },
+    86→  {
+    87→    icon: GanttChart,
+    88→    title: 'Gantt Scheduling & Critical Path',
+    89→    description:
+    90→      'Interactive Gantt charts with drag-and-drop scheduling, critical path analysis, and automatic dependency resolution.',
+    91→  },
+    92→  {
+    93→    icon: Users,
+    94→    title: 'Resource & Workforce Planning',
+    95→    description:
+    96→      'Optimize resource allocation across projects with capacity planning, availability tracking, and skills matching.',
+    97→  },
+    98→  {
+    99→    icon: DollarSign,
+   100→    title: 'Cost Management & EVM',
+   101→    description:
+   102→      'Track budgets, commitments, and expenditures with Earned Value Management for data-driven project health insights.',
+   103→  },
+   104→  {
+   105→    icon: FileCheck,
+   106→    title: 'Document Control & Submittals',
+   107→    description:
+   108→      'Centralized document management with version control, approval workflows, and automated submittal tracking.',
+   109→  },
+   110→  {
+   111→    icon: ShieldCheck,
+   112→    title: 'HSE & Quality Management',
+   113→    description:
+   114→      'Digital safety inspections, incident reporting, non-conformance tracking, and quality audit management.',
+   115→  },
+   116→]
+   117→
+   118→const ARCHITECTURE_POINTS = [
+   119→  {
+   120→    icon: Server,
+   121→    text: 'Multi-tenant data isolation with tenant-scoped database queries',
+   122→  },
+   123→  {
+   124→    icon: Lock,
+   125→    text: 'Granular RBAC \u2014 role-based access control across branches & departments',
+   126→  },
+   127→  {
+   128→    icon: CreditCard,
+   129→    text: 'Flexible subscription plans from Free Trial to Enterprise',
+   130→  },
+   131→  {
+   132→    icon: Code2,
+   133→    text: 'RESTful API with tenant context headers for system integration',
+   134→  },
+   135→]
+   136→
+   137→const FOOTER_LINKS = {
+   138→  Product: [
+   139→    { label: 'Features', href: '#features' },
+   140→    { label: 'Pricing', href: '/pricing' },
+   141→    { label: 'Integrations', href: '#' },
+   142→    { label: 'Changelog', href: '#' },
+   143→  ],
+   144→  Company: [
+   145→    { label: 'About', href: '#about' },
+   146→    { label: 'Careers', href: '#' },
+   147→    { label: 'Blog', href: '#' },
+   148→    { label: 'Contact', href: '#' },
+   149→  ],
+   150→  Resources: [
+   151→    { label: 'Documentation', href: '#' },
+   152→    { label: 'API Reference', href: '#' },
+   153→    { label: 'Support', href: '#' },
+   154→    { label: 'Status', href: '#' },
+   155→  ],
+   156→  Legal: [
+   157→    { label: 'Privacy Policy', href: '#' },
+   158→    { label: 'Terms of Service', href: '#' },
+   159→    { label: 'Security', href: '#' },
+   160→    { label: 'Compliance', href: '#' },
+   161→  ],
+   162→}
+   163→
+   164→/* ------------------------------------------------------------------ */
+   165→/*  Counter component for hero metrics                                */
+   166→/* ------------------------------------------------------------------ */
+   167→function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
+   168→  return (
+   169→    <motion.span
+   170→      initial={{ opacity: 0, y: 10 }}
+   171→      whileInView={{ opacity: 1, y: 0 }}
+   172→      viewport={{ once: true }}
+   173→      transition={{ duration: 0.5 }}
+   174→      className="text-gradient font-heading text-3xl font-bold lg:text-4xl"
+   175→    >
+   176→      {value.toLocaleString()}
+   177→      {suffix}
+   178→    </motion.span>
+   179→  )
+   180→}
+   181→
+   182→/* ------------------------------------------------------------------ */
+   183→/*  Page Component                                                    */
+   184→/* ------------------------------------------------------------------ */
+   185→export default function LandingPage() {
+   186→  return (
+   187→    <div className="min-h-screen flex flex-col">
+   188→      {/* ==================== NAVBAR ==================== */}
+   189→      <header className="sticky top-0 z-50 bg-brand-navy/95 backdrop-blur-md border-b border-white/10">
+   190→        <nav className="container-brand flex h-16 items-center justify-between lg:h-18">
+   191→          {/* Logo */}
+   192→          <Link href="/" className="flex items-center gap-2 shrink-0">
+   193→            <Image
+   194→              src="/brand/smartbuild-app-dark.svg"
+   195→              alt="SmartBuild"
+   196→              width={140}
+   197→              height={36}
+   198→              className="h-8 w-auto lg:h-9 brightness-0 invert"
+   199→              priority
+   200→            />
+   201→          </Link>
+   202→
+   203→          {/* Desktop nav links */}
+   204→          <div className="hidden md:flex items-center gap-8">
+   205→            {NAV_LINKS.map((link) => (
+   206→              <a
+   207→                key={link.href}
+   208→                href={link.href}
+   209→                className="font-body text-sm text-white/70 transition-colors hover:text-brand-gold"
+   210→              >
+   211→                {link.label}
+   212→              </a>
+   213→            ))}
+   214→          </div>
+   215→
+   216→          {/* Desktop CTA */}
+   217→          <div className="hidden md:flex items-center gap-3">
+   218→            <Button
+   219→              variant="ghost"
+   220→              className="text-white/80 hover:text-white hover:bg-white/10"
+   221→              asChild
+   222→            >
+   223→              <Link href="/login">Login</Link>
+   224→            </Button>
+   225→            <Button className="bg-brand-gold text-brand-navy hover:bg-brand-gold-light font-semibold">
+   226→              Get Started
+   227→              <ArrowRight className="size-4" />
+   228→            </Button>
+   229→          </div>
+   230→
+   231→          {/* Mobile hamburger */}
+   232→          <div className="md:hidden">
+   233→            <Sheet>
+   234→              <SheetTrigger asChild>
+   235→                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+   236→                  <Menu className="size-5" />
+   237→                  <span className="sr-only">Open menu</span>
+   238→                </Button>
+   239→              </SheetTrigger>
+   240→              <SheetContent side="right" className="bg-brand-navy border-white/10 w-72">
+   241→                <SheetHeader>
+   242→                  <SheetTitle className="text-white font-heading">SmartBuild</SheetTitle>
+   243→                </SheetHeader>
+   244→                <div className="flex flex-col gap-4 mt-4">
+   245→                  {NAV_LINKS.map((link) => (
+   246→                    <SheetClose key={link.href} asChild>
+   247→                      <a
+   248→                        href={link.href}
+   249→                        className="font-body text-white/80 text-base py-2 transition-colors hover:text-brand-gold"
+   250→                      >
+   251→                        {link.label}
+   252→                      </a>
+   253→                    </SheetClose>
+   254→                  ))}
+   255→                  <Separator className="bg-white/10" />
+   256→                  <SheetClose asChild>
+   257→                    <Button
+   258→                      variant="ghost"
+   259→                      className="text-white/80 hover:text-white hover:bg-white/10 justify-start"
+   260→                      asChild
+   261→                    >
+   262→                      <Link href="/login">Login</Link>
+   263→                    </Button>
+   264→                  </SheetClose>
+   265→                  <SheetClose asChild>
+   266→                    <Button
+   267→                      className="bg-brand-gold text-brand-navy hover:bg-brand-gold-light font-semibold w-full"
+   268→                      asChild
+   269→                    >
+   270→                      <Link href="/register">Get Started</Link>
+   271→                    </Button>
+   272→                  </SheetClose>
+   273→                </div>
+   274→              </SheetContent>
+   275→            </Sheet>
+   276→          </div>
+   277→        </nav>
+   278→      </header>
+   279→
+   280→      {/* ==================== HERO ==================== */}
+   281→      <section className="bg-navy-gradient relative overflow-hidden">
+   282→        {/* Decorative elements */}
+   283→        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+   284→          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-brand-gold/5 blur-3xl" />
+   285→          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-brand-gold/3 blur-3xl" />
+   286→        </div>
+   287→
+   288→        <div className="container-brand relative z-10 min-h-[calc(100vh-4rem)] flex items-center py-16 lg:py-20">
+   289→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
+   290→            {/* Left: Copy */}
+   291→            <motion.div
+   292→              initial="hidden"
+   293→              animate="visible"
+   294→              variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+   295→            >
+   296→              <motion.div variants={fadeUp} custom={0}>
+   297→                <Badge className="mb-6 bg-brand-gold/15 text-brand-gold border-brand-gold/30 font-body text-sm px-4 py-1.5">
+   298→                  <Zap className="size-3.5 mr-1.5" />
+   299→                  Enterprise-Grade SaaS Platform
+   300→                </Badge>
+   301→              </motion.div>
+   302→
+   303→              <motion.h1
+   304→                variants={fadeUp}
+   305→                custom={1}
+   306→                className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight text-balance"
+   307→              >
+   308→                Enterprise Construction Management,{' '}
+   309→                <span className="text-gradient">Reimagined for the Cloud</span>
+   310→              </motion.h1>
+   311→
+   312→              <motion.p
+   313→                variants={fadeUp}
+   314→                custom={2}
+   315→                className="mt-6 font-body text-lg text-white/65 leading-relaxed max-w-xl text-balance"
+   316→              >
+   317→                A multi-tenant SaaS platform that gives construction enterprises full
+   318→                control over portfolios, programs, and projects — with enterprise-grade
+   319→                security, role-based access, and subscription flexibility.
+   320→              </motion.p>
+   321→
+   322→              <motion.div
+   323→                variants={fadeUp}
+   324→                custom={3}
+   325→                className="mt-8 flex flex-wrap gap-4"
+   326→              >
+   327→                <Button
+   328→                  size="lg"
+   329→                  className="bg-brand-gold text-brand-navy hover:bg-brand-gold-light font-semibold text-base px-8 h-12"
+   330→                  asChild
+   331→                >
+   332→                  <Link href="/register">
+   333→                    Start Free Trial
+   334→                    <ArrowRight className="size-4" />
+   335→                  </Link>
+   336→                </Button>
+   337→                <Button
+   338→                  size="lg"
+   339→                  variant="outline"
+   340→                  className="border-white/20 text-white hover:bg-white/10 hover:text-white text-base px-8 h-12"
+   341→                  asChild
+   342→                >
+   343→                  <Link href="/pricing">See Plans</Link>
+   344→                </Button>
+   345→              </motion.div>
+   346→            </motion.div>
+   347→
+   348→            {/* Right: Metrics Card */}
+   349→            <motion.div
+   350→              initial="hidden"
+   351→              animate="visible"
+   352→              variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.3 } } }}
+   353→              className="flex justify-center lg:justify-end"
+   354→            >
+   355→              <motion.div
+   356→                variants={scaleIn}
+   357→                className="glass rounded-2xl p-6 lg:p-8 w-full max-w-md"
+   358→              >
+   359→                <div className="flex items-center gap-3 mb-6">
+   360→                  <div className="flex items-center justify-center size-10 rounded-lg bg-brand-gold/15">
+   361→                    <BarChart3 className="size-5 text-brand-gold" />
+   362→                  </div>
+   363→                  <div>
+   364→                    <p className="font-heading text-white font-semibold text-sm">Platform Overview</p>
+   365→                    <p className="font-body text-white/50 text-xs">Real-time metrics</p>
+   366→                  </div>
+   367→                </div>
+   368→
+   369→                <div className="grid grid-cols-2 gap-4">
+   370→                  <div className="glass rounded-xl p-4">
+   371→                    <AnimatedCounter value={500} suffix="+" />
+   372→                    <p className="font-body text-white/50 text-xs mt-1">Active Projects</p>
+   373→                  </div>
+   374→                  <div className="glass rounded-xl p-4">
+   375→                    <AnimatedCounter value={98} suffix="%" />
+   376→                    <p className="font-body text-white/50 text-xs mt-1">Uptime SLA</p>
+   377→                  </div>
+   378→                  <div className="glass rounded-xl p-4">
+   379→                    <AnimatedCounter value={50} suffix="+" />
+   380→                    <p className="font-body text-white/50 text-xs mt-1">Enterprise Tenants</p>
+   381→                  </div>
+   382→                  <div className="glass rounded-xl p-4">
+   383→                    <AnimatedCounter value={12} suffix="k+" />
+   384→                    <p className="font-body text-white/50 text-xs mt-1">Users Managed</p>
+   385→                  </div>
+   386→                </div>
+   387→
+   388→                <div className="mt-5 flex items-center gap-2">
+   389→                  <div className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
+   390→                    <motion.div
+   391→                      initial={{ width: 0 }}
+   392→                      animate={{ width: '78%' }}
+   393→                      transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
+   394→                      className="h-full rounded-full bg-gradient-to-r from-brand-gold to-brand-gold-light"
+   395→                    />
+   396→                  </div>
+   397→                  <span className="font-body text-white/50 text-xs">78% on-track</span>
+   398→                </div>
+   399→              </motion.div>
+   400→            </motion.div>
+   401→          </div>
+   402→        </div>
+   403→      </section>
+   404→
+   405→      {/* ==================== TRUSTED BY ==================== */}
+   406→      <section className="bg-white border-b border-border py-10 lg:py-12">
+   407→        <div className="container-brand text-center">
+   408→          <motion.p
+   409→            initial="hidden"
+   410→            whileInView="visible"
+   411→            viewport={{ once: true }}
+   412→            variants={fadeUp}
+   413→            className="font-body text-sm text-muted-foreground uppercase tracking-wider mb-8"
+   414→          >
+   415→            Trusted by leading construction enterprises
+   416→          </motion.p>
+   417→          <motion.div
+   418→            initial="hidden"
+   419→            whileInView="visible"
+   420→            viewport={{ once: true }}
+   421→            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+   422→            className="flex flex-wrap items-center justify-center gap-8 lg:gap-16"
+   423→          >
+   424→            {TRUSTED_COMPANIES.map((company) => (
+   425→              <motion.div key={company} variants={fadeIn} className="flex items-center justify-center">
+   426→                <span className="font-heading text-xl lg:text-2xl font-bold text-muted-foreground/40 tracking-tight select-none">
+   427→                  {company}
+   428→                </span>
+   429→              </motion.div>
+   430→            ))}
+   431→          </motion.div>
+   432→        </div>
+   433→      </section>
+   434→
+   435→      {/* ==================== FEATURES GRID ==================== */}
+   436→      <section id="features" className="section-padding bg-background">
+   437→        <div className="container-brand">
+   438→          <motion.div
+   439→            initial="hidden"
+   440→            whileInView="visible"
+   441→            viewport={{ once: true, margin: '-80px' }}
+   442→            variants={fadeUp}
+   443→            className="text-center max-w-2xl mx-auto mb-14"
+   444→          >
+   445→            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">
+   446→              Everything You Need to{' '}
+   447→              <span className="text-gradient">Deliver Projects</span>
+   448→            </h2>
+   449→            <p className="mt-4 font-body text-muted-foreground text-lg leading-relaxed">
+   450→              Six powerful EPPM modules designed for the complexities of construction portfolio management.
+   451→            </p>
+   452→          </motion.div>
+   453→
+   454→          <motion.div
+   455→            initial="hidden"
+   456→            whileInView="visible"
+   457→            viewport={{ once: true, margin: '-60px' }}
+   458→            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+   459→            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+   460→          >
+   461→            {FEATURES.map((feature) => (
+   462→              <motion.div key={feature.title} variants={fadeUp}>
+   463→                <Card className="group h-full border-border/60 bg-card hover:border-brand-gold/30 hover:shadow-lg hover:shadow-brand-gold/5 transition-all duration-300">
+   464→                  <CardHeader className="pb-3">
+   465→                    <div className="mb-3 flex size-11 items-center justify-center rounded-lg bg-brand-navy/5 group-hover:bg-brand-gold/10 transition-colors duration-300">
+   466→                      <feature.icon className="size-5 text-brand-navy group-hover:text-brand-gold transition-colors duration-300" />
+   467→                    </div>
+   468→                    <CardTitle className="font-heading text-base leading-snug">
+   469→                      {feature.title}
+   470→                    </CardTitle>
+   471→                  </CardHeader>
+   472→                  <CardContent>
+   473→                    <p className="font-body text-sm text-muted-foreground leading-relaxed">
+   474→                      {feature.description}
+   475→                    </p>
+   476→                  </CardContent>
+   477→                </Card>
+   478→              </motion.div>
+   479→            ))}
+   480→          </motion.div>
+   481→        </div>
+   482→      </section>
+   483→
+   484→      {/* ==================== PLATFORM ARCHITECTURE ==================== */}
+   485→      <section id="about" className="section-padding bg-brand-light">
+   486→        <div className="container-brand">
+   487→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+   488→            {/* Left: Copy */}
+   489→            <motion.div
+   490→              initial="hidden"
+   491→              whileInView="visible"
+   492→              viewport={{ once: true, margin: '-80px' }}
+   493→              variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+   494→            >
+   495→              <motion.h2
+   496→                variants={fadeUp}
+   497→                className="font-heading text-3xl sm:text-4xl font-bold text-foreground"
+   498→              >
+   499→                Built for{' '}
+   500→                <span className="text-gradient">Enterprise Scale</span>
+   501→              </motion.h2>
+   502→              <motion.p
+   503→                variants={fadeUp}
+   504→                className="mt-4 font-body text-muted-foreground text-base leading-relaxed max-w-lg"
+   505→              >
+   506→                SmartBuild is engineered from the ground up as a true multi-tenant
+   507→                SaaS — with complete data isolation, granular permissions, and flexible
+   508→                subscription management.
+   509→              </motion.p>
+   510→
+   511→              <div className="mt-8 flex flex-col gap-5">
+   512→                {ARCHITECTURE_POINTS.map((point) => (
+   513→                  <motion.div key={point.text} variants={fadeUp} className="flex items-start gap-3">
+   514→                    <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-gold/10">
+   515→                      <point.icon className="size-4 text-brand-gold" />
+   516→                    </div>
+   517→                    <p className="font-body text-sm text-foreground/80 leading-relaxed">
+   518→                      {point.text}
+   519→                    </p>
+   520→                  </motion.div>
+   521→                ))}
+   522→              </div>
+   523→            </motion.div>
+   524→
+   525→            {/* Right: Architecture diagram */}
+   526→            <motion.div
+   527→              initial="hidden"
+   528→              whileInView="visible"
+   529→              viewport={{ once: true, margin: '-60px' }}
+   530→              variants={scaleIn}
+   531→              className="flex justify-center"
+   532→            >
+   533→              <div className="w-full max-w-md">
+   534→                {/* Tenant Layer */}
+   535→                <div className="rounded-xl border-2 border-brand-navy/20 bg-white p-5 shadow-sm">
+   536→                  <p className="font-heading text-xs uppercase tracking-wider text-brand-navy/50 mb-3">
+   537→                    Multi-Tenant SaaS Layer
+   538→                  </p>
+   539→                  <div className="space-y-2.5">
+   540→                    {['Tenant A', 'Tenant B', 'Tenant C'].map((t, i) => (
+   541→                      <div
+   542→                        key={t}
+   543→                        className={
+   544→                          'flex items-center gap-3 rounded-lg px-4 py-3 ' +
+   545→                          (i === 0
+   546→                            ? 'bg-brand-navy text-white'
+   547→                            : 'bg-brand-navy/5 text-brand-navy/70')
+   548→                        }
+   549→                      >
+   550→                        <Building2 className="size-4 shrink-0" />
+   551→                        <span className="font-body text-sm font-medium">{t}</span>
+   552→                        <ChevronRight className="size-3.5 ml-auto opacity-50" />
+   553→                      </div>
+   554→                    ))}
+   555→                  </div>
+   556→
+   557→                  {/* Arrow */}
+   558→                  <div className="flex justify-center my-3">
+   559→                    <div className="flex flex-col items-center gap-0.5">
+   560→                      <div className="w-px h-4 bg-brand-gold" />
+   561→                      <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-transparent border-t-brand-gold" />
+   562→                    </div>
+   563→                  </div>
+   564→
+   565→                  {/* RBAC Layer */}
+   566→                  <div className="rounded-lg bg-brand-gold/8 border border-brand-gold/20 p-4">
+   567→                    <p className="font-heading text-xs uppercase tracking-wider text-brand-gold mb-2">
+   568→                      RBAC & Permissions
+   569→                    </p>
+   570→                    <div className="flex flex-wrap gap-2">
+   571→                      {['Super Admin', 'Tenant Admin', 'Manager', 'Supervisor', 'Employee'].map(
+   572→                        (role) => (
+   573→                          <span
+   574→                            key={role}
+   575→                            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 font-body text-xs text-brand-navy shadow-sm"
+   576→                          >
+   577→                            {role}
+   578→                          </span>
+   579→                        ),
+   580→                      )}
+   581→                    </div>
+   582→                  </div>
+   583→
+   584→                  {/* Arrow */}
+   585→                  <div className="flex justify-center my-3">
+   586→                    <div className="flex flex-col items-center gap-0.5">
+   587→                      <div className="w-px h-4 bg-brand-gold" />
+   588→                      <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-transparent border-t-brand-gold" />
+   589→                    </div>
+   590→                  </div>
+   591→
+   592→                  {/* Data Layer */}
+   593→                  <div className="rounded-lg bg-brand-navy p-4">
+   594→                    <div className="flex items-center gap-2 mb-2">
+   595→                      <Server className="size-4 text-brand-gold" />
+   596→                      <p className="font-heading text-xs uppercase tracking-wider text-white/70">
+   597→                        Isolated Data Store
+   598→                      </p>
+   599→                    </div>
+   600→                    <div className="grid grid-cols-3 gap-2">
+   601→                      {['Projects', 'Resources', 'Costs'].map((d) => (
+   602→                        <div key={d} className="rounded-md bg-white/10 px-2.5 py-1.5 text-center">
+   603→                          <span className="font-body text-xs text-white/80">{d}</span>
+   604→                        </div>
+   605→                      ))}
+   606→                    </div>
+   607→                  </div>
+   608→                </div>
+   609→              </div>
+   610→            </motion.div>
+   611→          </div>
+   612→        </div>
+   613→      </section>
+   614→
+   615→      {/* ==================== CTA SECTION ==================== */}
+   616→      <section id="pricing" className="bg-navy-gradient relative overflow-hidden">
+   617→        <div className="absolute inset-0 pointer-events-none">
+   618→          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full bg-brand-gold/5 blur-3xl" />
+   619→        </div>
+   620→        <div className="container-brand relative z-10 py-20 lg:py-28 text-center">
+   621→          <motion.div
+   622→            initial="hidden"
+   623→            whileInView="visible"
+   624→            viewport={{ once: true, margin: '-60px' }}
+   625→            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+   626→          >
+   627→            <motion.h2
+   628→              variants={fadeUp}
+   629→              className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-balance max-w-3xl mx-auto"
+   630→            >
+   631→              Ready to Transform Your{' '}
+   632→              <span className="text-gradient">Construction Operations?</span>
+   633→            </motion.h2>
+   634→            <motion.p
+   635→              variants={fadeUp}
+   636→              className="mt-5 font-body text-white/60 text-lg max-w-xl mx-auto leading-relaxed"
+   637→            >
+   638→              Join the growing number of construction enterprises that trust SmartBuild
+   639→              to manage their project portfolios. Start your free trial today.
+   640→            </motion.p>
+   641→            <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-center gap-4">
+   642→              <Button
+   643→                size="lg"
+   644→                className="bg-brand-gold text-brand-navy hover:bg-brand-gold-light font-semibold text-base px-8 h-12"
+   645→                asChild
+   646→              >
+   647→                <Link href="/register">
+   648→                  <CheckCircle2 className="size-4" />
+   649→                  Register Free
+   650→                </Link>
+   651→              </Button>
+   652→              <Button
+   653→                size="lg"
+   654→                variant="outline"
+   655→                className="border-white/20 text-white hover:bg-white/10 hover:text-white text-base px-8 h-12"
+   656→                asChild
+   657→              >
+   658→                <Link href="#">Contact Sales</Link>
+   659→              </Button>
+   660→            </motion.div>
+   661→          </motion.div>
+   662→        </div>
+   663→      </section>
+   664→
+   665→      {/* ==================== FOOTER ==================== */}
+   666→      <footer className="mt-auto bg-brand-navy border-t border-white/10">
+   667→        <div className="container-brand py-12 lg:py-16">
+   668→          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
+   669→            {/* Brand column */}
+   670→            <div className="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
+   671→              <Image
+   672→                src="/brand/smartbuild-app-dark.svg"
+   673→                alt="SmartBuild"
+   674→                width={140}
+   675→                height={36}
+   676→                className="h-8 w-auto brightness-0 invert mb-4"
+   677→              />
+   678→              <p className="font-body text-sm text-white/50 leading-relaxed max-w-xs">
+   679→                Enterprise Project Portfolio Management for the construction industry.
+   680→              </p>
+   681→              {/* Social links */}
+   682→              <div className="flex gap-3 mt-5">
+   683→                {[
+   684→                  { icon: Twitter, label: 'Twitter' },
+   685→                  { icon: Linkedin, label: 'LinkedIn' },
+   686→                  { icon: Github, label: 'GitHub' },
+   687→                ].map(({ icon: Icon, label }) => (
+   688→                  <a
+   689→                    key={label}
+   690→                    href="#"
+   691→                    aria-label={label}
+   692→                    className="flex size-9 items-center justify-center rounded-lg bg-white/5 text-white/50 hover:bg-brand-gold/15 hover:text-brand-gold transition-colors"
+   693→                  >
+   694→                    <Icon className="size-4" />
+   695→                  </a>
+   696→                ))}
+   697→              </div>
+   698→            </div>
+   699→
+   700→            {/* Link columns */}
+   701→            {Object.entries(FOOTER_LINKS).map(([category, links]) => (
+   702→              <div key={category}>
+   703→                <h3 className="font-heading text-sm font-semibold text-white mb-4">
+   704→                  {category}
+   705→                </h3>
+   706→                <ul className="space-y-2.5">
+   707→                  {links.map((link) => (
+   708→                    <li key={link.label}>
+   709→                      <a
+   710→                        href={link.href}
+   711→                        className="font-body text-sm text-white/50 hover:text-brand-gold transition-colors"
+   712→                      >
+   713→                        {link.label}
+   714→                      </a>
+   715→                    </li>
+   716→                  ))}
+   717→                </ul>
+   718→              </div>
+   719→            ))}
+   720→          </div>
+   721→
+   722→          <Separator className="bg-white/10 my-8" />
+   723→
+   724→          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+   725→            <p className="font-body text-xs text-white/40">
+   726→              &copy; {new Date().getFullYear()} SmartBuild. All rights reserved.
+   727→            </p>
+   728→            <p className="font-body text-xs text-white/30">
+   729→              Built for the construction industry, powered by the cloud.
+   730→            </p>
+   731→          </div>
+   732→        </div>
+   733→      </footer>
+   734→    </div>
+   735→  )
+   736→}
+   737→

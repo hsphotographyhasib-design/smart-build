@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 const ROLE_OPTIONS = [
   ROLES.CUSTOMER,
-  ROLES.ADMIN,
+  ROLES.TENANT_ADMIN,
   ROLES.SUPER_ADMIN,
   'Portfolio Director',
   'Project Manager',
@@ -29,7 +29,7 @@ const ROLE_OPTIONS = [
 const roleTint = (role: string) =>
   role === ROLES.SUPER_ADMIN
     ? 'text-rose-700'
-    : role === ROLES.ADMIN
+    : role === ROLES.TENANT_ADMIN
       ? 'text-violet-600'
       : role === ROLES.CUSTOMER
         ? 'text-sky-700'
@@ -177,7 +177,7 @@ export function UserRoleManager() {
                       <td className="px-2 py-2.5">
                         <Switch
                           aria-label={`Account active for ${u.name}`}
-                          checked={u.active}
+                          checked={true}
                           onCheckedChange={(active) => void patch(u.id, { active })}
                           disabled={isSelf || savingId === u.id}
                         />

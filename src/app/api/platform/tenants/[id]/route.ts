@@ -8,7 +8,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const admin = await getSuperAdminUser()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await params
-  const tenant = await db.tenant.findUnique({ where: { id }, include: { settings: true, branding: true, subscription: { include: { plan: true } }, features: true, domains: true, _count: { select: { users: true, branches: true, portfolios: true } } } })
+  const tenant = await db.tenant.findUnique({ where: { id }, include: { settings: true, branding: true, subscription: { include: { plan: true } }, features: true, domains: true, _count: { select: { users: true, branches: true } } } })
   if (!tenant) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ tenant })
 }
@@ -36,7 +36,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (address) data.address = address
 
   const tenant = await db.tenant.update({ where: { id }, data, include: { settings: true, subscription: { include: { plan: true } } } })
-  await createAuditLog({ userId: admin.id, userName: admin.name, action: 'update', resource: 'tenant', resourceId: id, details: JSON.stringify(body), ipAddress: hdrs.get('x-forwarded-for') ?? null, userAgent: hdrs.get('user-agent') ?? null, level: 'security' })
+  await createAuditLog({ userId: admin.id, userName: admin.name, action: 'update', resource: 'tenant', resourceId: id, details: JSON.stringify(body), ipAddress: hdrs.get('x-forwarded-for') ?? undefined, userAgent: hdrs.get('user-agent') ?? undefined, level: 'security' })
   return NextResponse.json({ tenant })
 }
 
@@ -48,6 +48,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const existing = await db.tenant.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   await db.tenant.delete({ where: { id } })
-  await createAuditLog({ userId: admin.id, userName: admin.name, action: 'delete', resource: 'tenant', resourceId: id, details: JSON.stringify({ name: existing.name, slug: existing.slug }), ipAddress: hdrs.get('x-forwarded-for') ?? null, userAgent: hdrs.get('user-agent') ?? null, level: 'security' })
+  await createAuditLog({ userId: admin.id, userName: admin.name, action: 'delete', resource: 'tenant', resourceId: id, details: JSON.stringify({ name: existing.name, slug: existing.slug }), ipAddress: hdrs.get('x-forwarded-for') ?? undefined, userAgent: hdrs.get('user-agent') ?? undefined, level: 'security' })
   return NextResponse.json({ message: 'Tenant deleted' })
 }

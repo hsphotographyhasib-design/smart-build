@@ -153,7 +153,7 @@ export async function getAllTenants() {
     include: {
       settings: true,
       subscription: { include: { plan: true } },
-      _count: { select: { users: true, branches: true, projects: true } },
+      _count: { select: { users: true, branches: true } },
     },
     orderBy: { createdAt: 'desc' },
   })

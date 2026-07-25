@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })  
   if (!tenantId) return NextResponse.json({ error: 'tenantId is required' }, { status: 400 })  
   
-  const tenant = await db.tenant.findUnique({ where: { id: tenantId } })  
+  const tenant = await db.tenant.findUnique({ where: { id: tenantId }, include: { branches: { select: { id: true }, take: 1 } } })  
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })  
   if (tenant.status !== 'Active') return NextResponse.json({ error: 'Tenant is not active' }, { status: 403 })  
   

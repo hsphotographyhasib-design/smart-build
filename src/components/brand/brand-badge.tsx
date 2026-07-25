@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 
-interface BrandBadgeProps extends React.ComponentPropsWithoutRef<typeof Badge> {
+interface BrandBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'navy' | 'gold' | 'success' | 'warning' | 'danger' | 'default'
 }
 

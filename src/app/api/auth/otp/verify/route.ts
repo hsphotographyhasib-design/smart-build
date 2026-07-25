@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { comparePassword, issueSession } from '@/lib/auth-server'
+import { comparePassword, issueSession, logLogin } from '@/lib/auth-server'
 import { ROLES } from '@/lib/auth'
-import { publicUser } from '@/lib/user'
 
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim()
@@ -44,7 +43,7 @@ export async function POST(req: NextRequest) {
   await db.otpChallenge.update({ where: { id: challenge.id }, data: { consumed: true } })
 
   // Find existing account by phone, otherwise create a first-time Customer.
-  let user = await db.appUser.findUnique({ where: { phone } })
+  let user = await db.appUser.findFirst({ where: { phone } })
   if (!user) {
     user = await db.appUser.create({
       data: {
@@ -53,12 +52,33 @@ export async function POST(req: NextRequest) {
         phone,
         provider: 'whatsapp',
         role: ROLES.CUSTOMER,
+        roleLevel: 10,
       },
     })
   } else if (!user.active) {
     return NextResponse.json({ error: 'This account is disabled. Contact an administrator.' }, { status: 403 })
   }
 
-  await issueSession(user)
-  return NextResponse.json({ user: publicUser(user) })
+  await issueSession({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    roleLevel: user.roleLevel,
+    provider: user.provider,
+    tenantId: user.tenantId,
+    tenantSlug: null,
+    branchId: user.branchId,
+  })
+  await logLogin({ id: user.id, name: user.name, tenantId: user.tenantId })
+
+  const safeUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    ...(user.tenantId ? { tenantId: user.tenantId, tenantName: user.name } : {}),
+  }
+
+  return NextResponse.json({ user: safeUser, redirect: user.tenantId ? '/app' : '/login' })
 }

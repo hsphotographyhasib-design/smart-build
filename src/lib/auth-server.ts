@@ -105,8 +105,8 @@ export async function getSuperAdminUser() {
 export async function getRequestMeta() {   
   const hdrs = await headers()   
   return {   
-    ipAddress: hdrs.get('x-forwarded-for') ?? hdrs.get('x-real-ip') ?? null,   
-    userAgent: hdrs.get('user-agent') ?? null,   
+    ipAddress: hdrs.get('x-forwarded-for') ?? hdrs.get('x-real-ip') ?? undefined,   
+    userAgent: hdrs.get('user-agent') ?? undefined,   
   }  
 }  
   
