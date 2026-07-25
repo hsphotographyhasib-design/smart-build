@@ -1,0 +1,559 @@
+import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+import { db } from '@/lib/db'
+
+/**
+ * POST /api/setup/seed
+ *
+ * DEVELOPMENT / ONE-TIME USE ONLY — not protected by auth.
+ * Seeds the SmartBuild EPPM database with initial demo data.
+ * Idempotent: if any users already exist, returns early.
+ */
+export async function POST(_req: NextRequest) {
+  try {
+    // ------------------------------------------------------------------
+    // 0. Guard: skip if database is already seeded
+    // ------------------------------------------------------------------
+    const existingUsers = await db.appUser.count()
+    if (existingUsers > 0) {
+      return NextResponse.json(
+        {
+          message:
+            'Database is already seeded. No action taken. ' +
+            `(${existingUsers} user(s) exist)`,
+        },
+        { status: 200 },
+      )
+    }
+
+    // ------------------------------------------------------------------
+    // 1. Super Admin (platform-level, no tenant)
+    // ------------------------------------------------------------------
+    const superAdminHash = await bcrypt.hash('admin123', 10)
+    const superAdmin = await db.appUser.create({
+      data: {
+        name: 'Platform Super Admin',
+        email: 'admin@smartbuild.app',
+        passwordHash: superAdminHash,
+        role: 'Super Admin',
+        roleLevel: 100,
+        provider: 'email',
+        active: true,
+      },
+    })
+
+    // ------------------------------------------------------------------
+    // 2. Subscription Plans
+    // ------------------------------------------------------------------
+    const plans = [
+      {
+        name: 'Free Trial',
+        description: '14-day free trial with basic features',
+        priceMonthly: 0,
+        priceAnnual: 0,
+        maxUsers: 5,
+        maxProjects: 3,
+        maxStorage: 500,
+        maxBranches: 1,
+        maxApiCalls: 500,
+        aiCredits: 0,
+        mobileAccess: false,
+        apiAccess: false,
+        integrations: false,
+        customDomain: false,
+        prioritySupport: false,
+        features: JSON.stringify([
+          'dashboard', 'projects', 'maintenance', 'complaints',
+        ]),
+        sortOrder: 0,
+      },
+      {
+        name: 'Starter',
+        description: 'For small teams getting started',
+        priceMonthly: 99,
+        priceAnnual: 948,
+        maxUsers: 15,
+        maxProjects: 10,
+        maxStorage: 5000,
+        maxBranches: 3,
+        maxApiCalls: 2000,
+        aiCredits: 10,
+        mobileAccess: true,
+        apiAccess: false,
+        integrations: false,
+        customDomain: false,
+        prioritySupport: false,
+        features: JSON.stringify([
+          'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+          'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+          'work-orders',
+        ]),
+        sortOrder: 1,
+      },
+      {
+        name: 'Professional',
+        description: 'For growing construction companies',
+        priceMonthly: 299,
+        priceAnnual: 2868,
+        maxUsers: 50,
+        maxProjects: 50,
+        maxStorage: 25000,
+        maxBranches: 10,
+        maxApiCalls: 10000,
+        aiCredits: 100,
+        mobileAccess: true,
+        apiAccess: true,
+        integrations: true,
+        customDomain: false,
+        prioritySupport: true,
+        features: JSON.stringify([
+          'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+          'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+          'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+          'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+          'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+          'accounts', 'tender', 'exec-reports', 'notifications',
+        ]),
+        sortOrder: 2,
+      },
+      {
+        name: 'Enterprise',
+        description: 'For large enterprises with advanced needs',
+        priceMonthly: 799,
+        priceAnnual: 7670,
+        maxUsers: 500,
+        maxProjects: 500,
+        maxStorage: 100000,
+        maxBranches: 50,
+        maxApiCalls: 100000,
+        aiCredits: 1000,
+        mobileAccess: true,
+        apiAccess: true,
+        integrations: true,
+        customDomain: true,
+        prioritySupport: true,
+        features: JSON.stringify([
+          'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+          'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+          'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+          'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+          'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+          'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
+          'integrations', 'workflow-engine', 'security', 'support', 'portals',
+        ]),
+        sortOrder: 3,
+      },
+      {
+        name: 'Custom',
+        description: 'Tailored for enterprise with specific requirements',
+        priceMonthly: 0,
+        priceAnnual: 0,
+        maxUsers: 9999,
+        maxProjects: 9999,
+        maxStorage: 1000000,
+        maxBranches: 999,
+        maxApiCalls: 999999,
+        aiCredits: 9999,
+        mobileAccess: true,
+        apiAccess: true,
+        integrations: true,
+        customDomain: true,
+        prioritySupport: true,
+        features: JSON.stringify([
+          'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+          'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+          'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+          'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+          'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+          'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
+          'integrations', 'workflow-engine', 'security', 'support', 'portals',
+        ]),
+        sortOrder: 4,
+      },
+    ]
+
+    for (const p of plans) {
+      await db.subscriptionPlan.upsert({
+        where: { name: p.name },
+        update: {},
+        create: p,
+      })
+    }
+
+    // ------------------------------------------------------------------
+    // 3. Demo Tenant — Hasanur Jaya
+    // ------------------------------------------------------------------
+    const tenantSlug = 'hasanur-jaya'
+    const trialEnd = new Date()
+    trialEnd.setDate(trialEnd.getDate() + 14)
+
+    const tenant = await db.tenant.create({
+      data: {
+        slug: tenantSlug,
+        name: 'Hasanur Jaya Sdn. Bhd.',
+        email: 'info@hasanurjaya.com',
+        phone: '+60 12-345 6789',
+        address: 'Level 5, Menara A, Jalan Teknologi, 63000 Cyberjaya, Selangor',
+        status: 'Active',
+        tier: 'Professional',
+        maxUsers: 50,
+        maxProjects: 50,
+        maxStorage: 25000,
+        maxBranches: 10,
+        approvedBy: superAdmin.id,
+        approvedAt: new Date(),
+        trialEndsAt: trialEnd,
+        settings: {
+          create: {
+            defaultLanguage: 'en',
+            defaultTimezone: 'Asia/Singapore',
+            currency: 'MYR',
+            enableRegistration: true,
+            requireApproval: false,
+          },
+        },
+        branding: {
+          create: {
+            primaryColor: '#0B2345',
+            accentColor: '#F5A623',
+            loginBgColor: '#0B2345',
+            fontFamily: 'Inter',
+          },
+        },
+        subscription: {
+          create: {
+            planId: (
+              await db.subscriptionPlan.findUnique({ where: { name: 'Professional' } })
+            )!.id,
+            status: 'Active',
+            billingCycle: 'monthly',
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+        branches: {
+          create: {
+            name: 'Head Office',
+            code: 'HQ',
+            address: 'Level 5, Menara A, Jalan Teknologi, 63000 Cyberjaya',
+          },
+        },
+      },
+      include: { branches: true },
+    })
+
+    const hqBranch = tenant.branches[0]
+
+    // ------------------------------------------------------------------
+    // 4. Roles
+    // ------------------------------------------------------------------
+    const roleData = [
+      { name: 'Tenant Admin', level: 80, isSystem: true, description: 'Full tenant control' },
+      { name: 'Manager', level: 60, isSystem: true, description: 'Branch/department management' },
+      { name: 'Supervisor', level: 40, isSystem: true, description: 'Team supervision' },
+      { name: 'Employee', level: 20, isSystem: true, description: 'Standard user' },
+      { name: 'Customer', level: 10, isSystem: true, description: 'External client access' },
+    ]
+
+    const createdRoles: Record<string, string> = {}
+    for (const r of roleData) {
+      const role = await db.role.create({ data: { ...r, tenantId: tenant.id } })
+      createdRoles[r.name] = role.id
+    }
+
+    // ------------------------------------------------------------------
+    // 5. Permissions
+    // ------------------------------------------------------------------
+    const resources = [
+      'project', 'portfolio', 'program', 'activity', 'resource', 'risk', 'document',
+      'report', 'maintenance', 'complaint', 'work-order', 'equipment', 'inventory',
+      'procurement', 'hr', 'finance', 'settings', 'user', 'branch', 'department',
+    ]
+    const actions = ['create', 'read', 'update', 'delete', 'approve', 'manage']
+
+    // Tenant Admin — full permissions
+    for (const resource of resources) {
+      for (const action of actions) {
+        await db.permission.create({
+          data: { roleId: createdRoles['Tenant Admin'], resource, action, scope: 'all' },
+        })
+      }
+    }
+
+    // Manager — all except settings/user/branch/department management
+    for (const resource of resources.filter(
+      (r) => !['settings', 'user', 'branch', 'department'].includes(r),
+    )) {
+      for (const action of actions.filter((a) => a !== 'manage')) {
+        await db.permission.create({
+          data: { roleId: createdRoles['Manager'], resource, action, scope: 'branch' },
+        })
+      }
+    }
+
+    // Employee — read + create own on select resources
+    for (const resource of resources.filter((r) =>
+      ['project', 'activity', 'document', 'maintenance', 'complaint', 'work-order'].includes(r),
+    )) {
+      await db.permission.create({
+        data: { roleId: createdRoles['Employee'], resource, action: 'read', scope: 'own' },
+      })
+      await db.permission.create({
+        data: { roleId: createdRoles['Employee'], resource, action: 'create', scope: 'own' },
+      })
+    }
+
+    // ------------------------------------------------------------------
+    // 6. Tenant Features (from Professional plan)
+    // ------------------------------------------------------------------
+    const proPlan = await db.subscriptionPlan.findUnique({ where: { name: 'Professional' } })
+    let planFeatures: string[] = []
+    if (proPlan) {
+      try {
+        planFeatures = JSON.parse(proPlan.features)
+      } catch {
+        /* ignore parse errors */
+      }
+    }
+    for (const mod of planFeatures) {
+      await db.tenantFeature.create({ data: { tenantId: tenant.id, module: mod, enabled: true } })
+    }
+
+    // ------------------------------------------------------------------
+    // 7. Tenant Admin User
+    // ------------------------------------------------------------------
+    const tenantAdminHash = await bcrypt.hash('tenant123', 10)
+    const tenantAdmin = await db.appUser.create({
+      data: {
+        name: 'Hasanur Admin',
+        email: 'admin@hasanurjaya.com',
+        passwordHash: tenantAdminHash,
+        role: 'Tenant Admin',
+        roleLevel: 80,
+        provider: 'email',
+        active: true,
+        tenantId: tenant.id,
+        branchId: hqBranch.id,
+        roleId: createdRoles['Tenant Admin'],
+      },
+    })
+
+    // ------------------------------------------------------------------
+    // 8. Demo Portfolios
+    // ------------------------------------------------------------------
+    const portfolios = await Promise.all([
+      db.portfolio.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: 'PF-001',
+          name: 'Infrastructure 2025',
+          status: 'Active',
+          health: 'Green',
+          budget: 500_000_000,
+          startDate: new Date('2025-01-01'),
+          managerId: tenantAdmin.id,
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      }),
+      db.portfolio.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: 'PF-002',
+          name: 'Commercial Buildings',
+          status: 'Active',
+          health: 'Yellow',
+          budget: 300_000_000,
+          startDate: new Date('2025-03-01'),
+          managerId: tenantAdmin.id,
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      }),
+      db.portfolio.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: 'PF-003',
+          name: 'MEP & Fit-Out',
+          status: 'Active',
+          health: 'Green',
+          budget: 180_000_000,
+          startDate: new Date('2025-02-15'),
+          managerId: tenantAdmin.id,
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      }),
+    ])
+
+    // ------------------------------------------------------------------
+    // 9. Demo Programs
+    // ------------------------------------------------------------------
+    const programs = await Promise.all([
+      db.program.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: 'PG-001',
+          name: 'Highway Extension',
+          status: 'Active',
+          health: 'Green',
+          budget: 250_000_000,
+          portfolioId: portfolios[0].id,
+          startDate: new Date('2025-01-15'),
+          managerId: tenantAdmin.id,
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      }),
+      db.program.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: 'PG-002',
+          name: 'Office Tower Project',
+          status: 'Active',
+          health: 'Yellow',
+          budget: 150_000_000,
+          portfolioId: portfolios[1].id,
+          startDate: new Date('2025-04-01'),
+          managerId: tenantAdmin.id,
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      }),
+    ])
+
+    // ------------------------------------------------------------------
+    // 10. Demo Projects (6)
+    // ------------------------------------------------------------------
+    const projectDefinitions = [
+      {
+        code: 'PRJ-001',
+        name: 'Bukit Jalil Highway Upgrade',
+        category: 'Infrastructure',
+        budget: 120_000_000,
+        programId: programs[0].id,
+        portfolioId: portfolios[0].id,
+      },
+      {
+        code: 'PRJ-002',
+        name: 'Cyberjaya Smart Office Tower',
+        category: 'Building',
+        budget: 85_000_000,
+        programId: programs[1].id,
+        portfolioId: portfolios[1].id,
+      },
+      {
+        code: 'PRJ-003',
+        name: 'KLCC Parking Structure',
+        category: 'Building',
+        budget: 45_000_000,
+        programId: null,
+        portfolioId: portfolios[1].id,
+      },
+      {
+        code: 'PRJ-004',
+        name: 'Putrajaya Bridge Repair',
+        category: 'Infrastructure',
+        budget: 18_000_000,
+        programId: null,
+        portfolioId: portfolios[0].id,
+      },
+      {
+        code: 'PRJ-005',
+        name: 'Bangsar Mall MEP',
+        category: 'MEP',
+        budget: 32_000_000,
+        programId: null,
+        portfolioId: portfolios[2].id,
+      },
+      {
+        code: 'PRJ-006',
+        name: 'Shah Alam Hospital Wing',
+        category: 'Building',
+        budget: 95_000_000,
+        programId: null,
+        portfolioId: portfolios[1].id,
+      },
+    ]
+
+    for (const p of projectDefinitions) {
+      await db.project.create({
+        data: {
+          tenantId: tenant.id,
+          branchId: hqBranch.id,
+          code: p.code,
+          name: p.name,
+          category: p.category,
+          budget: p.budget,
+          status: 'Active',
+          health: 'Green',
+          progress: Math.random() * 80,
+          actualCost: p.budget * Math.random() * 0.6,
+          startDate: new Date('2025-01-01'),
+          finishDate: new Date('2026-06-30'),
+          portfolioId: p.portfolioId,
+          programId: p.programId,
+          managerId: tenantAdmin.id,
+          client: 'Government of Malaysia',
+          location: 'Klang Valley',
+          createdBy: tenantAdmin.id,
+          updatedBy: tenantAdmin.id,
+        },
+      })
+    }
+
+    // ------------------------------------------------------------------
+    // 11. Update tenant usage counters
+    // ------------------------------------------------------------------
+    await db.tenant.update({
+      where: { id: tenant.id },
+      data: { currentUsers: 1, currentProjects: 6 },
+    })
+
+    // ------------------------------------------------------------------
+    // Done
+    // ------------------------------------------------------------------
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Database seeded successfully with demo data.',
+        credentials: {
+          superAdmin: {
+            email: 'admin@smartbuild.app',
+            password: 'admin123',
+            role: 'Super Admin',
+          },
+          tenantAdmin: {
+            email: 'admin@hasanurjaya.com',
+            password: 'tenant123',
+            role: 'Tenant Admin',
+            tenant: tenant.name,
+          },
+        },
+        summary: {
+          subscriptionPlans: plans.length,
+          tenants: 1,
+          roles: roleData.length,
+          portfolios: portfolios.length,
+          programs: programs.length,
+          projects: projectDefinitions.length,
+          featuresEnabled: planFeatures.length,
+        },
+      },
+      { status: 201 },
+    )
+  } catch (error: unknown) {
+    console.error('[/api/setup/seed] Seed failed:', error)
+    const message =
+      error instanceof Error ? error.message : 'An unexpected error occurred during seeding'
+    return NextResponse.json(
+      { success: false, message },
+      { status: 500 },
+    )
+  }
+}
