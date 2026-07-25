@@ -72,7 +72,7 @@ export default function BlogManager() {
           <h1 className="text-2xl font-bold font-heading">Blog Manager</h1>
           <p className="text-muted-foreground mt-1">Create, edit, and publish blog posts.</p>
         </div>
-        <Dialog open={editing !== null && !editing?.id} onOpenChange={(open) => { if (!open) setEditing(null) else openEditor() }}>
+        <Dialog open={editing !== null && !editing?.id} onOpenChange={(open) => { if (!open) setEditing(null); else openEditor() }}>
           <DialogTrigger asChild>
             <Button className="bg-[#F5A623] hover:bg-[#e6961a] text-[#0B2345]"><Plus className="w-4 h-4 mr-2" /> New Post</Button>
           </DialogTrigger>
@@ -110,7 +110,7 @@ export default function BlogManager() {
         ))}
       </div>
 
-      <Dialog open={editing?.id ? true : false} onOpenChange={(open) => { if (!open) setEditing(null) }}>
+      <Dialog open={!!editing?.id} onOpenChange={(open) => { if (!open) setEditing(null); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit Blog Post</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
