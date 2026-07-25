@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
   ],
   // Packages that should not be bundled by webpack/turbopack
   // and instead use Node.js native modules at runtime.
-  serverExternalPackages: ["bcryptjs", "@libsql/client", "sharp"],
+  serverExternalPackages: ["bcryptjs", "sharp"],
 };
 
 export default nextConfig;
