@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const menu = searchParams.get('menu') || 'main';
     const locale = searchParams.get('locale') || 'en';
 
-    const items = await db.menuItem.findMany({
+    const items = await db.cmsMenuItem.findMany({
       where: {
         menu,
         locale,
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'label is required' }, { status: 400 });
     }
 
-    const item = await db.menuItem.create({
+    const item = await db.cmsMenuItem.create({
       data: {
         label,
         url: url ?? null,

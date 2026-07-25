@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    const testimonials = await db.testimonial.findMany({
+    const testimonials = await db.cmsTestimonial.findMany({
       where,
       orderBy: { order: 'asc' },
     });
@@ -39,16 +39,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, role, company, content, avatar, featured, status, order } = body;
+    const { name, position, company, content, avatar, featured, status, order } = body;
 
     if (!name || !content) {
       return NextResponse.json({ error: 'Name and content are required' }, { status: 400 });
     }
 
-    const testimonial = await db.testimonial.create({
+    const testimonial = await db.cmsTestimonial.create({
       data: {
         name,
-        role: role ?? null,
+        position: position ?? null,
         company: company ?? null,
         content,
         avatar: avatar ?? null,

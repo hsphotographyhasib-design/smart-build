@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSuperAdminUser } from '@/lib/auth-server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -17,11 +17,11 @@ export async function GET(
 
     const { id } = await params;
 
-    const post = await db.blogPost.findUnique({
+    const post = await db.cmsBlogPost.findUnique({
       where: { id },
       include: {
         categories: { include: { category: true } },
-        tags: { include: { tag: true } },
+        postTags: { include: { tag: true } },
         comments: {
           orderBy: { createdAt: 'desc' },
         },
@@ -67,13 +67,13 @@ export async function PUT(
 
     // If categoryIds or tagIds provided, delete old relations and reconnect
     if (categoryIds !== undefined) {
-      await db.blogPostCategory.deleteMany({ where: { postId: id } });
+      await db.cmsBlogPostCategory.deleteMany({ where: { postId: id } });
     }
     if (tagIds !== undefined) {
-      await db.blogPostTag.deleteMany({ where: { postId: id } });
+      await db.cmsBlogPostTag.deleteMany({ where: { postId: id } });
     }
 
-    const post = await db.blogPost.update({
+    const post = await db.cmsBlogPost.update({
       where: { id },
       data: {
         ...(title !== undefined && { title }),
@@ -92,7 +92,7 @@ export async function PUT(
           },
         }),
         ...(tagIds !== undefined && {
-          tags: {
+          postTags: {
             create: tagIds.map((tagId: string) => ({
               tag: { connect: { id: tagId } },
             })),
@@ -101,7 +101,7 @@ export async function PUT(
       },
       include: {
         categories: { include: { category: true } },
-        tags: { include: { tag: true } },
+        postTags: { include: { tag: true } },
         comments: {
           orderBy: { createdAt: 'desc' },
         },
@@ -129,11 +129,11 @@ export async function DELETE(
     const { id } = await params;
 
     // Clean up relations
-    await db.blogPostCategory.deleteMany({ where: { postId: id } });
-    await db.blogPostTag.deleteMany({ where: { postId: id } });
-    await db.blogComment.deleteMany({ where: { postId: id } });
+    await db.cmsBlogPostCategory.deleteMany({ where: { postId: id } });
+    await db.cmsBlogPostTag.deleteMany({ where: { postId: id } });
+    await db.cmsBlogComment.deleteMany({ where: { postId: id } });
 
-    await db.blogPost.delete({ where: { id } });
+    await db.cmsBlogPost.delete({ where: { id } });
 
     return NextResponse.json({ data: { id }, message: 'Blog post deleted successfully' });
   } catch (error: unknown) {

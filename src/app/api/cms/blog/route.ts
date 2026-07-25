@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSuperAdminUser } from '@/lib/auth-server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
         categories: { some: { category: { slug: category } } },
       }),
       ...(tag && {
-        tags: { some: { tag: { slug: tag } } },
+        postTags: { some: { tag: { slug: tag } } },
       }),
     };
 
     const [posts, total] = await Promise.all([
-      db.blogPost.findMany({
+      db.cmsBlogPost.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
@@ -47,13 +47,13 @@ export async function GET(request: NextRequest) {
           categories: {
             include: { category: true },
           },
-          tags: {
+          postTags: {
             include: { tag: true },
           },
           _count: { select: { comments: true } },
         },
       }),
-      db.blogPost.count({ where }),
+      db.cmsBlogPost.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       tagIds,
     } = body;
 
-    const post = await db.blogPost.create({
+    const post = await db.cmsBlogPost.create({
       data: {
         title,
         slug,
@@ -103,13 +103,13 @@ export async function POST(request: NextRequest) {
         locale: locale ?? 'en',
         status: status ?? 'draft',
         featured: featured ?? false,
-        ...(publishedAt && { publishedAt: new Date(body.publishedAt) }),
+        ...(body.publishedAt && { publishedAt: new Date(body.publishedAt) }),
         categories: {
           create: (categoryIds ?? []).map((categoryId: string) => ({
             category: { connect: { id: categoryId } },
           })),
         },
-        tags: {
+        postTags: {
           create: (tagIds ?? []).map((tagId: string) => ({
             tag: { connect: { id: tagId } },
           })),
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       },
       include: {
         categories: { include: { category: true } },
-        tags: { include: { tag: true } },
+        postTags: { include: { tag: true } },
         _count: { select: { comments: true } },
       },
     });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.locale = locale;
     }
 
-    const faqs = await db.faq.findMany({
+    const faqs = await db.cmsFaq.findMany({
       where,
       orderBy: { order: 'asc' },
     });
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Question and answer are required' }, { status: 400 });
     }
 
-    const faq = await db.faq.create({
+    const faq = await db.cmsFaq.create({
       data: {
         question,
         answer,

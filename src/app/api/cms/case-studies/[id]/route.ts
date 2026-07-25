@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
 
-    const caseStudy = await db.caseStudy.findUnique({
+    const caseStudy = await db.cmsCaseStudy.findUnique({
       where: { id },
     });
 
@@ -31,9 +31,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { title, slug, client, industry, summary, content, image, featured, publishedAt } = body;
+    const { title, slug, client, industry, summary, content, coverImage, featured, publishedAt } = body;
 
-    const caseStudy = await db.caseStudy.update({
+    const caseStudy = await db.cmsCaseStudy.update({
       where: { id },
       data: {
         ...(title !== undefined && { title }),
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(industry !== undefined && { industry }),
         ...(summary !== undefined && { summary }),
         ...(content !== undefined && { content }),
-        ...(image !== undefined && { image }),
+        ...(coverImage !== undefined && { coverImage }),
         ...(featured !== undefined && { featured }),
         ...(publishedAt !== undefined && { publishedAt: publishedAt ? new Date(publishedAt) : null }),
       },
@@ -63,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    await db.caseStudy.delete({
+    await db.cmsCaseStudy.delete({
       where: { id },
     });
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.featured = featured === 'true';
     }
 
-    const caseStudies = await db.caseStudy.findMany({
+    const caseStudies = await db.cmsCaseStudy.findMany({
       where,
       orderBy: { createdAt: 'desc' },
     });
@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, slug, client, industry, summary, content, image, featured, publishedAt } = body;
+    const { title, slug, client, industry, summary, content, coverImage, featured, publishedAt } = body;
 
     if (!title || !slug) {
       return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 });
     }
 
-    const caseStudy = await db.caseStudy.create({
+    const caseStudy = await db.cmsCaseStudy.create({
       data: {
         title,
         slug,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         industry: industry ?? null,
         summary: summary ?? null,
         content: content ?? null,
-        image: image ?? null,
+        coverImage: coverImage ?? null,
         featured: featured ?? false,
         publishedAt: publishedAt ? new Date(publishedAt) : null,
       },

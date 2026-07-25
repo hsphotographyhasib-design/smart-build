@@ -12,7 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const analytics = await db.analyticsConfig.upsert({
+    const analytics = await db.cmsAnalyticsConfig.upsert({
       where: { id: 'default' },
       update: {},
       create: { id: 'default' },
@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest) {
       bodyScripts,
     } = body;
 
-    const analytics = await db.analyticsConfig.upsert({
+    const analytics = await db.cmsAnalyticsConfig.upsert({
       where: { id: 'default' },
       update: {
         googleAnalytics: googleAnalytics ?? undefined,

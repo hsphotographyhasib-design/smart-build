@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const tags = await db.blogTag.findMany({
+    const tags = await db.cmsBlogTag.findMany({
       include: {
         _count: {
           select: { posts: true },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
     }
 
-    const tag = await db.blogTag.create({
+    const tag = await db.cmsBlogTag.create({
       data: {
         name,
         slug,

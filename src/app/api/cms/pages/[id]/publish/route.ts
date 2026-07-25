@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSuperAdminUser } from '@/lib/auth-server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -49,14 +49,21 @@ export async function POST(
     const version = await db.cmsPageVersion.create({
       data: {
         pageId: id,
-        title: existing.title,
-        slug: existing.slug,
-        locale: existing.locale,
-        metaTitle: existing.metaTitle,
-        metaDescription: existing.metaDescription,
-        seoConfig: existing.seoConfig ?? undefined,
-        sections: {
-          create: existing.sections.map((section) => ({
+        version: (existing.version ?? 0) + 1,
+        data: {
+          title: existing.title,
+          slug: existing.slug,
+          path: existing.path,
+          description: existing.description,
+          locale: existing.locale,
+          seoTitle: existing.seoTitle,
+          seoDescription: existing.seoDescription,
+          seoKeywords: existing.seoKeywords,
+          ogImage: existing.ogImage,
+          canonicalUrl: existing.canonicalUrl,
+          schemaMarkup: existing.schemaMarkup,
+          isHomePage: existing.isHomePage,
+          sections: existing.sections.map((section) => ({
             type: section.type,
             name: section.name,
             order: section.order,
@@ -65,9 +72,6 @@ export async function POST(
             styles: section.styles,
           })),
         },
-      },
-      include: {
-        sections: { orderBy: { order: 'asc' } },
       },
     });
 

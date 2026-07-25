@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSuperAdminUser } from '@/lib/auth-server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -47,17 +47,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, slug, locale, status, metaTitle, metaDescription, seoConfig } = body;
+    const { title, slug, locale, status, seoTitle, seoDescription, seoKeywords } = body;
 
     const page = await db.cmsPage.create({
       data: {
         title,
         slug,
+        path: slug,
         locale: locale ?? 'en',
         status: status ?? 'draft',
-        metaTitle: metaTitle ?? null,
-        metaDescription: metaDescription ?? null,
-        seoConfig: seoConfig ?? undefined,
+        seoTitle: seoTitle ?? null,
+        seoDescription: seoDescription ?? null,
+        seoKeywords: seoKeywords ?? null,
       },
       include: {
         _count: { select: { sections: true } },

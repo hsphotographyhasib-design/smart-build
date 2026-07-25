@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+import { db } from '@/lib/db';
 import { getSuperAdminUser } from '@/lib/auth-server';
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
         type,
         mimeType: mime,
         size: buffer.length,
-        folder: folder || null,
+        folder: folder || '/',
         alt: alt || null,
-        tags: parsedTags.length > 0 ? parsedTags : undefined,
+        tags: parsedTags.length > 0 ? JSON.stringify(parsedTags) : '[]',
       },
     });
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       where.category = category;
     }
 
-    const partners = await db.partner.findMany({
+    const partners = await db.cmsPartner.findMany({
       where,
       orderBy: { order: 'asc' },
     });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    const partner = await db.partner.create({
+    const partner = await db.cmsPartner.create({
       data: {
         name,
         logo: logo ?? null,

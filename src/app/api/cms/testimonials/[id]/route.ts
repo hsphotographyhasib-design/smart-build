@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import getSuperAdminUser from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { getSuperAdminUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,13 +13,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { name, role, company, content, avatar, featured, status, order } = body;
+    const { name, position, company, content, avatar, featured, status, order } = body;
 
-    const testimonial = await db.testimonial.update({
+    const testimonial = await db.cmsTestimonial.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(role !== undefined && { role }),
+        ...(position !== undefined && { position }),
         ...(company !== undefined && { company }),
         ...(content !== undefined && { content }),
         ...(avatar !== undefined && { avatar }),
@@ -44,7 +44,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    await db.testimonial.delete({
+    await db.cmsTestimonial.delete({
       where: { id },
     });
 

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (locale) where.locale = locale;
     if (context) where.context = context;
 
-    const translations = await db.translation.findMany({
+    const translations = await db.cmsTranslation.findMany({
       where,
     });
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const results = await Promise.all(
       translations.map((t) =>
-        db.translation.upsert({
+        db.cmsTranslation.upsert({
           where: {
             key_locale: { key: t.key, locale: t.locale },
           },
@@ -100,7 +100,7 @@ export async function PUT(request: NextRequest) {
 
     const results = await Promise.all(
       Object.entries(translations).map(([key, value]) =>
-        db.translation.upsert({
+        db.cmsTranslation.upsert({
           where: {
             key_locale: { key, locale },
           },

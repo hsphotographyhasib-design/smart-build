@@ -18,7 +18,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const item = await db.menuItem.update({
+    const item = await db.cmsMenuItem.update({
       where: { id },
       data: body,
     });
@@ -51,7 +51,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await db.menuItem.delete({ where: { id } });
+    await db.cmsMenuItem.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

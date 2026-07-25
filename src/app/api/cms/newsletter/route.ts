@@ -12,7 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const subscribers = await db.newsletterSubscriber.findMany({
+    const subscribers = await db.cmsNewsletter.findMany({
       orderBy: { createdAt: 'desc' },
     });
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'email is required' }, { status: 400 });
     }
 
-    const subscriber = await db.newsletterSubscriber.upsert({
+    const subscriber = await db.cmsNewsletter.upsert({
       where: { email },
       update: { email },
       create: { email },

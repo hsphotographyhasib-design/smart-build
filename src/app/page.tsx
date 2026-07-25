@@ -50,7 +50,6 @@ const ICON_MAP: Record<string, any> = {
   GanttChart, FileText, Wrench, Settings2, Database, DollarSign, Users,
   Package, ShoppingCart, Building, QrCode, Globe, HardHat, Sparkles,
   Home, Zap, Route, BarChart3, GitBranch, FileCheck, ShieldAlert, Target,
-  Home, Zap, Route, BarChart3, GitBranch, FileCheck, ShieldAlert, Target,
   TriangleAlert, MessageSquareWarning, UserCheck, ClipboardList, CheckCircle,
   Receipt, CreditCard, FileBarChart, CalendarClock, MessageCircle, LineChart,
 }
