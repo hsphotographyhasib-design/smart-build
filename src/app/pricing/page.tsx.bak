@@ -16,7 +16,12 @@ import {
   XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -62,143 +67,6 @@ interface Plan {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Fallback plans (used when API is unavailable)                      */
-/* ------------------------------------------------------------------ */
-const FALLBACK_PLANS: Plan[] = [
-  {
-    id: 'free-trial',
-    name: 'Free Trial',
-    description: '14-day free trial with basic features',
-    priceMonthly: 0,
-    priceAnnual: 0,
-    maxUsers: 5,
-    maxProjects: 3,
-    maxStorage: 500,
-    maxBranches: 1,
-    maxApiCalls: 500,
-    aiCredits: 0,
-    mobileAccess: false,
-    apiAccess: false,
-    integrations: false,
-    customDomain: false,
-    prioritySupport: false,
-    features: JSON.stringify(['dashboard', 'projects', 'maintenance', 'complaints']),
-    sortOrder: 0,
-    active: true,
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'For small teams getting started',
-    priceMonthly: 99,
-    priceAnnual: 948,
-    maxUsers: 15,
-    maxProjects: 10,
-    maxStorage: 5000,
-    maxBranches: 3,
-    maxApiCalls: 2000,
-    aiCredits: 10,
-    mobileAccess: true,
-    apiAccess: false,
-    integrations: false,
-    customDomain: false,
-    prioritySupport: false,
-    features: JSON.stringify([
-      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
-      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints', 'work-orders',
-    ]),
-    sortOrder: 1,
-    active: true,
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    description: 'For growing construction companies',
-    priceMonthly: 299,
-    priceAnnual: 2868,
-    maxUsers: 50,
-    maxProjects: 50,
-    maxStorage: 25000,
-    maxBranches: 10,
-    maxApiCalls: 10000,
-    aiCredits: 100,
-    mobileAccess: true,
-    apiAccess: true,
-    integrations: true,
-    customDomain: false,
-    prioritySupport: true,
-    features: JSON.stringify([
-      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
-      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
-      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
-      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
-      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
-      'accounts', 'tender', 'exec-reports', 'notifications',
-    ]),
-    sortOrder: 2,
-    active: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'For large enterprises with advanced needs',
-    priceMonthly: 799,
-    priceAnnual: 7670,
-    maxUsers: 500,
-    maxProjects: 500,
-    maxStorage: 100000,
-    maxBranches: 50,
-    maxApiCalls: 100000,
-    aiCredits: 1000,
-    mobileAccess: true,
-    apiAccess: true,
-    integrations: true,
-    customDomain: true,
-    prioritySupport: true,
-    features: JSON.stringify([
-      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
-      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
-      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
-      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
-      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
-      'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
-      'integrations', 'workflow-engine', 'security', 'support', 'portals',
-    ]),
-    sortOrder: 3,
-    active: true,
-  },
-  {
-    id: 'custom',
-    name: 'Custom',
-    description: 'Tailored for enterprise with specific requirements',
-    priceMonthly: 0,
-    priceAnnual: 0,
-    maxUsers: 9999,
-    maxProjects: 9999,
-    maxStorage: 1000000,
-    maxBranches: 999,
-    maxApiCalls: 999999,
-    aiCredits: 9999,
-    mobileAccess: true,
-    apiAccess: true,
-    integrations: true,
-    customDomain: true,
-    prioritySupport: true,
-    features: JSON.stringify([
-      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
-      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
-      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
-      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
-      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
-      'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
-      'integrations', 'workflow-engine', 'security', 'support', 'portals',
-    ]),
-    sortOrder: 4,
-    active: true,
-  },
-]
-
-/* ------------------------------------------------------------------ */
 /*  Animation helper                                                   */
 /* ------------------------------------------------------------------ */
 function SectionFadeIn({
@@ -224,7 +92,7 @@ function SectionFadeIn({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Plan Icon Component                                                */
+/*  Plan Icon Component (declared outside render)                       */
 /* ------------------------------------------------------------------ */
 const PLAN_ICONS: Record<string, React.ElementType> = {
   zap: Zap,
@@ -253,7 +121,7 @@ function PlanIcon({ name }: { name: string }) {
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 function formatStorage(mb: number): string {
-  if (mb >= 1000000) return `${(mb / 1000 / 1000).toFixed(0)} TB`
+  if (mb >= 100000) return `${(mb / 1000).toFixed(0)} GB`
   if (mb >= 1000) return `${(mb / 1000).toFixed(0)} GB`
   return `${mb} MB`
 }
@@ -311,7 +179,12 @@ const FAQ_ITEMS = [
   {
     question: 'Do you offer custom enterprise solutions?',
     answer:
-      'Absolutely. Our Custom plan is designed for large construction organizations with specific needs, including custom integrations and SLA guarantees.',
+      'Absolutely. Our Enterprise plan is designed for large construction organizations with specific needs, including custom integrations and SLA guarantees.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    answer:
+      'We accept all major credit cards (Visa, Mastercard, American Express), bank transfers, and purchase orders for Enterprise plans.',
   },
 ]
 
@@ -369,9 +242,7 @@ function PlanCard({
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card
-        className={`rounded-xl h-full flex flex-col transition-shadow hover:shadow-lg ${
-          isPro ? 'border-2 border-[#F5A623] relative' : ''
-        }`}
+        className={`rounded-xl h-full flex flex-col transition-shadow hover:shadow-md ${isPro ? 'border-2 border-[#F5A623] relative' : ''}`}
       >
         {isPro && (
           <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#F5A623] text-white text-[10px] px-2.5 py-0.5 border-0">
@@ -379,20 +250,20 @@ function PlanCard({
           </Badge>
         )}
 
-        <div className="p-4 pb-0">
+        <CardHeader className="pb-0 pt-5 px-4">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-primary/10 p-2">
               <PlanIcon name={plan.name} />
             </div>
             <div>
-              <p className="text-sm font-bold font-heading text-primary">{plan.name}</p>
+              <CardTitle className="text-sm font-bold font-heading">{plan.name}</CardTitle>
             </div>
           </div>
-        </div>
+        </CardHeader>
 
         <CardContent className="p-4 flex-1 flex flex-col gap-4">
           {/* Description */}
-          <p className="text-sm text-muted-foreground font-body leading-relaxed">
+          <p className="text-xs text-muted-foreground font-body leading-relaxed">
             {plan.description}
           </p>
 
@@ -410,7 +281,7 @@ function PlanCard({
               )}
             </div>
             {annual && savings > 0 && (
-              <p className="text-[11px] font-medium text-[#F5A623]">
+              <p className="text-[11px] text-[#F5A623] font-medium">
                 Save {savings}% with annual billing
               </p>
             )}
@@ -423,25 +294,19 @@ function PlanCard({
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Users</span>
-              <span className="font-medium">
-                {plan.maxUsers >= 9999 ? 'Unlimited' : plan.maxUsers}
-              </span>
+              <span className="font-medium">{plan.maxUsers === 0 ? 'Unlimited' : plan.maxUsers}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Projects</span>
-              <span className="font-medium">
-                {plan.maxProjects >= 9999 ? 'Unlimited' : plan.maxProjects}
-              </span>
+              <span className="font-medium">{plan.maxProjects === 0 ? 'Unlimited' : plan.maxProjects}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Storage</span>
-              <span className="font-medium">{formatStorage(plan.maxStorage)}</span>
+              <span className="font-medium">{plan.maxStorage === 0 ? 'Unlimited' : formatStorage(plan.maxStorage)}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Branches</span>
-              <span className="font-medium">
-                {plan.maxBranches >= 999 ? 'Unlimited' : plan.maxBranches}
-              </span>
+              <span className="font-medium">{plan.maxBranches === 0 ? 'Unlimited' : plan.maxBranches}</span>
             </div>
           </div>
 
@@ -477,9 +342,7 @@ function PlanCard({
                 variant="secondary"
                 className="text-[10px] px-1.5 py-0 h-5 bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/20"
               >
-                {plan.aiCredits >= 9999
-                  ? 'Unlimited AI'
-                  : `${plan.aiCredits} AI Credits`}
+                {plan.aiCredits === -1 ? 'Unlimited AI' : `${plan.aiCredits} AI Credits`}
               </Badge>
             )}
           </div>
@@ -490,13 +353,11 @@ function PlanCard({
               {features.slice(0, 5).map((f: string, i: number) => (
                 <li key={i} className="flex items-start gap-1.5">
                   <Check className="h-3.5 w-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                  <span className="text-sm text-muted-foreground font-body">
-                    {f}
-                  </span>
+                  <span className="text-xs text-muted-foreground font-body">{f}</span>
                 </li>
               ))}
               {features.length > 5 && (
-                <li className="text-sm text-muted-foreground">
+                <li className="text-xs text-muted-foreground">
                   +{features.length - 5} more features
                 </li>
               )}
@@ -523,43 +384,34 @@ function ComparisonTable({ plans }: { plans: Plan[] }) {
   const comparisonRows = [
     {
       label: 'Users',
-      getValue: (p: Plan) =>
-        p.maxUsers >= 9999 ? 'Unlimited' : String(p.maxUsers),
+      getValue: (p: Plan) => (p.maxUsers === 0 ? 'Unlimited' : String(p.maxUsers)),
       isBoolean: false,
     },
     {
       label: 'Projects',
-      getValue: (p: Plan) =>
-        p.maxProjects >= 9999 ? 'Unlimited' : String(p.maxProjects),
+      getValue: (p: Plan) => (p.maxProjects === 0 ? 'Unlimited' : String(p.maxProjects)),
       isBoolean: false,
     },
     {
       label: 'Storage',
-      getValue: (p: Plan) => formatStorage(p.maxStorage),
+      getValue: (p: Plan) => (p.maxStorage === 0 ? 'Unlimited' : formatStorage(p.maxStorage)),
       isBoolean: false,
     },
     {
       label: 'Branches',
-      getValue: (p: Plan) =>
-        p.maxBranches >= 999 ? 'Unlimited' : String(p.maxBranches),
+      getValue: (p: Plan) => (p.maxBranches === 0 ? 'Unlimited' : String(p.maxBranches)),
       isBoolean: false,
     },
     {
       label: 'API Calls / mo',
       getValue: (p: Plan) =>
-        p.maxApiCalls >= 999999
-          ? 'Unlimited'
-          : formatApiCalls(p.maxApiCalls),
+        p.maxApiCalls === 0 ? 'Unlimited' : formatApiCalls(p.maxApiCalls),
       isBoolean: false,
     },
     {
       label: 'AI Credits',
       getValue: (p: Plan) =>
-        p.aiCredits === 0
-          ? '-'
-          : p.aiCredits >= 9999
-            ? 'Unlimited'
-            : String(p.aiCredits),
+        p.aiCredits === 0 ? '-' : p.aiCredits === -1 ? 'Unlimited' : String(p.aiCredits),
       isBoolean: false,
     },
     {
@@ -591,12 +443,10 @@ function ComparisonTable({ plans }: { plans: Plan[] }) {
 
   return (
     <Card className="rounded-xl">
-      <div className="p-4 pb-2">
-        <p className="text-lg font-bold font-heading text-primary">
-          Feature Comparison
-        </p>
-      </div>
-      <CardContent className="p-4 pt-0">
+      <CardHeader className="px-4 pt-4 pb-2">
+        <CardTitle className="text-lg font-bold font-heading">Feature Comparison</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -634,10 +484,7 @@ function ComparisonTable({ plans }: { plans: Plan[] }) {
                       )
                     }
                     return (
-                      <TableCell
-                        key={plan.id}
-                        className="text-sm text-center text-muted-foreground"
-                      >
+                      <TableCell key={plan.id} className="text-xs text-center text-muted-foreground">
                         {String(value)}
                       </TableCell>
                     )
@@ -662,20 +509,14 @@ export default function PricingPage() {
 
   useEffect(() => {
     fetch('/api/platform/plans')
-      .then((res) => {
-        if (!res.ok) throw new Error('Not authorized')
-        return res.json()
-      })
+      .then((res) => res.json())
       .then((data) => {
         const sorted = (data.plans || data || [])
           .filter((p: Plan) => p.active)
           .sort((a: Plan, b: Plan) => a.sortOrder - b.sortOrder)
         setPlans(sorted)
       })
-      .catch(() => {
-        // Use fallback data when API is unavailable (e.g. not authenticated)
-        setPlans(FALLBACK_PLANS.sort((a, b) => a.sortOrder - b.sortOrder))
-      })
+      .catch(() => setPlans([]))
       .finally(() => setLoading(false))
   }, [])
 
@@ -700,7 +541,7 @@ export default function PricingPage() {
             </span>
           </Link>
 
-          {/* Center Nav */}
+          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
               href="/"
@@ -735,29 +576,21 @@ export default function PricingPage() {
         {/* ---------------------------------------------------------- */}
         {/*  Page Header                                                 */}
         {/* ---------------------------------------------------------- */}
-        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-8">
+        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-8 lg:py-12">
           <SectionFadeIn className="text-center space-y-4">
             <h1 className="text-2xl font-bold font-heading">Pricing</h1>
             <p className="text-sm text-muted-foreground font-body max-w-lg mx-auto leading-relaxed">
-              Choose the right plan for your team. All plans include a 14-day free
-              trial. No credit card required.
+              Choose the right plan for your team. All plans include a 14-day free trial.
+              No credit card required.
             </p>
 
             {/* Monthly / Annual toggle */}
             <div className="flex items-center justify-center gap-3">
-              <span
-                className={`text-sm font-medium transition-colors ${
-                  !annual ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
+              <span className={`text-sm font-medium transition-colors ${!annual ? 'text-primary' : 'text-muted-foreground'}`}>
                 Monthly
               </span>
               <Switch checked={annual} onCheckedChange={setAnnual} />
-              <span
-                className={`text-sm font-medium transition-colors ${
-                  annual ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
+              <span className={`text-sm font-medium transition-colors ${annual ? 'text-primary' : 'text-muted-foreground'}`}>
                 Annual
               </span>
               {annual && (
@@ -814,9 +647,6 @@ export default function PricingPage() {
         <section className="max-w-[1600px] mx-auto px-4 lg:px-6 space-y-4">
           <SectionFadeIn>
             <div className="max-w-2xl mx-auto">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-center mb-4">
-                Support
-              </p>
               <h2 className="text-lg font-bold font-heading text-center mb-6">
                 Frequently Asked Questions
               </h2>
@@ -878,7 +708,7 @@ export default function PricingPage() {
       </main>
 
       {/* ============================================================ */}
-      {/*  Footer                                                      */}
+      {/*  Footer                                                      */
       {/* ============================================================ */}
       <BrandFooter />
     </div>

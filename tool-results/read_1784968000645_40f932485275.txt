@@ -1,0 +1,1030 @@
+     1→'use client'
+     2→
+     3→import { useEffect, useState, useCallback, useMemo } from 'react'
+     4→import { motion, AnimatePresence } from 'framer-motion'
+     5→import Image from 'next/image'
+     6→import Link from 'next/link'
+     7→import { useRouter, useSearchParams } from 'next/navigation'
+     8→import { toast } from 'sonner'
+     9→import {
+    10→  Building2,
+    11→  Mail,
+    12→  Lock,
+    13→  User,
+    14→  Phone,
+    15→  Globe,
+    16→  Check,
+    17→  ArrowRight,
+    18→  Eye,
+    19→  EyeOff,
+    20→  Loader2,
+    21→  ShieldCheck,
+    22→  Layers,
+    23→  Headphones,
+    24→  Sparkles,
+    25→  Quote,
+    26→} from 'lucide-react'
+    27→import { Button } from '@/components/ui/button'
+    28→import { Input } from '@/components/ui/input'
+    29→import { Label } from '@/components/ui/label'
+    30→import { Checkbox } from '@/components/ui/checkbox'
+    31→import { Card, CardContent } from '@/components/ui/card'
+    32→import { Badge } from '@/components/ui/badge'
+    33→import { Separator } from '@/components/ui/separator'
+    34→import { Skeleton } from '@/components/ui/skeleton'
+    35→import { cn } from '@/lib/utils'
+    36→
+    37→/* ------------------------------------------------------------------ */
+    38→/*  Types                                                              */
+    39→/* ------------------------------------------------------------------ */
+    40→
+    41→interface Plan {
+    42→  id: string
+    43→  name: string
+    44→  description: string
+    45→  priceMonthly: number | null
+    46→  priceAnnual: number | null
+    47→  maxUsers: number
+    48→  maxProjects: number
+    49→  maxStorage: number
+    50→  maxBranches: number
+    51→  features: string
+    52→  sortOrder: number
+    53→  active: boolean
+    54→}
+    55→
+    56→interface FieldErrors {
+    57→  companyName?: string
+    58→  slug?: string
+    59→  adminName?: string
+    60→  adminEmail?: string
+    61→  adminPassword?: string
+    62→  confirmPassword?: string
+    63→  planId?: string
+    64→  terms?: string
+    65→}
+    66→
+    67→/* ------------------------------------------------------------------ */
+    68→/*  Helpers                                                            */
+    69→/* ------------------------------------------------------------------ */
+    70→
+    71→function generateSlug(name: string): string {
+    72→  return name
+    73→    .toLowerCase()
+    74→    .trim()
+    75→    .replace(/[^a-z0-9\s-]/g, '')
+    76→    .replace(/\s+/g, '-')
+    77→    .replace(/-+/g, '-')
+    78→    .replace(/^-+|-+$/g, '')
+    79→}
+    80→
+    81→const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/
+    82→
+    83→/* Fallback plans when API is unavailable (unauthenticated) */
+    84→const FALLBACK_PLANS: Plan[] = [
+    85→  {
+    86→    id: 'free-trial',
+    87→    name: 'Free Trial',
+    88→    description: 'Get started with core EPPM features',
+    89→    priceMonthly: 0,
+    90→    priceAnnual: 0,
+    91→    maxUsers: 5,
+    92→    maxProjects: 3,
+    93→    maxStorage: 500,
+    94→    maxBranches: 1,
+    95→    features: '["portfolio","project","gantt","resource","risk","document","report"]',
+    96→    sortOrder: 0,
+    97→    active: true,
+    98→  },
+    99→  {
+   100→    id: 'starter',
+   101→    name: 'Starter',
+   102→    description: 'For small construction teams',
+   103→    priceMonthly: 49,
+   104→    priceAnnual: 470,
+   105→    maxUsers: 15,
+   106→    maxProjects: 10,
+   107→    maxStorage: 5000,
+   108→    maxBranches: 3,
+   109→    features: '["portfolio","project","gantt","resource","risk","document","report","maintenance","hr"]',
+   110→    sortOrder: 1,
+   111→    active: true,
+   112→  },
+   113→  {
+   114→    id: 'professional',
+   115→    name: 'Professional',
+   116→    description: 'For growing construction companies',
+   117→    priceMonthly: 149,
+   118→    priceAnnual: 1430,
+   119→    maxUsers: 50,
+   120→    maxProjects: 50,
+   121→    maxStorage: 50000,
+   122→    maxBranches: 10,
+   123→    features: '["portfolio","project","gantt","resource","risk","document","report","maintenance","hr","finance","procurement","equipment","inventory","work-order","complaint"]',
+   124→    sortOrder: 2,
+   125→    active: true,
+   126→  },
+   127→  {
+   128→    id: 'enterprise',
+   129→    name: 'Enterprise',
+   130→    description: 'For large construction enterprises',
+   131→    priceMonthly: 399,
+   132→    priceAnnual: 3830,
+   133→    maxUsers: 200,
+   134→    maxProjects: 200,
+   135→    maxStorage: 500000,
+   136→    maxBranches: 50,
+   137→    features: '["portfolio","project","gantt","resource","risk","document","report","maintenance","hr","finance","procurement","equipment","inventory","work-order","complaint","ai-planner","analytics","api"]',
+   138→    sortOrder: 3,
+   139→    active: true,
+   140→  },
+   141→]
+   142→
+   143→/* ------------------------------------------------------------------ */
+   144→/*  Left Panel Branding (Desktop Only)                                */
+   145→/* ------------------------------------------------------------------ */
+   146→
+   147→function LeftBrandPanel() {
+   148→  const benefits = [
+   149→    { icon: Layers, label: 'Full EPPM Suite' },
+   150→    { icon: ShieldCheck, label: 'Multi-Tenant Isolation' },
+   151→    { icon: Sparkles, label: 'RBAC Permissions' },
+   152→    { icon: Headphones, label: '24/7 Support' },
+   153→  ]
+   154→
+   155→  return (
+   156→    <div className='hidden lg:flex lg:flex-col lg:justify-between lg:p-12'>
+   157→      {/* Top logo */}
+   158→      <div className='relative flex items-center gap-3'>
+   159→        <Image
+   160→          src='/brand/smartbuild-app-dark.svg'
+   161→          alt='SmartBuild'
+   162→          width={44}
+   163→          height={44}
+   164→          className='h-11 w-11'
+   165→        />
+   166→        <div>
+   167→          <div className='text-lg font-bold tracking-tight text-white font-heading'>
+   168→            SmartBuild
+   169→          </div>
+   170→          <div className='text-[11px] text-white/60 font-body'>
+   171→            Enterprise Multi-Tenant SaaS Platform
+   172→          </div>
+   173→        </div>
+   174→      </div>
+   175→
+   176→      {/* Center messaging */}
+   177→      <div className='relative space-y-8'>
+   178→        <motion.h1
+   179→          initial={{ opacity: 0, y: 20 }}
+   180→          animate={{ opacity: 1, y: 0 }}
+   181→          transition={{ duration: 0.5, delay: 0.1 }}
+   182→          className='max-w-md text-3xl font-bold leading-tight text-white font-heading'
+   183→        >
+   184→          Start your{' '}
+   185→          <span className='text-gradient'>14-day free trial</span>
+   186→        </motion.h1>
+   187→
+   188→        <motion.p
+   189→          initial={{ opacity: 0, y: 16 }}
+   190→          animate={{ opacity: 1, y: 0 }}
+   191→          transition={{ duration: 0.5, delay: 0.2 }}
+   192→          className='max-w-sm text-sm text-slate-300 font-body leading-relaxed'
+   193→        >
+   194→          Get your construction workspace up and running in minutes. No credit
+   195→          card required for the free trial.
+   196→        </motion.p>
+   197→
+   198→        <motion.ul
+   199→          initial={{ opacity: 0, y: 16 }}
+   200→          animate={{ opacity: 1, y: 0 }}
+   201→          transition={{ duration: 0.5, delay: 0.3 }}
+   202→          className='space-y-4'
+   203→        >
+   204→          {benefits.map((item, i) => (
+   205→            <motion.li
+   206→              key={item.label}
+   207→              initial={{ opacity: 0, x: -12 }}
+   208→              animate={{ opacity: 1, x: 0 }}
+   209→              transition={{ duration: 0.35, delay: 0.35 + i * 0.08 }}
+   210→              className='flex items-center gap-3 text-sm text-white/85 font-body'
+   211→            >
+   212→              <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5A623]/15'>
+   213→                <item.icon className='h-4 w-4 text-[#F5A623]' />
+   214→              </div>
+   215→              <span>{item.label}</span>
+   216→            </motion.li>
+   217→          ))}
+   218→        </motion.ul>
+   219→      </div>
+   220→
+   221→      {/* Bottom testimonial */}
+   222→      <motion.div
+   223→        initial={{ opacity: 0, y: 12 }}
+   224→        animate={{ opacity: 1, y: 0 }}
+   225→        transition={{ duration: 0.5, delay: 0.6 }}
+   226→        className='relative'
+   227→      >
+   228→        <div className='glass rounded-xl p-5'>
+   229→          <Quote className='mb-2 h-5 w-5 text-[#F5A623]/60' />
+   230→          <p className='text-sm leading-relaxed text-white/80 font-body italic'>
+   231→            &ldquo;SmartBuild transformed how we manage 200+ construction
+   232→            projects. The multi-tenant setup lets each division operate
+   233→            independently while keeping leadership informed.&rdquo;
+   234→          </p>
+   235→          <div className='mt-3 flex items-center gap-3'>
+   236→            <div className='flex h-9 w-9 items-center justify-center rounded-full bg-[#F5A623]/20 text-xs font-bold text-[#F5A623]'>
+   237→              AR
+   238→            </div>
+   239→            <div>
+   240→              <p className='text-xs font-semibold text-white/90 font-body'>
+   241→                Ahmad Ridzuan
+   242→              </p>
+   243→              <p className='text-[11px] text-white/50 font-body'>
+   244→                COO, Gamuda Construction
+   245→              </p>
+   246→            </div>
+   247→          </div>
+   248→        </div>
+   249→      </motion.div>
+   250→    </div>
+   251→  )
+   252→}
+   253→
+   254→/* ------------------------------------------------------------------ */
+   255→/*  Plan Selector                                                      */
+   256→/* ------------------------------------------------------------------ */
+   257→
+   258→function PlanSelector({
+   259→  plans,
+   260→  selectedPlanId,
+   261→  onSelect,
+   262→  loading,
+   263→}: {
+   264→  plans: Plan[]
+   265→  selectedPlanId: string
+   266→  onSelect: (id: string) => void
+   267→  loading: boolean
+   268→}) {
+   269→  if (loading) {
+   270→    return (
+   271→      <div className='space-y-3'>
+   272→        <Label className='text-xs font-body'>Select a Plan</Label>
+   273→        <div className='flex gap-3 overflow-x-auto pb-2 scroll-thin'>
+   274→          {[0, 1, 2, 3].map((i) => (
+   275→            <Skeleton
+   276→              key={i}
+   277→              className='h-24 w-36 shrink-0 rounded-xl'
+   278→            />
+   279→          ))}
+   280→        </div>
+   281→      </div>
+   282→    )
+   283→  }
+   284→
+   285→  if (plans.length === 0) return null
+   286→
+   287→  return (
+   288→    <div className='space-y-3'>
+   289→      <Label className='text-xs font-body'>Select a Plan</Label>
+   290→      <div className='flex gap-3 overflow-x-auto pb-2 scroll-thin'>
+   291→        {plans.map((plan) => {
+   292→          const isSelected = selectedPlanId === plan.id
+   293→          return (
+   294→            <motion.button
+   295→              type='button'
+   296→              key={plan.id}
+   297→              whileHover={{ scale: 1.02 }}
+   298→              whileTap={{ scale: 0.98 }}
+   299→              onClick={() => onSelect(plan.id)}
+   300→              className={cn(
+   301→                'relative flex shrink-0 flex-col items-start gap-1 rounded-xl border-2 p-3.5 text-left transition-colors',
+   302→                isSelected
+   303→                  ? 'border-[#F5A623] bg-[#F5A623]/5 shadow-sm'
+   304→                  : 'border-border bg-card hover:border-[#F5A623]/40',
+   305→              )}
+   306→              style={{ width: 150 }}
+   307→            >
+   308→              {plan.priceMonthly === 0 && (
+   309→                <Badge
+   310→                  variant='secondary'
+   311→                  className='absolute -top-2 right-2 bg-[#F5A623] text-[#0B2345] text-[10px] px-1.5 py-0 font-bold font-body'
+   312→                >
+   313→                  FREE
+   314→                </Badge>
+   315→              )}
+   316→              <span className='text-sm font-semibold font-heading text-[#0B2345]'>
+   317→                {plan.name}
+   318→              </span>
+   319→              <div className='flex items-baseline gap-0.5'>
+   320→                <span className='text-lg font-bold font-heading text-[#0B2345]'>
+   321→                  {plan.priceMonthly === 0
+   322→                    ? '$0'
+   323→                    : `$${plan.priceMonthly}`}
+   324→                </span>
+   325→                {plan.priceMonthly !== 0 && (
+   326→                  <span className='text-[10px] text-muted-foreground font-body'>
+   327→                    /mo
+   328→                  </span>
+   329→                )}
+   330→              </div>
+   331→              <span className='text-[10px] text-muted-foreground font-body leading-tight'>
+   332→                {plan.description}
+   333→              </span>
+   334→              {isSelected && (
+   335→                <motion.div
+   336→                  layoutId='plan-check'
+   337→                  className='absolute -top-1.5 -left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#F5A623] text-white'
+   338→                >
+   339→                  <Check className='h-3 w-3' strokeWidth={3} />
+   340→                </motion.div>
+   341→              )}
+   342→            </motion.button>
+   343→          )
+   344→        })}
+   345→      </div>
+   346→    </div>
+   347→  )
+   348→}
+   349→
+   350→/* ------------------------------------------------------------------ */
+   351→/*  Success Screen                                                     */
+   352→/* ------------------------------------------------------------------ */
+   353→
+   354→function SuccessScreen({ companyName, slug }: { companyName: string; slug: string }) {
+   355→  const router = useRouter()
+   356→
+   357→  return (
+   358→    <motion.div
+   359→      initial={{ opacity: 0, scale: 0.95 }}
+   360→      animate={{ opacity: 1, scale: 1 }}
+   361→      transition={{ duration: 0.5 }}
+   362→      className='flex flex-col items-center justify-center py-12 text-center'
+   363→    >
+   364→      {/* Animated checkmark */}
+   365→      <motion.div
+   366→        initial={{ scale: 0 }}
+   367→        animate={{ scale: 1 }}
+   368→        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+   369→        className='mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#F5A623]/10'
+   370→      >
+   371→        <motion.div
+   372→          initial={{ scale: 0, rotate: -180 }}
+   373→          animate={{ scale: 1, rotate: 0 }}
+   374→          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.4 }}
+   375→          className='flex h-14 w-14 items-center justify-center rounded-full bg-[#F5A623]'
+   376→        >
+   377→          <Check className='h-7 w-7 text-white' strokeWidth={3} />
+   378→        </motion.div>
+   379→      </motion.div>
+   380→
+   381→      <motion.div
+   382→        initial={{ opacity: 0, y: 12 }}
+   383→        animate={{ opacity: 1, y: 0 }}
+   384→        transition={{ delay: 0.6 }}
+   385→      >
+   386→        <h2 className='text-2xl font-bold font-heading text-[#0B2345]'>
+   387→          Welcome to SmartBuild!
+   388→        </h2>
+   389→        <p className='mt-2 text-sm text-muted-foreground font-body'>
+   390→          Your workspace <strong className='text-[#0B2345]'>{companyName}</strong> has
+   391→          been created successfully.
+   392→        </p>
+   393→        <div className='mt-4 inline-flex items-center gap-2 rounded-lg bg-[#0B2345]/5 px-4 py-2 text-xs font-body text-[#0B2345]'>
+   394→          <Globe className='h-3.5 w-3.5' />
+   395→          smartbuild.app/{slug}
+   396→        </div>
+   397→      </motion.div>
+   398→
+   399→      <motion.div
+   400→        initial={{ opacity: 0, y: 12 }}
+   401→        animate={{ opacity: 1, y: 0 }}
+   402→        transition={{ delay: 0.8 }}
+   403→        className='mt-8'
+   404→      >
+   405→        <Button
+   406→          onClick={() => router.push('/app')}
+   407→          size='lg'
+   408→          className='gap-2 rounded-xl bg-[#0B2345] px-8 font-body text-white hover:bg-[#132D52]'
+   409→        >
+   410→          Go to Dashboard
+   411→          <ArrowRight className='h-4 w-4' />
+   412→        </Button>
+   413→      </motion.div>
+   414→    </motion.div>
+   415→  )
+   416→}
+   417→
+   418→/* ------------------------------------------------------------------ */
+   419→/*  Main Registration Page                                             */
+   420→/* ------------------------------------------------------------------ */
+   421→
+   422→export default function RegisterPage() {
+   423→  const router = useRouter()
+   424→  const searchParams = useSearchParams()
+   425→
+   426→  /* ---- State ---- */
+   427→  const [plans, setPlans] = useState<Plan[]>([])
+   428→  const [plansLoading, setPlansLoading] = useState(true)
+   429→  const [selectedPlanId, setSelectedPlanId] = useState('')
+   430→  const [showPassword, setShowPassword] = useState(false)
+   431→  const [showConfirm, setShowConfirm] = useState(false)
+   432→  const [submitting, setSubmitting] = useState(false)
+   433→  const [success, setSuccess] = useState(false)
+   434→  const [successData, setSuccessData] = useState({ companyName: '', slug: '' })
+   435→  const [errors, setErrors] = useState<FieldErrors>({})
+   436→
+   437→  const [companyName, setCompanyName] = useState('')
+   438→  const [slug, setSlug] = useState('')
+   439→  const [phone, setPhone] = useState('')
+   440→  const [adminName, setAdminName] = useState('')
+   441→  const [adminEmail, setAdminEmail] = useState('')
+   442→  const [adminPassword, setAdminPassword] = useState('')
+   443→  const [confirmPassword, setConfirmPassword] = useState('')
+   444→  const [termsAccepted, setTermsAccepted] = useState(false)
+   445→
+   446→  /* ---- Fetch plans ---- */
+   447→  useEffect(() => {
+   448→    async function fetchPlans() {
+   449→      try {
+   450→        const res = await fetch('/api/platform/plans')
+   451→        if (res.ok) {
+   452→          const data = await res.json()
+   453→          const activePlans = (data.plans ?? []).filter(
+   454→            (p: Plan) => p.active,
+   455→          )
+   456→          setPlans(activePlans.length > 0 ? activePlans : FALLBACK_PLANS)
+   457→          const free = activePlans.find(
+   458→            (p: Plan) => p.priceMonthly === 0 || p.name === 'Free Trial',
+   459→          )
+   460→          if (free) setSelectedPlanId(free.id)
+   461→          return
+   462→        }
+   463→      } catch {
+   464→        /* fall through */
+   465→      }
+   466→      // Fallback plans
+   467→      setPlans(FALLBACK_PLANS)
+   468→      setSelectedPlanId('free-trial')
+   469→    }
+   470→    fetchPlans().finally(() => setPlansLoading(false))
+   471→  }, [])
+   472→
+   473→  /* ---- Pre-select plan from URL ---- */
+   474→  useEffect(() => {
+   475→    const planParam = searchParams.get('plan')
+   476→    if (planParam && plans.length > 0) {
+   477→      const match = plans.find(
+   478→        (p) =>
+   479→          p.id === planParam ||
+   480→          p.name.toLowerCase() === planParam.toLowerCase(),
+   481→      )
+   482→      if (match) setSelectedPlanId(match.id)
+   483→    }
+   484→  }, [searchParams, plans])
+   485→
+   486→  /* ---- Auto-generate slug from company name ---- */
+   487→  const handleCompanyNameChange = useCallback(
+   488→    (value: string) => {
+   489→      setCompanyName(value)
+   490→      // Only auto-generate if slug hasn't been manually edited
+   491→      const generated = generateSlug(value)
+   492→      if (!slug || generateSlug(companyName) === slug) {
+   493→        setSlug(generated)
+   494→      }
+   495→    },
+   496→    [companyName, slug],
+   497→  )
+   498→
+   499→  const handleSlugChange = useCallback((value: string) => {
+   500→    setSlug(value)
+   501→  }, [])
+   502→
+   503→  /* ---- Validation ---- */
+   504→  const validate = useCallback((): boolean => {
+   505→    const errs: FieldErrors = {}
+   506→
+   507→    if (!companyName.trim()) errs.companyName = 'Company name is required'
+   508→    if (!slug.trim()) errs.slug = 'Company URL is required'
+   509→    else if (!SLUG_RE.test(slug))
+   510→      errs.slug = 'Only lowercase letters, numbers, and hyphens'
+   511→    else if (slug.length < 2) errs.slug = 'Slug must be at least 2 characters'
+   512→
+   513→    if (!adminName.trim()) errs.adminName = 'Full name is required'
+   514→    if (!adminEmail.trim()) errs.adminEmail = 'Email is required'
+   515→    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail.trim()))
+   516→      errs.adminEmail = 'Invalid email format'
+   517→
+   518→    if (!adminPassword) errs.adminPassword = 'Password is required'
+   519→    else if (adminPassword.length < 6)
+   520→      errs.adminPassword = 'Password must be at least 6 characters'
+   521→
+   522→    if (!confirmPassword) errs.confirmPassword = 'Please confirm your password'
+   523→    else if (confirmPassword !== adminPassword)
+   524→      errs.confirmPassword = 'Passwords do not match'
+   525→
+   526→    if (!selectedPlanId) errs.planId = 'Please select a plan'
+   527→
+   528→    if (!termsAccepted) errs.terms = 'You must accept the terms'
+   529→
+   530→    setErrors(errs)
+   531→    return Object.keys(errs).length === 0
+   532→  }, [
+   533→    companyName,
+   534→    slug,
+   535→    adminName,
+   536→    adminEmail,
+   537→    adminPassword,
+   538→    confirmPassword,
+   539→    selectedPlanId,
+   540→    termsAccepted,
+   541→  ])
+   542→
+   543→  /* ---- Clear field error on change ---- */
+   544→  const clearFieldError = useCallback((field: keyof FieldErrors) => {
+   545→    setErrors((prev) => {
+   546→      if (!prev[field]) return prev
+   547→      const next = { ...prev }
+   548→      delete next[field]
+   549→      return next
+   550→    })
+   551→  }, [])
+   552→
+   553→  /* ---- Submit ---- */
+   554→  const handleSubmit = useCallback(
+   555→    async (e: React.FormEvent) => {
+   556→      e.preventDefault()
+   557→      if (!validate()) return
+   558→
+   559→      setSubmitting(true)
+   560→      try {
+   561→        const res = await fetch('/api/register', {
+   562→          method: 'POST',
+   563→          headers: { 'Content-Type': 'application/json' },
+   564→          body: JSON.stringify({
+   565→            companyName: companyName.trim(),
+   566→            slug: slug.trim(),
+   567→            adminName: adminName.trim(),
+   568→            adminEmail: adminEmail.trim().toLowerCase(),
+   569→            adminPassword,
+   570→            phone: phone.trim() || undefined,
+   571→            planId: selectedPlanId,
+   572→          }),
+   573→        })
+   574→        const data = await res.json()
+   575→
+   576→        if (!res.ok) {
+   577→          toast.error(data.error ?? 'Registration failed. Please try again.')
+   578→          if (data.error?.toLowerCase().includes('slug') || data.error?.toLowerCase().includes('url') || data.error?.toLowerCase().includes('taken')) {
+   579→            setErrors((prev) => ({ ...prev, slug: data.error }))
+   580→          }
+   581→          return
+   582→        }
+   583→
+   584→        // Success
+   585→        setSuccessData({
+   586→          companyName: data.tenant?.name ?? companyName.trim(),
+   587→          slug: data.tenant?.slug ?? slug.trim(),
+   588→        })
+   589→        setSuccess(true)
+   590→        toast.success('Workspace created successfully!')
+   591→      } catch {
+   592→        toast.error('Network error. Please check your connection and try again.')
+   593→      } finally {
+   594→        setSubmitting(false)
+   595→      }
+   596→    },
+   597→    [
+   598→      validate,
+   599→      companyName,
+   600→      slug,
+   601→      adminName,
+   602→      adminEmail,
+   603→      adminPassword,
+   604→      phone,
+   605→      selectedPlanId,
+   606→    ],
+   607→  )
+   608→
+   609→  /* ---- Computed ---- */
+   610→  const slugPreview = slug
+   611→    ? `smartbuild.app/${slug}`
+   612→    : 'smartbuild.app/your-company'
+   613→
+   614→  /* ---- Render ---- */
+   615→  return (
+   616→    <div className='min-h-screen w-full flex flex-col overflow-hidden bg-[#F8FAFC]'>
+   617→      {/* Background layers */}
+   618→      <div className='absolute inset-0 bg-navy-gradient' />
+   619→      <div className='absolute inset-0 opacity-20 [background:radial-gradient(circle_at_25%_25%,rgba(245,166,35,0.3),transparent_50%),radial-gradient(circle_at_75%_70%,rgba(245,166,35,0.15),transparent_55%)]' />
+   620→
+   621→      {/* Main grid */}
+   622→      <div className='relative grid flex-1 min-h-screen w-full lg:grid-cols-2'>
+   623→        {/* Left panel */}
+   624→        <LeftBrandPanel />
+   625→
+   626→        {/* Right panel — form */}
+   627→        <div className='flex flex-col items-center justify-center px-4 py-8 sm:px-6 lg:p-12'>
+   628→          <AnimatePresence mode='wait'>
+   629→            {success ? (
+   630→              <motion.div
+   631→                key='success'
+   632→                initial={{ opacity: 0 }}
+   633→                animate={{ opacity: 1 }}
+   634→                exit={{ opacity: 0 }}
+   635→                className='relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white p-8 shadow-2xl lg:bg-white/95 lg:backdrop-blur-xl'
+   636→              >
+   637→                <SuccessScreen
+   638→                  companyName={successData.companyName}
+   639→                  slug={successData.slug}
+   640→                />
+   641→              </motion.div>
+   642→            ) : (
+   643→              <motion.div
+   644→                key='form'
+   645→                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+   646→                animate={{ opacity: 1, y: 0, scale: 1 }}
+   647→                exit={{ opacity: 0 }}
+   648→                transition={{ duration: 0.4 }}
+   649→                className='relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-white p-6 shadow-2xl sm:p-8 lg:bg-white/95 lg:backdrop-blur-xl'
+   650→              >
+   651→                {/* Top accent bar */}
+   652→                <div className='absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#F5A623] via-[#F7B84E] to-[#F5A623]' />
+   653→
+   654→                {/* Mobile-only logo */}
+   655→                <div className='mb-6 flex flex-col items-center gap-3 lg:hidden'>
+   656→                  <div className='relative'>
+   657→                    <Image
+   658→                      src='/brand/smartbuild-app-dark.svg'
+   659→                      alt='SmartBuild'
+   660→                      width={56}
+   661→                      height={56}
+   662→                      className='h-14 w-14 drop-shadow-lg'
+   663→                    />
+   664→                    <div className='absolute -inset-2 rounded-full bg-[#F5A623]/10 blur-xl' />
+   665→                  </div>
+   666→                  <div className='text-center'>
+   667→                    <div className='text-lg font-bold tracking-tight text-[#0B2345] font-heading'>
+   668→                      SmartBuild
+   669→                    </div>
+   670→                    <div className='text-[11px] text-[#6B7280] font-body'>
+   671→                      Enterprise EPPM Platform
+   672→                    </div>
+   673→                  </div>
+   674→                </div>
+   675→
+   676→                {/* Title */}
+   677→                <div className='mb-6'>
+   678→                  <h1 className='text-2xl font-bold tracking-tight text-[#0B2345] font-heading'>
+   679→                    Create your workspace
+   680→                  </h1>
+   681→                  <p className='mt-1 text-sm text-muted-foreground font-body'>
+   682→                    Fill in the details below to get started with your free trial.
+   683→                  </p>
+   684→                </div>
+   685→
+   686→                <form onSubmit={handleSubmit} className='space-y-6'>
+   687→                  {/* ---- Plan Selector ---- */}
+   688→                  <PlanSelector
+   689→                    plans={plans}
+   690→                    selectedPlanId={selectedPlanId}
+   691→                    onSelect={(id) => {
+   692→                      setSelectedPlanId(id)
+   693→                      clearFieldError('planId')
+   694→                    }}
+   695→                    loading={plansLoading}
+   696→                  />
+   697→                  {errors.planId && (
+   698→                    <p className='text-xs text-red-500 font-body'>{errors.planId}</p>
+   699→                  )}
+   700→
+   701→                  {/* ---- Company Information ---- */}
+   702→                  <div className='space-y-4'>
+   703→                    <div className='flex items-center gap-2'>
+   704→                      <Building2 className='h-4 w-4 text-[#F5A623]' />
+   705→                      <h3 className='text-sm font-semibold text-[#0B2345] font-heading'>
+   706→                        Company Information
+   707→                      </h3>
+   708→                    </div>
+   709→
+   710→                    <div className='space-y-1.5'>
+   711→                      <Label htmlFor='companyName' className='text-xs font-body'>
+   712→                        Company Name <span className='text-red-500'>*</span>
+   713→                      </Label>
+   714→                      <div className='relative'>
+   715→                        <Building2 className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   716→                        <Input
+   717→                          id='companyName'
+   718→                          required
+   719→                          value={companyName}
+   720→                          onChange={(e) => {
+   721→                            handleCompanyNameChange(e.target.value)
+   722→                            clearFieldError('companyName')
+   723→                          }}
+   724→                          placeholder='e.g. Acme Construction Sdn. Bhd.'
+   725→                          className={cn(
+   726→                            'pl-9 font-body',
+   727→                            errors.companyName && 'border-red-400 focus:ring-red-400',
+   728→                          )}
+   729→                        />
+   730→                      </div>
+   731→                      {errors.companyName && (
+   732→                        <p className='text-xs text-red-500 font-body'>{errors.companyName}</p>
+   733→                      )}
+   734→                    </div>
+   735→
+   736→                    <div className='space-y-1.5'>
+   737→                      <Label htmlFor='slug' className='text-xs font-body'>
+   738→                        Company URL <span className='text-red-500'>*</span>
+   739→                      </Label>
+   740→                      <div className='relative'>
+   741→                        <Globe className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   742→                        <Input
+   743→                          id='slug'
+   744→                          required
+   745→                          value={slug}
+   746→                          onChange={(e) => {
+   747→                            const val = e.target.value
+   748→                              .toLowerCase()
+   749→                              .replace(/[^a-z0-9-]/g, '')
+   750→                              .replace(/-+/g, '-')
+   751→                            handleSlugChange(val)
+   752→                            clearFieldError('slug')
+   753→                          }}
+   754→                          placeholder='your-company'
+   755→                          className={cn(
+   756→                            'pl-9 pr-28 font-body font-mono text-sm',
+   757→                            errors.slug && 'border-red-400 focus:ring-red-400',
+   758→                          )}
+   759→                        />
+   760→                        <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-md border-l border-border bg-muted/50 px-3'>
+   761→                          <span className='text-[11px] text-muted-foreground font-body truncate max-w-[120px]'>
+   762→                            smartbuild.app/
+   763→                          </span>
+   764→                        </div>
+   765→                      </div>
+   766→                      {/* Slug preview */}
+   767→                      {slug && !errors.slug && (
+   768→                        <p className='text-[11px] text-muted-foreground font-body'>
+   769→                          Your workspace URL:{' '}
+   770→                          <span className='font-medium text-[#0B2345]'>{slugPreview}</span>
+   771→                        </p>
+   772→                      )}
+   773→                      {errors.slug && (
+   774→                        <p className='text-xs text-red-500 font-body'>{errors.slug}</p>
+   775→                      )}
+   776→                    </div>
+   777→
+   778→                    <div className='space-y-1.5'>
+   779→                      <Label htmlFor='phone' className='text-xs font-body'>
+   780→                        Phone{' '}
+   781→                        <span className='text-muted-foreground'>(optional)</span>
+   782→                      </Label>
+   783→                      <div className='relative'>
+   784→                        <Phone className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   785→                        <Input
+   786→                          id='phone'
+   787→                          type='tel'
+   788→                          value={phone}
+   789→                          onChange={(e) => setPhone(e.target.value)}
+   790→                          placeholder='+60 12-345 6789'
+   791→                          className='pl-9 font-body'
+   792→                        />
+   793→                      </div>
+   794→                    </div>
+   795→                  </div>
+   796→
+   797→                  <Separator className='opacity-60' />
+   798→
+   799→                  {/* ---- Admin Account ---- */}
+   800→                  <div className='space-y-4'>
+   801→                    <div className='flex items-center gap-2'>
+   802→                      <User className='h-4 w-4 text-[#F5A623]' />
+   803→                      <h3 className='text-sm font-semibold text-[#0B2345] font-heading'>
+   804→                        Admin Account
+   805→                      </h3>
+   806→                    </div>
+   807→
+   808→                    <div className='space-y-1.5'>
+   809→                      <Label htmlFor='adminName' className='text-xs font-body'>
+   810→                        Full Name <span className='text-red-500'>*</span>
+   811→                      </Label>
+   812→                      <div className='relative'>
+   813→                        <User className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   814→                        <Input
+   815→                          id='adminName'
+   816→                          required
+   817→                          value={adminName}
+   818→                          onChange={(e) => {
+   819→                            setAdminName(e.target.value)
+   820→                            clearFieldError('adminName')
+   821→                          }}
+   822→                          placeholder='John Doe'
+   823→                          className={cn(
+   824→                            'pl-9 font-body',
+   825→                            errors.adminName && 'border-red-400 focus:ring-red-400',
+   826→                          )}
+   827→                        />
+   828→                      </div>
+   829→                      {errors.adminName && (
+   830→                        <p className='text-xs text-red-500 font-body'>{errors.adminName}</p>
+   831→                      )}
+   832→                    </div>
+   833→
+   834→                    <div className='space-y-1.5'>
+   835→                      <Label htmlFor='adminEmail' className='text-xs font-body'>
+   836→                        Email Address <span className='text-red-500'>*</span>
+   837→                      </Label>
+   838→                      <div className='relative'>
+   839→                        <Mail className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   840→                        <Input
+   841→                          id='adminEmail'
+   842→                          type='email'
+   843→                          required
+   844→                          value={adminEmail}
+   845→                          onChange={(e) => {
+   846→                            setAdminEmail(e.target.value)
+   847→                            clearFieldError('adminEmail')
+   848→                          }}
+   849→                          placeholder='john@your-company.com'
+   850→                          className={cn(
+   851→                            'pl-9 font-body',
+   852→                            errors.adminEmail && 'border-red-400 focus:ring-red-400',
+   853→                          )}
+   854→                          autoComplete='email'
+   855→                        />
+   856→                      </div>
+   857→                      {errors.adminEmail && (
+   858→                        <p className='text-xs text-red-500 font-body'>{errors.adminEmail}</p>
+   859→                      )}
+   860→                    </div>
+   861→
+   862→                    <div className='grid gap-4 sm:grid-cols-2'>
+   863→                      <div className='space-y-1.5'>
+   864→                        <Label htmlFor='adminPassword' className='text-xs font-body'>
+   865→                          Password <span className='text-red-500'>*</span>
+   866→                        </Label>
+   867→                        <div className='relative'>
+   868→                          <Lock className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   869→                          <Input
+   870→                            id='adminPassword'
+   871→                            type={showPassword ? 'text' : 'password'}
+   872→                            required
+   873→                            value={adminPassword}
+   874→                            onChange={(e) => {
+   875→                              setAdminPassword(e.target.value)
+   876→                              clearFieldError('adminPassword')
+   877→                            }}
+   878→                            placeholder='Min. 6 characters'
+   879→                            className={cn(
+   880→                              'pl-9 pr-9 font-body',
+   881→                              errors.adminPassword && 'border-red-400 focus:ring-red-400',
+   882→                            )}
+   883→                            autoComplete='new-password'
+   884→                          />
+   885→                          <button
+   886→                            type='button'
+   887→                            onClick={() => setShowPassword(!showPassword)}
+   888→                            className='absolute right-3 top-2.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors'
+   889→                            tabIndex={-1}
+   890→                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+   891→                          >
+   892→                            {showPassword ? (
+   893→                              <EyeOff className='h-4 w-4' />
+   894→                            ) : (
+   895→                              <Eye className='h-4 w-4' />
+   896→                            )}
+   897→                          </button>
+   898→                        </div>
+   899→                        {errors.adminPassword && (
+   900→                          <p className='text-xs text-red-500 font-body'>{errors.adminPassword}</p>
+   901→                        )}
+   902→                      </div>
+   903→
+   904→                      <div className='space-y-1.5'>
+   905→                        <Label htmlFor='confirmPassword' className='text-xs font-body'>
+   906→                          Confirm Password <span className='text-red-500'>*</span>
+   907→                        </Label>
+   908→                        <div className='relative'>
+   909→                          <Lock className='pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60' />
+   910→                          <Input
+   911→                            id='confirmPassword'
+   912→                            type={showConfirm ? 'text' : 'password'}
+   913→                            required
+   914→                            value={confirmPassword}
+   915→                            onChange={(e) => {
+   916→                              setConfirmPassword(e.target.value)
+   917→                              clearFieldError('confirmPassword')
+   918→                            }}
+   919→                            placeholder='Re-enter password'
+   920→                            className={cn(
+   921→                              'pl-9 pr-9 font-body',
+   922→                              errors.confirmPassword && 'border-red-400 focus:ring-red-400',
+   923→                            )}
+   924→                            autoComplete='new-password'
+   925→                          />
+   926→                          <button
+   927→                            type='button'
+   928→                            onClick={() => setShowConfirm(!showConfirm)}
+   929→                            className='absolute right-3 top-2.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors'
+   930→                            tabIndex={-1}
+   931→                            aria-label={showConfirm ? 'Hide password' : 'Show password'}
+   932→                          >
+   933→                            {showConfirm ? (
+   934→                              <EyeOff className='h-4 w-4' />
+   935→                            ) : (
+   936→                              <Eye className='h-4 w-4' />
+   937→                            )}
+   938→                          </button>
+   939→                        </div>
+   940→                        {errors.confirmPassword && (
+   941→                          <p className='text-xs text-red-500 font-body'>{errors.confirmPassword}</p>
+   942→                        )}
+   943→                      </div>
+   944→                    </div>
+   945→                  </div>
+   946→
+   947→                  {/* ---- Terms ---- */}
+   948→                  <div className='space-y-2'>
+   949→                    <div className='flex items-start gap-3'>
+   950→                      <Checkbox
+   951→                        id='terms'
+   952→                        checked={termsAccepted}
+   953→                        onCheckedChange={(checked) => {
+   954→                          setTermsAccepted(checked === true)
+   955→                          clearFieldError('terms')
+   956→                        }}
+   957→                        className='mt-0.5 data-[state=checked]:bg-[#0B2345] data-[state=checked]:border-[#0B2345]'
+   958→                      />
+   959→                      <Label
+   960→                        htmlFor='terms'
+   961→                        className='text-xs leading-relaxed text-muted-foreground font-body cursor-pointer'
+   962→                      >
+   963→                        I agree to the{' '}
+   964→                        <Link
+   965→                          href='/terms'
+   966→                          className='font-medium text-[#0B2345] underline underline-offset-2 hover:text-[#F5A623]'
+   967→                        >
+   968→                          Terms of Service
+   969→                        </Link>{' '}
+   970→                        and{' '}
+   971→                        <Link
+   972→                          href='/privacy'
+   973→                          className='font-medium text-[#0B2345] underline underline-offset-2 hover:text-[#F5A623]'
+   974→                        >
+   975→                          Privacy Policy
+   976→                        </Link>
+   977→                      </Label>
+   978→                    </div>
+   979→                    {errors.terms && (
+   980→                      <p className='text-xs text-red-500 font-body'>{errors.terms}</p>
+   981→                    )}
+   982→                  </div>
+   983→
+   984→                  {/* ---- Submit ---- */}
+   985→                  <Button
+   986→                    type='submit'
+   987→                    disabled={submitting}
+   988→                    size='lg'
+   989→                    className='w-full gap-2 rounded-xl bg-[#0B2345] px-6 py-5 text-sm font-semibold text-white font-body hover:bg-[#132D52] transition-colors'
+   990→                  >
+   991→                    {submitting ? (
+   992→                      <>
+   993→                        <Loader2 className='h-4 w-4 animate-spin' />
+   994→                        Creating your workspace...
+   995→                      </>
+   996→                    ) : (
+   997→                      <>
+   998→                        Create My Workspace
+   999→                        <ArrowRight className='h-4 w-4' />
+  1000→                      </>
+  1001→                    )}
+  1002→                  </Button>
+  1003→                </form>
+  1004→
+  1005→                {/* Login link */}
+  1006→                <p className='mt-6 text-center text-sm text-muted-foreground font-body'>
+  1007→                  Already have an account?{' '}
+  1008→                  <Link
+  1009→                    href='/login'
+  1010→                    className='font-medium text-[#0B2345] underline underline-offset-2 hover:text-[#F5A623] transition-colors'
+  1011→                  >
+  1012→                    Sign in
+  1013→                  </Link>
+  1014→                </p>
+  1015→              </motion.div>
+  1016→            )}
+  1017→          </AnimatePresence>
+  1018→        </div>
+  1019→      </div>
+  1020→
+  1021→      {/* Footer */}
+  1022→      <footer className='relative mt-auto px-4 py-4 text-center lg:px-8'>
+  1023→        <p className='text-[11px] text-white/40 font-body'>
+  1024→          © {new Date().getFullYear()} SmartBuild · Enterprise Multi-Tenant SaaS Platform v5.0.0
+  1025→        </p>
+  1026→      </footer>
+  1027→    </div>
+  1028→  )
+  1029→}
+  1030→

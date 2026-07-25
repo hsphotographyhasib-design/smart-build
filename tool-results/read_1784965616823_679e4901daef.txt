@@ -1,0 +1,885 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect } from 'react'
+     4→import Image from 'next/image'
+     5→import Link from 'next/link'
+     6→import { motion } from 'framer-motion'
+     7→import {
+     8→  Check,
+     9→  X,
+    10→  Building2,
+    11→  Users,
+    12→  Zap,
+    13→  Shield,
+    14→  Crown,
+    15→  ArrowLeft,
+    16→  ArrowRight,
+    17→  Sparkles,
+    18→  HardDrive,
+    19→  GitBranch,
+    20→  Code2,
+    21→  Brain,
+    22→  Smartphone,
+    23→  Globe,
+    24→  Headphones,
+    25→  Puzzle,
+    26→  Linkedin,
+    27→  Twitter,
+    28→  Github,
+    29→  MessageCircle,
+    30→} from 'lucide-react'
+    31→import { Button } from '@/components/ui/button'
+    32→import {
+    33→  Card,
+    34→  CardContent,
+    35→  CardHeader,
+    36→  CardTitle,
+    37→} from '@/components/ui/card'
+    38→import { Badge } from '@/components/ui/badge'
+    39→import { Switch } from '@/components/ui/switch'
+    40→import { Skeleton } from '@/components/ui/skeleton'
+    41→import { Separator } from '@/components/ui/separator'
+    42→import {
+    43→  Accordion,
+    44→  AccordionItem,
+    45→  AccordionTrigger,
+    46→  AccordionContent,
+    47→} from '@/components/ui/accordion'
+    48→
+    49→/* ------------------------------------------------------------------ */
+    50→/*  Types                                                              */
+    51→/* ------------------------------------------------------------------ */
+    52→interface Plan {
+    53→  id: string
+    54→  name: string
+    55→  description: string
+    56→  priceMonthly: number
+    57→  priceAnnual: number
+    58→  maxUsers: number
+    59→  maxProjects: number
+    60→  maxStorage: number
+    61→  maxBranches: number
+    62→  maxApiCalls: number
+    63→  aiCredits: number
+    64→  mobileAccess: boolean
+    65→  apiAccess: boolean
+    66→  integrations: boolean
+    67→  customDomain: boolean
+    68→  prioritySupport: boolean
+    69→  features: string
+    70→  sortOrder: number
+    71→  active: boolean
+    72→}
+    73→
+    74→/* ------------------------------------------------------------------ */
+    75→/*  Animation variants                                                */
+    76→/* ------------------------------------------------------------------ */
+    77→const fadeUp = {
+    78→  hidden: { opacity: 0, y: 30 },
+    79→  visible: (i: number = 0) => ({
+    80→    opacity: 1,
+    81→    y: 0,
+    82→    transition: { duration: 0.6, delay: i * 0.1, ease: 'easeOut' as const },
+    83→  }),
+    84→}
+    85→
+    86→const scaleIn = {
+    87→  hidden: { opacity: 0, scale: 0.95 },
+    88→  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+    89→}
+    90→
+    91→/* ------------------------------------------------------------------ */
+    92→/*  Helpers                                                            */
+    93→/* ------------------------------------------------------------------ */
+    94→function formatStorage(mb: number): string {
+    95→  if (mb >= 1000000) return `${(mb / 1000000).toFixed(0)} TB`
+    96→  if (mb >= 1000) return `${(mb / 1000).toFixed(0)} GB`
+    97→  return `${mb} MB`
+    98→}
+    99→
+   100→function formatNumber(n: number): string {
+   101→  if (n >= 1000000) return `${(n / 1000000).toFixed(0)}M`
+   102→  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`
+   103→  return n === 0 ? '0' : n.toLocaleString()
+   104→}
+   105→
+   106→function formatPrice(price: number): string {
+   107→  if (price === 0) return 'Free'
+   108→  return `$${price.toLocaleString()}`
+   109→}
+   110→
+   111→function getSavings(monthly: number, annual: number): number {
+   112→  if (monthly === 0 || annual === 0) return 0
+   113→  const annualTotal = annual * 12
+   114→  const monthlyTotal = monthly * 12
+   115→  return Math.round(((monthlyTotal - annualTotal) / monthlyTotal) * 100)
+   116→}
+   117→
+   118→function getPlanIconKey(name: string): string {
+   119→  const lower = name.toLowerCase()
+   120→  if (lower.includes('free') || lower.includes('trial')) return 'zap'
+   121→  if (lower.includes('starter')) return 'shield'
+   122→  if (lower.includes('professional') || lower.includes('pro')) return 'crown'
+   123→  if (lower.includes('enterprise')) return 'building'
+   124→  return 'users'
+   125→}
+   126→
+   127→function getCTALabel(name: string): { label: string; variant: 'default' | 'outline' | 'ghost'; href: string } {
+   128→  const lower = name.toLowerCase()
+   129→  if (lower.includes('enterprise') || lower.includes('custom')) {
+   130→    return { label: 'Contact Sales', variant: 'outline', href: '#' }
+   131→  }
+   132→  if (lower.includes('professional') || lower.includes('pro')) {
+   133→    return { label: 'Get Started', variant: 'default', href: '/register' }
+   134→  }
+   135→  return { label: 'Start Free Trial', variant: 'outline', href: '/register' }
+   136→}
+   137→
+   138→/* ------------------------------------------------------------------ */
+   139→/*  Data                                                              */
+   140→/* ------------------------------------------------------------------ */
+   141→const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
+   142→  Product: [
+   143→    { label: 'Features', href: '/#features' },
+   144→    { label: 'Pricing', href: '/pricing' },
+   145→    { label: 'Integrations', href: '#' },
+   146→    { label: 'Changelog', href: '#' },
+   147→  ],
+   148→  Company: [
+   149→    { label: 'About', href: '/' },
+   150→    { label: 'Careers', href: '#' },
+   151→    { label: 'Blog', href: '#' },
+   152→    { label: 'Contact', href: '#' },
+   153→  ],
+   154→  Resources: [
+   155→    { label: 'Documentation', href: '#' },
+   156→    { label: 'API Reference', href: '#' },
+   157→    { label: 'Support', href: '#' },
+   158→    { label: 'Status', href: '#' },
+   159→  ],
+   160→  Legal: [
+   161→    { label: 'Privacy Policy', href: '#' },
+   162→    { label: 'Terms of Service', href: '#' },
+   163→    { label: 'Security', href: '#' },
+   164→    { label: 'Compliance', href: '#' },
+   165→  ],
+   166→}
+   167→
+   168→const FAQ_ITEMS = [
+   169→  {
+   170→    question: 'Can I change my plan later?',
+   171→    answer:
+   172→      "Yes, you can upgrade or downgrade your plan at any time from your account settings. When upgrading, you'll be prorated for the remaining billing period. When downgrading, the change takes effect at the end of your current billing cycle.",
+   173→  },
+   174→  {
+   175→    question: 'What happens when my 14-day free trial ends?',
+   176→    answer:
+   177→      "After your 14-day trial, you'll need to select a paid plan to continue using SmartBuild. Your data will be preserved for 30 days. If you don't choose a plan, your account will be automatically downgraded to the Free Trial tier with limited features.",
+   178→  },
+   179→  {
+   180→    question: 'Is there a discount for annual billing?',
+   181→    answer:
+   182→      'Yes! When you choose annual billing, you save up to 20% compared to monthly billing. Annual billing is paid upfront for the full year and includes all the same features as the monthly plan.',
+   183→  },
+   184→  {
+   185→    question: 'Do you offer custom enterprise solutions?',
+   186→    answer:
+   187→      'Absolutely. Our Enterprise and Custom plans are designed for large construction organizations with specific needs. This includes custom integrations, dedicated infrastructure, SLA guarantees, and on-premise deployment options. Contact our sales team for a tailored proposal.',
+   188→  },
+   189→  {
+   190→    question: 'What payment methods do you accept?',
+   191→    answer:
+   192→      'We accept all major credit cards (Visa, Mastercard, American Express), bank transfers, and purchase orders for Enterprise plans. All payments are processed securely through our payment gateway.',
+   193→  },
+   194→]
+   195→
+   196→/* ------------------------------------------------------------------ */
+   197→/*  Skeleton loader                                                   */
+   198→/* ------------------------------------------------------------------ */
+   199→function PlanCardSkeleton() {
+   200→  return (
+   201→    <Card className="flex flex-col rounded-2xl">
+   202→      <CardHeader className="pb-4">
+   203→        <Skeleton className="h-5 w-24 mb-2" />
+   204→        <Skeleton className="h-4 w-full" />
+   205→        <Skeleton className="h-8 w-20 mt-4" />
+   206→        <Skeleton className="h-3 w-16 mt-1" />
+   207→      </CardHeader>
+   208→      <CardContent className="flex-1 flex flex-col gap-3">
+   209→        <Skeleton className="h-4 w-full" />
+   210→        <Skeleton className="h-4 w-full" />
+   211→        <Skeleton className="h-4 w-full" />
+   212→        <Skeleton className="h-4 w-3/4" />
+   213→        <Separator className="my-2" />
+   214→        <Skeleton className="h-4 w-full" />
+   215→        <Skeleton className="h-4 w-full" />
+   216→        <Skeleton className="h-4 w-5/6" />
+   217→        <div className="mt-auto pt-4">
+   218→          <Skeleton className="h-10 w-full rounded-lg" />
+   219→        </div>
+   220→      </CardContent>
+   221→    </Card>
+   222→  )
+   223→}
+   224→
+   225→/* ------------------------------------------------------------------ */
+   226→/*  Plan Card                                                         */
+   227→/* ------------------------------------------------------------------ */
+   228→function PlanCard({
+   229→  plan,
+   230→  isAnnual,
+   231→  isRecommended,
+   232→  index,
+   233→}: {
+   234→  plan: Plan
+   235→  isAnnual: boolean
+   236→  isRecommended: boolean
+   237→  index: number
+   238→}) {
+   239→  const iconKey = getPlanIconKey(plan.name)
+   240→  const cta = getCTALabel(plan.name)
+   241→  const savings = getSavings(plan.priceMonthly, plan.priceAnnual)
+   242→  const displayPrice = isAnnual ? plan.priceAnnual : plan.priceMonthly
+   243→  const parsedFeatures: string[] = (() => {
+   244→    try {
+   245→      return JSON.parse(plan.features)
+   246→    } catch {
+   247→      return []
+   248→    }
+   249→  })()
+   250→
+   251→  return (
+   252→    <motion.div
+   253→      variants={fadeUp}
+   254→      custom={index}
+   255→      initial="hidden"
+   256→      whileInView="visible"
+   257→      viewport={{ once: true, margin: '-50px' }}
+   258→      className={`flex-shrink-0 w-[300px] md:w-auto md:flex-1 ${isRecommended ? 'md:-mt-4 md:mb-0' : ''}`}
+   259→    >
+   260→      <Card
+   261→        className={`relative flex flex-col h-full rounded-2xl transition-shadow duration-300 ${
+   262→          isRecommended
+   263→            ? 'border-2 border-brand-gold shadow-[0_0_40px_rgba(245,166,35,0.12)] hover:shadow-[0_0_50px_rgba(245,166,35,0.2)]'
+   264→            : 'border border-gray-200 hover:shadow-lg'
+   265→        }`}
+   266→      >
+   267→        {isRecommended && (
+   268→          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+   269→            <Badge className="bg-brand-gold text-brand-navy font-semibold px-4 py-1 text-xs shadow-md">
+   270→              <Sparkles className="size-3 mr-1" />
+   271→              Most Popular
+   272→            </Badge>
+   273→          </div>
+   274→        )}
+   275→
+   276→        <CardHeader className="pb-3 pt-6 px-6">
+   277→          <div className="flex items-center gap-3 mb-2">
+   278→            <div
+   279→              className={`flex size-10 items-center justify-center rounded-xl ${
+   280→                isRecommended ? 'bg-brand-gold/10 text-brand-gold' : 'bg-gray-100 text-gray-600'
+   281→              }`}
+   282→            >
+   283→              {iconKey == "zap" && <Zap className="size-5" />}
+   284→              {iconKey == "shield" && <Shield className="size-5" />}
+   285→              {iconKey == "crown" && <Crown className="size-5" />}
+   286→              {iconKey == "building" && <Building2 className="size-5" />}
+   287→              {iconKey == "users" && <Users className="size-5" />}
+   288→            </div>
+   289→            <div>
+   290→              <CardTitle className="font-heading text-lg font-semibold text-gray-900">
+   291→                {plan.name}
+   292→              </CardTitle>
+   293→            </div>
+   294→          </div>
+   295→          <p className="font-body text-sm text-gray-500 leading-relaxed">{plan.description}</p>
+   296→
+   297→          <div className="mt-4">
+   298→            <div className="flex items-end gap-1.5">
+   299→              <span
+   300→                className={`font-heading text-4xl font-bold ${isRecommended ? 'text-brand-navy' : 'text-gray-900'}`}
+   301→              >
+   302→                {formatPrice(displayPrice)}
+   303→              </span>
+   304→              {displayPrice > 0 && <span className="font-body text-sm text-gray-400 mb-1.5">/month</span>}
+   305→            </div>
+   306→            {isAnnual && savings > 0 && (
+   307→              <Badge
+   308→                variant="secondary"
+   309→                className="mt-2 bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-xs"
+   310→              >
+   311→                Save {savings}%
+   312→              </Badge>
+   313→            )}
+   314→            {displayPrice === 0 && <p className="font-body text-xs text-gray-400 mt-1">No credit card required</p>}
+   315→          </div>
+   316→        </CardHeader>
+   317→
+   318→        <CardContent className="flex-1 flex flex-col px-6 pb-6">
+   319→          {/* Key Limits */}
+   320→          <div className="space-y-2.5 mb-4">
+   321→            <div className="flex items-center justify-between text-sm">
+   322→              <span className="font-body text-gray-500 flex items-center gap-2">
+   323→                <Users className="size-3.5" /> Users
+   324→              </span>
+   325→              <span className={`font-body font-medium ${plan.maxUsers === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   326→                {plan.maxUsers === 0 ? 'Unlimited' : plan.maxUsers}
+   327→              </span>
+   328→            </div>
+   329→            <div className="flex items-center justify-between text-sm">
+   330→              <span className="font-body text-gray-500 flex items-center gap-2">
+   331→                <Building2 className="size-3.5" /> Projects
+   332→              </span>
+   333→              <span className={`font-body font-medium ${plan.maxProjects === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   334→                {plan.maxProjects === 0 ? 'Unlimited' : plan.maxProjects}
+   335→              </span>
+   336→            </div>
+   337→            <div className="flex items-center justify-between text-sm">
+   338→              <span className="font-body text-gray-500 flex items-center gap-2">
+   339→                <HardDrive className="size-3.5" /> Storage
+   340→              </span>
+   341→              <span className={`font-body font-medium ${plan.maxStorage === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   342→                {plan.maxStorage === 0 ? 'Unlimited' : formatStorage(plan.maxStorage)}
+   343→              </span>
+   344→            </div>
+   345→            <div className="flex items-center justify-between text-sm">
+   346→              <span className="font-body text-gray-500 flex items-center gap-2">
+   347→                <GitBranch className="size-3.5" /> Branches
+   348→              </span>
+   349→              <span className={`font-body font-medium ${plan.maxBranches === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   350→                {plan.maxBranches === 0 ? 'Unlimited' : plan.maxBranches}
+   351→              </span>
+   352→            </div>
+   353→            <div className="flex items-center justify-between text-sm">
+   354→              <span className="font-body text-gray-500 flex items-center gap-2">
+   355→                <Code2 className="size-3.5" /> API Calls
+   356→              </span>
+   357→              <span className={`font-body font-medium ${plan.maxApiCalls === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   358→                {plan.maxApiCalls === 0 ? 'Unlimited' : formatNumber(plan.maxApiCalls) + '/mo'}
+   359→              </span>
+   360→            </div>
+   361→            <div className="flex items-center justify-between text-sm">
+   362→              <span className="font-body text-gray-500 flex items-center gap-2">
+   363→                <Brain className="size-3.5" /> AI Credits
+   364→              </span>
+   365→              <span className={`font-body font-medium ${plan.aiCredits === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+   366→                {plan.aiCredits === 0 ? '\u2014' : formatNumber(plan.aiCredits) + '/mo'}
+   367→              </span>
+   368→            </div>
+   369→          </div>
+   370→
+   371→          <Separator className="my-4" />
+   372→
+   373→          {/* Feature list */}
+   374→          <div className="space-y-2 mb-5">
+   375→            {parsedFeatures.slice(0, 5).map((f) => (
+   376→              <div key={f} className="flex items-start gap-2.5">
+   377→                <Check className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+   378→                <span className="font-body text-sm text-gray-600">{f}</span>
+   379→              </div>
+   380→            ))}
+   381→            {parsedFeatures.length > 5 && (
+   382→              <p className="font-body text-xs text-gray-400 pl-6">+{parsedFeatures.length - 5} more features</p>
+   383→            )}
+   384→          </div>
+   385→
+   386→          {/* Capability badges */}
+   387→          <div className="flex flex-wrap gap-1.5 mb-6">
+   388→            {plan.mobileAccess && (
+   389→              <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600">
+   390→                <Smartphone className="size-3 mr-1" /> Mobile
+   391→              </Badge>
+   392→            )}
+   393→            {plan.apiAccess && (
+   394→              <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600">
+   395→                <Code2 className="size-3 mr-1" /> API
+   396→              </Badge>
+   397→            )}
+   398→            {plan.integrations && (
+   399→              <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600">
+   400→                <Puzzle className="size-3 mr-1" /> Integrations
+   401→              </Badge>
+   402→            )}
+   403→            {plan.customDomain && (
+   404→              <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600">
+   405→                <Globe className="size-3 mr-1" /> Custom Domain
+   406→              </Badge>
+   407→            )}
+   408→            {plan.prioritySupport && (
+   409→              <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600">
+   410→                <Headphones className="size-3 mr-1" /> Priority
+   411→              </Badge>
+   412→            )}
+   413→          </div>
+   414→
+   415→          {/* CTA */}
+   416→          <div className="mt-auto">
+   417→            <Button
+   418→              className={`w-full h-11 text-sm font-semibold rounded-xl transition-all ${
+   419→                isRecommended
+   420→                  ? 'bg-brand-gold text-brand-navy hover:bg-brand-gold-light shadow-md hover:shadow-lg'
+   421→                  : cta.variant === 'default'
+   422→                    ? 'bg-brand-navy text-white hover:bg-brand-navy/90'
+   423→                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+   424→              }`}
+   425→              variant={isRecommended ? 'default' : cta.variant}
+   426→              asChild
+   427→            >
+   428→              <Link href={`${cta.href}?plan=${plan.id}`}>
+   429→                {cta.label}
+   430→                <ArrowRight className="size-4 ml-2" />
+   431→              </Link>
+   432→            </Button>
+   433→          </div>
+   434→        </CardContent>
+   435→      </Card>
+   436→    </motion.div>
+   437→  )
+   438→}
+   439→
+   440→/* ------------------------------------------------------------------ */
+   441→/*  Comparison Table                                                  */
+   442→/* ------------------------------------------------------------------ */
+   443→const COMPARISON_ROWS = [
+   444→  { key: 'maxUsers', label: 'Max Users', type: 'number' as const },
+   445→  { key: 'maxProjects', label: 'Max Projects', type: 'number' as const },
+   446→  { key: 'maxStorage', label: 'Storage', type: 'storage' as const },
+   447→  { key: 'maxBranches', label: 'Branches', type: 'number' as const },
+   448→  { key: 'maxApiCalls', label: 'API Calls / mo', type: 'api' as const },
+   449→  { key: 'aiCredits', label: 'AI Credits / mo', type: 'number' as const },
+   450→  { key: 'mobileAccess', label: 'Mobile Access', type: 'boolean' as const },
+   451→  { key: 'apiAccess', label: 'API Access', type: 'boolean' as const },
+   452→  { key: 'integrations', label: 'Third-Party Integrations', type: 'boolean' as const },
+   453→  { key: 'customDomain', label: 'Custom Domain', type: 'boolean' as const },
+   454→  { key: 'prioritySupport', label: 'Priority Support', type: 'boolean' as const },
+   455→]
+   456→
+   457→function formatCellValue(plan: Plan, row: (typeof COMPARISON_ROWS)[number]) {
+   458→  if (row.type === 'boolean') {
+   459→    const val = plan[row.key as keyof Plan] as boolean
+   460→    return val ? (
+   461→      <Check className="size-5 text-emerald-500 mx-auto" />
+   462→    ) : (
+   463→      <X className="size-5 text-gray-300 mx-auto" />
+   464→    )
+   465→  }
+   466→  if (row.type === 'storage') {
+   467→    const val = plan[row.key as keyof Plan] as number
+   468→    return <span className="font-body text-sm text-gray-700">{val === 0 ? 'Unlimited' : formatStorage(val)}</span>
+   469→  }
+   470→  if (row.key === 'maxApiCalls') {
+   471→    const val = plan[row.key as keyof Plan] as number
+   472→    return <span className="font-body text-sm text-gray-700">{val === 0 ? 'Unlimited' : formatNumber(val)}</span>
+   473→  }
+   474→  const val = plan[row.key as keyof Plan] as number
+   475→  return <span className="font-body text-sm text-gray-700">{val === 0 ? 'Unlimited' : val.toLocaleString()}</span>
+   476→}
+   477→
+   478→function ComparisonTable({ plans }: { plans: Plan[] }) {
+   479→  return (
+   480→    <motion.div
+   481→      variants={fadeUp}
+   482→      initial="hidden"
+   483→      whileInView="visible"
+   484→      viewport={{ once: true, margin: '-80px' }}
+   485→      className="w-full overflow-x-auto"
+   486→    >
+   487→      <table className="w-full min-w-[700px]">
+   488→        <thead>
+   489→          <tr>
+   490→            <th className="text-left font-body text-sm font-semibold text-gray-500 pb-4 pr-4 min-w-[180px]">
+   491→              Features
+   492→            </th>
+   493→            {plans.map((plan) => {
+   494→              const isRecommended = plan.name.toLowerCase().includes('professional') || plan.name.toLowerCase().includes('pro')
+   495→              return (
+   496→                <th
+   497→                  key={plan.id}
+   498→                  className={`text-center font-heading text-sm font-semibold pb-4 px-3 ${
+   499→                    isRecommended ? 'text-brand-gold' : 'text-gray-700'
+   500→                  }`}
+   501→                >
+   502→                  {plan.name}
+   503→                </th>
+   504→              )
+   505→            })}
+   506→          </tr>
+   507→        </thead>
+   508→        <tbody>
+   509→          {COMPARISON_ROWS.map((row, idx) => (
+   510→            <tr key={row.key} className={idx % 2 === 0 ? 'bg-gray-50/60' : 'bg-white'}>
+   511→              <td className="font-body text-sm text-gray-600 py-3.5 pr-4">{row.label}</td>
+   512→              {plans.map((plan) => (
+   513→                <td key={plan.id} className="text-center py-3.5 px-3">
+   514→                  {formatCellValue(plan, row)}
+   515→                </td>
+   516→              ))}
+   517→            </tr>
+   518→          ))}
+   519→        </tbody>
+   520→      </table>
+   521→    </motion.div>
+   522→  )
+   523→}
+   524→
+   525→/* ================================================================== */
+   526→/*  MAIN PAGE                                                          */
+   527→/* ================================================================== */
+   528→export default function PricingPage() {
+   529→  const [plans, setPlans] = useState<Plan[]>([])
+   530→  const [loading, setLoading] = useState(true)
+   531→  const [isAnnual, setIsAnnual] = useState(false)
+   532→
+   533→  useEffect(() => {
+   534→    async function fetchPlans() {
+   535→      try {
+   536→        const res = await fetch('/api/platform/plans')
+   537→        if (res.ok) {
+   538→          const data = await res.json()
+   539→          const activePlans = (Array.isArray(data) ? data : []).filter(
+   540→            (p: Plan) => p.active !== false
+   541→          )
+   542→          activePlans.sort((a: Plan, b: Plan) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+   543→          setPlans(activePlans)
+   544→        }
+   545→      } catch {
+   546→        // Silently fail \u2014 skeletons remain
+   547→      } finally {
+   548→        setLoading(false)
+   549→      }
+   550→    }
+   551→    fetchPlans()
+   552→  }, [])
+   553→
+   554→  return (
+   555→    <div className="min-h-screen flex flex-col bg-white">
+   556→      {/* ==================== NAV ==================== */}
+   557→      <header className="sticky top-0 z-50 glass border-b border-gray-200/50">
+   558→        <div className="container-brand flex items-center justify-between h-16">
+   559→          <Link href="/" className="flex items-center gap-2 group">
+   560→            <Image
+   561→              src="/brand/smartbuild-app-dark.svg"
+   562→              alt="SmartBuild"
+   563→              width={140}
+   564→              height={32}
+   565→              className="h-8 w-auto"
+   566→            />
+   567→          </Link>
+   568→          <nav className="hidden md:flex items-center gap-6">
+   569→            <Link
+   570→              href="/"
+   571→              className="font-body text-sm text-gray-500 hover:text-brand-navy transition-colors"
+   572→            >
+   573→              Home
+   574→            </Link>
+   575→            <Link
+   576→              href="/pricing"
+   577→              className="font-body text-sm font-semibold text-brand-navy"
+   578→            >
+   579→              Pricing
+   580→            </Link>
+   581→            <Button
+   582→              size="sm"
+   583→              className="bg-brand-navy text-white hover:bg-brand-navy/90 font-semibold"
+   584→              asChild
+   585→            >
+   586→              <Link href="/register">Get Started</Link>
+   587→            </Button>
+   588→          </nav>
+   589→          <Link
+   590→            href="/"
+   591→            className="md:hidden flex items-center gap-1.5 font-body text-sm text-gray-500 hover:text-brand-navy transition-colors"
+   592→          >
+   593→            <ArrowLeft className="size-4" /> Back
+   594→          </Link>
+   595→        </div>
+   596→      </header>
+   597→
+   598→      {/* ==================== MAIN CONTENT ==================== */}
+   599→      <main className="flex-1">
+   600→        {/* ---------- HEADER ---------- */}
+   601→        <section className="section-padding pt-20 pb-8">
+   602→          <div className="container-brand text-center">
+   603→            <motion.div variants={fadeUp} initial="hidden" animate="visible">
+   604→              <Badge variant="secondary" className="bg-brand-gold/10 text-brand-gold border border-brand-gold/20 font-medium mb-6 px-4">
+   605→                <Crown className="size-3.5 mr-1.5" />
+   606→                Pricing
+   607→              </Badge>
+   608→            </motion.div>
+   609→
+   610→            <motion.h1
+   611→              variants={fadeUp}
+   612→              custom={1}
+   613→              initial="hidden"
+   614→              animate="visible"
+   615→              className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 text-balance max-w-3xl mx-auto leading-tight"
+   616→            >
+   617→              Simple, Transparent{' '}
+   618→              <span className="text-gradient">Pricing</span>
+   619→            </motion.h1>
+   620→
+   621→            <motion.p
+   622→              variants={fadeUp}
+   623→              custom={2}
+   624→              initial="hidden"
+   625→              animate="visible"
+   626→              className="font-body text-lg text-gray-500 mt-5 max-w-xl mx-auto leading-relaxed"
+   627→            >
+   628→              Choose the plan that fits your team. All plans include a 14-day free trial.
+   629→            </motion.p>
+   630→
+   631→            {/* Billing toggle */}
+   632→            <motion.div
+   633→              variants={fadeUp}
+   634→              custom={3}
+   635→              initial="hidden"
+   636→              animate="visible"
+   637→              className="mt-10 flex items-center justify-center gap-3"
+   638→            >
+   639→              <span
+   640→                className={`font-body text-sm font-medium transition-colors ${
+   641→                  !isAnnual ? 'text-gray-900' : 'text-gray-400'
+   642→                }`}
+   643→              >
+   644→                Monthly
+   645→              </span>
+   646→              <Switch
+   647→                checked={isAnnual}
+   648→                onCheckedChange={setIsAnnual}
+   649→                className="data-[state=checked]:bg-brand-gold"
+   650→              />
+   651→              <span
+   652→                className={`font-body text-sm font-medium transition-colors ${
+   653→                  isAnnual ? 'text-gray-900' : 'text-gray-400'
+   654→                }`}
+   655→              >
+   656→                Annual
+   657→              </span>
+   658→              {isAnnual && (
+   659→                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+   660→                  Save up to 20%
+   661→                </Badge>
+   662→              )}
+   663→            </motion.div>
+   664→          </div>
+   665→        </section>
+   666→
+   667→        {/* ---------- PLAN CARDS ---------- */}
+   668→        <section className="section-padding py-8">
+   669→          <div className="container-brand">
+   670→            {loading ? (
+   671→              <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-5 md:overflow-visible">
+   672→                {Array.from({ length: 5 }).map((_, i) => (
+   673→                  <PlanCardSkeleton key={i} />
+   674→                ))}
+   675→              </div>
+   676→            ) : plans.length > 0 ? (
+   677→              <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin md:grid md:grid-cols-2 lg:grid-cols-5 md:overflow-visible">
+   678→                {plans.map((plan, idx) => {
+   679→                  const isRecommended =
+   680→                    plan.name.toLowerCase().includes('professional') ||
+   681→                    plan.name.toLowerCase().includes('pro')
+   682→                  return (
+   683→                    <PlanCard
+   684→                      key={plan.id}
+   685→                      plan={plan}
+   686→                      isAnnual={isAnnual}
+   687→                      isRecommended={isRecommended}
+   688→                      index={idx}
+   689→                    />
+   690→                  )
+   691→                })}
+   692→              </div>
+   693→            ) : (
+   694→              <div className="text-center py-20">
+   695→                <p className="font-body text-gray-400">No plans available at this time.</p>
+   696→              </div>
+   697→            )}
+   698→          </div>
+   699→        </section>
+   700→
+   701→        {/* ---------- COMPARISON TABLE ---------- */}
+   702→        <section className="section-padding py-12 bg-gray-50/50">
+   703→          <div className="container-brand">
+   704→            <motion.div
+   705→              variants={fadeUp}
+   706→              initial="hidden"
+   707→              whileInView="visible"
+   708→              viewport={{ once: true, margin: '-80px' }}
+   709→              className="text-center mb-10"
+   710→            >
+   711→              <h2 className="font-heading text-3xl md:text-4xl font-bold text-gray-900">Compare All Plans</h2>
+   712→              <p className="font-body text-gray-500 mt-3 max-w-lg mx-auto">
+   713→                A detailed breakdown of features and limits across every plan.
+   714→              </p>
+   715→            </motion.div>
+   716→
+   717→            {plans.length > 0 && (
+   718→              <div className="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm overflow-x-auto">
+   719→                <ComparisonTable plans={plans} />
+   720→              </div>
+   721→            )}
+   722→          </div>
+   723→        </section>
+   724→
+   725→        {/* ---------- FAQ ---------- */}
+   726→        <section className="section-padding py-16">
+   727→          <div className="container-brand max-w-3xl mx-auto">
+   728→            <motion.div
+   729→              variants={fadeUp}
+   730→              initial="hidden"
+   731→              whileInView="visible"
+   732→              viewport={{ once: true, margin: '-80px' }}
+   733→              className="text-center mb-10"
+   734→            >
+   735→              <h2 className="font-heading text-3xl md:text-4xl font-bold text-gray-900">
+   736→                Frequently Asked Questions
+   737→              </h2>
+   738→              <p className="font-body text-gray-500 mt-3">
+   739→                Everything you need to know about SmartBuild pricing.
+   740→              </p>
+   741→            </motion.div>
+   742→
+   743→            <motion.div
+   744→              variants={fadeUp}
+   745→              custom={1}
+   746→              initial="hidden"
+   747→              whileInView="visible"
+   748→              viewport={{ once: true, margin: '-60px' }}
+   749→            >
+   750→              <Accordion type="single" collapsible className="w-full">
+   751→                {FAQ_ITEMS.map((item, idx) => (
+   752→                  <AccordionItem
+   753→                    key={idx}
+   754→                    value={`faq-${idx}`}
+   755→                    className="border-gray-200"
+   756→                  >
+   757→                    <AccordionTrigger className="font-body text-sm md:text-base font-medium text-gray-800 hover:text-brand-navy hover:no-underline">
+   758→                      {item.question}
+   759→                    </AccordionTrigger>
+   760→                    <AccordionContent className="font-body text-sm text-gray-500 leading-relaxed">
+   761→                      {item.answer}
+   762→                    </AccordionContent>
+   763→                  </AccordionItem>
+   764→                ))}
+   765→              </Accordion>
+   766→            </motion.div>
+   767→          </div>
+   768→        </section>
+   769→
+   770→        {/* ---------- CTA BANNER ---------- */}
+   771→        <section className="section-padding py-20 bg-navy-gradient">
+   772→          <div className="container-brand text-center">
+   773→            <motion.div
+   774→              variants={scaleIn}
+   775→              initial="hidden"
+   776→              whileInView="visible"
+   777→              viewport={{ once: true }}
+   778→            >
+   779→              <MessageCircle className="size-12 text-brand-gold mx-auto mb-6" />
+   780→              <h2 className="font-heading text-3xl md:text-4xl font-bold text-white text-balance max-w-xl mx-auto">
+   781→                Still not sure?
+   782→              </h2>
+   783→              <p className="font-body text-white/60 mt-4 max-w-lg mx-auto leading-relaxed">
+   784→                Our team is here to help you find the right plan for your organization. Get a personalized recommendation and a live demo.
+   785→              </p>
+   786→              <div className="mt-8 flex flex-wrap justify-center gap-4">
+   787→                <Button
+   788→                  size="lg"
+   789→                  className="bg-brand-gold text-brand-navy hover:bg-brand-gold-light font-semibold text-base px-8 h-12"
+   790→                  asChild
+   791→                >
+   792→                  <Link href="#">
+   793→                    <MessageCircle className="size-4" />
+   794→                    Talk to Sales
+   795→                  </Link>
+   796→                </Button>
+   797→                <Button
+   798→                  size="lg"
+   799→                  variant="outline"
+   800→                  className="border-white/20 text-white hover:bg-white/10 hover:text-white text-base px-8 h-12"
+   801→                  asChild
+   802→                >
+   803→                  <Link href="/register">
+   804→                    <Zap className="size-4" />
+   805→                    Start Free Trial
+   806→                  </Link>
+   807→                </Button>
+   808→              </div>
+   809→            </motion.div>
+   810→          </div>
+   811→        </section>
+   812→      </main>
+   813→
+   814→      {/* ==================== FOOTER ==================== */}
+   815→      <footer className="mt-auto bg-brand-navy border-t border-white/10">
+   816→        <div className="container-brand py-12 lg:py-16">
+   817→          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
+   818→            {/* Brand column */}
+   819→            <div className="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
+   820→              <Image
+   821→                src="/brand/smartbuild-app-dark.svg"
+   822→                alt="SmartBuild"
+   823→                width={140}
+   824→                height={36}
+   825→                className="h-8 w-auto brightness-0 invert mb-4"
+   826→              />
+   827→              <p className="font-body text-sm text-white/50 leading-relaxed max-w-xs">
+   828→                Enterprise Project Portfolio Management for the construction industry.
+   829→              </p>
+   830→              <div className="flex gap-3 mt-5">
+   831→                {[
+   832→                  { icon: Twitter, label: 'Twitter' },
+   833→                  { icon: Linkedin, label: 'LinkedIn' },
+   834→                  { icon: Github, label: 'GitHub' },
+   835→                ].map(({ icon: Icon, label }) => (
+   836→                  <a
+   837→                    key={label}
+   838→                    href="#"
+   839→                    aria-label={label}
+   840→                    className="flex size-9 items-center justify-center rounded-lg bg-white/5 text-white/50 hover:bg-brand-gold/15 hover:text-brand-gold transition-colors"
+   841→                  >
+   842→                    <Icon className="size-4" />
+   843→                  </a>
+   844→                ))}
+   845→              </div>
+   846→            </div>
+   847→
+   848→            {/* Link columns */}
+   849→            {Object.entries(FOOTER_LINKS).map(([category, links]) => (
+   850→              <div key={category}>
+   851→                <h3 className="font-heading text-sm font-semibold text-white mb-4">
+   852→                  {category}
+   853→                </h3>
+   854→                <ul className="space-y-2.5">
+   855→                  {links.map((link) => (
+   856→                    <li key={link.label}>
+   857→                      <a
+   858→                        href={link.href}
+   859→                        className="font-body text-sm text-white/50 hover:text-brand-gold transition-colors"
+   860→                      >
+   861→                        {link.label}
+   862→                      </a>
+   863→                    </li>
+   864→                  ))}
+   865→                </ul>
+   866→              </div>
+   867→            ))}
+   868→          </div>
+   869→
+   870→          <Separator className="bg-white/10 my-8" />
+   871→
+   872→          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+   873→            <p className="font-body text-xs text-white/40">
+   874→              &copy; {new Date().getFullYear()} SmartBuild. All rights reserved.
+   875→            </p>
+   876→            <p className="font-body text-xs text-white/30">
+   877→              Built for the construction industry, powered by the cloud.
+   878→            </p>
+   879→          </div>
+   880→        </div>
+   881→      </footer>
+   882→    </div>
+   883→  )
+   884→}
+   885→
