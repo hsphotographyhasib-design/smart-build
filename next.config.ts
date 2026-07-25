@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
     "21.0.10.191",
     "21.0.11.189",
   ],
+  // Packages that should not be bundled by webpack/turbopack
+  // and instead use Node.js native modules at runtime.
+  serverExternalPackages: ["bcryptjs", "@libsql/client", "sharp"],
 };
 
 export default nextConfig;
