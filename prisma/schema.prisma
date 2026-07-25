@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -669,8 +669,6 @@ model DailyReport {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
   @@index([tenantId])
   @@index([projectId])
 }
@@ -755,7 +753,7 @@ model CmsMedia {
   url       String
   thumbUrl  String?
   folder    String   @default("/")
-  tags      String[] @default([])
+  tags      String   @default("[]")
   metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -778,7 +776,7 @@ model CmsBlogCategory {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  posts       CmsBlogPost[]
+  posts       CmsBlogPostCategory[]
 }
 
 model CmsBlogPost {
@@ -805,7 +803,7 @@ model CmsBlogPost {
   updatedAt       DateTime  @updatedAt
 
   categories      CmsBlogPostCategory[]
-  tags            CmsBlogTag[]
+  postTags        CmsBlogPostTag[]
   comments         CmsBlogComment[]
 
   @@index([status, publishedAt])
@@ -829,7 +827,6 @@ model CmsBlogTag {
   slug  String @unique
   posts CmsBlogPostTag[]
 }
-
 model CmsBlogPostTag {
   postId String
   tagId   String
@@ -906,7 +903,7 @@ model CmsTestimonial {
   company     String?
   companyLogo String?
   avatar      String?
-  content     String   @db.Text
+  content     String
   rating      Int      @default(5)
   featured    Boolean  @default(false)
   order       Int      @default(0)
@@ -926,7 +923,7 @@ model CmsCaseStudy {
   client      String?
   industry    String?
   summary     String?
-  content     String   @db.Text
+  content     String
   coverImage  String?
   results     Json?
   featured    Boolean  @default(false)
@@ -961,7 +958,7 @@ model CmsPartner {
 model CmsFaq {
   id        String   @id @default(cuid())
   question  String
-  answer    String   @db.Text
+  answer    String
   category  String?
   order     Int      @default(0)
   locale    String   @default("en")
@@ -1008,7 +1005,7 @@ model CmsTranslation {
   id        String @id @default(cuid())
   key       String
   locale    String
-  value     String @db.Text
+  value     String
   context   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
