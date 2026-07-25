@@ -1,0 +1,1058 @@
+'use client'
+
+import { useEffect, useState, useRef, useCallback } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Layers, GanttChart, Users, DollarSign, FileCheck, ShieldCheck, ArrowRight, Shield,
+  Lock, CreditCard, BarChart3, Building2, Clock, CheckCircle2, Headphones, Sparkles,
+  Menu, Brain, Cpu, Workflow, Target, Zap, TrendingUp, Settings, Database, Globe,
+  Truck, Factory, Hospital, GraduationCap, ShoppingBag, Hotel, Plane, Landmark, Pickaxe,
+  ChevronDown, ChevronLeft, ChevronRight, Star, Quote, Search, Mail, Phone, MapPin,
+  Facebook, Twitter, Linkedin, Youtube, Send, X, Eye, Code2, Box, Wrench, FolderKanban,
+  MessageSquare, PieChart, LayoutDashboard, Calendar, Bell, FileText, Cloud, Smartphone,
+  Bot, Lightbulb, Activity, RotateCcw, Play, ArrowUpRight, BookOpen, Newspaper, Award,
+  Briefcase, Rocket,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+  Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose,
+} from '@/components/ui/sheet'
+import {
+  Accordion, AccordionItem, AccordionTrigger, AccordionContent,
+} from '@/components/ui/accordion'
+import { BrandFooter } from '@/components/brand'
+import { FadeIn, StaggerGroup, StaggerItem, useCountUp } from '@/components/eppm/motion'
+
+/* ================================================================ */
+/*  TYPES                                                             */
+/* ================================================================ */
+interface MenuItem { label: string; href?: string; children?: MenuItem[] }
+interface Section { type: string; name: string; order: number; visible: boolean; config?: Record<string, unknown> }
+interface Testimonial { name: string; role: string; company: string; content: string; rating: number; avatar?: string }
+interface FAQ { question: string; answer: string; category?: string }
+interface Partner { name: string; logo?: string }
+interface Plan {
+  name: string; description: string; priceMonthly: number; priceAnnual: number
+  maxUsers: number; maxProjects: number; maxStorage: string
+  features: string; sortOrder: number; active: boolean; aiCredits: number
+  mobileAccess: boolean; apiAccess: boolean; integrations: boolean
+  customDomain: boolean; prioritySupport: boolean
+}
+interface BlogPost { title: string; excerpt: string; author: string; date: string; readTime: string; slug: string; coverImage?: string }
+interface CaseStudy { title: string; client: string; industry: string; summary: string; results: string; image?: string }
+interface CMSData {
+  page?: { sections?: Section[] }
+  testimonials?: Testimonial[]; faqs?: FAQ[]; partners?: Partner[]
+  plans?: Plan[]; menu?: MenuItem[]; blogPosts?: BlogPost[]; caseStudies?: CaseStudy[]
+}
+
+/* ================================================================ */
+/*  VIEWPORT ANIMATION HELPERS                                       */
+/* ================================================================ */
+function InView({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] as const }}
+      className={className}
+    >{children}</motion.div>
+  )
+}
+
+function StaggerInView({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      initial="hidden" whileInView="show" viewport={{ once: true, margin: '-40px' }}
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+      className={className}
+    >{children}</motion.div>
+  )
+}
+
+const staggerChild = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
+}
+
+/* ================================================================ */
+/*  SECTION HEADER                                                   */
+/* ================================================================ */
+function SectionHeader({ badge, title, titleHighlight, description, light = false, center = true }: {
+  badge?: string; title: string; titleHighlight?: string; description?: string; light?: boolean; center?: boolean
+}) {
+  return (
+    <InView className={`mb-12 lg:mb-16 ${center ? 'text-center' : ''}`}>
+      {badge && <Badge variant="secondary" className="mb-4 bg-accent/10 text-accent border-accent/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider">{badge}</Badge>}
+      <h2 className={`font-heading text-3xl md:text-4xl lg:text-5xl font-bold leading-tight ${light ? 'text-white' : 'text-foreground'}`}>
+        {titleHighlight ? <>{title.split(titleHighlight)[0]}<span className="text-gradient">{titleHighlight}</span>{title.split(titleHighlight)[1]}</> : title}
+      </h2>
+      {description && <p className={`mt-4 max-w-2xl text-base lg:text-lg ${center ? 'mx-auto' : ''} ${light ? 'text-white/70' : 'text-muted-foreground'}`}>{description}</p>}
+    </InView>
+  )
+}
+
+/* ================================================================ */
+/*  ANIMATED COUNTER                                                 */
+/* ================================================================ */
+function CounterStat({ value, suffix = '', prefix = '', label }: { value: number; suffix?: string; prefix?: string; label: string }) {
+  const [inView, setInView] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const count = useCountUp(inView ? value : 0, 1200)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect() } }, { threshold: 0.3 })
+    obs.observe(el); return () => obs.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className="text-center">
+      <div className="text-3xl md:text-4xl font-bold font-heading text-gradient">{prefix}{Math.round(count).toLocaleString()}{suffix}</div>
+      <div className="mt-1 text-sm text-white/60">{label}</div>
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  DEFAULT / FALLBACK DATA                                          */
+/* ================================================================ */
+const defaultMenu: MenuItem[] = [
+  { label: 'Platform', children: [{ label: 'Overview', href: '#platform' }, { label: 'Features', href: '#features' }, { label: 'AI', href: '#ai' }] },
+  { label: 'Solutions', children: [{ label: 'Industries', href: '#industries' }, { label: 'Enterprise', href: '#enterprise' }] },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Resources', children: [{ label: 'Blog', href: '#blog' }, { label: 'Case Studies', href: '#cases' }, { label: 'FAQ', href: '#faq' }] },
+  { label: 'Contact', href: '#cta' },
+]
+
+const defaultTestimonials: Testimonial[] = [
+  { name: 'Sarah Chen', role: 'VP of Operations', company: 'Meridian Construction', content: 'SmartBuild transformed how we manage 200+ concurrent projects. The AI-powered scheduling alone saved us 15 hours per week across the team.', rating: 5 },
+  { name: 'James Rodriguez', role: 'CTO', company: 'Atlas Engineering Group', content: 'The enterprise module integration is seamless. We replaced 6 separate tools with one platform and our team productivity increased by 40%.', rating: 5 },
+  { name: 'Emily Watson', role: 'Director of PMO', company: 'Pinnacle Infrastructure', content: 'Real-time dashboards and predictive analytics have given us unprecedented visibility. We can now identify risks before they become issues.', rating: 5 },
+  { name: 'Michael Park', role: 'CEO', company: 'Urban Development Corp', content: 'After implementing SmartBuild, our project delivery times improved by 35% and client satisfaction scores reached an all-time high.', rating: 5 },
+]
+
+const defaultFAQs: FAQ[] = [
+  { question: 'How long does implementation take?', answer: 'Typical implementation takes 4-8 weeks depending on organization size. Our dedicated onboarding team ensures a smooth transition with minimal disruption to your operations.', category: 'Getting Started' },
+  { question: 'Can SmartBuild integrate with our existing tools?', answer: 'Yes! SmartBuild offers 50+ pre-built integrations including MS Project, Primavera, SAP, Oracle, and custom API access for proprietary systems.', category: 'Technical' },
+  { question: 'What security certifications does SmartBuild have?', answer: 'SmartBuild is SOC 2 Type II certified, GDPR compliant, and supports single sign-on (SSO) with SAML 2.0 and OAuth 2.0. All data is encrypted at rest and in transit.', category: 'Security' },
+  { question: 'Is there a free trial available?', answer: 'We offer a 14-day free trial with full access to Professional plan features. No credit card required. Enterprise trials available on request.', category: 'Pricing' },
+  { question: 'How does AI-powered scheduling work?', answer: 'Our AI analyzes historical project data, resource availability, and constraints to generate optimized schedules. It continuously learns from your team\'s patterns to improve predictions over time.', category: 'AI & Features' },
+  { question: 'What kind of support do you offer?', answer: 'We provide 24/7 technical support via chat, email, and phone. Professional plans include priority support, and Enterprise plans get a dedicated account manager.', category: 'Support' },
+  { question: 'Can I customize workflows and templates?', answer: 'Absolutely. SmartBuild offers fully customizable workflows, templates, and form builders. Enterprise plans include custom development support for specialized needs.', category: 'Features' },
+  { question: 'What happens to my data if I cancel?', answer: 'Your data remains accessible for 90 days after cancellation. We provide full data export in standard formats (CSV, JSON, PDF) at any time during your subscription.', category: 'Account' },
+]
+
+const defaultPartners: Partner[] = [
+  { name: 'Microsoft' }, { name: 'Oracle' }, { name: 'SAP' }, { name: 'Autodesk' },
+  { name: 'Procore' }, { name: 'Bentley' }, { name: 'Trimble' }, { name: 'Aconex' },
+  { name: 'PlanGrid' }, { name: 'Fieldwire' }, { name: 'Bluebeam' }, { name: 'Oracle Primavera' },
+]
+
+const defaultPlans: Plan[] = [
+  { name: 'Starter', description: 'For small teams getting started', priceMonthly: 29, priceAnnual: 24, maxUsers: 5, maxProjects: 10, maxStorage: '10 GB', features: '["Project Management","Task Tracking","Basic Reporting","Email Support","Mobile App"]', sortOrder: 1, active: true, aiCredits: 0, mobileAccess: true, apiAccess: false, integrations: false, customDomain: false, prioritySupport: false },
+  { name: 'Professional', description: 'For growing organizations', priceMonthly: 79, priceAnnual: 66, maxUsers: 25, maxProjects: 50, maxStorage: '100 GB', features: '["Everything in Starter","AI-Powered Scheduling","Advanced Analytics","Resource Management","Budget Tracking","API Access","50+ Integrations","Priority Support"]', sortOrder: 2, active: true, aiCredits: 500, mobileAccess: true, apiAccess: true, integrations: true, customDomain: false, prioritySupport: true },
+  { name: 'Enterprise', description: 'For large organizations', priceMonthly: 149, priceAnnual: 124, maxUsers: 100, maxProjects: 200, maxStorage: '500 GB', features: '["Everything in Professional","Unlimited AI Credits","Custom Workflows","Advanced Security (SSO/SAML)","Custom Domain","Dedicated Account Manager","SLA Guarantee","24/7 Phone Support"]', sortOrder: 3, active: true, aiCredits: -1, mobileAccess: true, apiAccess: true, integrations: true, customDomain: true, prioritySupport: true },
+  { name: 'Corporate', description: 'For enterprise-scale deployments', priceMonthly: 249, priceAnnual: 207, maxUsers: 500, maxProjects: 1000, maxStorage: '2 TB', features: '["Everything in Enterprise","Unlimited Everything","White-label Options","Custom Development","Multi-Region Deployment","Dedicated Infrastructure","On-Premise Option","Executive Dashboard"]', sortOrder: 4, active: true, aiCredits: -1, mobileAccess: true, apiAccess: true, integrations: true, customDomain: true, prioritySupport: true },
+  { name: 'Ultimate', description: 'For global enterprise operations', priceMonthly: 0, priceAnnual: 0, maxUsers: -1, maxProjects: -1, maxStorage: 'Unlimited', features: '["Everything in Corporate","Global Deployment","Multi-Language Support","Regulatory Compliance Suite","AI Strategy Consulting","Quarterly Business Reviews","Custom Training Programs","Innovation Lab Access"]', sortOrder: 5, active: true, aiCredits: -1, mobileAccess: true, apiAccess: true, integrations: true, customDomain: true, prioritySupport: true },
+]
+
+const defaultBlogPosts: BlogPost[] = [
+  { title: 'The Future of AI in Construction Management', excerpt: 'Explore how artificial intelligence is reshaping project delivery, risk assessment, and resource optimization in the construction industry.', author: 'Dr. Sarah Mitchell', date: '2025-01-15', readTime: '8 min read', slug: 'ai-construction-management' },
+  { title: '5 Strategies for Enterprise Digital Transformation', excerpt: 'Learn proven strategies for successfully transitioning your organization to digital project management platforms.', author: 'Mark Thompson', date: '2025-01-10', readTime: '6 min read', slug: 'enterprise-digital-transformation' },
+  { title: 'Maximizing ROI with Integrated Project Platforms', excerpt: 'Discover how integrating your project management tools can deliver up to 300% ROI within the first year.', author: 'Lisa Chen', date: '2025-01-05', readTime: '5 min read', slug: 'maximizing-roi' },
+]
+
+const defaultCaseStudies: CaseStudy[] = [
+  { title: 'Meridian Tower Complex', client: 'Meridian Development Corp', industry: 'Commercial Real Estate', summary: 'Delivered a $450M mixed-use development 3 months ahead of schedule using SmartBuild\'s AI scheduling and resource optimization.', results: '35% faster delivery, 20% cost savings' },
+  { title: 'National Highway Expansion', client: 'Federal Infrastructure Authority', industry: 'Infrastructure', summary: 'Managed 47 concurrent construction zones across 800km highway expansion with real-time coordination and risk management.', results: 'Zero safety incidents, 18% under budget' },
+  { title: 'Smart Hospital Network', client: 'HealthFirst Group', industry: 'Healthcare', summary: 'Coordinated construction of 12 hospital facilities simultaneously with strict compliance and quality requirements.', results: 'All facilities delivered on time, 99.7% quality score' },
+]
+
+const coreFeatures = [
+  { icon: LayoutDashboard, title: 'Project Dashboard', desc: 'Unified view of all projects with real-time KPIs and status tracking' },
+  { icon: GanttChart, title: 'Scheduling', desc: 'Interactive Gantt charts with drag-and-drop task management and dependencies' },
+  { icon: Users, title: 'Resource Management', desc: 'Optimize team allocation, track availability, and balance workloads' },
+  { icon: DollarSign, title: 'Budget Tracking', desc: 'Real-time cost monitoring, forecasting, and variance analysis' },
+  { icon: FileCheck, title: 'Document Control', desc: 'Version-controlled document management with approval workflows' },
+  { icon: ShieldCheck, title: 'Quality Management', desc: 'Inspection checklists, punch lists, and compliance tracking' },
+  { icon: BarChart3, title: 'Analytics & BI', desc: 'Advanced reporting with customizable dashboards and data visualization' },
+  { icon: Bell, title: 'Risk Management', desc: 'Proactive risk identification, assessment, and mitigation planning' },
+  { icon: MessageSquare, title: 'Collaboration', desc: 'Team messaging, file sharing, and stakeholder communication tools' },
+  { icon: Calendar, title: 'Calendar & Milestones', desc: 'Project timelines, milestone tracking, and deadline management' },
+  { icon: Smartphone, title: 'Mobile App', desc: 'Full-featured mobile access for field teams and on-site management' },
+  { icon: Cloud, title: 'Cloud Platform', desc: 'Enterprise-grade cloud infrastructure with 99.99% uptime SLA' },
+  { icon: Database, title: 'Data Management', desc: 'Centralized data repository with advanced search and filtering' },
+  { icon: Globe, title: 'Multi-Site Support', desc: 'Manage multiple project sites from a single unified platform' },
+  { icon: Code2, title: 'API & Integrations', desc: 'RESTful API with 50+ pre-built integrations for enterprise systems' },
+  { icon: Lock, title: 'Security & Compliance', desc: 'SOC 2 certified, GDPR compliant, with SSO and role-based access' },
+]
+
+const industries = [
+  { icon: Building2, title: 'Commercial Construction', desc: 'Office buildings, retail centers, and mixed-use developments' },
+  { icon: Factory, title: 'Industrial', desc: 'Manufacturing plants, warehouses, and industrial facilities' },
+  { icon: Hospital, title: 'Healthcare', desc: 'Hospitals, clinics, and medical research facilities' },
+  { icon: GraduationCap, title: 'Education', desc: 'Universities, schools, and campus infrastructure' },
+  { icon: Landmark, title: 'Government', desc: 'Public infrastructure, defense, and civic projects' },
+  { icon: Hotel, title: 'Hospitality', desc: 'Hotels, resorts, and entertainment venues' },
+  { icon: Plane, title: 'Transportation', desc: 'Airports, railways, and transit systems' },
+  { icon: Pickaxe, title: 'Mining & Energy', desc: 'Resource extraction, refineries, and energy infrastructure' },
+  { icon: ShoppingBag, title: 'Retail', desc: 'Shopping centers, distribution centers, and logistics' },
+  { icon: Truck, title: 'Infrastructure', desc: 'Roads, bridges, tunnels, and utilities' },
+  { icon: Briefcase, title: 'Professional Services', desc: 'Consulting, engineering, and architectural firms' },
+  { icon: Zap, title: 'Renewable Energy', desc: 'Solar, wind, and sustainable energy projects' },
+]
+
+const enterpriseModules = [
+  { icon: FolderKanban, title: 'Portfolio Management', desc: 'Strategic portfolio oversight with alignment tracking, capacity planning, and investment optimization across your entire project portfolio.' },
+  { icon: Target, title: 'Program Management', desc: 'Manage complex programs with cross-project dependencies, shared resources, and unified reporting for multi-project initiatives.' },
+  { icon: PieChart, title: 'Financial Management', desc: 'Comprehensive budgeting, cost control, invoicing, and financial reporting with ERP integration and multi-currency support.' },
+  { icon: Workflow, title: 'Workflow Automation', desc: 'Customizable approval workflows, automated notifications, and business process automation to eliminate manual tasks.' },
+  { icon: Settings, title: 'System Administration', desc: 'Granular permission controls, audit trails, configuration management, and enterprise-grade security settings.' },
+  { icon: Activity, title: 'Real-Time Monitoring', desc: 'Live project dashboards, IoT integration, and real-time alerts for schedule, budget, and quality deviations.' },
+]
+
+const workflowSteps = [
+  { icon: Lightbulb, title: 'Initiate', desc: 'Define project scope, objectives, and stakeholder requirements' },
+  { icon: Layers, title: 'Plan', desc: 'Create detailed schedules, allocate resources, set budgets' },
+  { icon: Users, title: 'Assemble Team', desc: 'Assign roles, set permissions, onboard team members' },
+  { icon: Play, title: 'Execute', desc: 'Track progress, manage tasks, collaborate in real-time' },
+  { icon: Eye, title: 'Monitor', desc: 'AI-powered dashboards, KPI tracking, risk alerts' },
+  { icon: FileCheck, title: 'Control', desc: 'Quality checks, compliance verification, change management' },
+  { icon: Award, title: 'Deliver', desc: 'Final reporting, lessons learned, project handover' },
+]
+
+const aiFeatures = [
+  { icon: Brain, title: 'Predictive Scheduling', desc: 'AI analyzes thousands of project variables to predict optimal timelines and identify potential delays before they occur.' },
+  { icon: Bot, title: 'Intelligent Assistant', desc: 'Natural language interface for project queries, report generation, and automated task recommendations.' },
+  { icon: TrendingUp, title: 'Risk Prediction', desc: 'Machine learning models continuously assess project risks and suggest proactive mitigation strategies.' },
+  { icon: Sparkles, title: 'Smart Resource Matching', desc: 'AI matches the right team members to tasks based on skills, availability, and historical performance.' },
+  { icon: Cpu, title: 'Cost Optimization', desc: 'Predictive cost modeling identifies savings opportunities and forecasts budget variance with 95% accuracy.' },
+  { icon: RotateCcw, title: 'Automated Insights', desc: 'AI-generated weekly reports highlight trends, anomalies, and actionable recommendations for project improvement.' },
+]
+
+const screenshots = [
+  { title: 'Executive Dashboard', desc: 'Real-time portfolio overview', gradient: 'from-[#0B2345] to-[#132D52]' },
+  { title: 'Project Timeline', desc: 'Interactive Gantt chart view', gradient: 'from-[#132D52] to-[#1a3a6b]' },
+  { title: 'Resource Planner', desc: 'Team capacity visualization', gradient: 'from-[#0B2345] to-[#1a3a6b]' },
+  { title: 'Analytics Center', desc: 'Advanced BI dashboards', gradient: 'from-[#132D52] to-[#0B2345]' },
+  { title: 'Mobile Interface', desc: 'On-site project management', gradient: 'from-[#1a3a6b] to-[#132D52]' },
+]
+
+const newsItems = [
+  { date: 'Jan 20, 2025', title: 'SmartBuild Raises $50M Series C to Expand Global Operations', excerpt: 'The funding will accelerate product development and expansion into European and Asia-Pacific markets.' },
+  { date: 'Jan 15, 2025', title: 'Named a Leader in Gartner Magic Quadrant for Construction PM', excerpt: 'SmartBuild recognized for completeness of vision and ability to execute in the construction project management space.' },
+  { date: 'Jan 10, 2025', title: 'New AI Features Launch: Predictive Risk Engine 2.0', excerpt: 'Our latest AI engine delivers 40% more accurate risk predictions with reduced false positives.' },
+]
+
+/* ================================================================ */
+/*  MAIN PAGE COMPONENT                                              */
+/* ================================================================ */
+export default function HomePage() {
+  const [data, setData] = useState<CMSData>({})
+  const [scrolled, setScrolled] = useState(false)
+  const [annual, setAnnual] = useState(false)
+  const [faqSearch, setFaqSearch] = useState('')
+  const [screenshotIdx, setScreenshotIdx] = useState(0)
+  const [testimIdx, setTestimIdx] = useState(0)
+
+  useEffect(() => {
+    fetch('/api/cms/landing')
+      .then(r => r.json())
+      .then(setData)
+      .catch(() => { /* use defaults */ })
+  }, [])
+
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', h, { passive: true })
+    return () => window.removeEventListener('scroll', h)
+  }, [])
+
+  const menu = data.menu?.length ? data.menu : defaultMenu
+  const testimonials = data.testimonials?.length ? data.testimonials : defaultTestimonials
+  const faqs = (data.faqs?.length ? data.faqs : defaultFAQs).filter(f =>
+    !faqSearch || f.question.toLowerCase().includes(faqSearch.toLowerCase()) || f.answer.toLowerCase().includes(faqSearch.toLowerCase())
+  )
+  const partners = data.partners?.length ? data.partners : defaultPartners
+  const plans = (data.plans?.length ? data.plans : defaultPlans).filter(p => p.active).sort((a, b) => a.sortOrder - b.sortOrder)
+  const blogPosts = data.blogPosts?.length ? data.blogPosts : defaultBlogPosts
+  const caseStudies = data.caseStudies?.length ? data.caseStudies : defaultCaseStudies
+
+  const isSectionVisible = useCallback((type: string) => {
+    if (!data.page?.sections?.length) return true
+    return data.page.sections.some(s => s.type === type && s.visible)
+  }, [data.page?.sections])
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <HeaderSection menu={menu} scrolled={scrolled} />
+      <main className="flex-1">
+        {isSectionVisible('hero') && <HeroSection />}
+        {isSectionVisible('trusted') && <TrustedSection partners={partners} />}
+        {isSectionVisible('platform') && <PlatformSection />}
+        {isSectionVisible('features') && <FeaturesSection />}
+        {isSectionVisible('industries') && <IndustriesSection />}
+        {isSectionVisible('enterprise') && <EnterpriseSection />}
+        {isSectionVisible('workflow') && <WorkflowSection />}
+        {isSectionVisible('ai') && <AISection />}
+        {isSectionVisible('screenshots') && <ScreenshotsSection idx={screenshotIdx} setIdx={setScreenshotIdx} />}
+        {isSectionVisible('testimonials') && <TestimonialsSection items={testimonials} idx={testimIdx} setIdx={setTestimIdx} />}
+        {isSectionVisible('cases') && <CaseStudiesSection items={caseStudies} />}
+        {isSectionVisible('stats') && <StatsSection />}
+        {isSectionVisible('pricing') && <PricingSection plans={plans} annual={annual} setAnnual={setAnnual} />}
+        {isSectionVisible('faq') && <FAQSection faqs={faqs} search={faqSearch} setSearch={setFaqSearch} />}
+        {isSectionVisible('news') && <NewsSection />}
+        {isSectionVisible('blog') && <BlogSection posts={blogPosts} />}
+        {isSectionVisible('partners') && <PartnersSection partners={partners} />}
+        {isSectionVisible('cta') && <CTASection />}
+      </main>
+      <FooterSection />
+      <BrandFooter />
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  1. HEADER                                                        */
+/* ================================================================ */
+function HeaderSection({ menu, scrolled }: { menu: MenuItem[]; scrolled: boolean }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'glass-dark shadow-lg' : 'bg-transparent'}`}>
+      <div className="container-brand flex items-center justify-between h-16 lg:h-[4.5rem]">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Image src="/brand/smartbuild-primary-logo.svg" alt="SmartBuild" width={140} height={36} className="h-8 lg:h-9 w-auto" priority />
+        </Link>
+        <nav className="hidden lg:flex items-center gap-1">
+          {menu.map((item) => (
+            item.children ? (
+              <NavDropdown key={item.label} label={item.label} items={item.children} />
+            ) : (
+              <Link key={item.label} href={item.href || '#'} className="px-3 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors rounded-md hover:bg-white/5">
+                {item.label}
+              </Link>
+            )
+          ))}
+        </nav>
+        <div className="hidden lg:flex items-center gap-2">
+          <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">Login</Button>
+          <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">Register</Button>
+          <Button className="bg-accent hover:bg-accent/90 text-primary-foreground font-semibold">Request Demo</Button>
+        </div>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild className="lg:hidden">
+            <Button variant="ghost" size="icon" className="text-white"><Menu /></Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[300px] bg-primary text-primary-foreground">
+            <SheetHeader><SheetTitle className="text-primary-foreground">Menu</SheetTitle></SheetHeader>
+            <nav className="flex flex-col gap-1 mt-6">
+              {menu.map((item) => (
+                item.children ? (
+                  item.children.map(child => (
+                    <Link key={child.label} href={child.href || '#'} onClick={() => setOpen(false)} className="px-3 py-2.5 text-sm rounded-md hover:bg-white/10 transition-colors">{item.label} → {child.label}</Link>
+                  ))
+                ) : (
+                  <Link key={item.label} href={item.href || '#'} onClick={() => setOpen(false)} className="px-3 py-2.5 text-sm rounded-md hover:bg-white/10 transition-colors font-medium">{item.label}</Link>
+                )
+              ))}
+              <div className="mt-4 flex flex-col gap-2">
+                <Button variant="outline" className="border-white/20 text-primary-foreground">Login</Button>
+                <Button variant="outline" className="border-white/20 text-primary-foreground">Register</Button>
+                <Button className="bg-accent text-primary-foreground font-semibold">Request Demo</Button>
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </header>
+  )
+}
+
+function NavDropdown({ label, items }: { label: string; items: MenuItem[] }) {
+  return (
+    <div className="relative group">
+      <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors rounded-md hover:bg-white/5">
+        {label} <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
+      </button>
+      <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+        <div className="glass-dark rounded-lg p-2 min-w-[200px] shadow-xl">
+          {items.map(item => (
+            <Link key={item.label} href={item.href || '#'} className="block px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-colors">{item.label}</Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ================================================================ */
+/*  2. HERO                                                          */
+/* ================================================================ */
+function HeroSection() {
+  return (
+    <section className="relative bg-brand-hero section-padding pt-32 lg:pt-40 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full" />
+      </div>
+      <div className="container-brand relative z-10">
+        <FadeIn className="text-center max-w-4xl mx-auto">
+          <Badge className="mb-6 bg-accent/10 text-accent border-accent/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Enterprise Project Management Platform
+          </Badge>
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-white">
+            Build the Future with{' '}<span className="text-gradient">Smart Intelligence</span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            The all-in-one enterprise platform that combines AI-powered project management, real-time collaboration, and predictive analytics to deliver projects on time and under budget.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary-foreground font-semibold h-12 px-8 text-base">
+              Start Free Trial <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" className="glass border-white/20 text-white hover:bg-white/10 h-12 px-8 text-base">
+              <Play className="mr-2 w-4 h-4" /> Watch Demo
+            </Button>
+          </div>
+        </FadeIn>
+        <InView className="mt-16 lg:mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+          {[{ v: 2500, s: '+', l: 'Enterprise Clients' }, { v: 98, s: '%', l: 'Client Satisfaction' }, { v: 35, s: '%', l: 'Faster Delivery' }, { v: 50, s: 'M+', l: 'Projects Managed' }].map((s, i) => (
+            <div key={i} className="glass rounded-xl p-4 text-center">
+              <div className="text-2xl md:text-3xl font-bold font-heading text-gradient">{s.s}{s.v}</div>
+              <div className="mt-1 text-xs md:text-sm text-white/60">{s.l}</div>
+            </div>
+          ))}
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  3. TRUSTED BY                                                    */
+/* ================================================================ */
+function TrustedSection({ partners }: { partners: Partner[] }) {
+  const doubled = [...partners, ...partners]
+  return (
+    <section className="py-12 lg:py-16 border-b border-border/50 bg-muted/30">
+      <div className="container-brand">
+        <p className="text-center text-sm font-medium text-muted-foreground mb-8 uppercase tracking-wider">Trusted by Industry Leaders Worldwide</p>
+        <div className="relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10" />
+          <motion.div className="flex gap-12 items-center" animate={{ x: ['0%', '-50%'] }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}>
+            {doubled.map((p, i) => (
+              <div key={i} className="shrink-0 flex items-center justify-center h-12 px-8">
+                <span className="text-lg font-bold text-muted-foreground/50 whitespace-nowrap font-heading tracking-wide">{p.name}</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  4. PLATFORM OVERVIEW                                             */
+/* ================================================================ */
+function PlatformSection() {
+  const items = [
+    { icon: Layers, title: 'Unified Platform', desc: 'One platform for all project management needs', color: 'text-blue-400' },
+    { icon: Brain, title: 'AI-Powered', desc: 'Intelligent automation and predictive insights', color: 'text-purple-400' },
+    { icon: Shield, title: 'Enterprise Security', desc: 'SOC 2 certified with end-to-end encryption', color: 'text-emerald-400' },
+    { icon: Zap, title: 'Lightning Fast', desc: 'Sub-300ms response times with global CDN', color: 'text-amber-400' },
+  ]
+  return (
+    <section id="platform" className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Why SmartBuild" title="The Complete Enterprise Platform" titleHighlight="Enterprise Platform" description="Everything you need to manage projects from initiation to delivery, powered by AI and built for scale." />
+        <StaggerInView className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {items.map((item) => (
+            <motion.div key={item.title} variants={staggerChild}>
+              <Card className="group glass-gold hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full">
+                <CardContent className="p-6 text-center">
+                  <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/5 mb-4 group-hover:scale-110 transition-transform ${item.color}`}>
+                    <item.icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-heading font-semibold text-lg mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  5. CORE FEATURES                                                 */
+/* ================================================================ */
+function FeaturesSection() {
+  return (
+    <section id="features" className="section-padding bg-muted/30">
+      <div className="container-brand">
+        <SectionHeader badge="Core Features" title="16 Powerful Modules, One Platform" titleHighlight="16 Powerful Modules" description="Comprehensive tools designed for every aspect of enterprise project management." />
+        <StaggerInView className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {coreFeatures.map((f) => (
+            <motion.div key={f.title} variants={staggerChild}>
+              <Card className="group h-full hover:shadow-md transition-all duration-200 hover:border-accent/30">
+                <CardContent className="p-5 flex gap-4">
+                  <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-accent group-hover:bg-accent/10 transition-colors">
+                    <f.icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-semibold text-sm mb-1">{f.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  6. INDUSTRIES                                                    */
+/* ================================================================ */
+function IndustriesSection() {
+  return (
+    <section id="industries" className="section-padding bg-navy-gradient">
+      <div className="container-brand">
+        <SectionHeader badge="Industries" title="Built for Every Industry" titleHighlight="Every Industry" description="From construction to healthcare, SmartBuild adapts to your industry-specific requirements." light />
+        <StaggerInView className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {industries.map((ind) => (
+            <motion.div key={ind.title} variants={staggerChild}>
+              <div className="glass rounded-xl p-5 hover:bg-white/10 transition-all duration-300 group cursor-pointer h-full">
+                <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center mb-3 group-hover:bg-accent/20 transition-colors">
+                  <ind.icon className="w-5 h-5 text-accent" />
+                </div>
+                <h3 className="font-heading font-semibold text-white text-sm mb-1.5">{ind.title}</h3>
+                <p className="text-xs text-white/60 leading-relaxed">{ind.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  7. ENTERPRISE MODULES                                            */
+/* ================================================================ */
+function EnterpriseSection() {
+  return (
+    <section id="enterprise" className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Enterprise" title="Enterprise-Grade Modules" titleHighlight="Enterprise-Grade" description="Advanced capabilities for large-scale project operations and organizational management." />
+        <StaggerInView className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {enterpriseModules.map((m) => (
+            <motion.div key={m.title} variants={staggerChild}>
+              <Card className="group h-full border-2 border-transparent hover:border-accent/40 transition-all duration-300 hover:shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center group-hover:from-accent/30 group-hover:to-accent/10 transition-colors">
+                      <m.icon className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-semibold text-lg mb-2">{m.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  8. WORKFLOW SHOWCASE                                             */
+/* ================================================================ */
+function WorkflowSection() {
+  return (
+    <section id="workflow" className="section-padding bg-muted/30">
+      <div className="container-brand">
+        <SectionHeader badge="How It Works" title="From Idea to Delivery" titleHighlight="Idea to Delivery" description="A streamlined 7-step workflow that guides your projects from concept to successful completion." />
+        <div className="relative">
+          <div className="hidden lg:block absolute top-16 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-accent/20 via-accent/40 to-accent/20" />
+          <StaggerInView className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-2">
+            {workflowSteps.map((step, i) => (
+              <motion.div key={step.title} variants={staggerChild} className="relative">
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground mx-auto mb-3 shadow-lg z-10">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-primary-foreground text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
+                    <step.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-heading font-semibold text-sm mb-1">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed hidden lg:block">{step.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </StaggerInView>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  9. AI FEATURES                                                   */
+/* ================================================================ */
+function AISection() {
+  return (
+    <section id="ai" className="section-padding bg-navy-gradient relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-1/4 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl" />
+      </div>
+      <div className="container-brand relative z-10">
+        <SectionHeader badge="AI-Powered" title="Intelligence at Every Step" titleHighlight="Intelligence" description="Leverage cutting-edge AI to automate decisions, predict outcomes, and optimize project performance." light />
+        <StaggerInView className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {aiFeatures.map((f) => (
+            <motion.div key={f.title} variants={staggerChild}>
+              <div className="glass rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group h-full relative overflow-hidden">
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-colors" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/30 to-purple-500/20 flex items-center justify-center mb-4">
+                    <f.icon className="w-6 h-6 text-accent" />
+                  </div>
+                  <h3 className="font-heading font-semibold text-lg text-white mb-2">{f.title}</h3>
+                  <p className="text-sm text-white/60 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  10. SCREENSHOTS                                                  */
+/* ================================================================ */
+function ScreenshotsSection({ idx, setIdx }: { idx: number; setIdx: (i: number) => void }) {
+  return (
+    <section className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Platform Preview" title="See SmartBuild in Action" titleHighlight="in Action" description="Explore the intuitive interface and powerful features of our platform." />
+        <InView className="relative max-w-4xl mx-auto">
+          <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className={`absolute inset-0 bg-gradient-to-br ${screenshots[idx].gradient} flex items-center justify-center`}
+              >
+                <div className="text-center text-white p-8">
+                  <LayoutDashboard className="w-16 h-16 mx-auto mb-4 text-white/30" />
+                  <h3 className="font-heading text-2xl font-bold mb-2">{screenshots[idx].title}</h3>
+                  <p className="text-white/60">{screenshots[idx].desc}</p>
+                  <div className="mt-6 grid grid-cols-3 gap-3 max-w-md mx-auto">
+                    {['Analytics', 'Reports', 'Tasks', 'Team', 'Budget', 'Timeline'].map((t) => (
+                      <div key={t} className="glass rounded-lg p-2 text-xs text-white/50">{t}</div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <Button variant="outline" size="icon" className="rounded-full" onClick={() => setIdx((idx - 1 + screenshots.length) % screenshots.length)}><ChevronLeft className="w-4 h-4" /></Button>
+            <div className="flex gap-2">
+              {screenshots.map((_, i) => (
+                <button key={i} onClick={() => setIdx(i)} className={`h-2.5 rounded-full transition-all ${i === idx ? 'bg-accent w-8' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2.5'}`} />
+              ))}
+            </div>
+            <Button variant="outline" size="icon" className="rounded-full" onClick={() => setIdx((idx + 1) % screenshots.length)}><ChevronRight className="w-4 h-4" /></Button>
+          </div>
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  11. TESTIMONIALS                                                 */
+/* ================================================================ */
+function TestimonialsSection({ items, idx, setIdx }: { items: Testimonial[]; idx: number; setIdx: (i: number) => void }) {
+  const t = items[idx % items.length]
+  return (
+    <section className="section-padding bg-muted/30">
+      <div className="container-brand">
+        <SectionHeader badge="Testimonials" title="What Our Clients Say" titleHighlight="Clients Say" description="Join thousands of enterprises that trust SmartBuild for their project management needs." />
+        <InView className="max-w-3xl mx-auto">
+          <Card className="relative p-8 md:p-10">
+            <Quote className="absolute top-6 right-6 w-12 h-12 text-accent/10" />
+            <AnimatePresence mode="wait">
+              <motion.div key={idx} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+                <div className="flex gap-1 mb-4">Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`w-4 h-4 ${i < t.rating ? 'text-accent fill-accent' : 'text-muted-foreground/30'}`} />)</div>
+                <p className="text-lg md:text-xl text-foreground leading-relaxed mb-6 italic">&ldquo;{t.content}&rdquo;</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-accent font-bold font-heading text-lg">{t.name[0]}</div>
+                  <div>
+                    <div className="font-heading font-semibold">{t.name}</div>
+                    <div className="text-sm text-muted-foreground">{t.role}, {t.company}</div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            <div className="flex items-center justify-center gap-3 mt-8">
+              <Button variant="outline" size="icon" className="rounded-full" onClick={() => setIdx((idx - 1 + items.length) % items.length)}><ChevronLeft className="w-4 h-4" /></Button>
+              <div className="flex gap-2">{items.map((_, i) => <button key={i} onClick={() => setIdx(i)} className={`h-2.5 rounded-full transition-all ${i === idx ? 'bg-accent w-8' : 'bg-muted-foreground/30 w-2.5'}`} />)}</div>
+              <Button variant="outline" size="icon" className="rounded-full" onClick={() => setIdx((idx + 1) % items.length)}><ChevronRight className="w-4 h-4" /></Button>
+            </div>
+          </Card>
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  12. CASE STUDIES                                                 */
+/* ================================================================ */
+function CaseStudiesSection({ items }: { items: CaseStudy[] }) {
+  return (
+    <section id="cases" className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Case Studies" title="Real Results, Real Impact" titleHighlight="Real Impact" description="See how leading organizations achieve remarkable outcomes with SmartBuild." />
+        <StaggerInView className="grid md:grid-cols-3 gap-6">
+          {items.map((cs) => (
+            <motion.div key={cs.title} variants={staggerChild}>
+              <Card className="group h-full overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div className="aspect-video bg-gradient-to-br from-primary to-primary/80 relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center"><Building2 className="w-16 h-16 text-white/10" /></div>
+                  <Badge className="absolute top-3 left-3 bg-accent text-primary-foreground text-xs">{cs.industry}</Badge>
+                </div>
+                <CardContent className="p-5">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">{cs.client}</p>
+                  <h3 className="font-heading font-semibold text-lg mb-2 group-hover:text-accent transition-colors">{cs.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{cs.summary}</p>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-accent"><CheckCircle2 className="w-4 h-4" /> {cs.results}</div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  13. STATISTICS                                                   */
+/* ================================================================ */
+function StatsSection() {
+  const stats = [
+    { value: 2500, suffix: '+', label: 'Enterprise Clients' },
+    { value: 50, suffix: 'M+', label: 'Projects Managed' },
+    { value: 98, suffix: '%', label: 'Client Satisfaction' },
+    { value: 35, suffix: '%', label: 'Faster Delivery' },
+    { value: 120, suffix: '+', label: 'Countries Served' },
+    { value: 99.99, suffix: '%', label: 'Platform Uptime' },
+  ]
+  return (
+    <section className="section-padding bg-navy-gradient">
+      <div className="container-brand">
+        <InView className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+          {stats.map((s, i) => (
+            <CounterStat key={i} value={s.value} suffix={s.suffix} label={s.label} />
+          ))}
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  14. PRICING                                                      */
+/* ================================================================ */
+function PricingSection({ plans, annual, setAnnual }: { plans: Plan[]; annual: boolean; setAnnual: (v: boolean) => void }) {
+  return (
+    <section id="pricing" className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Pricing" title="Plans for Every Scale" titleHighlight="Every Scale" description="Transparent pricing with no hidden fees. Start free, scale as you grow." />
+        <InView className="flex items-center justify-center gap-3 mb-12">
+          <span className={`text-sm font-medium ${!annual ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+          <button onClick={() => setAnnual(!annual)} className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-accent' : 'bg-muted-foreground/30'}`}>
+            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${annual ? 'left-7' : 'left-1'}`} />
+          </button>
+          <span className={`text-sm font-medium ${annual ? 'text-foreground' : 'text-muted-foreground'}`}>Annual <Badge variant="secondary" className="ml-1 text-xs bg-accent/10 text-accent border-accent/20">Save 20%</Badge></span>
+        </InView>
+        <StaggerInView className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {plans.map((plan) => {
+            const features: string[] = (() => { try { return JSON.parse(plan.features) } catch { return [] } })()
+            const isPro = plan.name === 'Professional'
+            const isCustom = plan.priceMonthly === 0 && plan.priceAnnual === 0
+            return (
+              <motion.div key={plan.name} variants={staggerChild}>
+                <Card className={`h-full flex flex-col transition-all duration-300 hover:shadow-lg ${isPro ? 'border-2 border-accent relative' : ''}`}>
+                  {isPro && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Badge className="bg-accent text-primary-foreground px-3 py-0.5 text-xs font-semibold">Most Popular</Badge></div>}
+                  <CardHeader className="pb-4">
+                    <CardTitle className="font-heading text-lg">{plan.name}</CardTitle>
+                    <p className="text-xs text-muted-foreground">{plan.description}</p>
+                    <div className="mt-3">
+                      {isCustom ? (
+                        <div className="text-3xl font-bold font-heading">Custom</div>
+                      ) : (
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold font-heading">${annual ? plan.priceAnnual : plan.priceMonthly}</span>
+                          <span className="text-sm text-muted-foreground">/user/mo</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex flex-col">
+                    <ul className="flex-1 space-y-2 mb-6">
+                      {features.map((f: string) => (
+                        <li key={f} className="flex items-start gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" /><span>{f}</span></li>
+                      ))}
+                    </ul>
+                    <Button className={`w-full ${isPro ? 'bg-accent hover:bg-accent/90 text-primary-foreground' : ''}`} variant={isPro ? 'default' : 'outline'}>
+                      {isCustom ? 'Contact Sales' : 'Get Started'} <ArrowRight className="ml-1 w-3.5 h-3.5" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  15. FAQ                                                          */
+/* ================================================================ */
+function FAQSection({ faqs, search, setSearch }: { faqs: FAQ[]; search: string; setSearch: (s: string) => void }) {
+  const categories = [...new Set(faqs.map(f => f.category).filter(Boolean))] as string[]
+  const [activeCat, setActiveCat] = useState<string | null>(null)
+  const filtered = activeCat ? faqs.filter(f => f.category === activeCat) : faqs
+  return (
+    <section id="faq" className="section-padding bg-muted/30">
+      <div className="container-brand max-w-3xl">
+        <SectionHeader badge="FAQ" title="Frequently Asked Questions" titleHighlight="Questions" description="Find answers to common questions about SmartBuild platform and services." />
+        <InView>
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search questions..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-background" />
+          </div>
+          {categories.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Badge variant={activeCat === null ? 'default' : 'secondary'} className="cursor-pointer" onClick={() => setActiveCat(null)}>All</Badge>
+              {categories.map(c => (
+                <Badge key={c} variant={activeCat === c ? 'default' : 'secondary'} className="cursor-pointer" onClick={() => setActiveCat(activeCat === c ? null : c)}>{c}</Badge>
+              ))}
+            </div>
+          )}
+          <Accordion type="single" collapsible className="space-y-2">
+            {filtered.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="bg-background rounded-lg px-4 border border-border/50">
+                <AccordionTrigger className="text-left font-medium hover:no-underline">{faq.question}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">{faq.answer}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+          {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">No questions match your search.</p>}
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  16. LATEST NEWS                                                  */
+/* ================================================================ */
+function NewsSection() {
+  return (
+    <section className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Latest News" title="What's Happening at SmartBuild" titleHighlight="SmartBuild" />
+        <StaggerInView className="grid md:grid-cols-3 gap-6">
+          {newsItems.map((news, i) => (
+            <motion.div key={i} variants={staggerChild}>
+              <Card className="group h-full hover:shadow-md transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <Newspaper className="w-3.5 h-3.5" /><time>{news.date}</time>
+                  </div>
+                  <h3 className="font-heading font-semibold text-base mb-2 group-hover:text-accent transition-colors leading-snug">{news.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{news.excerpt}</p>
+                  <div className="mt-4 flex items-center gap-1 text-sm font-medium text-accent">Read more <ArrowUpRight className="w-3.5 h-3.5" /></div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  17. BLOG                                                         */
+/* ================================================================ */
+function BlogSection({ posts }: { posts: BlogPost[] }) {
+  return (
+    <section id="blog" className="section-padding bg-muted/30">
+      <div className="container-brand">
+        <SectionHeader badge="Blog" title="Insights & Resources" titleHighlight="Insights" description="Expert articles, industry trends, and best practices from our team." />
+        <StaggerInView className="grid md:grid-cols-3 gap-6">
+          {posts.map((post) => (
+            <motion.div key={post.slug} variants={staggerChild}>
+              <Card className="group h-full overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <div className="aspect-video bg-gradient-to-br from-primary/80 to-primary relative">
+                  <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-12 h-12 text-white/10" /></div>
+                </div>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                    <time>{post.date}</time><span>·</span><span>{post.readTime}</span>
+                  </div>
+                  <h3 className="font-heading font-semibold text-base mb-2 group-hover:text-accent transition-colors leading-snug">{post.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{post.excerpt}</p>
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-accent text-[10px] font-bold">{post.author[0]}</div>
+                    <span className="text-xs text-muted-foreground font-medium">{post.author}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  18. PARTNERS                                                     */
+/* ================================================================ */
+function PartnersSection({ partners }: { partners: Partner[] }) {
+  return (
+    <section className="section-padding bg-background">
+      <div className="container-brand">
+        <SectionHeader badge="Partners" title="Our Technology Partners" titleHighlight="Technology Partners" description="Integrations with the tools and platforms your team already uses." />
+        <StaggerInView className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {partners.map((p, i) => (
+            <motion.div key={i} variants={staggerChild}>
+              <div className="flex items-center justify-center h-20 rounded-xl border border-border/50 bg-card hover:border-accent/30 hover:shadow-sm transition-all duration-200 px-4">
+                <span className="font-heading font-bold text-sm text-muted-foreground/60 text-center truncate">{p.name}</span>
+              </div>
+            </motion.div>
+          ))}
+        </StaggerInView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  19. CTA                                                          */
+/* ================================================================ */
+function CTASection() {
+  return (
+    <section id="cta" className="section-padding bg-navy-gradient relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
+      </div>
+      <div className="container-brand relative z-10 text-center max-w-3xl mx-auto">
+        <InView>
+          <Rocket className="w-12 h-12 text-accent mx-auto mb-6" />
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            Ready to <span className="text-gradient">Transform</span> Your Project Management?
+          </h2>
+          <p className="text-lg text-white/70 mb-10 max-w-xl mx-auto">
+            Join 2,500+ enterprises already using SmartBuild to deliver projects faster, smarter, and under budget.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary-foreground font-semibold h-12 px-8 text-base">
+              Start Free Trial <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" className="glass border-white/20 text-white hover:bg-white/10 h-12 px-8 text-base">
+              Schedule Demo
+            </Button>
+          </div>
+        </InView>
+      </div>
+    </section>
+  )
+}
+
+/* ================================================================ */
+/*  20. FOOTER                                                       */
+/* ================================================================ */
+function FooterSection() {
+  const [email, setEmail] = useState('')
+  const linkColumns = [
+    { title: 'Product', links: ['Features', 'Pricing', 'Integrations', 'API', 'Changelog', 'Security'] },
+    { title: 'Solutions', links: ['Construction', 'Infrastructure', 'Healthcare', 'Government', 'Energy', 'Manufacturing'] },
+    { title: 'Resources', links: ['Documentation', 'Blog', 'Case Studies', 'Webinars', 'Whitepapers', 'Community'] },
+    { title: 'Company', links: ['About Us', 'Careers', 'Press', 'Partners', 'Contact', 'Legal'] },
+    { title: 'Support', links: ['Help Center', 'Status', 'Training', 'Onboarding', 'SLA', 'Feedback'] },
+  ]
+  const socials = [
+    { icon: Twitter, label: 'Twitter' }, { icon: Linkedin, label: 'LinkedIn' }, { icon: Facebook, label: 'Facebook' }, { icon: Youtube, label: 'YouTube' },
+  ]
+  return (
+    <footer className="bg-primary text-primary-foreground pt-16 pb-8">
+      <div className="container-brand">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
+          <div className="col-span-2">
+            <Image src="/brand/smartbuild-primary-logo.svg" alt="SmartBuild" width={140} height={36} className="h-8 w-auto mb-4 brightness-0 invert" />
+            <p className="text-sm text-primary-foreground/60 leading-relaxed mb-6 max-w-xs">
+              The enterprise project management platform powered by AI. Deliver projects faster with intelligent automation and real-time collaboration.
+            </p>
+            <div className="flex gap-2">
+              <Input placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/10 border-white/10 text-primary-foreground placeholder:text-primary-foreground/40 h-9 text-sm" />
+              <Button size="sm" className="bg-accent hover:bg-accent/90 text-primary-foreground shrink-0"><Send className="w-3.5 h-3.5" /></Button>
+            </div>
+          </div>
+          {linkColumns.map((col) => (
+            <div key={col.title}>
+              <h4 className="font-heading font-semibold text-sm mb-4 text-primary-foreground/90">{col.title}</h4>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link}><Link href="#" className="text-xs text-primary-foreground/50 hover:text-accent transition-colors">{link}</Link></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {socials.map((s) => (
+              <a key={s.label} href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent/20 transition-colors" aria-label={s.label}>
+                <s.icon className="w-4 h-4" />
+              </a>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 text-xs text-primary-foreground/40">
+            <a href="#" className="hover:text-primary-foreground/60 transition-colors flex items-center gap-1"><Mail className="w-3 h-3" /> contact@smartbuild.io</a>
+            <a href="#" className="hover:text-primary-foreground/60 transition-colors flex items-center gap-1"><Phone className="w-3 h-3" /> +1 (555) 000-0000</a>
+          </div>
+          <p className="text-xs text-primary-foreground/40">&copy; {new Date().getFullYear()} SmartBuild. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  )
+}

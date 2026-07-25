@@ -29,8 +29,8 @@ export async function GET() {
       }),
       // Active subscription plans
       db.subscriptionPlan.findMany({
-        where: { status: 'ACTIVE' },
-        orderBy: { order: 'asc' },
+        where: { active: true },
+        orderBy: { sortOrder: 'asc' },
       }),
       // Main menu items — 2 levels deep
       db.cmsMenuItem.findMany({

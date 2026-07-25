@@ -431,31 +431,36 @@ const partners = [
 /* ------------------------------------------------------------------ */
 
 const plans = [
-  { id: uid(), name: 'Free Trial', slug: 'free-trial', description: 'Explore SmartBuild with full features for 14 days.',
-    price: 0, billingCycle: 'monthly', currency: 'USD',
-    maxUsers: 5, maxProjects: 3, maxStorage: 500,
-    features: ['All core modules', '5 user accounts', '3 active projects', '500MB storage', 'Community support', 'Basic reports'],
-    highlighted: false, order: 0, status: 'ACTIVE' },
-  { id: uid(), name: 'Starter', slug: 'starter', description: 'Perfect for small teams getting started with project management.',
-    price: 49, billingCycle: 'monthly', currency: 'USD',
-    maxUsers: 15, maxProjects: 10, maxStorage: 5000,
-    features: ['All core modules', '15 user accounts', '10 active projects', '5GB storage', 'Email support', 'Standard reports', 'API access'],
-    highlighted: false, order: 1, status: 'ACTIVE' },
-  { id: uid(), name: 'Professional', slug: 'professional', description: 'For growing companies that need advanced features.',
-    price: 149, billingCycle: 'monthly', currency: 'USD',
-    maxUsers: 50, maxProjects: 50, maxStorage: 50000,
-    features: ['All modules including AI', '50 user accounts', '50 active projects', '50GB storage', 'Priority support', 'Advanced analytics', 'Custom workflows', 'API + Webhooks'],
-    highlighted: true, order: 2, status: 'ACTIVE' },
-  { id: uid(), name: 'Enterprise', slug: 'enterprise', description: 'For large organizations with complex requirements.',
-    price: 399, billingCycle: 'monthly', currency: 'USD',
-    maxUsers: 200, maxProjects: 200, maxStorage: 500000,
-    features: ['Everything in Professional', '200 user accounts', 'Unlimited projects', '500GB storage', '24/7 dedicated support', 'Custom integrations', 'SSO & SAML', 'On-premise option'],
-    highlighted: false, order: 3, status: 'ACTIVE' },
-  { id: uid(), name: 'Custom', slug: 'custom', description: 'Tailored solutions for enterprise-grade requirements.',
-    price: -1, billingCycle: 'monthly', currency: 'USD',
-    maxUsers: -1, maxProjects: -1, maxStorage: -1,
-    features: ['Everything in Enterprise', 'Unlimited users', 'Unlimited projects', 'Unlimited storage', 'Dedicated success manager', 'Custom development', 'SLA guarantee', 'Multi-region deployment'],
-    highlighted: false, order: 4, status: 'ACTIVE' },
+  { id: uid(), name: 'Free Trial', description: 'Explore SmartBuild with full features for 14 days.',
+    priceMonthly: 0, priceAnnual: 0,
+    maxUsers: 5, maxProjects: 3, maxStorage: 500, maxBranches: 1, aiCredits: 0,
+    mobileAccess: false, apiAccess: false, integrations: false, prioritySupport: false,
+    features: JSON.stringify(['All core modules', '5 user accounts', '3 active projects', '500MB storage', 'Community support', 'Basic reports']),
+    sortOrder: 0, active: true },
+  { id: uid(), name: 'Starter', description: 'Perfect for small teams getting started with project management.',
+    priceMonthly: 49, priceAnnual: 470,
+    maxUsers: 15, maxProjects: 10, maxStorage: 5000, maxBranches: 2, aiCredits: 50,
+    mobileAccess: true, apiAccess: true, integrations: false, prioritySupport: false,
+    features: JSON.stringify(['All core modules', '15 user accounts', '10 active projects', '5GB storage', 'Email support', 'Standard reports', 'API access']),
+    sortOrder: 1, active: true },
+  { id: uid(), name: 'Professional', description: 'For growing companies that need advanced features.',
+    priceMonthly: 149, priceAnnual: 1430,
+    maxUsers: 50, maxProjects: 50, maxStorage: 50000, maxBranches: 5, aiCredits: 500,
+    mobileAccess: true, apiAccess: true, integrations: true, prioritySupport: true,
+    features: JSON.stringify(['All modules including AI', '50 user accounts', '50 active projects', '50GB storage', 'Priority support', 'Advanced analytics', 'Custom workflows', 'API + Webhooks']),
+    sortOrder: 2, active: true },
+  { id: uid(), name: 'Enterprise', description: 'For large organizations with complex requirements.',
+    priceMonthly: 399, priceAnnual: 3830,
+    maxUsers: 200, maxProjects: 200, maxStorage: 500000, maxBranches: 20, aiCredits: 5000,
+    mobileAccess: true, apiAccess: true, integrations: true, prioritySupport: true, customDomain: true,
+    features: JSON.stringify(['Everything in Professional', '200 user accounts', 'Unlimited projects', '500GB storage', '24/7 dedicated support', 'Custom integrations', 'SSO & SAML', 'On-premise option']),
+    sortOrder: 3, active: true },
+  { id: uid(), name: 'Custom', description: 'Tailored solutions for enterprise-grade requirements.',
+    priceMonthly: -1, priceAnnual: -1,
+    maxUsers: -1, maxProjects: -1, maxStorage: -1, maxBranches: -1, aiCredits: -1,
+    mobileAccess: true, apiAccess: true, integrations: true, prioritySupport: true, customDomain: true,
+    features: JSON.stringify(['Everything in Enterprise', 'Unlimited users', 'Unlimited projects', 'Unlimited storage', 'Dedicated success manager', 'Custom development', 'SLA guarantee', 'Multi-region deployment']),
+    sortOrder: 4, active: true },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -493,17 +498,11 @@ const blogPosts = [
     authorName: 'Sarah Ahmad', readingTime: 6, publishedAt: NOW },
   { id: uid(), title: 'How Gamuda Saved RM420M with SmartBuild', slug: 'gamuda-case-study-rm420m-savings',
     excerpt: 'A detailed look at how Gamuda Berhad achieved 15% cost savings on their RM2.8B township project using SmartBuild.',
-    content: '## Case Study: Gamuda Township Project\n\n### Challenge\nGamuda Berhad needed a platform to manage their RM2.8B township development spanning 5,000 residential units, commercial spaces, and public infrastructure.\n\n### Solution\nSmartBuild was deployed to unify 12 main contractors, 8 consultants, and 200+ subcontractors on a single platform.\n\n### Results\n- 15% cost savings (RM420M)
-- 3 months early delivery
-- Zero safety incidents
-- 99.2% schedule performance',
+    content: 'Gamuda Berhad achieved 15 percent cost savings (RM420M) on their RM2.8B township project. SmartBuild unified 12 main contractors, 8 consultants, and 200+ subcontractors. Results: 3 months early delivery, zero safety incidents, 99.2 percent schedule performance.',
     status: 'published', featured: false, locale: 'en',
     authorName: 'SmartBuild Team', readingTime: 5, publishedAt: NOW },
 ]
 
-/* ------------------------------------------------------------------ */
-/*  Analytics Config                                                    */
-/* ------------------------------------------------------------------ */
 
 const analyticsConfig = {
   id: uid(),
@@ -565,18 +564,28 @@ const forms = [
 async function seed() {
   console.log('🌱 Seeding CMS data...')
 
-  // Clean existing CMS data
-  await db.cmsPage.deleteMany()
-  await db.cmsMenuItem.deleteMany()
-  await db.cmsTestimonial.deleteMany()
-  await db.cmsCaseStudy.deleteMany()
-  await db.cmsFaq.deleteMany()
-  await db.cmsPartner.deleteMany()
+  // Clean existing CMS data (order matters for FK constraints)
+  await db.cmsPageVersion.deleteMany()
+  await db.cmsSection.deleteMany()
+  await db.cmsBlogPostTag.deleteMany()
+  await db.cmsBlogComment.deleteMany()
+  await db.cmsBlogPostCategory.deleteMany()
   await db.cmsBlogPost.deleteMany()
   await db.cmsBlogCategory.deleteMany()
   await db.cmsBlogTag.deleteMany()
+  await db.cmsFormSubmission.deleteMany()
   await db.cmsForm.deleteMany()
+  await db.cmsNewsletter.deleteMany()
+  await db.cmsTranslation.deleteMany()
   await db.cmsAnalyticsConfig.deleteMany()
+  await db.cmsPartner.deleteMany()
+  await db.cmsFaq.deleteMany()
+  await db.cmsCaseStudy.deleteMany()
+  await db.cmsTestimonial.deleteMany()
+  await db.cmsMedia.deleteMany()
+  await db.cmsMenuItem.deleteMany()
+  await db.cmsPage.deleteMany()
+  await db.tenantSubscription.deleteMany()
   await db.subscriptionPlan.deleteMany()
 
   // Page + Sections
