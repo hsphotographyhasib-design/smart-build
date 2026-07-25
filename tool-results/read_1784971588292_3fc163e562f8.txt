@@ -1,0 +1,887 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect } from 'react'
+     4→import Image from 'next/image'
+     5→import Link from 'next/link'
+     6→import { motion } from 'framer-motion'
+     7→import {
+     8→  Check,
+     9→  Building2,
+    10→  Users,
+    11→  Zap,
+    12→  Shield,
+    13→  Crown,
+    14→  ArrowRight,
+    15→  CheckCircle2,
+    16→  XCircle,
+    17→} from 'lucide-react'
+    18→import { Button } from '@/components/ui/button'
+    19→import { Card, CardContent } from '@/components/ui/card'
+    20→import { Badge } from '@/components/ui/badge'
+    21→import { Switch } from '@/components/ui/switch'
+    22→import { Skeleton } from '@/components/ui/skeleton'
+    23→import {
+    24→  Accordion,
+    25→  AccordionItem,
+    26→  AccordionTrigger,
+    27→  AccordionContent,
+    28→} from '@/components/ui/accordion'
+    29→import {
+    30→  Table,
+    31→  TableBody,
+    32→  TableCell,
+    33→  TableHead,
+    34→  TableHeader,
+    35→  TableRow,
+    36→} from '@/components/ui/table'
+    37→import { BrandFooter } from '@/components/brand'
+    38→
+    39→/* ------------------------------------------------------------------ */
+    40→/*  Types                                                              */
+    41→/* ------------------------------------------------------------------ */
+    42→interface Plan {
+    43→  id: string
+    44→  name: string
+    45→  description: string
+    46→  priceMonthly: number
+    47→  priceAnnual: number
+    48→  maxUsers: number
+    49→  maxProjects: number
+    50→  maxStorage: number
+    51→  maxBranches: number
+    52→  maxApiCalls: number
+    53→  aiCredits: number
+    54→  mobileAccess: boolean
+    55→  apiAccess: boolean
+    56→  integrations: boolean
+    57→  customDomain: boolean
+    58→  prioritySupport: boolean
+    59→  features: string
+    60→  sortOrder: number
+    61→  active: boolean
+    62→}
+    63→
+    64→/* ------------------------------------------------------------------ */
+    65→/*  Fallback plans (used when API is unavailable)                      */
+    66→/* ------------------------------------------------------------------ */
+    67→const FALLBACK_PLANS: Plan[] = [
+    68→  {
+    69→    id: 'free-trial',
+    70→    name: 'Free Trial',
+    71→    description: '14-day free trial with basic features',
+    72→    priceMonthly: 0,
+    73→    priceAnnual: 0,
+    74→    maxUsers: 5,
+    75→    maxProjects: 3,
+    76→    maxStorage: 500,
+    77→    maxBranches: 1,
+    78→    maxApiCalls: 500,
+    79→    aiCredits: 0,
+    80→    mobileAccess: false,
+    81→    apiAccess: false,
+    82→    integrations: false,
+    83→    customDomain: false,
+    84→    prioritySupport: false,
+    85→    features: JSON.stringify(['dashboard', 'projects', 'maintenance', 'complaints']),
+    86→    sortOrder: 0,
+    87→    active: true,
+    88→  },
+    89→  {
+    90→    id: 'starter',
+    91→    name: 'Starter',
+    92→    description: 'For small teams getting started',
+    93→    priceMonthly: 99,
+    94→    priceAnnual: 948,
+    95→    maxUsers: 15,
+    96→    maxProjects: 10,
+    97→    maxStorage: 5000,
+    98→    maxBranches: 3,
+    99→    maxApiCalls: 2000,
+   100→    aiCredits: 10,
+   101→    mobileAccess: true,
+   102→    apiAccess: false,
+   103→    integrations: false,
+   104→    customDomain: false,
+   105→    prioritySupport: false,
+   106→    features: JSON.stringify([
+   107→      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+   108→      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints', 'work-orders',
+   109→    ]),
+   110→    sortOrder: 1,
+   111→    active: true,
+   112→  },
+   113→  {
+   114→    id: 'professional',
+   115→    name: 'Professional',
+   116→    description: 'For growing construction companies',
+   117→    priceMonthly: 299,
+   118→    priceAnnual: 2868,
+   119→    maxUsers: 50,
+   120→    maxProjects: 50,
+   121→    maxStorage: 25000,
+   122→    maxBranches: 10,
+   123→    maxApiCalls: 10000,
+   124→    aiCredits: 100,
+   125→    mobileAccess: true,
+   126→    apiAccess: true,
+   127→    integrations: true,
+   128→    customDomain: false,
+   129→    prioritySupport: true,
+   130→    features: JSON.stringify([
+   131→      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+   132→      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+   133→      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+   134→      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+   135→      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+   136→      'accounts', 'tender', 'exec-reports', 'notifications',
+   137→    ]),
+   138→    sortOrder: 2,
+   139→    active: true,
+   140→  },
+   141→  {
+   142→    id: 'enterprise',
+   143→    name: 'Enterprise',
+   144→    description: 'For large enterprises with advanced needs',
+   145→    priceMonthly: 799,
+   146→    priceAnnual: 7670,
+   147→    maxUsers: 500,
+   148→    maxProjects: 500,
+   149→    maxStorage: 100000,
+   150→    maxBranches: 50,
+   151→    maxApiCalls: 100000,
+   152→    aiCredits: 1000,
+   153→    mobileAccess: true,
+   154→    apiAccess: true,
+   155→    integrations: true,
+   156→    customDomain: true,
+   157→    prioritySupport: true,
+   158→    features: JSON.stringify([
+   159→      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+   160→      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+   161→      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+   162→      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+   163→      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+   164→      'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
+   165→      'integrations', 'workflow-engine', 'security', 'support', 'portals',
+   166→    ]),
+   167→    sortOrder: 3,
+   168→    active: true,
+   169→  },
+   170→  {
+   171→    id: 'custom',
+   172→    name: 'Custom',
+   173→    description: 'Tailored for enterprise with specific requirements',
+   174→    priceMonthly: 0,
+   175→    priceAnnual: 0,
+   176→    maxUsers: 9999,
+   177→    maxProjects: 9999,
+   178→    maxStorage: 1000000,
+   179→    maxBranches: 999,
+   180→    maxApiCalls: 999999,
+   181→    aiCredits: 9999,
+   182→    mobileAccess: true,
+   183→    apiAccess: true,
+   184→    integrations: true,
+   185→    customDomain: true,
+   186→    prioritySupport: true,
+   187→    features: JSON.stringify([
+   188→      'dashboard', 'projects', 'portfolios', 'programs', 'activities', 'gantt',
+   189→      'resources', 'risks', 'documents', 'reports', 'maintenance', 'complaints',
+   190→      'work-orders', 'procurement', 'inventory', 'hr', 'equipment', 'fleet',
+   191→      'hse', 'quality', 'costs', 'evm', 'cashflow', 'baselines', 'changes',
+   192→      'submittals', 'closeout', 'commissioning', 'site-progress', 'lookahead',
+   193→      'accounts', 'tender', 'exec-reports', 'notifications', 'ai-planner',
+   194→      'integrations', 'workflow-engine', 'security', 'support', 'portals',
+   195→    ]),
+   196→    sortOrder: 4,
+   197→    active: true,
+   198→  },
+   199→]
+   200→
+   201→/* ------------------------------------------------------------------ */
+   202→/*  Animation helper                                                   */
+   203→/* ------------------------------------------------------------------ */
+   204→function SectionFadeIn({
+   205→  children,
+   206→  className,
+   207→  delay = 0,
+   208→}: {
+   209→  children: React.ReactNode
+   210→  className?: string
+   211→  delay?: number
+   212→}) {
+   213→  return (
+   214→    <motion.div
+   215→      initial={{ opacity: 0, y: 10 }}
+   216→      whileInView={{ opacity: 1, y: 0 }}
+   217→      viewport={{ once: true, margin: '-60px' }}
+   218→      transition={{ duration: 0.3, delay }}
+   219→      className={className}
+   220→    >
+   221→      {children}
+   222→    </motion.div>
+   223→  )
+   224→}
+   225→
+   226→/* ------------------------------------------------------------------ */
+   227→/*  Plan Icon Component                                                */
+   228→/* ------------------------------------------------------------------ */
+   229→const PLAN_ICONS: Record<string, React.ElementType> = {
+   230→  zap: Zap,
+   231→  shield: Shield,
+   232→  crown: Crown,
+   233→  building: Building2,
+   234→  users: Users,
+   235→}
+   236→
+   237→function getPlanIconKey(name: string): string {
+   238→  const lower = name.toLowerCase()
+   239→  if (lower.includes('free') || lower.includes('trial')) return 'zap'
+   240→  if (lower.includes('starter')) return 'shield'
+   241→  if (lower.includes('professional') || lower.includes('pro')) return 'crown'
+   242→  if (lower.includes('enterprise') || lower.includes('custom')) return 'building'
+   243→  return 'users'
+   244→}
+   245→
+   246→function PlanIcon({ name }: { name: string }) {
+   247→  const key = getPlanIconKey(name)
+   248→  const Icon = PLAN_ICONS[key] || Users
+   249→  return <Icon className="h-4 w-4 text-primary" />
+   250→}
+   251→
+   252→/* ------------------------------------------------------------------ */
+   253→/*  Helpers                                                            */
+   254→/* ------------------------------------------------------------------ */
+   255→function formatStorage(mb: number): string {
+   256→  if (mb >= 1000000) return `${(mb / 1000 / 1000).toFixed(0)} TB`
+   257→  if (mb >= 1000) return `${(mb / 1000).toFixed(0)} GB`
+   258→  return `${mb} MB`
+   259→}
+   260→
+   261→function formatApiCalls(n: number): string {
+   262→  if (n >= 1000000) return `${(n / 1000000).toFixed(0)}M`
+   263→  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`
+   264→  return n === 0 ? '-' : String(n)
+   265→}
+   266→
+   267→function getSavings(monthly: number, annual: number): number {
+   268→  if (monthly === 0 || annual === 0) return 0
+   269→  const annualTotal = annual * 12
+   270→  const monthlyTotal = monthly * 12
+   271→  return Math.round(((monthlyTotal - annualTotal) / monthlyTotal) * 100)
+   272→}
+   273→
+   274→function isProfessionalPlan(name: string): boolean {
+   275→  return name.toLowerCase().includes('professional')
+   276→}
+   277→
+   278→function isEnterprisePlan(name: string): boolean {
+   279→  return name.toLowerCase().includes('enterprise') || name.toLowerCase().includes('custom')
+   280→}
+   281→
+   282→function parseFeatures(featuresStr: string): string[] {
+   283→  try {
+   284→    const parsed = JSON.parse(featuresStr)
+   285→    if (Array.isArray(parsed)) return parsed
+   286→    return []
+   287→  } catch {
+   288→    return []
+   289→  }
+   290→}
+   291→
+   292→/* ------------------------------------------------------------------ */
+   293→/*  FAQ Data                                                           */
+   294→/* ------------------------------------------------------------------ */
+   295→const FAQ_ITEMS = [
+   296→  {
+   297→    question: 'Can I change my plan later?',
+   298→    answer:
+   299→      "Yes, you can upgrade or downgrade your plan at any time from your account settings. When upgrading, you'll be prorated for the remaining billing period.",
+   300→  },
+   301→  {
+   302→    question: 'What happens when my 14-day free trial ends?',
+   303→    answer:
+   304→      "After your 14-day trial, you'll need to select a paid plan to continue using SmartBuild. Your data will be preserved for 30 days.",
+   305→  },
+   306→  {
+   307→    question: 'Is there a discount for annual billing?',
+   308→    answer:
+   309→      'Yes! When you choose annual billing, you save up to 20% compared to monthly billing. Annual billing is paid upfront for the full year.',
+   310→  },
+   311→  {
+   312→    question: 'Do you offer custom enterprise solutions?',
+   313→    answer:
+   314→      'Absolutely. Our Custom plan is designed for large construction organizations with specific needs, including custom integrations and SLA guarantees.',
+   315→  },
+   316→]
+   317→
+   318→/* ------------------------------------------------------------------ */
+   319→/*  Skeleton loader                                                    */
+   320→/* ------------------------------------------------------------------ */
+   321→function PlanCardSkeleton() {
+   322→  return (
+   323→    <Card className="rounded-xl">
+   324→      <CardContent className="p-4 space-y-4">
+   325→        <div className="flex items-center gap-2">
+   326→          <Skeleton className="h-8 w-8 rounded-lg" />
+   327→          <Skeleton className="h-4 w-24" />
+   328→        </div>
+   329→        <Skeleton className="h-3 w-full" />
+   330→        <Skeleton className="h-8 w-20" />
+   331→        <div className="space-y-2">
+   332→          <Skeleton className="h-3 w-full" />
+   333→          <Skeleton className="h-3 w-full" />
+   334→          <Skeleton className="h-3 w-3/4" />
+   335→        </div>
+   336→        <Skeleton className="h-9 w-full rounded-md" />
+   337→      </CardContent>
+   338→    </Card>
+   339→  )
+   340→}
+   341→
+   342→/* ------------------------------------------------------------------ */
+   343→/*  Plan Card                                                          */
+   344→/* ------------------------------------------------------------------ */
+   345→function PlanCard({
+   346→  plan,
+   347→  annual,
+   348→  index,
+   349→}: {
+   350→  plan: Plan
+   351→  annual: boolean
+   352→  index: number
+   353→}) {
+   354→  const price = annual ? plan.priceAnnual : plan.priceMonthly
+   355→  const savings = getSavings(plan.priceMonthly, plan.priceAnnual)
+   356→  const isPro = isProfessionalPlan(plan.name)
+   357→  const isEnt = isEnterprisePlan(plan.name)
+   358→  const features = parseFeatures(plan.features)
+   359→
+   360→  const ctaLabel = isEnt ? 'Contact Sales' : price === 0 ? 'Start Free Trial' : 'Get Started'
+   361→  const ctaHref = isEnt ? '#' : `/register?plan=${plan.id}`
+   362→  const ctaVariant: 'default' | 'outline' = isEnt ? 'outline' : isPro ? 'default' : 'outline'
+   363→
+   364→  return (
+   365→    <motion.div
+   366→      initial={{ opacity: 0, y: 10 }}
+   367→      whileInView={{ opacity: 1, y: 0 }}
+   368→      viewport={{ once: true, margin: '-40px' }}
+   369→      transition={{ duration: 0.3, delay: index * 0.05 }}
+   370→    >
+   371→      <Card
+   372→        className={`rounded-xl h-full flex flex-col transition-shadow hover:shadow-lg ${
+   373→          isPro ? 'border-2 border-[#F5A623] relative' : ''
+   374→        }`}
+   375→      >
+   376→        {isPro && (
+   377→          <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#F5A623] text-white text-[10px] px-2.5 py-0.5 border-0">
+   378→            Most Popular
+   379→          </Badge>
+   380→        )}
+   381→
+   382→        <div className="p-4 pb-0">
+   383→          <div className="flex items-center gap-2">
+   384→            <div className="rounded-lg bg-primary/10 p-2">
+   385→              <PlanIcon name={plan.name} />
+   386→            </div>
+   387→            <div>
+   388→              <p className="text-sm font-bold font-heading text-primary">{plan.name}</p>
+   389→            </div>
+   390→          </div>
+   391→        </div>
+   392→
+   393→        <CardContent className="p-4 flex-1 flex flex-col gap-4">
+   394→          {/* Description */}
+   395→          <p className="text-sm text-muted-foreground font-body leading-relaxed">
+   396→            {plan.description}
+   397→          </p>
+   398→
+   399→          {/* Price */}
+   400→          <div className="space-y-1">
+   401→            <div className="flex items-baseline gap-0.5">
+   402→              {price === 0 ? (
+   403→                <span className="text-3xl font-bold">Free</span>
+   404→              ) : (
+   405→                <>
+   406→                  <span className="text-sm text-muted-foreground">$</span>
+   407→                  <span className="text-3xl font-bold">{price.toLocaleString()}</span>
+   408→                  <span className="text-sm text-muted-foreground">/mo</span>
+   409→                </>
+   410→              )}
+   411→            </div>
+   412→            {annual && savings > 0 && (
+   413→              <p className="text-[11px] font-medium text-[#F5A623]">
+   414→                Save {savings}% with annual billing
+   415→              </p>
+   416→            )}
+   417→            {annual && price === 0 && (
+   418→              <p className="text-[11px] text-muted-foreground">Billed annually</p>
+   419→            )}
+   420→          </div>
+   421→
+   422→          {/* Key limits */}
+   423→          <div className="space-y-1.5">
+   424→            <div className="flex justify-between text-xs">
+   425→              <span className="text-muted-foreground">Users</span>
+   426→              <span className="font-medium">
+   427→                {plan.maxUsers >= 9999 ? 'Unlimited' : plan.maxUsers}
+   428→              </span>
+   429→            </div>
+   430→            <div className="flex justify-between text-xs">
+   431→              <span className="text-muted-foreground">Projects</span>
+   432→              <span className="font-medium">
+   433→                {plan.maxProjects >= 9999 ? 'Unlimited' : plan.maxProjects}
+   434→              </span>
+   435→            </div>
+   436→            <div className="flex justify-between text-xs">
+   437→              <span className="text-muted-foreground">Storage</span>
+   438→              <span className="font-medium">{formatStorage(plan.maxStorage)}</span>
+   439→            </div>
+   440→            <div className="flex justify-between text-xs">
+   441→              <span className="text-muted-foreground">Branches</span>
+   442→              <span className="font-medium">
+   443→                {plan.maxBranches >= 999 ? 'Unlimited' : plan.maxBranches}
+   444→              </span>
+   445→            </div>
+   446→          </div>
+   447→
+   448→          {/* Capability badges */}
+   449→          <div className="flex flex-wrap gap-1.5">
+   450→            {plan.mobileAccess && (
+   451→              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+   452→                Mobile
+   453→              </Badge>
+   454→            )}
+   455→            {plan.apiAccess && (
+   456→              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+   457→                API
+   458→              </Badge>
+   459→            )}
+   460→            {plan.integrations && (
+   461→              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+   462→                Integrations
+   463→              </Badge>
+   464→            )}
+   465→            {plan.customDomain && (
+   466→              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+   467→                Custom Domain
+   468→              </Badge>
+   469→            )}
+   470→            {plan.prioritySupport && (
+   471→              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+   472→                Priority Support
+   473→              </Badge>
+   474→            )}
+   475→            {plan.aiCredits > 0 && (
+   476→              <Badge
+   477→                variant="secondary"
+   478→                className="text-[10px] px-1.5 py-0 h-5 bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/20"
+   479→              >
+   480→                {plan.aiCredits >= 9999
+   481→                  ? 'Unlimited AI'
+   482→                  : `${plan.aiCredits} AI Credits`}
+   483→              </Badge>
+   484→            )}
+   485→          </div>
+   486→
+   487→          {/* Features list */}
+   488→          {features.length > 0 && (
+   489→            <ul className="space-y-1.5 flex-1">
+   490→              {features.slice(0, 5).map((f: string, i: number) => (
+   491→                <li key={i} className="flex items-start gap-1.5">
+   492→                  <Check className="h-3.5 w-3.5 text-emerald-600 mt-0.5 shrink-0" />
+   493→                  <span className="text-sm text-muted-foreground font-body">
+   494→                    {f}
+   495→                  </span>
+   496→                </li>
+   497→              ))}
+   498→              {features.length > 5 && (
+   499→                <li className="text-sm text-muted-foreground">
+   500→                  +{features.length - 5} more features
+   501→                </li>
+   502→              )}
+   503→            </ul>
+   504→          )}
+   505→
+   506→          {/* CTA */}
+   507→          <Button className="w-full mt-auto" variant={ctaVariant} size="sm" asChild>
+   508→            <Link href={ctaHref}>
+   509→              {ctaLabel}
+   510→              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+   511→            </Link>
+   512→          </Button>
+   513→        </CardContent>
+   514→      </Card>
+   515→    </motion.div>
+   516→  )
+   517→}
+   518→
+   519→/* ------------------------------------------------------------------ */
+   520→/*  Comparison Table                                                   */
+   521→/* ------------------------------------------------------------------ */
+   522→function ComparisonTable({ plans }: { plans: Plan[] }) {
+   523→  const comparisonRows = [
+   524→    {
+   525→      label: 'Users',
+   526→      getValue: (p: Plan) =>
+   527→        p.maxUsers >= 9999 ? 'Unlimited' : String(p.maxUsers),
+   528→      isBoolean: false,
+   529→    },
+   530→    {
+   531→      label: 'Projects',
+   532→      getValue: (p: Plan) =>
+   533→        p.maxProjects >= 9999 ? 'Unlimited' : String(p.maxProjects),
+   534→      isBoolean: false,
+   535→    },
+   536→    {
+   537→      label: 'Storage',
+   538→      getValue: (p: Plan) => formatStorage(p.maxStorage),
+   539→      isBoolean: false,
+   540→    },
+   541→    {
+   542→      label: 'Branches',
+   543→      getValue: (p: Plan) =>
+   544→        p.maxBranches >= 999 ? 'Unlimited' : String(p.maxBranches),
+   545→      isBoolean: false,
+   546→    },
+   547→    {
+   548→      label: 'API Calls / mo',
+   549→      getValue: (p: Plan) =>
+   550→        p.maxApiCalls >= 999999
+   551→          ? 'Unlimited'
+   552→          : formatApiCalls(p.maxApiCalls),
+   553→      isBoolean: false,
+   554→    },
+   555→    {
+   556→      label: 'AI Credits',
+   557→      getValue: (p: Plan) =>
+   558→        p.aiCredits === 0
+   559→          ? '-'
+   560→          : p.aiCredits >= 9999
+   561→            ? 'Unlimited'
+   562→            : String(p.aiCredits),
+   563→      isBoolean: false,
+   564→    },
+   565→    {
+   566→      label: 'Mobile Access',
+   567→      getValue: (p: Plan) => p.mobileAccess,
+   568→      isBoolean: true,
+   569→    },
+   570→    {
+   571→      label: 'API Access',
+   572→      getValue: (p: Plan) => p.apiAccess,
+   573→      isBoolean: true,
+   574→    },
+   575→    {
+   576→      label: 'Integrations',
+   577→      getValue: (p: Plan) => p.integrations,
+   578→      isBoolean: true,
+   579→    },
+   580→    {
+   581→      label: 'Custom Domain',
+   582→      getValue: (p: Plan) => p.customDomain,
+   583→      isBoolean: true,
+   584→    },
+   585→    {
+   586→      label: 'Priority Support',
+   587→      getValue: (p: Plan) => p.prioritySupport,
+   588→      isBoolean: true,
+   589→    },
+   590→  ]
+   591→
+   592→  return (
+   593→    <Card className="rounded-xl">
+   594→      <div className="p-4 pb-2">
+   595→        <p className="text-lg font-bold font-heading text-primary">
+   596→          Feature Comparison
+   597→        </p>
+   598→      </div>
+   599→      <CardContent className="p-4 pt-0">
+   600→        <div className="overflow-x-auto">
+   601→          <Table>
+   602→            <TableHeader>
+   603→              <TableRow>
+   604→                <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+   605→                  Feature
+   606→                </TableHead>
+   607→                {plans.map((plan) => (
+   608→                  <TableHead
+   609→                    key={plan.id}
+   610→                    className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-center min-w-[100px]"
+   611→                  >
+   612→                    {plan.name}
+   613→                  </TableHead>
+   614→                ))}
+   615→              </TableRow>
+   616→            </TableHeader>
+   617→            <TableBody>
+   618→              {comparisonRows.map((row) => (
+   619→                <TableRow key={row.label}>
+   620→                  <TableCell className="text-sm font-medium text-muted-foreground">
+   621→                    {row.label}
+   622→                  </TableCell>
+   623→                  {plans.map((plan) => {
+   624→                    const value = row.getValue(plan)
+   625→                    if (row.isBoolean) {
+   626→                      return (
+   627→                        <TableCell key={plan.id} className="text-center">
+   628→                          {value ? (
+   629→                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mx-auto" />
+   630→                          ) : (
+   631→                            <XCircle className="h-4 w-4 text-rose-400 mx-auto" />
+   632→                          )}
+   633→                        </TableCell>
+   634→                      )
+   635→                    }
+   636→                    return (
+   637→                      <TableCell
+   638→                        key={plan.id}
+   639→                        className="text-sm text-center text-muted-foreground"
+   640→                      >
+   641→                        {String(value)}
+   642→                      </TableCell>
+   643→                    )
+   644→                  })}
+   645→                </TableRow>
+   646→              ))}
+   647→            </TableBody>
+   648→          </Table>
+   649→        </div>
+   650→      </CardContent>
+   651→    </Card>
+   652→  )
+   653→}
+   654→
+   655→/* ------------------------------------------------------------------ */
+   656→/*  Pricing Page                                                       */
+   657→/* ------------------------------------------------------------------ */
+   658→export default function PricingPage() {
+   659→  const [plans, setPlans] = useState<Plan[]>([])
+   660→  const [loading, setLoading] = useState(true)
+   661→  const [annual, setAnnual] = useState(false)
+   662→
+   663→  useEffect(() => {
+   664→    fetch('/api/platform/plans')
+   665→      .then((res) => {
+   666→        if (!res.ok) throw new Error('Not authorized')
+   667→        return res.json()
+   668→      })
+   669→      .then((data) => {
+   670→        const sorted = (data.plans || data || [])
+   671→          .filter((p: Plan) => p.active)
+   672→          .sort((a: Plan, b: Plan) => a.sortOrder - b.sortOrder)
+   673→        setPlans(sorted)
+   674→      })
+   675→      .catch(() => {
+   676→        // Use fallback data when API is unavailable (e.g. not authenticated)
+   677→        setPlans(FALLBACK_PLANS.sort((a, b) => a.sortOrder - b.sortOrder))
+   678→      })
+   679→      .finally(() => setLoading(false))
+   680→  }, [])
+   681→
+   682→  return (
+   683→    <div className="min-h-dvh flex flex-col bg-background">
+   684→      {/* ============================================================ */}
+   685→      {/*  Top Bar                                                      */}
+   686→      {/* ============================================================ */}
+   687→      <header className="sticky top-0 z-50 h-14 border-b bg-background/95 backdrop-blur">
+   688→        <div className="max-w-[1600px] mx-auto flex h-full items-center justify-between px-4 lg:px-6">
+   689→          {/* Logo */}
+   690→          <Link href="/" className="flex items-center gap-2.5">
+   691→            <Image
+   692→              src="/brand/smartbuild-app-light.svg"
+   693→              alt="SmartBuild"
+   694→              width={36}
+   695→              height={36}
+   696→              className="h-9 w-9 rounded-[22%]"
+   697→            />
+   698→            <span className="font-heading text-lg font-bold text-primary">
+   699→              SmartBuild
+   700→            </span>
+   701→          </Link>
+   702→
+   703→          {/* Center Nav */}
+   704→          <nav className="hidden md:flex items-center gap-6">
+   705→            <Link
+   706→              href="/"
+   707→              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+   708→            >
+   709→              Home
+   710→            </Link>
+   711→            <Link
+   712→              href="/pricing"
+   713→              className="text-sm font-medium text-primary transition-colors"
+   714→            >
+   715→              Pricing
+   716→            </Link>
+   717→          </nav>
+   718→
+   719→          {/* CTA */}
+   720→          <div className="flex items-center gap-2">
+   721→            <Button size="sm" asChild>
+   722→              <Link href="/register">
+   723→                Get Started
+   724→                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+   725→              </Link>
+   726→            </Button>
+   727→          </div>
+   728→        </div>
+   729→      </header>
+   730→
+   731→      {/* ============================================================ */}
+   732→      {/*  Main Content                                                 */}
+   733→      {/* ============================================================ */}
+   734→      <main className="flex-1">
+   735→        {/* ---------------------------------------------------------- */}
+   736→        {/*  Page Header                                                 */}
+   737→        {/* ---------------------------------------------------------- */}
+   738→        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-8">
+   739→          <SectionFadeIn className="text-center space-y-4">
+   740→            <h1 className="text-2xl font-bold font-heading">Pricing</h1>
+   741→            <p className="text-sm text-muted-foreground font-body max-w-lg mx-auto leading-relaxed">
+   742→              Choose the right plan for your team. All plans include a 14-day free
+   743→              trial. No credit card required.
+   744→            </p>
+   745→
+   746→            {/* Monthly / Annual toggle */}
+   747→            <div className="flex items-center justify-center gap-3">
+   748→              <span
+   749→                className={`text-sm font-medium transition-colors ${
+   750→                  !annual ? 'text-primary' : 'text-muted-foreground'
+   751→                }`}
+   752→              >
+   753→                Monthly
+   754→              </span>
+   755→              <Switch checked={annual} onCheckedChange={setAnnual} />
+   756→              <span
+   757→                className={`text-sm font-medium transition-colors ${
+   758→                  annual ? 'text-primary' : 'text-muted-foreground'
+   759→                }`}
+   760→              >
+   761→                Annual
+   762→              </span>
+   763→              {annual && (
+   764→                <Badge
+   765→                  variant="secondary"
+   766→                  className="bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/20 text-[10px] px-2 py-0"
+   767→                >
+   768→                  Save up to 20%
+   769→                </Badge>
+   770→              )}
+   771→            </div>
+   772→          </SectionFadeIn>
+   773→        </section>
+   774→
+   775→        {/* ---------------------------------------------------------- */}
+   776→        {/*  Plan Cards                                                  */}
+   777→        {/* ---------------------------------------------------------- */}
+   778→        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 space-y-4">
+   779→          {loading ? (
+   780→            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+   781→              {Array.from({ length: 5 }).map((_, i) => (
+   782→                <PlanCardSkeleton key={i} />
+   783→              ))}
+   784→            </div>
+   785→          ) : plans.length > 0 ? (
+   786→            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+   787→              {plans.map((plan, i) => (
+   788→                <PlanCard key={plan.id} plan={plan} annual={annual} index={i} />
+   789→              ))}
+   790→            </div>
+   791→          ) : (
+   792→            <Card className="rounded-xl">
+   793→              <CardContent className="p-8 text-center">
+   794→                <p className="text-sm text-muted-foreground">
+   795→                  Unable to load plans. Please refresh the page.
+   796→                </p>
+   797→              </CardContent>
+   798→            </Card>
+   799→          )}
+   800→        </section>
+   801→
+   802→        {/* ---------------------------------------------------------- */}
+   803→        {/*  Feature Comparison Table                                    */}
+   804→        {/* ---------------------------------------------------------- */}
+   805→        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-12 lg:py-16 space-y-4">
+   806→          <SectionFadeIn>
+   807→            <ComparisonTable plans={plans} />
+   808→          </SectionFadeIn>
+   809→        </section>
+   810→
+   811→        {/* ---------------------------------------------------------- */}
+   812→        {/*  FAQ                                                         */}
+   813→        {/* ---------------------------------------------------------- */}
+   814→        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 space-y-4">
+   815→          <SectionFadeIn>
+   816→            <div className="max-w-2xl mx-auto">
+   817→              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-center mb-4">
+   818→                Support
+   819→              </p>
+   820→              <h2 className="text-lg font-bold font-heading text-center mb-6">
+   821→                Frequently Asked Questions
+   822→              </h2>
+   823→              <Accordion type="single" collapsible className="w-full">
+   824→                {FAQ_ITEMS.map((item, i) => (
+   825→                  <AccordionItem key={i} value={`faq-${i}`}>
+   826→                    <AccordionTrigger className="text-sm font-medium text-left">
+   827→                      {item.question}
+   828→                    </AccordionTrigger>
+   829→                    <AccordionContent className="text-sm text-muted-foreground font-body leading-relaxed">
+   830→                      {item.answer}
+   831→                    </AccordionContent>
+   832→                  </AccordionItem>
+   833→                ))}
+   834→              </Accordion>
+   835→            </div>
+   836→          </SectionFadeIn>
+   837→        </section>
+   838→
+   839→        {/* ---------------------------------------------------------- */}
+   840→        {/*  CTA Section                                                 */}
+   841→        {/* ---------------------------------------------------------- */}
+   842→        <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-12 lg:py-16">
+   843→          <SectionFadeIn>
+   844→            <Card className="bg-primary text-primary-foreground rounded-2xl">
+   845→              <CardContent className="p-8 lg:p-12 text-center space-y-4">
+   846→                <h2 className="text-lg font-bold font-heading text-primary-foreground">
+   847→                  Ready to Get Started?
+   848→                </h2>
+   849→                <p className="text-sm text-primary-foreground/70 font-body max-w-lg mx-auto leading-relaxed">
+   850→                  Start your 14-day free trial today. No credit card required.
+   851→                  Set up your workspace in minutes.
+   852→                </p>
+   853→                <div className="flex flex-wrap justify-center gap-3 pt-2">
+   854→                  <Button
+   855→                    size="lg"
+   856→                    variant="secondary"
+   857→                    className="bg-white text-primary hover:bg-white/90"
+   858→                    asChild
+   859→                  >
+   860→                    <Link href="/register">
+   861→                      Start Free Trial
+   862→                      <ArrowRight className="ml-2 h-4 w-4" />
+   863→                    </Link>
+   864→                  </Button>
+   865→                  <Button
+   866→                    size="lg"
+   867→                    variant="outline"
+   868→                    className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+   869→                    asChild
+   870→                  >
+   871→                    <Link href="/">Back to Home</Link>
+   872→                  </Button>
+   873→                </div>
+   874→              </CardContent>
+   875→            </Card>
+   876→          </SectionFadeIn>
+   877→        </section>
+   878→      </main>
+   879→
+   880→      {/* ============================================================ */}
+   881→      {/*  Footer                                                      */}
+   882→      {/* ============================================================ */}
+   883→      <BrandFooter />
+   884→    </div>
+   885→  )
+   886→}
+   887→

@@ -289,8 +289,148 @@ Technical:
 - Fully responsive
 - Lint passes clean, dev server compiles successfully (GET /register 200)
 
+---
+Task ID: 1
+Agent: Landing Page Restorer
+Task: Restore original SmartBuild landing page with navy/gold glassmorphism design
+
+Work Log:
+- Read worklog.md to understand the original design (Task ID: 2 — Landing Page Builder, 736 lines with navy gradients, glassmorphism, enterprise-grade)
+- Analyzed the unauthorized redesign (Task ID: 3 — Landing Page Rebuild) which replaced navy/gold with clean, minimal, light/white generic SaaS
+- Completely overwrote `/src/app/page.tsx` restoring the ORIGINAL dramatic, enterprise-grade design
+- Restored design system: `bg-navy-gradient` hero background, `.glass`/`.glass-dark`/`.glass-gold` glassmorphism cards, navy (#0B2345) + gold (#F5A623) palette, `.text-gradient` for gold accent text, `.font-heading`/`.font-body` typography
+- 7 sections restored:
+  1. **Sticky Navbar** — Transparent-to-glass on scroll, logo + nav links + gold CTA button, Sheet-based mobile hamburger menu with navy gradient SheetContent
+  2. **Hero Section** — Full navy gradient background with subtle glow orbs, 2-column grid: badge + H1 with .text-gradient + CTAs + trust signals (left), glassmorphism dashboard mockup with 3 KPI cards (.glass-gold) and animated progress bars (right)
+  3. **Trusted By Section** — On navy gradient, 5 Malaysian construction enterprise logos (GAMUDA, IJM, YTL, SUNWAY, UEM) in muted text
+  4. **Features Grid** — Light bg (#F8FAFC), 6 feature cards in 3-column grid with gold-accent icon containers, hover:shadow-lg + hover:-translate-y effects
+  5. **Architecture Highlights** — 4 enterprise feature cards (Multi-Tenant, RBAC, Subscriptions, Analytics) in 4-column grid
+  6. **CTA Section** — Navy gradient rounded card with gold CTA button, outline secondary button, trust signals
+  7. **Footer** — `<BrandFooter />` with `mt-auto` for sticky-to-bottom
+- Animations: framer-motion `initial={{ opacity: 0, y: 20 }}` with `whileInView`, staggered grid animations (0.08s stagger), progress bar entrance animations, navbar scroll transition
+- Container: `max-w-[1600px] mx-auto px-4 lg:px-6` within content areas
+- All shadcn/ui components used: Button, Card, CardContent, Badge, Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle
+- All specified lucide-react icons used: Layers, GanttChart, Users, DollarSign, FileCheck, ShieldCheck, Shield, Lock, CreditCard, BarChart3, Building2, ArrowRight, CheckCircle2, Clock, Headphones, Sparkles, Menu
+- Fully responsive (mobile-first), accessible (sr-only labels, semantic HTML)
+- Lint passes clean, dev server compiles successfully (GET / 200)
+
 Stage Summary:
-- /home/z/my-project/src/app/register/page.tsx completely rebuilt to match SmartBuild design system
-- Clean, light registration page with plan selector, company info, admin account, validation, and success state
-- Consistent with pricing page design language (same header, footer, typography, spacing)
-- Lint passes clean, page compiles and serves correctly (GET /register 200)
+- /home/z/my-project/src/app/page.tsx restored to original navy/gold glassmorphism enterprise design
+- 7 sections with dramatic navy gradients, gold accents, glassmorphism cards, and framer-motion animations
+- Responsive with mobile Sheet hamburger menu, scroll-aware navbar, animated progress bars
+- Lint passes clean, dev server compiles successfully (GET / 200)
+
+---
+Task ID: 2
+Agent: Pricing Page Restorer
+Task: Restore original SmartBuild pricing page with navy/gold glassmorphism design
+
+Work Log:
+- Read worklog.md to understand project history and identify the unauthorized redesign (Task ID: 4 — Rebuild /src/app/pricing/page.tsx) which replaced the original navy/gold glassmorphism pricing page with a clean, minimal, light/white generic SaaS look
+- Analyzed the restored landing page (Task ID: 1 — Landing Page Restorer) to match design patterns: sticky glassmorphism navbar, navy gradient hero, white text, gold accents, framer-motion scroll animations
+- Completely overwrote `/src/app/pricing/page.tsx` (~1090 lines) restoring the ORIGINAL dramatic, enterprise-grade SmartBuild design
+- Restored design system: `bg-navy-gradient` hero/header, `.glass-dark` navbar on scroll, navy (#0B2345) + gold (#F5A623) palette, `.text-gradient` for gold accent text, `.font-heading`/`.font-body` typography, `bg-[#F8FAFC]` for light content sections
+- 7 sections restored:
+  1. **Sticky Navbar** — Navy bg with glass-dark on scroll, logo + nav links (Pricing highlighted in gold) + Sign In + gold CTA button, Sheet-based mobile hamburger with navy gradient SheetContent matching landing page
+  2. **Hero Header** — `bg-navy-gradient` with decorative gold glow orbs, centered Badge + h1 with `.text-gradient` on 'Transparent' + subtitle + Monthly/Annual toggle with shadcn Switch + animated gold 'Save up to 20%' badge using AnimatePresence
+  3. **Plan Cards** — Light bg (#F8FAFC), 5 cards in `grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6`, staggered entrance via StaggerContainer, each card: icon in colored container, name, description, price ('Free' or '$XXX/mo' or 'Custom'), annual savings, limits (Users/Projects/Storage), feature list with emerald Check icons, CTA button (gold bg for Professional, navy for Free, outline for others), Professional card highlighted with `border-2 border-[#F5A623]` + 'Most Popular' gold badge, hover:shadow-lg + hover:-translate-y
+  4. **Feature Comparison Table** — Light bg, Card wrapper with shadcn Table, 10 comparison rows, Professional column highlighted with `bg-[#F5A623]/5` tint, Check/X icons
+  5. **FAQ Section** — Light bg, centered heading, 5 FAQ items in shadcn Accordion inside Card
+  6. **CTA Section** — Navy gradient rounded card with gold glow orbs, 'Ready to Get Started?' heading, gold CTA + outline buttons, trust signals
+  7. **Footer** — `<BrandFooter />` with `mt-auto`
+- Used FALLBACK_PLANS data matching seed data spec with byte-based storage values
+- Fixed ESLint error by replacing dynamic component creation with static PLAN_ICON_MAP record
+- Animations: framer-motion scroll-triggered, staggered children, AnimatePresence for badge
+- All specified components and icons used, fully responsive, NO indigo/blue colors
+
+Stage Summary:
+- /home/z/my-project/src/app/pricing/page.tsx restored to original navy/gold glassmorphism enterprise design (~1090 lines)
+- 7-section pricing page matching the restored landing page design language
+- Lint passes clean, dev server compiles successfully (GET /pricing 200)
+
+---
+Task ID: 3
+Agent: Register Page Restorer
+Task: Restore original SmartBuild register page with navy/gold two-column glassmorphism design
+
+Work Log:
+- Read worklog.md to understand project history and identify the unauthorized redesign (Task ID: 5 — Register Page Rebuild) which replaced the original navy/gold glassmorphism register page with a clean, minimal, light/white generic SaaS look
+- Analyzed the restored landing page and pricing page (Tasks ID: 1, 2 — Restorers) to match design patterns: navy gradient panels, glassmorphism, gold accents, framer-motion staggered animations
+- Completely overwrote `/src/app/register/page.tsx` (~560 lines) restoring the ORIGINAL dramatic, enterprise-grade SmartBuild design
+- Restored design system: `bg-navy-gradient` left branding panel, `.glass` glassmorphism for form card and testimonial, navy (#0B2345) + gold (#F5A623) palette, `.text-gradient` for gold accent text, `.font-heading`/`.font-body` typography
+- Two-column layout on desktop (`lg:grid-cols-2`), single column on mobile
+
+Left Panel (hidden on mobile, shown lg:):
+- Full-height navy gradient (`bg-navy-gradient`) with decorative gold glow orbs
+- SmartBuild logo (44x44 `/brand/smartbuild-app-dark.svg`)
+- "Start your 14-day free trial" headline with `.text-gradient` on key words
+- Subtitle about enterprise EPPM platform
+- 4 benefit bullet points with gold icons in `bg-[#F5A623]/15` containers: Layers (Full EPPM Suite), ShieldCheck (Multi-Tenant Isolation), Lock (RBAC Permissions), Headphones (24/7 Support)
+- Testimonial card with `.glass` glassmorphism: Quote icon, testimonial from Ahmad Faiz (COO at Gamuda Berhad), avatar initials
+- Copyright at bottom
+- All elements use staggered framer-motion entrance animations (containerVariants + itemVariants, staggerChildren: 0.1)
+
+Right Panel:
+- Mobile: small logo with brand text at top; bg-[#F8FAFC]
+- Desktop: navy background (#0B2345) showing through glass form
+- Form card: `bg-white/95 backdrop-blur-xl lg:bg-white/10 lg:backdrop-blur-2xl`, rounded-2xl, shadow-xl, with gold top accent bar (`h-1 bg-gradient-to-r from-[#F5A623] via-[#F7B84E] to-[#F5A623]`)
+- Desktop form inputs: dark styling (`lg:bg-white/10 lg:text-white lg:border-white/10 lg:placeholder:text-white/40`) matching navy background through glass
+- Heading: "Create your workspace" with `.font-heading`
+- Subtitle: "Get started in minutes — no credit card required"
+
+Form sections:
+1. Plan Selector — Horizontal scrollable compact plan cards (name + price), selected plan gets `border-2 border-[#F5A623]` + gold Check icon, fetches from `/api/platform/plans` with fallback data, supports `?plan=xxx` URL param
+2. Company Information — Company Name (Building2 icon), Company URL Slug (Globe icon, auto-generated, editable, real-time `smartbuild.app/{slug}` preview, validates `/^[a-z0-9-]+$/`), Phone (Phone icon, optional)
+3. Admin Account — Full Name (User), Email (Mail), Password (Lock + Eye/EyeOff), Confirm Password (Lock + Eye/EyeOff) in 2-col grid on sm+
+4. Terms checkbox with gold-styled Checkbox + links to Terms of Service and Privacy Policy
+5. Submit: "Create My Workspace" gold bg button with Loader2 spinner
+6. "Already have an account? Sign in" link → /login
+
+Success State:
+- Full-screen navy gradient background
+- Glassmorphism card with spring-animated CheckCircle (h-16 w-16, text-emerald-500)
+- Company name display, workspace URL preview with `.text-gradient`
+- "Go to Dashboard" button → /app
+- Staggered entrance animations for all elements
+
+Validation: all required fields, email format, password ≥6 chars, passwords match, slug format, terms acceptance; field-level errors cleared on input
+
+Components used: shadcn Button, Input, Label, Card, CardContent, Checkbox, Skeleton
+Icons: Building2, Mail, Lock, User, Phone, Globe, Check, ArrowRight, Eye, EyeOff, Loader2, CheckCircle, Layers, ShieldCheck, Headphones, Quote
+NO indigo/blue colors anywhere — only navy (#0B2345) and gold (#F5A623)
+Layout: `min-h-screen` (not min-h-dvh — this is a full-screen auth page)
+Fully responsive, accessible (aria-labels, semantic HTML)
+Lint passes clean, dev server compiles successfully (GET /register 200)
+
+Stage Summary:
+- /home/z/my-project/src/app/register/page.tsx restored to original navy/gold glassmorphism enterprise design (~560 lines)
+- Two-column desktop (navy branding panel + glass form), single-column mobile registration page
+- Full validation, plan selection, slug auto-generation, success animation
+- Lint passes clean, dev server compiles successfully (GET /register 200)
+
+---
+Task ID: UI-RESTORE
+Agent: Main Orchestrator
+Task: Restore original SmartBuild UI design system across all public pages
+
+Work Log:
+- Analyzed worklog history to identify the original SmartBuild design vs the unauthorized redesign
+- Original design: navy gradient (bg-navy-gradient) backgrounds, glassmorphism (.glass, .glass-dark, .glass-gold), gold accent (#F5A623) prominently, dramatic animations, trusted-by section, two-column auth layouts
+- Unauthorized redesign: clean/white bg-background, minimal cards, generic SaaS look, no glassmorphism, no navy gradients
+- Restored /src/app/page.tsx (landing): navy gradient hero, glassmorphism dashboard mockup, trusted-by section (GAMUDA, IJM, YTL, SUNWAY, UEM), staggered animations, gold CTAs
+- Restored /src/app/pricing/page.tsx: navy gradient header, monthly/annual toggle, 5 plan cards with gold-highlighted Professional, comparison table, FAQ, CTA
+- Restored /src/app/register/page.tsx: two-column layout with navy gradient branding panel (left) and glassmorphism form (right), plan selector, company info, admin account, success animation
+- Login page (/src/app/login/page.tsx): Already had original design — no changes needed
+- Platform page (/src/app/platform/page.tsx): Already consistent — no changes needed
+- App shell and EPPM views: Already consistent with original design — no changes needed
+- Ran ESLint: 0 errors, 0 warnings
+- Verified all 4 pages (/, /pricing, /register, /login) return 200
+- Verified login flow works (admin@hasanurjaya.com → /app with full dashboard, AI briefing, $395M KPIs)
+- Agent Browser screenshots captured and verified for all pages
+
+Stage Summary:
+- 3 pages fully rewritten to restore original SmartBuild UI design
+- Design system: navy (#0B2345) + gold (#F5A623) + glassmorphism + Poppins/Inter typography
+- All public pages now consistent: landing, pricing, register, login
+- App dashboard and EPPM modules already used original design
+- Lint clean, all pages render correctly in browser
