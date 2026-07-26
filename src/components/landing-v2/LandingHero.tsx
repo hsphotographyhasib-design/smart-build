@@ -26,7 +26,7 @@ export function LandingHero() {
       <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-brand-orange/10 rounded-full blur-[120px]" aria-hidden="true" />
       <div className="absolute bottom-1/4 left-1/6 w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" aria-hidden="true" />
 
-      <div className="container-landing relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24">
+      <div className="container-landing relative z-10 pt-28 pb-16 lg:pt-40 lg:pb-24">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <motion.div
