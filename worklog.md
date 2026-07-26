@@ -563,3 +563,29 @@ Stage Summary:
 - Responsive mobile-first design with navy/gold branding
 - Lint: 0 errors, Build: passes, Dev: renders all 20 sections
 - Pushed to GitHub: commits d229c49, 6644d63, e7dcbfb, and landing page commit
+---
+Task ID: 2
+Agent: Main
+Task: Build world-class enterprise landing page for SmartBuild
+
+Work Log:
+- Updated design system: Construction Orange (#E8600A) replacing Gold, added blue accent, dark/light mode tokens
+- Added Inter Tight font variable via next/font
+- Created 13 new landing page components in src/components/landing-v2/
+- Assembled all sections in page.tsx with SEO metadata
+- Updated robots.ts to allow indexing
+- Updated layout.tsx with metadataBase
+- Passed ESLint
+- Verified all sections render in browser (desktop + mobile)
+- Verified dark mode toggle works
+- Verified mobile hamburger menu works
+- Zero console errors
+
+Stage Summary:
+- 13 landing page sections built: Header, Hero, Trust, Features (17 modules), Industries (11), Workflow (5 steps), Platform Preview, AI (6 features), Statistics (animated counters), Testimonials (6), Case Studies (3), FAQ (7 items), CTA, Footer
+- Full dark/light mode support
+- Framer Motion animations throughout
+- WCAG 2.2 AA: semantic HTML, ARIA labels, keyboard navigation, touch targets
+- Responsive design verified at 375px and 1920px
+- SEO: generateMetadata, OpenGraph, Twitter cards, robots.txt updated
+

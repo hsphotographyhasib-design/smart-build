@@ -1,11 +1,14 @@
-import { MetadataRoute } from "next"
+import { MetadataRoute } from "next";
 
-// Private enterprise platform — nothing should be crawled or indexed.
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      disallow: "/",
-    },
-  }
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/app/", "/admin/", "/api/", "/login", "/register"],
+      },
+    ],
+    sitemap: "/sitemap.xml",
+  };
 }

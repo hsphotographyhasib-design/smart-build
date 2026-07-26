@@ -1,195 +1,163 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
-import { Sun, Moon, Menu, ArrowRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { Sun, Moon, Menu, ArrowRight, X } from 'lucide-react'
 
 const NAV_LINKS = [
   { label: 'Platform', href: '#platform' },
   { label: 'Features', href: '#features' },
   { label: 'Industries', href: '#industries' },
   { label: 'AI', href: '#ai' },
-  { label: 'Pricing', href: '#pricing' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Resources', href: '#resources' },
 ] as const
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return <div className="w-9 h-9" />
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="tap-target inline-flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+    >
+      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </button>
+  )
+}
 
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const closeMobile = useCallback(() => setMobileOpen(false), [])
-
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
-  }, [theme, setTheme])
 
   return (
     <header
-      role="banner"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-border/50 bg-background/80 backdrop-blur-xl'
-          : 'border-b border-transparent bg-transparent'
+          ? 'bg-background/80 backdrop-blur-xl border-b border-border shadow-sm'
+          : 'bg-transparent'
       }`}
+      role="banner"
     >
-      <nav
-        className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
-        aria-label="Main navigation"
-      >
+      <div className="container-landing flex h-16 items-center justify-between lg:h-[72px]">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 tap-target"
-          aria-label="SmartBuild Home"
-        >
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-orange"
-            aria-hidden="true"
-          />
-          <span className="font-heading text-lg font-bold tracking-tight text-foreground">
+        <Link href="/" className="flex items-center gap-2.5 tap-target" aria-label="SmartBuild Home">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3 21L12 3L21 21H3Z" fill="white" fillOpacity="0.9" />
+              <path d="M8 21L12 13L16 21" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="font-display text-lg font-bold tracking-tight text-foreground">
             SmartBuild
           </span>
         </Link>
 
-        {/* Desktop nav */
-        <div className="hidden lg:flex items-center gap-1">
+        {/* Desktop Nav */}
+        <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
           {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
+            <a
+              key={link.label}
               href={link.href}
-              className="relative px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange rounded-md"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50 tap-target"
             >
               {link.label}
-            </Link>
+            </a>
           ))}
-        </div>
+        </nav>
 
-        {/* Right actions */
-        <div className="flex items-center gap-2">
-          {/* Theme toggle — only show when mounted to avoid hydration mismatch */}
-          {mounted && (
-            <button
-              onClick={toggleTheme}
-              className="tap-target relative flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              <Sun className="h-4 w-4 scale-100 dark:scale-0 dark:hidden" />
-              <Moon className="h-4 w-4 hidden dark:scale-100" />
-              <span className="sr-only">
-                {theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              </span>
-            </button>
-          )}
-
-          {/* Sign In */}
+        {/* Desktop Right */}
+        <div className="hidden lg:flex items-center gap-3">
+          <ThemeToggle />
           <Link
-            href="#sign-in"
-            className="hidden sm:inline-flex tap-target items-center px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded-md"
-            aria-label="Sign in to SmartBuild"
+            href="/login"
+            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors tap-target"
           >
             Sign In
           </Link>
-
-          {/* Request Demo CTA */}
-          <Button
-            asChild
-            href="#demo"
-            className="bg-brand-orange text-white hover:bg-brand-orange-dark font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Request Demo
+          <Button asChild size="sm" className="font-semibold">
+            <Link href="#contact">
+              Request Demo
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Link>
           </Button>
+        </div>
 
-          {/* Mobile hamburger */}
-          <Sheet open={mobileOpen} onOpen={setMobileOpen}>
+        {/* Mobile */}
+        <div className="flex lg:hidden items-center gap-2">
+          <ThemeToggle />
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
-                className="lg:hidden tap-target relative flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="tap-target inline-flex items-center justify-center rounded-lg p-2 hover:bg-muted transition-colors"
                 aria-label="Open navigation menu"
-                aria-expanded={mobileOpen}
-                aria-controls="mobile-nav"
               >
-                <Menu className="h-5 w-5" aria-hidden="true" />
-                <span className="sr-only">Open menu</span>
+                <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent
-              id="mobile-nav"
-              className="w-80 bg-background p-6 pt-2"
-              onClose={closeMobile}
-            >
-              <SheetClose
-                className="mb-6 ml-auto"
-                aria-label="Close navigation menu"
-              />
-              <AnimatePresence>
-                <motion.nav
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 40 }}
-                  transition={{ duration: 0.25, ease: 'easeInOut' }}
-                  className="flex flex-col gap-1"
-                >
-                  {NAV_LINKS.map((link, i) => (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: i * 0.05 }}
-                    >
-                      <Link
+            <SheetContent side="right" className="w-[300px] p-0">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                  <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-orange">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 21L12 3L21 21H3Z" fill="white" fillOpacity="0.9" />
+                      </svg>
+                    </div>
+                    <span className="font-display text-base font-bold">SmartBuild</span>
+                  </Link>
+                  <button onClick={() => setMobileOpen(false)} className="tap-target p-1 rounded-lg hover:bg-muted" aria-label="Close menu">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <nav className="flex-1 p-4" aria-label="Mobile navigation">
+                  <div className="flex flex-col gap-1">
+                    {NAV_LINKS.map((link) => (
+                      <a
+                        key={link.label}
                         href={link.href}
-                        onClick={closeMobile}
-                        className="block rounded-lg px-4 py-3 text-base font-medium text-foreground hover:bg-muted transition-colors"
-                        aria-label={link.label}
+                        onClick={() => setMobileOpen(false)}
+                        className="px-3 py-3 text-base font-medium text-foreground hover:text-brand-orange rounded-lg hover:bg-muted transition-colors tap-target"
                       >
                         {link.label}
-                      </Link>
-                    </motion.div>
-                  ))}
-
-                  <div className="mt-4 border-t border-border pt-4">
-                    <Link
-                      href="#sign-in"
-                      onClick={closeMobile}
-                      className="block rounded-lg px-4 py-3 text-center text-sm font-medium text-brand-orange hover:bg-brand-orange/10 transition-colors"
-                      aria-label="Sign in to SmartBuild"
-                    >
-                      Sign In
-                    </Link>
-                    <Button
-                      asChild
-                      href="#demo"
-                      className="mt-3 w-full bg-brand-orange text-white hover:bg-brand-orange-dark font-medium transition-colors"
-                      aria-label="Request a demo"
-                    >
-                      Request Demo
-                    </Button>
+                      </a>
+                    ))}
                   </div>
-                </motion.nav>
-              </AnimatePresence>
+                </nav>
+                <div className="p-4 border-t border-border space-y-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="block w-full text-center px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg border border-border hover:bg-muted transition-colors tap-target"
+                  >
+                    Sign In
+                  </Link>
+                  <Button asChild className="w-full font-semibold">
+                    <Link href="#contact" onClick={() => setMobileOpen(false)}>
+                      Request Demo
+                      <ArrowRight className="ml-1.5 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
-      </nav>
+      </div>
     </header>
   )
 }

@@ -34,6 +34,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://smartbuild.io'),
   title: {
     default: "SmartBuild EPPM — Enterprise Project Portfolio Management",
     template: "%s | SmartBuild EPPM",
@@ -70,7 +71,7 @@ export const metadata: Metadata = {
     title: "SmartBuild EPPM",
     description: "Enterprise Project Portfolio Management Platform.",
   },
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
   icons: {
     icon: [
       { url: "/brand/icon.svg", type: "image/svg+xml" },
