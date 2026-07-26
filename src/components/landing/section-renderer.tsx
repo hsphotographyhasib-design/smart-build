@@ -9,11 +9,11 @@ import { IndustriesSection } from './industries-section'
 import { EnterpriseModulesSection } from './enterprise-modules-section'
 import { WorkflowSection } from './workflow-section'
 import AiFeaturesSection from './ai-features-section'
-import { ScreenshotsSection } from './screenshots-section'
-import { TestimonialsSection } from './testimonials-section'
-import { CaseStudiesSection } from './case-studies-section'
-import { StatisticsSection } from './statistics-section'
-import { PricingSection } from './pricing-section'
+import ScreenshotsSection from './screenshots-section'
+import TestimonialsSection from './testimonials-section'
+import CaseStudiesSection from './case-studies-section'
+import StatisticsSection from './statistics-section'
+import PricingSection from './pricing-section'
 import { FaqSection } from './faq-section'
 import { NewsSection } from './news-section'
 import { BlogSection } from './blog-section'
@@ -39,10 +39,10 @@ export function SectionRenderer({ section, extra }: { section: LandingSection; e
     case 'workflow': return <WorkflowSection config={c} />
     case 'ai-features': return <AiFeaturesSection config={c} />
     case 'screenshots': return <ScreenshotsSection config={c} />
-    case 'testimonials': return <TestimonialsSection config={c} testimonials={extra.testimonials} />
-    case 'case-studies': return <CaseStudiesSection config={c} caseStudies={extra.caseStudies} />
+    case 'testimonials': return <TestimonialsSection config={c} testimonials={extra.testimonials as any} />
+    case 'case-studies': return <CaseStudiesSection config={c} caseStudies={extra.caseStudies as any} />
     case 'statistics': return <StatisticsSection config={c} />
-    case 'pricing': return <PricingSection config={c} plans={extra.plans} />
+    case 'pricing': return <PricingSection config={c} plans={extra.plans as any} />
     case 'faq': return <FaqSection config={c} faqs={extra.faqs} />
     case 'news': return <NewsSection config={c} />
     case 'blog': return <BlogSection config={c} blogPosts={extra.blogPosts} />
