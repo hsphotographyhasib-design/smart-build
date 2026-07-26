@@ -61,6 +61,15 @@ export interface CaseStudy {
   coverImage: string | null
 }
 
+export interface HeroConfig {
+  badge?: string
+  headline?: string
+  subheadline?: string
+  primaryCta?: string
+  secondaryCta?: string
+  stats?: { label: string; value: string }[]
+}
+
 export interface MenuItem {
   id: string
   label: string

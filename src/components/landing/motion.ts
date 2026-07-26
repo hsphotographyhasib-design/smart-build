@@ -39,4 +39,12 @@ export const float: Variants = {
   animate: { y: [0, -10, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
 }
 
+export const floatSlow: Variants = {
+  animate: { y: [0, -6, 0], transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' } },
+}
+
+export const floatDelayed: Variants = {
+  animate: { y: [0, -8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 } },
+}
+
 export const viewportConfig = { once: true, margin: '-80px' as const }

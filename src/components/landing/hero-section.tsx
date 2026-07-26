@@ -124,7 +124,7 @@ export function HeroSection({ config }: HeroSectionProps) {
             <div className="relative w-full max-w-[540px] ml-auto">
               {/* Main Dashboard Card */}
               <motion.div
-n                className="glass rounded-2xl p-6 space-y-4"
+                className="glass rounded-2xl p-6 space-y-4"
                 variants={float}
                 animate="animate"
               >
