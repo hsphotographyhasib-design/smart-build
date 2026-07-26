@@ -21,6 +21,13 @@ const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
+// Inter Tight — primary display/heading font for the landing page
+const interTight = Inter({
+  variable: "--font-inter-tight",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const viewport: Viewport = {
   themeColor: "#0B2345",
   colorScheme: "light",
@@ -89,7 +96,7 @@ export default function RootLayout({
         <link rel="icon" href="/brand/smartbuild-circle.svg" sizes="192x192" type="image/svg+xml" />
       </head>
       <body
-        className={`${geistMono.variable} ${inter.variable} ${poppins.variable} antialiased bg-background text-foreground`}
+        className={`${geistMono.variable} ${inter.variable} ${poppins.variable} ${interTight.variable} antialiased bg-background text-foreground`}
       >
         <Providers>{children}</Providers>
         <Toaster />
