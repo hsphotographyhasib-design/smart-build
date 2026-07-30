@@ -1,70 +1,42 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Menu, ChevronDown, QrCode, Globe, Sun, Moon, Check,
-  Star, Clock, Camera, RefreshCw, CheckCircle, Building2,
+  ChevronDown, Sun, Moon, Sparkles, Settings,
+  Menu, Bell, Search, X, Star, Clock, Building2,
 } from 'lucide-react'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { BrandAvatar } from '@/components/brand'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 
-import { NavigationSearch } from './navigation-search'
 import { NavigationDrawer } from './navigation-drawer'
 import { NotificationsBell } from '../notifications-bell'
 import { MegaMenu } from '@/components/eppm/nav/mega-menu'
 import { NavigationScroller } from '@/components/eppm/nav/nav-scroller'
 import { NotificationBadge } from '@/components/eppm/nav/notification-badge'
+import { GlobalSearch } from '@/components/eppm/global-search'
 import { useAuth } from '@/components/auth/auth-context'
 import { useNav, useNavBadges } from '@/components/eppm/nav/nav-context'
-import { filterNav, categoryForView, flattenLeaves, type NavCategory } from '@/lib/navigation'
+import { categoryForView, flattenLeaves, type NavCategory } from '@/lib/navigation'
 import type { View } from '@/lib/eppm'
 
-// ── Language switcher ────────────────────────────────────────────────────────
-const LANGUAGES = [
-  { code: 'EN', label: 'English' },
-  { code: 'MS', label: 'Bahasa Melayu' },
-  { code: 'ZH', label: '中文' },
-]
-function LanguageSwitcher() {
-  const [lang, setLang] = useState('EN')
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="hidden sm:flex h-9 items-center gap-1 rounded-full px-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-          title="Language"
-          aria-label="Change language"
-        >
-          <Globe className="h-4.5 w-4.5" />
-          <span className="text-[10px] font-bold leading-none">{lang}</span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44 mt-2 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl bg-background/90 border border-border">
-        <DropdownMenuLabel className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Language</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {LANGUAGES.map((l) => (
-          <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)} className="justify-between gap-2 rounded-lg py-1.5 text-xs cursor-pointer">
-            <span>{l.label}</span>
-            {lang === l.code && <Check className="h-3.5 w-3.5 text-primary" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-// ── Top-level category button (opens a mega menu or navigates directly) ──────
+// ── Category button for the center nav strip ─────────────────────────────────
 function CategoryButton({
-  cat, active, open, badge, showUnderline, onClick,
+  cat, active, open, badge, showUnderline, onClick, onMouseEnter,
 }: {
   cat: NavCategory
   active: boolean
@@ -72,21 +44,28 @@ function CategoryButton({
   badge: number
   showUnderline: boolean
   onClick: () => void
+  onMouseEnter: () => void
 }) {
   const Icon = cat.icon
   return (
     <button
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={(e) => e.currentTarget.blur()}
       aria-haspopup={cat.columns ? 'menu' : undefined}
       aria-expanded={cat.columns ? open : undefined}
       className={cn(
         'relative flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors duration-200 cursor-pointer select-none',
-        active || open ? 'text-primary' : 'text-foreground/75 hover:text-foreground hover:bg-muted/60',
+        active || open
+          ? 'text-primary'
+          : 'text-foreground/75 hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5',
       )}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span>{cat.label}</span>
-      {cat.columns && <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', open && 'rotate-180')} />}
+      {cat.columns && (
+        <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', open && 'rotate-180')} />
+      )}
       {badge > 0 && <NotificationBadge count={badge} tone="rose" className="ml-0.5" />}
       {showUnderline && (
         <motion.div
@@ -99,6 +78,7 @@ function CategoryButton({
   )
 }
 
+// ── Main Floating Navbar ──────────────────────────────────────────────────────
 interface FloatingNavbarProps {
   view: View
   onNavigate: (v: View) => void
@@ -107,133 +87,286 @@ interface FloatingNavbarProps {
   setMobileDrawerOpen: (open: boolean) => void
 }
 
-export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOpen, setMobileDrawerOpen }: FloatingNavbarProps) {
+export function FloatingNavbar({
+  view, onNavigate, onOpenProject, mobileDrawerOpen, setMobileDrawerOpen,
+}: FloatingNavbarProps) {
   const { theme, setTheme } = useTheme()
   const { user, logout } = useAuth()
-  const { favorites, recents } = useNav()
+  const { favorites, recents, filteredNav: nav } = useNav()
   const badges = useNavBadges()
 
-  const [qrOpen, setQrOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [openCat, setOpenCat] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const megaMenuRef = useRef<HTMLDivElement>(null)
 
-  const nav = useMemo(() => filterNav(user?.role), [user?.role])
   const activeCategory = categoryForView(view)
   const openCatObj = openCat ? nav.find((c) => c.id === openCat) ?? null : null
 
   // view → leaf metadata (for favorites & recents lists)
   const leafByView = useMemo(() => {
     const m = new Map<View, { label: string; icon: LucideIcon; categoryLabel: string }>()
-    flattenLeaves().forEach((l) => { if (l.view) m.set(l.view, { label: l.label, icon: l.icon, categoryLabel: l.categoryLabel }) })
+    flattenLeaves().forEach((l) => {
+      if (l.view) m.set(l.view, { label: l.label, icon: l.icon, categoryLabel: l.categoryLabel })
+    })
     return m
   }, [])
 
-  const initials = (user?.name || 'U').split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+  const initials = (user?.name || 'U')
+    .split(' ')
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
 
   const categoryBadge = (cat: NavCategory) =>
-    (cat.columns ?? []).reduce((sum, col) => sum + col.items.reduce((s, it) => s + (it.badgeKey ? badges[it.badgeKey] : 0), 0), 0)
+    (cat.columns ?? []).reduce(
+      (sum, col) => sum + col.items.reduce((s, it) => s + (it.badgeKey ? badges[it.badgeKey] : 0), 0),
+      0,
+    )
 
-  // Click-to-toggle only — mega menus never open on hover.
-  const closeNow = () => setOpenCat(null)
+  const closeMega = useCallback(() => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    setOpenCat(null)
+  }, [])
 
-  const onCategoryClick = (cat: NavCategory) => {
-    if (cat.view) { onNavigate(cat.view); closeNow() }
-    else setOpenCat((cur) => (cur === cat.id ? null : cat.id))
-  }
+  const onCategoryClick = useCallback(
+    (cat: NavCategory) => {
+      if (cat.view) {
+        onNavigate(cat.view)
+        closeMega()
+      } else {
+        setOpenCat((cur) => (cur === cat.id ? null : cat.id))
+      }
+    },
+    [onNavigate, closeMega],
+  )
+
+  const onCategoryHover = useCallback(
+    (cat: NavCategory) => {
+      if (!cat.columns) return
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+      // If another mega menu is already open, switch immediately
+      if (openCat && openCat !== cat.id) {
+        setOpenCat(cat.id)
+      } else {
+        // On first hover, open after a short delay to avoid flicker
+        hoverTimeoutRef.current = setTimeout(() => {
+          setOpenCat(cat.id)
+        }, 200)
+      }
+    },
+    [openCat],
+  )
 
   // Escape closes the mega menu
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeNow() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMega()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+  }, [closeMega])
+
+  // Cmd+K opens search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const handleScanQrMock = (type: string, id: string, name: string) => {
-    setQrOpen(false)
-    toast.success(`Scanned QR Code for ${type}: ${name}`, { description: `Navigating to ${type} logs...` })
-    if (type === 'Equipment') onNavigate('equipment')
-    else if (type === 'Project') { onOpenProject(id); onNavigate('gantt') }
-    else if (type === 'Employee') onNavigate('resources')
-  }
+  const favItems = favorites
+    .map((v) => ({ view: v, ...leafByView.get(v) }))
+    .filter((x): x is { view: View; label: string; icon: LucideIcon; categoryLabel: string } => !!x.label)
+  const recentItems = recents
+    .map((v) => ({ view: v, ...leafByView.get(v) }))
+    .filter((x): x is { view: View; label: string; icon: LucideIcon; categoryLabel: string } => !!x.label)
 
-  const favItems = favorites.map((v) => ({ view: v, ...leafByView.get(v) })).filter((x) => x.label)
-  const recentItems = recents.map((v) => ({ view: v, ...leafByView.get(v) })).filter((x) => x.label)
+  // Total notification count for badge
+  const totalBadgeCount = (badges.workOrders ?? 0) + (badges.approvals ?? 0) + (badges.risks ?? 0)
 
   return (
     <>
-      {/* ── Top header — independent sticky layer (--z-header) ──────────── */}
-      <header className="sticky top-0 z-[var(--z-header)] h-[var(--header-h)] select-none border-b border-border/60 bg-background/85 backdrop-blur-2xl">
-        <div className="mx-auto flex h-full max-w-[1600px] items-center gap-2 px-3 sm:gap-4 lg:px-6">
-            {/* LEFT — hamburger + logo + brand */}
-            <div className="flex shrink-0 items-center gap-2">
+      {/* ── Floating Glassmorphism Navigation Bar ──────────────────── */}
+      <header className="sticky top-0 z-[var(--z-header)] select-none pt-2">
+        <div className="mx-4">
+          <nav
+            className="flex h-14 items-center gap-2 rounded-2xl border-b border-white/20 bg-white/80 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/80 sm:h-[60px] sm:gap-4 sm:px-4 lg:px-6"
+            aria-label="Primary navigation"
+          >
+            {/* LEFT — Logo + Tenant */}
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              {/* Mobile menu button */}
               <button
                 onClick={() => setMobileDrawerOpen(true)}
-                className="flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted sm:h-9 sm:w-9 lg:hidden cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-white/40 dark:hover:bg-white/5 lg:hidden cursor-pointer"
                 aria-label="Open navigation drawer"
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <button aria-label="SmartBuild — go to dashboard" className="tap-target flex items-center justify-center gap-2.5 cursor-pointer sm:justify-start" onClick={() => { onNavigate('dashboard'); closeNow() }}>
-                <Image src="/brand/smartbuild-app-light.svg" alt="SmartBuild" width={36} height={36} className="h-9 w-9 shrink-0 rounded-[22%]" />
-                <div className="hidden text-left leading-tight sm:block">
-                  <div className="text-sm font-extrabold tracking-tight">SmartBuild</div>
-                  <div className="text-[10px] font-medium text-muted-foreground">Multi-Tenant SaaS</div>
+
+              {/* Brand avatar + company name */}
+              <button
+                aria-label="SmartBuild — go to dashboard"
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => { onNavigate('dashboard'); closeMega() }}
+              >
+                <BrandAvatar size="md" />
+                <div className="hidden leading-tight sm:block">
+                  <div className="text-sm font-extrabold tracking-tight">
+                    {user?.tenant?.name ?? 'SmartBuild'}
+                  </div>
+                  <div className="text-[10px] font-medium text-muted-foreground">
+                    {user?.tenant?.tier ? `${user.tenant.tier} Plan` : 'Enterprise'}
+                  </div>
                 </div>
               </button>
-              {/* Tenant badge */}
-              {user?.tenant && (
-                <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#F5A623]/30 bg-[#F5A623]/5 px-2.5 py-1">
-                  <Building2 className="h-3 w-3 text-[#F5A623]" />
-                  <span className="text-[10px] font-semibold text-[#F5A623] max-w-[120px] truncate">{user.tenant.name}</span>
-                  <Badge variant="outline" className="text-[9px] h-4 px-1 border-[#F5A623]/20 text-[#F5A623]/70 font-medium">{user.role}</Badge>
-                </div>
-              )}
             </div>
 
-            {/* CENTER — search (full pill ≥sm; 44px icon → overlay on mobile) */}
-            <div className="flex min-w-0 flex-1 justify-end sm:justify-center">
-              <div className="sm:w-full sm:max-w-2xl">
-                <NavigationSearch variant="full" onNavigate={onNavigate} onOpenProject={onOpenProject} />
-              </div>
+            {/* CENTER — Nav items (desktop only) */}
+            <div className="hidden flex-1 justify-center lg:flex">
+              <NavigationScroller>
+                {nav.map((cat) => (
+                  <CategoryButton
+                    key={cat.id}
+                    cat={cat}
+                    active={activeCategory === cat.id}
+                    open={openCat === cat.id}
+                    showUnderline={openCat ? openCat === cat.id : activeCategory === cat.id}
+                    badge={categoryBadge(cat)}
+                    onClick={() => onCategoryClick(cat)}
+                    onMouseEnter={() => onCategoryHover(cat)}
+                  />
+                ))}
+              </NavigationScroller>
             </div>
 
-            {/* RIGHT — QR, notifications, theme, language, profile */}
+            {/* Spacer on desktop */}
+            <div className="hidden flex-1 lg:block" />
+
+            {/* RIGHT — Actions */}
             <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-              <button onClick={() => setQrOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:h-9 sm:w-9" title="QR Scanner" aria-label="QR Scanner">
-                <QrCode className="h-4.5 w-4.5" />
+              {/* Search button (all sizes) */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/40 hover:text-foreground dark:hover:bg-white/5 cursor-pointer"
+                title="Search (⌘K)"
+                aria-label="Search"
+              >
+                <Search className="h-4.5 w-4.5" />
               </button>
-              <NotificationsBell onNavigate={onNavigate} />
-              <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="relative hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer sm:flex" title="Toggle Theme" aria-label="Toggle theme">
-                <Sun className="h-4.5 w-4.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4.5 w-4.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              </button>
-              <LanguageSwitcher />
 
-              {/* Profile */}
+              {/* Notification bell with badge */}
+              <div className="relative hidden sm:block">
+                <NotificationsBell onNavigate={onNavigate} />
+              </div>
+              <button
+                onClick={() => onNavigate('notifications')}
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/40 hover:text-foreground dark:hover:bg-white/5 sm:hidden cursor-pointer"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4.5 w-4.5" />
+                {totalBadgeCount > 0 && (
+                  <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                    {totalBadgeCount > 9 ? '9+' : totalBadgeCount}
+                  </span>
+                )}
+              </button>
+
+              {/* AI Assistant button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 cursor-pointer"
+                    onClick={() => onNavigate('ai-planner')}
+                    aria-label="AI Assistant"
+                  >
+                    <Sparkles className="h-4.5 w-4.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs font-medium">AI Assistant</TooltipContent>
+              </Tooltip>
+
+              {/* Theme toggle */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/40 hover:text-foreground dark:hover:bg-white/5 sm:flex cursor-pointer"
+                    title="Toggle Theme"
+                    aria-label="Toggle theme"
+                  >
+                    <Sun className="h-4.5 w-4.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-4.5 w-4.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs font-medium">
+                  Switch to {theme === 'dark' ? 'Light' : 'Dark'}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Settings gear */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onNavigate('admin')}
+                    className="hidden h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/40 hover:text-foreground dark:hover:bg-white/5 sm:flex cursor-pointer"
+                    aria-label="Settings"
+                  >
+                    <Settings className="h-4.5 w-4.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs font-medium">Settings</TooltipContent>
+              </Tooltip>
+
+              {/* Profile dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="ml-0.5 flex items-center gap-2 rounded-full py-1 pl-1 pr-1.5 transition-colors hover:bg-muted focus:outline-none cursor-pointer sm:pr-2.5">
-                    <Avatar className="h-8 w-8 border border-border"><AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-bold">{initials}</AvatarFallback></Avatar>
+                  <button className="ml-0.5 flex items-center gap-2 rounded-xl py-1 pl-1 pr-1.5 transition-colors hover:bg-white/40 focus:outline-none cursor-pointer dark:hover:bg-white/5 sm:pr-2.5">
+                    <Avatar className="h-8 w-8 border border-white/30">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-bold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="hidden text-left leading-tight md:block">
                       <div className="text-xs font-bold text-foreground">{user?.name ?? 'Guest'}</div>
                       <div className="text-[10px] text-muted-foreground">{user?.role ?? '—'}</div>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="mt-2 w-64 rounded-2xl border border-border bg-background/90 p-1.5 shadow-2xl backdrop-blur-2xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="mt-2 w-64 rounded-2xl border border-white/20 bg-white/90 p-1.5 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-gray-900/90"
+                >
                   <DropdownMenuLabel className="px-2.5 py-2">
                     <div className="text-sm font-bold">{user?.name ?? 'Guest'}</div>
                     <div className="text-[11px] text-muted-foreground">{user?.email ?? ''}</div>
-                    <div className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">{user?.role ?? '—'}</div>
+                    <div className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      {user?.role ?? '—'}
+                    </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {favItems.length > 0 && (
                     <>
-                      <DropdownMenuLabel className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground"><Star className="h-3 w-3 text-amber-500" /> Favorites</DropdownMenuLabel>
+                      <DropdownMenuLabel className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                        <Star className="h-3 w-3 text-amber-500" /> Favorites
+                      </DropdownMenuLabel>
                       {favItems.slice(0, 4).map((f) => {
                         const Icon = f.icon!
                         return (
-                          <DropdownMenuItem key={f.view} onClick={() => { onNavigate(f.view); closeNow() }} className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer">
-                            <Icon className="h-3.5 w-3.5 text-muted-foreground" /><span className="flex-1 truncate">{f.label}</span>
+                          <DropdownMenuItem
+                            key={f.view}
+                            onClick={() => { onNavigate(f.view); closeMega() }}
+                            className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                          >
+                            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="flex-1 truncate">{f.label}</span>
                           </DropdownMenuItem>
                         )
                       })}
@@ -242,74 +375,76 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
                   )}
                   {recentItems.length > 0 && (
                     <>
-                      <DropdownMenuLabel className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground"><Clock className="h-3 w-3" /> Recently Visited</DropdownMenuLabel>
+                      <DropdownMenuLabel className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                        <Clock className="h-3 w-3" /> Recently Visited
+                      </DropdownMenuLabel>
                       {recentItems.slice(0, 3).map((r) => {
                         const Icon = r.icon!
                         return (
-                          <DropdownMenuItem key={r.view} onClick={() => { onNavigate(r.view); closeNow() }} className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer">
-                            <Icon className="h-3.5 w-3.5 text-muted-foreground" /><span className="flex-1 truncate">{r.label}</span>
+                          <DropdownMenuItem
+                            key={r.view}
+                            onClick={() => { onNavigate(r.view); closeMega() }}
+                            className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                          >
+                            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="flex-1 truncate">{r.label}</span>
                           </DropdownMenuItem>
                         )
                       })}
                       <DropdownMenuSeparator />
                     </>
                   )}
-                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer sm:hidden">Switch to {theme === 'dark' ? 'Light' : 'Dark'} Theme</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Profile &amp; Preferences</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('admin')} className="rounded-lg py-2 text-xs font-semibold cursor-pointer">Security &amp; 2FA</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="rounded-lg py-2 text-xs font-semibold cursor-pointer sm:hidden"
+                  >
+                    Switch to {theme === 'dark' ? 'Light' : 'Dark'} Theme
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => { onNavigate('admin'); closeMega() }}
+                    className="rounded-lg py-2 text-xs font-semibold cursor-pointer"
+                  >
+                    Profile &amp; Preferences
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => { onNavigate('admin'); closeMega() }}
+                    className="rounded-lg py-2 text-xs font-semibold cursor-pointer"
+                  >
+                    Security &amp; 2FA
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => { void logout() }} className="rounded-lg py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer">Sign out</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => { void logout() }}
+                    className="rounded-lg py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 cursor-pointer"
+                  >
+                    Sign out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </nav>
+
+          {/* ── Mega Menu Dropdown (desktop) ──────────────────────────────── */}
+          <div className="relative hidden lg:block" ref={megaMenuRef}>
+            <AnimatePresence>
+              {openCatObj && openCatObj.columns && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={closeMega} />
+                  <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+                    <MegaMenu
+                      category={openCatObj}
+                      currentView={view}
+                      onNavigate={(v) => { onNavigate(v); closeMega() }}
+                      onClose={closeMega}
+                      badges={badges}
+                    />
+                  </div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
-
-      {/* ── Floating navigation — separate sticky layer BELOW the header.
-             In flow: 16px (--nav-gap) below the header; when stuck it pins at
-             header height + gap, so it never touches or overlaps the header. */}
-      <div className="sticky top-[calc(var(--header-h)+var(--nav-gap))] z-[var(--z-nav)] mt-[var(--nav-gap)] hidden select-none lg:block">
-          <div className="mx-auto max-w-[1600px] px-4 lg:px-6">
-            <div className="relative mx-auto w-fit max-w-full">
-              <nav aria-label="Primary" className="inline-flex h-[var(--subnav-h)] max-w-full items-center rounded-[20px] border border-border/60 bg-background px-1.5 py-1.5 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.22)]">
-                <div className="flex min-w-0 overflow-hidden">
-                  <NavigationScroller>
-                    {nav.map((cat) => (
-                      <CategoryButton
-                        key={cat.id}
-                        cat={cat}
-                        active={activeCategory === cat.id}
-                        open={openCat === cat.id}
-                        showUnderline={openCat ? openCat === cat.id : activeCategory === cat.id}
-                        badge={categoryBadge(cat)}
-                        onClick={() => onCategoryClick(cat)}
-                      />
-                    ))}
-                  </NavigationScroller>
-                </div>
-              </nav>
-
-              {/* Mega menu panel — anchored under the strip */}
-              <AnimatePresence>
-                {openCatObj && openCatObj.columns && (
-                  <>
-                    {/* Backdrop below the panel (z-10 < z-20) inside the nav layer */}
-                    <div className="fixed inset-0 z-10" onClick={closeNow} />
-                    <div className="absolute left-1/2 top-full z-20 -translate-x-1/2 pt-2.5">
-                      <MegaMenu
-                        category={openCatObj}
-                        currentView={view}
-                        onNavigate={(v) => { onNavigate(v); closeNow() }}
-                        onClose={closeNow}
-                        badges={badges}
-                      />
-                    </div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-      </div>
 
       {/* Mobile navigation drawer */}
       <NavigationDrawer
@@ -319,37 +454,13 @@ export function FloatingNavbar({ view, onNavigate, onOpenProject, mobileDrawerOp
         onNavigate={onNavigate}
       />
 
-      {/* QR Scanner mock dialog */}
-      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-6 border border-border/80 bg-background/90 backdrop-blur-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2.5 text-base font-bold">
-              <QrCode className="h-5 w-5 text-primary" /> <span>SmartBuild QR Scanner</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs">Scan project tags, employee cards, or equipment badges for instant lookup.</DialogDescription>
-          </DialogHeader>
-          <div className="relative mt-4 overflow-hidden rounded-2xl border border-border bg-black aspect-video flex items-center justify-center">
-            <motion.div animate={{ y: [-60, 60, -60] }} transition={{ repeat: Infinity, duration: 3.5, ease: 'linear' }} className="absolute left-0 right-0 h-0.5 bg-[#F5A623] shadow-[0_0_8px_#F5A623] z-10" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 text-zinc-400 bg-zinc-950/80">
-              <Camera className="h-10 w-10 text-zinc-500 animate-pulse" />
-              <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500"><RefreshCw className="h-3 w-3 animate-spin" /> Camera Feed Online</div>
-            </div>
-            <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#F5A623] rounded-tl-sm" />
-            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#F5A623] rounded-tr-sm" />
-            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#F5A623] rounded-bl-sm" />
-            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#F5A623] rounded-br-sm" />
-          </div>
-          <div className="grid gap-2.5 mt-5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mock Scans (Simulated)</span>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="justify-start gap-2 h-10 text-[11px] rounded-xl font-bold cursor-pointer" onClick={() => handleScanQrMock('Project', '1', 'Metro Station Extension')}><CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" /><span className="truncate">Metro Project</span></Button>
-              <Button variant="outline" size="sm" className="justify-start gap-2 h-10 text-[11px] rounded-xl font-bold cursor-pointer" onClick={() => handleScanQrMock('Equipment', 'eq-001', 'Caterpillar 320 Excavator')}><CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" /><span className="truncate">Excavator EQ</span></Button>
-              <Button variant="outline" size="sm" className="justify-start gap-2 h-10 text-[11px] rounded-xl font-bold cursor-pointer" onClick={() => handleScanQrMock('Employee', 'emp-101', 'Daniel Okafor')}><CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" /><span className="truncate">Daniel Okafor Card</span></Button>
-              <Button variant="outline" size="sm" className="justify-start gap-2 h-10 text-[11px] rounded-xl font-bold cursor-pointer" onClick={() => handleScanQrMock('Employee', 'emp-102', 'Sarah Jenkins')}><CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" /><span className="truncate">Sarah Jenkins Card</span></Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Global search overlay */}
+      <GlobalSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onNavigate={onNavigate}
+        onOpenProject={onOpenProject}
+      />
     </>
   )
 }

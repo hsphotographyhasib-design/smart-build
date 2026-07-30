@@ -615,3 +615,149 @@ Stage Summary:
 - Data: 1 tenant (Hasanur Jaya), 2 users (Super Admin + Tenant Admin), 6 demo projects
 - Credentials: admin@smartbuild.app/admin123, admin@hasanurjaya.com/tenant123
 - Vercel: Deployed successfully, app.hasanurjaya.com returning 200
+
+---
+Task ID: 7
+Agent: Data Layer Architect
+Task: Build the complete data layer for the enterprise feature control system
+
+Work Log:
+- Updated `/src/lib/navigation.ts`:
+  - Added optional `feature?: string` field to both `NavLeaf` and `NavCategory` interfaces
+  - Mapped every category to its canonical feature key (dashboard→'dashboard', projects→'projects', maintenance→'maintenance', resources→'resources', procurement→'procurement', finance→'costs', reports→'reports', support→'support'; administration has NO feature—gated by tier)
+  - Mapped every leaf that requires a specific feature override (40+ leaves total), including: ai-planner→'ai-planner', tender items→'tender', quality→'quality', hse→'hse', commissioning→'commissioning', submittals→'submittals', closeout→'closeout', site-progress→'site-progress', lookahead→'lookahead', baselines→'baselines', exec-reports→'exec-reports', financial-reports→'costs', integrations→'integrations', workflow-engine→'workflow-engine', complaints/service-requests→'complaints', work-orders→'work-orders', preventive/corrective/predictive/dispatch/technicians/amc→'maintenance', employees/workforce→'hr', equipment→'equipment', vehicles→'fleet', assets/stock/warehouses/stock-movements→'inventory', suppliers/goods-receipt/purchase-requests/purchase-orders/procurement→'procurement', costs/evm/cashflow→'costs', changes/claims→'changes', invoices/payments→'accounts', reports→'reports', sso/audit→'security', admin→NO feature, customer-portal/technician-portal→'portals', docs/tickets→'support'
+- Updated `filterNav()` signature: `filterNav(role, enabledFeatures?: Set<string>)` — now checks feature gates for both leaves and categories in addition to existing role-based filtering
+- Updated `flattenLeaves()` signature: `flattenLeaves(role?, enabledFeatures?)` — passes through to `filterNav`
+- Updated `leafVisible()` and `categoryVisible()` internal functions to accept and check `enabledFeatures` set
+- Created `/src/app/api/features/route.ts`: GET endpoint that reads session via `getSessionPayload`, fetches `getTenantFeatures(tenantId)` and `getSubscriptionLimits(tenantId)` plus current user/project counts; returns `{ features, limits, isSuperAdmin }`; Super Admin (no tenantId) returns `{ features: {}, limits: null, isSuperAdmin: true }`
+- Created `/src/hooks/use-tenant-features.tsx`: React context-based hook with `FeatureProvider` and `useTenantFeatures`; provides `features: Record<string, boolean>`, `enabledSet: Set<string>` (memoized), `isEnabled(module)`, `limits`, `loading`, `isSuperAdmin`; fetches `/api/features` once on mount and caches
+- Updated `/src/lib/eppm.ts`: Added `VIEW_FEATURE_MAP: Record<string, string>` mapping every View to its canonical feature key (55+ entries) for subscription gating
+
+Stage Summary:
+- Complete feature-gating data layer: nav items tagged → API endpoint → client hook + context → view-to-feature map
+- Navigation filtering is now composable: role-based + feature-based
+- Super Admin bypasses all feature gates
+- All code passes `bun run lint` with zero errors
+
+---
+Task ID: 8
+Agent: UI Architect
+Task: Completely redesign floating navigation system — glassmorphism single-bar architecture
+
+Work Log:
+- **REMOVED sidebar completely** — no sidebar exists anywhere in the nav system
+- Rewrote `/src/components/eppm/floating-nav/floating-navbar.tsx`:
+  - Single sticky floating navigation bar at top with glassmorphism styling
+  - `backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-white/20 shadow-lg rounded-2xl mx-4 mt-2`
+  - **LEFT section**: BrandAvatar + tenant name (from AuthContext user.tenant.name)
+  - **CENTER section** (desktop): Horizontal nav items from `filteredNav` via NavigationScroller, with icon + label + active underline (motion layoutId), hover opens mega menu (200ms delay, immediate switch when another is open)
+  - **RIGHT section**: Search button (⌘K), NotificationsBell (desktop) / Bell with badge (mobile), AI Assistant (Sparkles), Theme toggle (Sun/Moon), Settings gear, Profile dropdown (avatar + name + role + favorites + recents + sign out)
+  - Mega menu positioned below the bar with click-outside-to-close and Escape key
+  - All nav items respect feature-aware filtering from `useNav().filteredNav`
+- Rewrote `/src/components/eppm/floating-nav/bottom-nav.tsx`:
+  - Fixed bottom floating bar: `bg-white/90 backdrop-blur-xl border-t border-white/20 rounded-t-2xl dark:bg-gray-900/90`
+  - `lg:hidden` — only visible on mobile
+  - 5 items: Home, main module (Projects/Maintenance based on filtered nav), center FAB (+), Notifications (with badge), Profile
+  - Center FAB opens a quick-action sheet/drawer from bottom showing all nav categories and their leaf items in a 3-column grid
+  - Quick-action sheet uses AnimatePresence + spring animation
+  - Feature-disabled items show lock icon + opacity reduction, cannot be tapped
+  - Auto-hides on scroll down, shows on scroll up (via Framer Motion spring animation)
+  - Safe area padding: `paddingBottom: env(safe-area-inset-bottom)`
+- Rewrote `/src/components/eppm/floating-nav/navigation-drawer.tsx`:
+  - Full-height slide-in drawer from left with glassmorphism styling (`bg-white/90 backdrop-blur-2xl border-r border-white/20 dark:bg-gray-900/90`)
+  - `lg:hidden` — mobile only
+  - Search at top using shadcn/ui `Input` component
+  - Favorites & Recents quick-access chips
+  - Accordion tree for all nav categories with columns and leaves
+  - Feature-disabled items show Lock badge (amber outline) and are non-interactive
+  - Uses `filteredNav` from `useNav()` — respects both RBAC and feature flags
+  - Close on item select or overlay tap
+- Updated `/src/components/eppm/nav/mega-menu.tsx`:
+  - Added `isDisabled` prop to `MegaItem` component
+  - Disabled items show Lock icon (instead of the normal icon), amber-tinted icon background, and an "Upgrade" badge with Crown icon
+  - Glassmorphism styling: `bg-white/90 dark:bg-gray-900/90 border-white/20 rounded-xl shadow-2xl backdrop-blur-2xl`
+  - Animation reduced to 150ms as specified
+  - Clicking disabled items shows error toast: "requires a higher plan"
+- Updated `/src/components/eppm/nav/nav-context.tsx`:
+  - Extended NavContextValue with `filteredNav: NavCategory[]` and `isNavFeatureEnabled(featureKey?)`
+  - `filteredNav` computed via `filterNav(user?.role, isSuperAdmin ? undefined : enabledSet)` — memoized
+  - Uses `useTenantFeatures()` for `enabledSet` and `isSuperAdmin`
+- Rewrote `/src/components/eppm/app-shell.tsx`:
+  - Simplified to use single FloatingNavbar (no separate header + subnav)
+  - Content gap changed from `--content-gap` CSS var to simple `pt-4`
+  - Bottom padding `pb-24` for mobile bottom nav space, `lg:pb-0` on desktop
+- Updated `/src/components/providers.tsx`:
+  - Added `FeatureProvider` wrapping `NavigationProvider` (was missing — required for feature-aware nav to work)
+  - Provider order: ThemeProvider > AuthProvider > FeatureProvider > WorkflowProvider > NavigationProvider
+
+Stage Summary:
+- Complete glassmorphism floating nav system: single-bar header, mobile bottom bar with FAB, slide-in drawer
+- All navigation is feature-aware via `useTenantFeatures()` + `filterNav()`
+- Disabled items show Lock icon + "Upgrade" badge across mega menu, drawer, and bottom sheet
+- No sidebar — fully removed
+- All code passes `bun run lint` with zero errors
+- Responsive: desktop shows full floating bar, tablet collapses center nav, mobile uses bottom bar + drawer
+
+---
+Task ID: 9
+Agent: Feature Engineer
+Task: Build Super Admin Feature Control Console
+
+Work Log:
+- Created `/src/lib/features.ts`:
+  - `ALL_FEATURES` — all 40 feature module keys as const array
+  - `FEATURE_LABELS` — human-readable labels for each feature key
+  - `FEATURE_DESCRIPTIONS` — short descriptions for each feature
+  - `FEATURE_GROUPS` — 12 logical groups (delivery, tender, maintenance, resources, assets, inventory, procurement, finance, reports, ai, admin, support) with associated features
+  - `PLAN_FEATURE_MAP` — maps plan names to their included feature sets
+  - `MATRIX_COLUMNS` — 16 condensed columns for the feature matrix table view
+  - `PLAN_BADGE_COLORS` — Tailwind classes for plan badges (Free=slate, Starter=sky, Professional=purple, Enterprise=amber, Custom=rose)
+  - All types exported: `FeatureKey`, `FEATURE_GROUPS`, etc.
+
+- Created `/src/app/api/platform/features/route.ts`:
+  - `GET` endpoint: Lists all tenants with their features. Supports `?tenantId=xxx` for single tenant lookup.
+    - Returns: tenant info (id, slug, name, email, status, tier, limits) + subscription plan info + feature map as Record<string, boolean>
+  - `PATCH` endpoint: Bulk update features for a tenant.
+    - Body: `{ tenantId, features: Record<string, boolean>, updatedBy? }`
+    - Upserts each feature via `db.tenantFeature.upsert`
+    - Creates an `AuditLog` entry for each changed feature with action `feature.enabled` or `feature.disabled`
+    - Compares old vs new values — only creates audit entries for actual changes
+    - Returns `{ message, changedCount }`
+
+- Created `/src/components/platform/feature-control-tab.tsx`:
+  - **Header**: Title "Feature Access Control" with Shield icon, subtitle, refresh button
+  - **Filters**: Search input (company name/slug/email), Plan filter dropdown (All/Free Trial/Starter/Professional/Enterprise/Custom), Status filter (All/Active/Trial/Suspended/Expired/Archived)
+  - **Summary Stats Bar**: Badge for each matrix column showing enabled/total count per column
+  - **Feature Matrix Table**:
+    - Sticky first column (Company Name with avatar, name, slug)
+    - Columns: Company | Plan | Status | 16 feature columns (Projects, Scheduling, Tender, Documents, Maintenance, Assets, Fleet, Inventory, Procurement, Finance, HR, Reports, AI, Admin, Portals, Notifs)
+    - Each feature cell is a shadcn Switch (emerald when ON, slate when OFF)
+    - Sortable columns (Company, Plan, Status) with ArrowUpDown icon
+    - Tooltips on column headers showing full feature label
+    - Clicking a row opens the detail panel
+    - Optimistic updates with loading spinners per cell
+    - Toast notifications on success/error with auto-revert on failure
+  - **Company Detail Panel** (Sheet from right):
+    - Company info section: name, email, plan badge, status dot, user/project/storage counts
+    - Feature progress bar (enabled/total percentage)
+    - Bulk actions: Enable All / Disable All / Apply Plan Template (dropdown + button)
+    - All 40 features organized into 12 groups with icons
+    - Each feature row: toggle switch + label + description + plan inclusion badges
+    - Per-feature loading state during save
+    - Color-coded backgrounds: emerald tint for enabled, muted for disabled
+
+- Updated `/src/app/platform/page.tsx`:
+  - Added `ToggleLeft` icon import from lucide-react
+  - Added `FeatureControlTab` import from `@/components/platform/feature-control-tab`
+  - Added `features` nav item to `navItems` array (between Tenants and Audit Logs)
+  - Added rendering case for `tab === 'features'` in the content area
+
+Stage Summary:
+- Complete Feature Control Console integrated into Platform Console
+- API supports both single-tenant and all-tenant feature queries, with bulk PATCH updates and audit logging
+- Matrix table with 16 key feature columns, sticky company name, sortable, filterable
+- Detail panel shows all 40 features in 12 logical groups with plan template application
+- All toggles use optimistic updates with loading states and toast feedback
+- Dark mode compatible, responsive design with horizontal scroll on mobile
+- All code passes `bun run lint` with zero errors
+

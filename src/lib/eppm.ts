@@ -15,6 +15,107 @@ export type View =
   | 'sso' | 'audit' | 'docs' | 'tickets' | 'customer-portal' | 'technician-portal'
   | 'workflow-engine'
 
+/** Maps each View to its canonical feature key for subscription gating. */
+export const VIEW_FEATURE_MAP: Record<string, string> = {
+  // Dashboard
+  dashboard: 'dashboard',
+
+  // Projects & Scheduling (core project delivery)
+  portfolios: 'projects',
+  programs: 'projects',
+  projects: 'projects',
+  compare: 'projects',
+  whatif: 'projects',
+  wbs: 'projects',
+  activities: 'projects',
+  gantt: 'projects',
+  'critical-path': 'projects',
+  milestones: 'projects',
+  documents: 'projects',
+  risks: 'risks',
+
+  // Project-specific features
+  'site-progress': 'site-progress',
+  submittals: 'submittals',
+  closeout: 'closeout',
+  lookahead: 'lookahead',
+  baselines: 'baselines',
+
+  // Tender & Bid
+  'tender-packages': 'tender',
+  'bid-comparison': 'tender',
+  'award-management': 'tender',
+  'vendor-prequal': 'tender',
+
+  // Quality & HSE
+  quality: 'quality',
+  hse: 'hse',
+  commissioning: 'commissioning',
+
+  // Maintenance
+  maintenance: 'maintenance',
+  complaints: 'complaints',
+  'service-requests': 'complaints',
+  'work-orders': 'work-orders',
+  preventive: 'maintenance',
+  corrective: 'maintenance',
+  predictive: 'maintenance',
+  dispatch: 'maintenance',
+  technicians: 'maintenance',
+  amc: 'maintenance',
+  'workflow-engine': 'workflow-engine',
+
+  // Resources
+  resources: 'resources',
+  workforce: 'hr',
+  employees: 'hr',
+  equipment: 'equipment',
+  vehicles: 'fleet',
+  assets: 'inventory',
+
+  // Inventory
+  stock: 'inventory',
+  warehouses: 'inventory',
+  'stock-movements': 'inventory',
+
+  // Procurement
+  procurement: 'procurement',
+  'purchase-requests': 'procurement',
+  'purchase-orders': 'procurement',
+  suppliers: 'procurement',
+  'goods-receipt': 'procurement',
+
+  // Finance
+  costs: 'costs',
+  evm: 'costs',
+  cashflow: 'costs',
+  'financial-reports': 'costs',
+  changes: 'changes',
+  claims: 'changes',
+  invoices: 'accounts',
+  payments: 'accounts',
+
+  // Reports & Intelligence
+  reports: 'reports',
+  'exec-reports': 'exec-reports',
+  'ai-planner': 'ai-planner',
+
+  // Administration
+  integrations: 'integrations',
+  sso: 'security',
+  audit: 'security',
+  // admin: no feature (gated by tier)
+
+  // Support & Portals
+  docs: 'support',
+  tickets: 'support',
+  'customer-portal': 'portals',
+  'technician-portal': 'portals',
+
+  // Other
+  notifications: 'notifications',
+}
+
 export interface Kpis {
   portfolios: number; programs: number; projects: number; activities: number
   resources: number; risks: number; openRisks: number; highRisks: number

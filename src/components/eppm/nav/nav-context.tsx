@@ -5,6 +5,10 @@ import type { View } from '@/lib/eppm'
 import type { BadgeKey } from '@/lib/navigation'
 import { useDashboardData } from '@/components/eppm/use-data'
 import { useWorkflowSafe } from '@/components/eppm/workflow/workflow-context'
+import { useTenantFeatures } from '@/hooks/use-tenant-features'
+import { useAuth } from '@/components/auth/auth-context'
+import { filterNav } from '@/lib/navigation'
+import type { NavCategory } from '@/lib/navigation'
 
 const FAV_KEY = 'sb:nav:favorites'
 const RECENT_KEY = 'sb:nav:recents'
@@ -20,6 +24,10 @@ interface NavContextValue {
   clearRecents: () => void
   commandOpen: boolean
   setCommandOpen: (o: boolean) => void
+  /** Feature-aware filtered navigation tree */
+  filteredNav: NavCategory[]
+  /** Check if a specific nav feature is enabled */
+  isNavFeatureEnabled: (featureKey?: string) => boolean
 }
 
 const NavContext = createContext<NavContextValue | null>(null)
@@ -38,6 +46,9 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const [favorites, setFavorites] = useState<View[]>([])
   const [recents, setRecents] = useState<View[]>([])
   const [commandOpen, setCommandOpen] = useState(false)
+
+  const { user } = useAuth()
+  const { enabledSet, isSuperAdmin } = useTenantFeatures()
 
   // Hydrate from localStorage after mount (avoids SSR mismatch).
   useEffect(() => {
@@ -84,9 +95,28 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
   const isFavorite = useCallback((v: View) => favorites.includes(v), [favorites])
 
+  // Feature-aware filtered navigation
+  const filteredNav = useMemo<NavCategory[]>(
+    () => filterNav(user?.role, isSuperAdmin ? undefined : enabledSet),
+    [user?.role, isSuperAdmin, enabledSet],
+  )
+
+  const isNavFeatureEnabled = useCallback(
+    (featureKey?: string): boolean => {
+      if (isSuperAdmin) return true
+      if (!featureKey) return true
+      return enabledSet.has(featureKey)
+    },
+    [isSuperAdmin, enabledSet],
+  )
+
   const value = useMemo<NavContextValue>(
-    () => ({ favorites, recents, isFavorite, toggleFavorite, moveFavorite, pushRecent, clearRecents, commandOpen, setCommandOpen }),
-    [favorites, recents, isFavorite, toggleFavorite, moveFavorite, pushRecent, clearRecents, commandOpen],
+    () => ({
+      favorites, recents, isFavorite, toggleFavorite, moveFavorite,
+      pushRecent, clearRecents, commandOpen, setCommandOpen,
+      filteredNav, isNavFeatureEnabled,
+    }),
+    [favorites, recents, isFavorite, toggleFavorite, moveFavorite, pushRecent, clearRecents, commandOpen, filteredNav, isNavFeatureEnabled],
   )
 
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>

@@ -2,12 +2,14 @@
 
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Star, Clock, Sparkles } from 'lucide-react'
+import { Search, Star, Clock, Sparkles, Lock, Crown } from 'lucide-react'
 import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { View } from '@/lib/eppm'
 import type { NavCategory, NavLeaf, BadgeKey } from '@/lib/navigation'
 import { useNav } from '@/components/eppm/nav/nav-context'
+import { useTenantFeatures } from '@/hooks/use-tenant-features'
 import { NotificationBadge } from '@/components/eppm/nav/notification-badge'
 
 interface MegaMenuProps {
@@ -19,7 +21,7 @@ interface MegaMenuProps {
 }
 
 function MegaItem({
-  leaf, active, badgeCount, onSelect, favorite, onToggleFav,
+  leaf, active, badgeCount, onSelect, favorite, onToggleFav, isDisabled,
 }: {
   leaf: NavLeaf
   active: boolean
@@ -27,30 +29,43 @@ function MegaItem({
   onSelect: () => void
   favorite: boolean
   onToggleFav: () => void
+  isDisabled: boolean
 }) {
   const Icon = leaf.icon
   return (
     <div
       role="menuitem"
-      tabIndex={leaf.soon ? -1 : 0}
+      tabIndex={leaf.soon || isDisabled ? -1 : 0}
       onClick={onSelect}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
       className={cn(
         'group/item relative flex items-start gap-2.5 rounded-xl px-2.5 py-2 transition-colors',
-        leaf.soon ? 'cursor-not-allowed opacity-55' : 'cursor-pointer hover:bg-primary/8 focus:bg-primary/10 focus:outline-none',
+        (leaf.soon || isDisabled)
+          ? 'cursor-not-allowed opacity-60'
+          : 'cursor-pointer hover:bg-primary/8 focus:bg-primary/10 focus:outline-none',
         active && 'bg-primary/10 ring-1 ring-primary/25',
       )}
     >
       <div className={cn(
         'mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors',
-        active ? 'border-primary/30 bg-primary/15 text-primary' : 'border-border bg-muted/50 text-muted-foreground group-hover/item:text-primary',
+        active
+          ? 'border-primary/30 bg-primary/15 text-primary'
+          : isDisabled
+            ? 'border-amber-300/50 bg-amber-50/50 text-amber-600 dark:border-amber-700/40 dark:bg-amber-950/30 dark:text-amber-400'
+            : 'border-border bg-muted/50 text-muted-foreground group-hover/item:text-primary',
       )}>
-        <Icon className="h-4 w-4" />
+        {isDisabled ? <Lock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className={cn('truncate text-xs font-semibold', active ? 'text-primary' : 'text-foreground')}>{leaf.label}</span>
           {leaf.soon && <span className="rounded-full bg-muted px-1.5 py-px text-[8px] font-bold uppercase tracking-wide text-muted-foreground">Soon</span>}
+          {isDisabled && !leaf.soon && (
+            <Badge variant="outline" className="gap-0.5 border-amber-300/60 bg-amber-50/80 px-1.5 py-px text-[8px] font-bold text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-400">
+              <Crown className="h-2.5 w-2.5" />
+              Upgrade
+            </Badge>
+          )}
           {badgeCount > 0 && <NotificationBadge count={badgeCount} tone="rose" />}
         </div>
         {leaf.description && <div className="truncate text-[10.5px] leading-tight text-muted-foreground">{leaf.description}</div>}
@@ -59,7 +74,7 @@ function MegaItem({
         {leaf.shortcut && (
           <kbd className="hidden rounded border bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-foreground/70 xl:inline-block">{leaf.shortcut}</kbd>
         )}
-        {leaf.view && (
+        {leaf.view && !isDisabled && !leaf.soon && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleFav() }}
@@ -80,6 +95,7 @@ function MegaItem({
 
 export function MegaMenu({ category, currentView, onNavigate, onClose, badges }: MegaMenuProps) {
   const { isFavorite, toggleFavorite } = useNav()
+  const { isSuperAdmin, isEnabled } = useTenantFeatures()
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -90,6 +106,11 @@ export function MegaMenu({ category, currentView, onNavigate, onClose, badges }:
   const select = (leaf: NavLeaf) => {
     if (leaf.soon || !leaf.view) {
       toast.message(`${leaf.label} is coming soon`, { description: 'This module is part of the roadmap.' })
+      return
+    }
+    // Check if feature-gated and not enabled
+    if (leaf.feature && !isSuperAdmin && !isEnabled(leaf.feature)) {
+      toast.error(`${leaf.label} requires a higher plan`, { description: 'Upgrade your subscription to access this module.' })
       return
     }
     onNavigate(leaf.view)
@@ -119,13 +140,13 @@ export function MegaMenu({ category, currentView, onNavigate, onClose, badges }:
       initial={{ opacity: 0, y: 8, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 6, scale: 0.985 }}
-      transition={{ duration: 0.18, ease: 'easeOut' }}
-      className="w-[min(92vw,880px)] overflow-hidden rounded-3xl border border-border/70 bg-background/85 shadow-2xl backdrop-blur-2xl"
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      className="w-[min(92vw,880px)] overflow-hidden rounded-xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-gray-900/90"
       role="menu"
       aria-label={`${category.label} menu`}
     >
       {/* Header + in-menu search */}
-      <div className="flex items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5">
+      <div className="flex items-center gap-3 border-b border-white/10 bg-muted/30 px-4 py-2.5 dark:border-white/5">
         <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
           <category.icon className="h-4 w-4" />
         </div>
@@ -167,6 +188,7 @@ export function MegaMenu({ category, currentView, onNavigate, onClose, badges }:
                   favorite={leaf.view ? isFavorite(leaf.view) : false}
                   onToggleFav={() => leaf.view && toggleFavorite(leaf.view)}
                   onSelect={() => select(leaf)}
+                  isDisabled={!!(leaf.feature && !isSuperAdmin && !isEnabled(leaf.feature))}
                 />
               ))}
             </div>
@@ -175,14 +197,14 @@ export function MegaMenu({ category, currentView, onNavigate, onClose, badges }:
         {filtered.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center gap-1 py-8 text-center text-muted-foreground">
             <Sparkles className="h-5 w-5 opacity-50" />
-            <span className="text-xs">No items match “{query}”.</span>
+            <span className="text-xs">No items match &ldquo;{query}&rdquo;.</span>
           </div>
         )}
       </div>
 
       {/* Footer hint */}
-      <div className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-4 py-1.5 text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Tab & arrow keys to navigate · Esc to close</span>
+      <div className="flex items-center justify-between border-t border-white/10 bg-muted/20 px-4 py-1.5 text-[10px] text-muted-foreground dark:border-white/5">
+        <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Tab &amp; arrow keys to navigate &middot; Esc to close</span>
         <span className="inline-flex items-center gap-1"><Star className="h-3 w-3" /> Star to pin favorites</span>
       </div>
     </motion.div>

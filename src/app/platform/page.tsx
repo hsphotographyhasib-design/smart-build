@@ -9,8 +9,9 @@ import {
   Building2, Users, CreditCard, Activity, Shield, Settings, FileText, BarChart3,
   Plus, Search, MoreHorizontal, ChevronRight, Globe, Database, AlertTriangle, CheckCircle2,
   XCircle, Pause, Trash2, Eye, TrendingUp, DollarSign, Server, Cpu, HardDrive, Wifi,
-  LogOut, User, Menu, X, RefreshCw, ChevronDown
+  LogOut, User, Menu, X, RefreshCw, ChevronDown, ToggleLeft
 } from 'lucide-react'
+import FeatureControlTab from '@/components/platform/feature-control-tab'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -179,6 +180,7 @@ export default function PlatformConsole() {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'tenants', label: 'Tenants', icon: Building2 },
+    { id: 'features', label: 'Feature Control', icon: ToggleLeft },
     { id: 'audit', label: 'Audit Logs', icon: FileText },
     { id: 'settings', label: 'Platform Settings', icon: Settings },
   ]
@@ -247,6 +249,8 @@ export default function PlatformConsole() {
             <OverviewTab analytics={analytics} tenants={tenants} onNavigateTenants={() => setTab('tenants')} />
           ) : tab === 'tenants' ? (
             <TenantsTab tenants={filtered} search={search} setSearch={setSearch} plans={plans} onCreate={() => setCreateOpen(true)} onView={(t) => setDetailTenant(t)} onStatusChange={handleStatusChange} />
+          ) : tab === 'features' ? (
+            <FeatureControlTab />
           ) : tab === 'audit' ? (
             <AuditTab logs={auditLogs} />
           ) : tab === 'settings' ? (
