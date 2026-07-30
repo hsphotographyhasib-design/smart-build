@@ -186,7 +186,7 @@ export async function PATCH(request: NextRequest) {
       auditLogs.push(
         createAuditLog({
           tenantId,
-          userId: updatedBy || null,
+          userId: updatedBy || undefined,
           userName: updatedBy || 'Super Admin',
           action: newValue ? 'feature.enabled' : 'feature.disabled',
           resource: 'feature',

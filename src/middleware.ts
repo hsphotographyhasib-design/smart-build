@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SESSION_COOKIE, verifySession, isSuperAdminRole } from '@/lib/auth'
 
 // Public paths that don't require auth
-const PUBLIC_PATHS = ['/api/auth', '/api/health', '/api/cms/landing', '/api/cms/newsletter', '/register', '/pricing']
+const PUBLIC_PATHS = ['/api/auth', '/api/health', '/api/features', '/api/platform/plans', '/register', '/pricing']
 const STATIC_EXTENSIONS = ['ico', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'json', 'txt', 'xml', 'webmanifest']
 
 export async function middleware(req: NextRequest) {
@@ -21,8 +21,8 @@ export async function middleware(req: NextRequest) {
   // Admin routes — allow through (own auth handled in admin)
   if (pathname.startsWith('/admin')) return NextResponse.next()
 
-  // Public CMS API endpoints
-  if (pathname.startsWith('/api/cms/landing') || pathname === '/api/cms/newsletter' || pathname.startsWith('/api/cms/testimonials') || pathname.startsWith('/api/cms/faqs') || pathname.startsWith('/api/cms/partners') || pathname.startsWith('/api/cms/blog') || pathname.startsWith('/api/cms/forms') || pathname.startsWith('/api/platform/plans')) return NextResponse.next()
+  // Public API endpoints
+  if (pathname.startsWith('/api/features') || pathname.startsWith('/api/platform/plans')) return NextResponse.next()
 
   // Registration & pricing pages — public
   if (pathname === '/register' || pathname === '/pricing') {
