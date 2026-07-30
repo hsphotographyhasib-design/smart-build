@@ -589,3 +589,29 @@ Stage Summary:
 - Responsive design verified at 375px and 1920px
 - SEO: generateMetadata, OpenGraph, Twitter cards, robots.txt updated
 
+---
+Task ID: 1
+Agent: Main
+Task: Setup Vercel PostgreSQL database, migrate from SQLite, seed data, and deploy
+
+Work Log:
+- Removed old SQLite database (db/custom.db, db/ directory)
+- Installed Vercel CLI v58.4.0 and authenticated with vcp_ token
+- Linked Vercel project to smart-build (prj_pAMmS7ibiIa5SDXXUwZWANvQFhgO)
+- Discovered existing Prisma Postgres store (store_N8dnTfN7Cits9zB7) already configured
+- Updated Prisma schema: provider sqlite → postgresql, added directUrl
+- Simplified lib/db.ts: removed libsql adapter, standard PrismaClient
+- Set up .env and .env.local with PostgreSQL connection strings
+- Added Vercel env vars: NEXTAUTH_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_BASE_URL, DIRECT_URL
+- Updated Vercel build command: npx prisma generate && next build
+- Ran prisma generate and prisma db push (schema already in sync)
+- Seeded database: 1 tenant, 2 users, 6 projects, 5 plans, 5 roles, 34 features, 120+ permissions
+- Pushed to GitHub, fixed deployment error, rolled back, pushed clean commit
+- Verified production deployment: ● Ready, HTTP 200, 155KB response
+
+Stage Summary:
+- Database: Prisma Postgres (db.prisma.io:5432) — alive and seeded
+- Schema: PostgreSQL with 20+ models (multi-tenant SaaS)
+- Data: 1 tenant (Hasanur Jaya), 2 users (Super Admin + Tenant Admin), 6 demo projects
+- Credentials: admin@smartbuild.app/admin123, admin@hasanurjaya.com/tenant123
+- Vercel: Deployed successfully, app.hasanurjaya.com returning 200
