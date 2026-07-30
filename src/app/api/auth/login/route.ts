@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
       redirect: '/app',
     })
   } catch (err) {
-    console.error('Login error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Login error:', msg, err)
+    return NextResponse.json({ error: 'Internal server error', debug: msg }, { status: 500 })
   }
 }
