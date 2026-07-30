@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SESSION_COOKIE, verifySession, isSuperAdminRole } from '@/lib/auth'
 
 // Public paths that don't require auth
-const PUBLIC_PATHS = ['/api/auth', '/api/cms/landing', '/api/cms/newsletter', '/register', '/pricing']
+const PUBLIC_PATHS = ['/api/auth', '/api/health', '/api/cms/landing', '/api/cms/newsletter', '/register', '/pricing']
 const STATIC_EXTENSIONS = ['ico', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'json', 'txt', 'xml', 'webmanifest']
 
 export async function middleware(req: NextRequest) {
