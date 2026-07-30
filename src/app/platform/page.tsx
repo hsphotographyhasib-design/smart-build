@@ -9,7 +9,7 @@ import {
   Building2, Users, CreditCard, Activity, Shield, Settings, FileText, BarChart3,
   Plus, Search, MoreHorizontal, ChevronRight, Globe, Database, AlertTriangle, CheckCircle2,
   XCircle, Pause, Trash2, Eye, TrendingUp, DollarSign, Server, Cpu, HardDrive, Wifi,
-  LogOut, User, Menu, X, RefreshCw, ChevronDown, ToggleLeft
+  LogOut, User, RefreshCw, ChevronDown, ToggleLeft
 } from 'lucide-react'
 import FeatureControlTab from '@/components/platform/feature-control-tab'
 import { Button } from '@/components/ui/button'
@@ -101,8 +101,6 @@ export default function PlatformConsole() {
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [detailTenant, setDetailTenant] = useState<Tenant | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
   // Create tenant form
   const [formName, setFormName] = useState('')
   const [formSlug, setFormSlug] = useState('')
@@ -189,56 +187,54 @@ export default function PlatformConsole() {
   if (!user || user.role !== 'Super Admin') return null
 
   return (
-    <div className="flex h-dvh w-full bg-muted/30 overflow-hidden">
-      {/* Sidebar */}
-      <aside className={cn(
-        'fixed inset-y-0 left-0 z-50 w-64 border-r bg-[#0B2345] text-white flex flex-col transition-transform lg:static lg:translate-x-0',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
-        <div className="flex h-14 items-center gap-3 px-4 border-b border-white/10">
-          <Image src="/brand/smartbuild-app-dark.svg" alt="SmartBuild" width={32} height={32} className="h-8 w-8" />
-          <div>
-            <div className="text-sm font-bold">SmartBuild</div>
-            <div className="text-[10px] text-white/50">Platform Console</div>
-          </div>
-          <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}><X className="h-5 w-5" /></button>
-        </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(item => (
-            <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false) }}
-              className={cn('w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                tab === item.id ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white/90')}>
-              <item.icon className="h-4 w-4" /> {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="border-t border-white/10 p-3 space-y-1">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5A623] text-xs font-bold text-[#0B2345]">SA</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate">{user.name}</div>
-              <div className="text-[10px] text-white/50">Super Admin</div>
+    <div className="min-h-screen w-full bg-muted/30">
+      {/* Floating Top Navigation */}
+      <header className="fixed top-3 left-3 right-3 z-50">
+        <nav className="mx-auto max-w-4xl rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/[0.03] px-3 py-2">
+          <div className="flex items-center gap-2">
+            {/* Logo */}
+            <div className="flex items-center gap-2 mr-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0B2345]">
+                <Image src="/brand/smartbuild-app-dark.svg" alt="SmartBuild" width={18} height={18} className="h-[18px] w-[18px] brightness-0 invert" />
+              </div>
+              <span className="hidden sm:inline text-sm font-bold text-[#0B2345]">SmartBuild</span>
+            </div>
+
+            {/* Nav Pills */}
+            <div className="flex-1 flex items-center gap-1 overflow-x-auto scrollbar-none">
+              {navItems.map(item => (
+                <button key={item.id} onClick={() => setTab(item.id)}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium whitespace-nowrap transition-all duration-200',
+                    tab === item.id
+                      ? 'bg-[#0B2345] text-white shadow-md shadow-[#0B2345]/20'
+                      : 'text-slate-600 hover:bg-slate-100/80'
+                  )}>
+                  <item.icon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* User / Sign Out */}
+            <div className="flex items-center gap-1 ml-2">
+              <Badge variant="outline" className="hidden md:flex gap-1 border-[#F5A623]/40 bg-[#F5A623]/5 text-[#F5A623] text-[10px]">
+                <Shield className="h-3 w-3" /> Super Admin
+              </Badge>
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5A623] text-[10px] font-bold text-[#0B2345]">
+                {user.name?.slice(0, 2).toUpperCase() || 'SA'}
+              </div>
+              <button onClick={logout} className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Sign Out">
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
-          <button onClick={logout} className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/60 hover:bg-white/5 hover:text-red-400">
-            <LogOut className="h-3.5 w-3.5" /> Sign Out
-          </button>
-        </div>
-      </aside>
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+        </nav>
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
-          <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5" /></button>
-          <h1 className="text-lg font-bold">Platform Console</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <Badge variant="outline" className="gap-1 border-[#F5A623] text-[#F5A623]"><Shield className="h-3 w-3" /> Super Admin</Badge>
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+      {/* Main Content Area */}
+      <main className="pt-20 pb-20 md:pb-6 px-4 lg:px-6">
+        <div className="mx-auto max-w-6xl">
           {loading ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -258,6 +254,26 @@ export default function PlatformConsole() {
           ) : null}
         </div>
       </main>
+
+      {/* Mobile Bottom Floating Nav */}
+      <nav className="fixed bottom-3 left-3 right-3 z-50 md:hidden">
+        <div className="mx-auto max-w-md rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/[0.03] px-2 py-1.5">
+          <div className="flex items-center justify-around">
+            {navItems.map(item => (
+              <button key={item.id} onClick={() => setTab(item.id)}
+                className={cn(
+                  'flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-all duration-200',
+                  tab === item.id
+                    ? 'bg-[#0B2345] text-white'
+                    : 'text-slate-500'
+                )}>
+                <item.icon className="h-4 w-4" />
+                <span className="text-[10px] font-medium">{item.label.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
 
       {/* Create Tenant Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
