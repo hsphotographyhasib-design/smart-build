@@ -10,7 +10,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "z-cdn.chatglm.cn",
+      },
     ],
+    qualities: [75, 85, 90],
   },
   reactStrictMode: false,
   allowedDevOrigins: [
