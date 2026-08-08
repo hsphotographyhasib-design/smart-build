@@ -335,3 +335,25 @@
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   }
 }
+
+/* ─── Reduced motion: disable all transitions and animations ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Global: prevent any accidental horizontal scroll ─── */
+html, body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+/* Ensure images can never cause horizontal overflow */
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}

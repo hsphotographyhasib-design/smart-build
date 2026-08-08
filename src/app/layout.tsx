@@ -97,7 +97,7 @@ export default function RootLayout({
         <link rel="icon" href="/brand/smartbuild-circle.svg" sizes="192x192" type="image/svg+xml" />
       </head>
       <body
-        className={`${geistMono.variable} ${inter.variable} ${poppins.variable} ${interTight.variable} antialiased bg-background text-foreground`}
+        className={`${geistMono.variable} ${inter.variable} ${poppins.variable} ${interTight.variable} antialiased bg-background text-foreground overflow-x-clip`}
       >
         <Providers>{children}</Providers>
         <Toaster />
